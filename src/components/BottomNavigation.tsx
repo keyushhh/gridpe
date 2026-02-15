@@ -6,7 +6,8 @@ import navCards from "@/assets/nav-cards.svg";
 import navCardsActive from "@/assets/nav-cards-active.png";
 import navRewards from "@/assets/nav-rewards.svg";
 import navRewardsActive from "@/assets/rewards-filled.svg";
-import navMore from "@/assets/nav-more.svg";
+import navMore from "@/assets/more.svg";
+import navMoreFilled from "@/assets/more-filled.svg";
 import navbarOverlay from "@/assets/navbar-overlay.png";
 
 interface BottomNavigationProps {
@@ -99,13 +100,13 @@ const BottomNavigation = ({ activeTab }: BottomNavigationProps) => {
 
       {/* More */}
       <button
-        // Assuming more route exists or does nothing for now
+        onClick={() => navigate("/more")}
         className="flex flex-col items-center gap-1 min-w-[60px]"
       >
         <img
-          src={navMore}
+          src={activeTab === "more" ? navMoreFilled : navMore}
           alt="More"
-          className={`w-6 h-6 object-contain ${activeTab === "more" ? "" : "opacity-40 grayscale"}`}
+          className="w-6 h-6 object-contain"
         />
         <span
           className={`text-[11px] font-medium ${activeTab === "more" ? "text-white" : "text-white/40"

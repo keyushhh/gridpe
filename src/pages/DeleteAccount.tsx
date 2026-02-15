@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import radioOn from "@/assets/radio-on.png";
@@ -12,17 +12,19 @@ type OptionType = 'deactivate' | 'delete';
 
 const DeleteAccount = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedOption, setSelectedOption] = useState<OptionType>('deactivate');
 
   const handleGoBack = () => {
-    navigate("/security-dashboard");
+    navigate(-1);
   };
 
   const handleProceed = () => {
+    const state = { originPath: (location.state as any)?.originPath };
     if (selectedOption === 'deactivate') {
-      navigate('/confirm-deactivation');
+      navigate('/confirm-deactivation', { state });
     } else {
-      navigate('/delete-account-reasons');
+      navigate('/delete-account-reasons', { state });
     }
   };
 
@@ -44,27 +46,27 @@ const DeleteAccount = () => {
         className={`w-full relative px-[10px] ${paddingY} flex items-start gap-[14px] cursor-pointer`}
         onClick={() => setSelectedOption(type)}
         style={{
-            backgroundImage: `url(${optionContainerBg})`,
-            backgroundSize: '100% 100%',
-            backgroundRepeat: 'no-repeat'
+          backgroundImage: `url(${optionContainerBg})`,
+          backgroundSize: '100% 100%',
+          backgroundRepeat: 'no-repeat'
         }}
       >
         {/* Radio Button */}
         <div className="shrink-0 mt-[2px]">
-            <img
-                src={isSelected ? radioOn : radioOff}
-                alt={isSelected ? "Selected" : "Not Selected"}
-                className="w-[18px] h-[18px] object-contain"
-            />
+          <img
+            src={isSelected ? radioOn : radioOff}
+            alt={isSelected ? "Selected" : "Not Selected"}
+            className="w-[18px] h-[18px] object-contain"
+          />
         </div>
 
         {/* Content */}
         <div className="flex flex-col">
-            <h3 className="text-white text-[14px] font-medium font-sans leading-none">{title}</h3>
-            <div className="h-[9.5px]" />
-            <p className="text-[#C4C4C4] text-[12px] font-normal font-sans leading-relaxed">
-                {description}
-            </p>
+          <h3 className="text-white text-[14px] font-medium font-sans leading-none">{title}</h3>
+          <div className="h-[9.5px]" />
+          <p className="text-[#C4C4C4] text-[12px] font-normal font-sans leading-relaxed">
+            {description}
+          </p>
         </div>
       </div>
     );
@@ -97,31 +99,31 @@ const DeleteAccount = () => {
 
         {/* Text Group Wrapper */}
         <div className="flex flex-col mt-[46px] mb-[36px]">
-             {/* Secondary Header */}
-            <h2 className="text-white text-[18px] font-bold font-sans">What would you like to do?</h2>
+          {/* Secondary Header */}
+          <h2 className="text-white text-[18px] font-bold font-sans">What would you like to do?</h2>
 
-            {/* Subheader */}
-            <div className="h-[6px]" />
-            <p className="text-[#C4C4C4] text-[14px] font-normal font-sans">
-                You can pause your account or go nuclear. Up to you.
-            </p>
+          {/* Subheader */}
+          <div className="h-[6px]" />
+          <p className="text-[#C4C4C4] text-[14px] font-normal font-sans">
+            You can pause your account or go nuclear. Up to you.
+          </p>
         </div>
 
         {/* Options */}
         <div className="flex flex-col gap-[10px]">
-            <OptionCard
-                type="deactivate"
-                title="Deactivate Account"
-                description="Temporarily disable your account. You can come back anytime. Recommended if you’re just taking a break. You can actually say, “we were on a break!” and mean it."
-                paddingY="py-[13px]"
-            />
+          <OptionCard
+            type="deactivate"
+            title="Deactivate Account"
+            description="Temporarily disable your account. You can come back anytime. Recommended if you’re just taking a break. You can actually say, “we were on a break!” and mean it."
+            paddingY="py-[13px]"
+          />
 
-            <OptionCard
-                type="delete"
-                title="Delete Account"
-                description="This will wipe your account, order history, and wallet. You won’t be able to reverse this."
-                paddingY="py-[12px]"
-            />
+          <OptionCard
+            type="delete"
+            title="Delete Account"
+            description="This will wipe your account, order history, and wallet. You won’t be able to reverse this."
+            paddingY="py-[12px]"
+          />
         </div>
       </div>
 
@@ -129,28 +131,28 @@ const DeleteAccount = () => {
       <div className="px-5 pb-10 mt-auto flex flex-col gap-3">
         {/* Proceed Button */}
         <button
-            className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
-            onClick={handleProceed}
+          className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
+          onClick={handleProceed}
         >
-            <img
-                src={buttonRemoveCard}
-                alt="Proceed"
-                className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-            />
-            <span className="relative z-10 text-white text-[16px] font-semibold font-sans">Proceed</span>
+          <img
+            src={buttonRemoveCard}
+            alt="Proceed"
+            className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+          />
+          <span className="relative z-10 text-white text-[16px] font-semibold font-sans">Proceed</span>
         </button>
 
         {/* Cancel Button */}
         <button
-            className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
-            onClick={handleGoBack}
+          className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
+          onClick={handleGoBack}
         >
-            <img
-                src={buttonCancel}
-                alt="Cancel"
-                className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-            />
-             <span className="relative z-10 text-white text-[16px] font-semibold font-sans">Cancel</span>
+          <img
+            src={buttonCancel}
+            alt="Cancel"
+            className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+          />
+          <span className="relative z-10 text-white text-[16px] font-semibold font-sans">Cancel</span>
         </button>
       </div>
     </div>

@@ -34,17 +34,17 @@ const DeleteAccountOTP = () => {
   };
 
   const handleCancel = () => {
-    navigate("/security-dashboard");
+    navigate((location.state as any)?.originPath || "/home");
   };
 
   const handleDelete = () => {
     if (otp.length === 6) {
-        // Here we would actually call the API to delete the account
-        console.log("Deleting account...", { ...location.state, otp });
+      // Here we would actually call the API to delete the account
+      console.log("Deleting account...", { ...location.state, otp });
 
-        // Navigate to the "Account Deleted" intermediate screen
-        // Actual deletion happens there after a timeout if not cancelled
-        navigate("/account-deleted");
+      // Navigate to the "Account Deleted" intermediate screen
+      // Actual deletion happens there after a timeout if not cancelled
+      navigate("/account-deleted");
     }
   };
 
@@ -85,47 +85,47 @@ const DeleteAccountOTP = () => {
 
         {/* OTP Input */}
         <div className="mb-8 w-full flex flex-col items-center">
-            <div className="w-full text-left mb-[24px]">
-                <h3 className="text-[#707070] text-[14px] font-bold font-sans uppercase mb-[6px]">
-                    CONFIRM VERIFICATION CODE
-                </h3>
-                <p className="text-white text-[14px] font-italic font-sans italic">
-                    Enter the digits we sent. Or don’t. There’s still time to turn around.
-                </p>
-            </div>
+          <div className="w-full text-left mb-[24px]">
+            <h3 className="text-[#707070] text-[14px] font-bold font-sans uppercase mb-[6px]">
+              CONFIRM VERIFICATION CODE
+            </h3>
+            <p className="text-white text-[14px] font-italic font-sans italic">
+              Enter the digits we sent. Or don’t. There’s still time to turn around.
+            </p>
+          </div>
 
-            <InputOTP maxLength={6} value={otp} onChange={setOtp}>
-                <InputOTPGroup className="gap-2">
-                    {[0, 1, 2, 3, 4, 5].map((index) => (
-                        <InputOTPSlot
-                            key={index}
-                            index={index}
-                            className="w-[52px] h-[68px] rounded-[7px] bg-[#191919]/30 border border-white/20 text-white text-[24px] font-bold"
-                            style={{
-                                // Add styling for active/filled states if needed
-                            }}
-                        />
-                    ))}
-                </InputOTPGroup>
-            </InputOTP>
+          <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+            <InputOTPGroup className="gap-2">
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <InputOTPSlot
+                  key={index}
+                  index={index}
+                  className="w-[52px] h-[68px] rounded-[7px] bg-[#191919]/30 border border-white/20 text-white text-[24px] font-bold"
+                  style={{
+                    // Add styling for active/filled states if needed
+                  }}
+                />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
 
-            {/* Helper Links - Below Input */}
-            <div className="flex justify-between w-full max-w-[364px] mt-4 px-1">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-[14px] font-sans text-[#5260FE] underline opacity-80"
-                >
-                    Wrong number? Fix it here.
-                </button>
+          {/* Helper Links - Below Input */}
+          <div className="flex justify-between w-full max-w-[364px] mt-4 px-1">
+            <button
+              onClick={() => navigate(-1)}
+              className="text-[14px] font-sans text-[#5260FE] underline opacity-80"
+            >
+              Wrong number? Fix it here.
+            </button>
 
-                <button
-                    onClick={handleResend}
-                    disabled={!canResend}
-                    className={`text-[14px] font-sans ${canResend ? 'text-[#5260FE]' : 'text-white/40'}`}
-                >
-                    {canResend ? "Resend OTP" : `Resend OTP in ${timeLeft}s`}
-                </button>
-            </div>
+            <button
+              onClick={handleResend}
+              disabled={!canResend}
+              className={`text-[14px] font-sans ${canResend ? 'text-[#5260FE]' : 'text-white/40'}`}
+            >
+              {canResend ? "Resend OTP" : `Resend OTP in ${timeLeft}s`}
+            </button>
+          </div>
         </div>
 
       </div>
@@ -133,20 +133,19 @@ const DeleteAccountOTP = () => {
       {/* Footer Button */}
       <div className="px-5 pb-10 mt-auto flex flex-col gap-3">
         <button
-            className={`w-full h-[48px] relative flex items-center justify-center transition-transform ${
-                !isComplete ? "opacity-50 grayscale pointer-events-none" : "active:scale-95"
+          className={`w-full h-[48px] relative flex items-center justify-center transition-transform ${!isComplete ? "opacity-50 grayscale pointer-events-none" : "active:scale-95"
             }`}
-            onClick={handleDelete}
-            disabled={!isComplete}
+          onClick={handleDelete}
+          disabled={!isComplete}
         >
-            <img
-                src={buttonRemoveCard}
-                alt="Delete Account"
-                className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-            />
-            <span className="relative z-10 text-white text-[16px] font-semibold font-sans">
-                I'll Miss You
-            </span>
+          <img
+            src={buttonRemoveCard}
+            alt="Delete Account"
+            className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+          />
+          <span className="relative z-10 text-white text-[16px] font-semibold font-sans">
+            I'll Miss You
+          </span>
         </button>
 
         {/* Cancel */}

@@ -41,7 +41,7 @@ const DeleteAccountMobile = () => {
   };
 
   const handleCancel = () => {
-    navigate("/security-dashboard");
+    navigate((location.state as any)?.originPath || "/home");
   };
 
   return (
@@ -79,43 +79,42 @@ const DeleteAccountMobile = () => {
 
         {/* Mobile Input */}
         <div className="space-y-2">
-            <h3 className="text-[#707070] text-[14px] font-bold font-sans uppercase mb-[6px]">
-                CONFIRM MOBILE NUMBER
-            </h3>
-            <p className="text-white text-[14px] font-italic font-sans italic mb-[6px]">
-                We won’t call. We won’t cry. We just need to know if it’s really you.
-            </p>
-            <div
-                className={`w-full h-[48px] rounded-full flex items-center px-6 justify-between border transition-all duration-200 ${
-                  error ? "border-[#FF3B30] bg-[#FF3B30]/10" : "border-transparent"
-                }`}
-                style={{
-                    backgroundImage: error ? undefined : `url(${inputFieldBg})`,
-                    backgroundSize: '100% 100%',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundColor: error ? undefined : 'transparent'
+          <h3 className="text-[#707070] text-[14px] font-bold font-sans uppercase mb-[6px]">
+            CONFIRM MOBILE NUMBER
+          </h3>
+          <p className="text-white text-[14px] font-italic font-sans italic mb-[6px]">
+            We won’t call. We won’t cry. We just need to know if it’s really you.
+          </p>
+          <div
+            className={`w-full h-[48px] rounded-full flex items-center px-6 justify-between border transition-all duration-200 ${error ? "border-[#FF3B30] bg-[#FF3B30]/10" : "border-transparent"
+              }`}
+            style={{
+              backgroundImage: error ? undefined : `url(${inputFieldBg})`,
+              backgroundSize: '100% 100%',
+              backgroundRepeat: 'no-repeat',
+              backgroundColor: error ? undefined : 'transparent'
+            }}
+          >
+            <div className="flex items-center gap-4 flex-1">
+              <span className="text-white/60 text-[14px]">+91</span>
+              <div className="h-4 w-px bg-white/10"></div>
+              <input
+                type="tel"
+                value={mobile}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setMobile(val);
                 }}
-            >
-                <div className="flex items-center gap-4 flex-1">
-                    <span className="text-white/60 text-[14px]">+91</span>
-                    <div className="h-4 w-px bg-white/10"></div>
-                    <input
-                        type="tel"
-                        value={mobile}
-                        onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                            setMobile(val);
-                        }}
-                        placeholder="9876543210"
-                        className="bg-transparent border-none outline-none text-white text-[14px] w-full placeholder:text-white/20 font-sans tracking-wide"
-                    />
-                </div>
+                placeholder="9876543210"
+                className="bg-transparent border-none outline-none text-white text-[14px] w-full placeholder:text-white/20 font-sans tracking-wide"
+              />
             </div>
-            {error && (
-                <p className="text-[#FF3B30] text-[12px] font-medium font-sans px-4">
-                    {error}
-                </p>
-            )}
+          </div>
+          {error && (
+            <p className="text-[#FF3B30] text-[12px] font-medium font-sans px-4">
+              {error}
+            </p>
+          )}
         </div>
       </div>
 

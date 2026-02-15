@@ -44,6 +44,7 @@ import OrderCashSummary from "./pages/OrderCashSummary";
 import OrderHistory from "./pages/OrderHistory";
 import OrderDetails from "./pages/OrderDetails";
 import ScheduleDelivery from "./pages/ScheduleDelivery";
+import SavedAddresses from "./pages/SavedAddresses";
 import AddAddress from "./pages/AddAddress";
 import AddAddressDetails from "./pages/AddAddressDetails";
 import OrderCancelled from "./pages/OrderCancelled";
@@ -78,6 +79,7 @@ import NeedHelp from "./pages/NeedHelp";
 import HelpReportSuccess from "./pages/HelpReportSuccess";
 import Rewards from "./pages/Rewards";
 import LegalPage from "./pages/LegalPage";
+import MorePage from "@/pages/MorePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -181,8 +183,8 @@ const App = () => {
                 <Route path="/order-history" element={<OrderHistory />} />
                 <Route path="/order-details/:orderId" element={<OrderDetails />} />
                 <Route path="/schedule-delivery" element={<ScheduleDelivery />} />
+                <Route path="/saved-addresses" element={<SavedAddresses />} />
                 <Route path="/add-address" element={<AddAddress />} />
-                <Route path="/add-address-details" element={<AddAddressDetails />} />
                 <Route path="/order-cancelled" element={<OrderCancelled />} />
                 <Route path="/order-tracking" element={<OrderTracking />} />
                 <Route path="/wallet" element={<Wallet />} />
@@ -215,6 +217,7 @@ const App = () => {
                 <Route path="/rewards" element={<Rewards />} />
                 <Route path="/legal/privacy" element={<LegalPage type="privacy" />} />
                 <Route path="/legal/terms" element={<LegalPage type="terms" />} />
+                <Route path="/more" element={<MorePage />} />
                 <Route path="/auth/v1/callback" element={<AuthCallback />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

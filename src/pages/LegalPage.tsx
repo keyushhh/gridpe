@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { User, Session } from "@supabase/supabase-js";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import tncBg from "@/assets/tnc-bg.png";
 import tncAcceptedBg from "@/assets/tnc-accepted.png";
 
 interface LegalContent {
+    id: string;
     content: string;
     title: string;
     updatedAt: string;
@@ -15,10 +17,15 @@ interface LegalContent {
 
 const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [data, setData] = useState<LegalContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const isFromMore = location.state?.fromMore === true;
     const [isAccepted, setIsAccepted] = useState(false);
+    const [hasSession, setHasSession] = useState(false);
+    const [isCheckingConsent, setIsCheckingConsent] = useState(true);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -28,17 +35,44 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             const title = type === "privacy" ? "Privacy Policy" : "Terms & Conditions";
 
             try {
-                const { data: result, error: fetchError } = await supabase
+                // Get current session
+                const { data: { session } } = await supabase.auth.getSession();
+                console.log("LegalPage: Current session user:", session?.user?.id);
+                setHasSession(!!session?.user);
+
+                const { data: results, error: fetchError } = await supabase
                     .from(table)
-                    .select("content, created_at")
+                    .select("*")
                     .order("created_at", { ascending: false })
-                    .limit(1)
-                    .single();
+                    .limit(1);
 
                 if (fetchError) {
-                    console.error(`Error fetching ${type}:`, fetchError);
-                    setError(`Failed to load ${title}. Please try again later.`);
+                    console.error(`Error fetching ${type}: `, fetchError);
+                    setError(`Failed to load ${title}. ${fetchError.message}`);
+                } else if (!results || results.length === 0) {
+                    setError(`No ${title} content found in the database.`);
                 } else {
+                    const result = results[0];
+                    const docId = result.id || result.created_at;
+
+                    // Check if user has already accepted this version
+                    if (session?.user) {
+                        const { data: consent, error: consentError } = await supabase
+                            .from('user_legal_consents')
+                            .select('id')
+                            .eq('user_id', session.user.id)
+                            .eq('document_type', type)
+                            .eq('document_id', docId)
+                            .maybeSingle();
+
+                        if (consentError) console.error("LegalPage: Error checking consent:", consentError);
+                        console.log(`LegalPage: Consent record for ${type}:`, consent);
+                        setIsAccepted(!!consent);
+                    } else {
+                        setIsAccepted(false);
+                    }
+                    setIsCheckingConsent(false);
+
                     // Format date: 02 August, 2025
                     const date = new Date(result.created_at);
                     const formattedDate = date.toLocaleDateString('en-GB', {
@@ -48,6 +82,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                     });
 
                     setData({
+                        id: docId,
                         content: result.content,
                         title: title,
                         updatedAt: formattedDate
@@ -64,7 +99,27 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
         fetchContent();
     }, [type]);
 
-    const handleAccept = () => {
+    const handleAccept = async () => {
+        if (!data) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session?.user) {
+            // Save consent to DB
+            const { error: consentError } = await supabase
+                .from('user_legal_consents')
+                .upsert({
+                    user_id: session.user.id,
+                    document_type: type,
+                    document_id: data.id,
+                    accepted_at: new Date().toISOString()
+                }, { onConflict: 'user_id,document_type,document_id' });
+
+            if (consentError) {
+                console.error("LegalPage: Error saving consent:", consentError);
+            }
+        }
+
         if (type === "terms" && !isAccepted) {
             setIsAccepted(true);
         } else {
@@ -72,17 +127,33 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
         }
     };
 
-    const handleDecline = () => {
-        navigate(-1);
+    const handleDecline = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            // Log out user if they decline after logging in
+            await supabase.auth.signOut();
+            localStorage.clear();
+            navigate("/");
+        } else {
+            navigate(-1);
+        }
     };
+
+    // Priority:
+    // 1. If actually accepted in DB -> show Accepted UI (tagline + tnc-accepted bg)
+    // 2. If NOT accepted and has session -> show Actions (Accept/Decline buttons)
+    // 3. If NOT accepted and NO session -> show standard intent text (Onboarding)
+
+    const showAcceptedUI = isAccepted;
+    const showActions = hasSession && !isAccepted;
 
     const isTnc = type === "terms";
     const containerBg = isTnc
-        ? (isAccepted ? tncAcceptedBg : tncBg)
+        ? (showAcceptedUI ? tncAcceptedBg : tncBg)
         : "rgba(255, 255, 255, 0.03)";
 
     const containerHeight = isTnc
-        ? (isAccepted ? "678px" : "573px")
+        ? (showAcceptedUI ? "678px" : "573px")
         : "auto";
 
     return (
@@ -111,8 +182,8 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
 
             {/* Hero Text */}
             <div className="px-4 mt-8 mb-6">
-                <p className="text-muted-foreground text-[14px] leading-snug font-normal animate-fade-in" key={isAccepted ? "accepted" : "initial"}>
-                    {isAccepted
+                <p className="text-muted-foreground text-[14px] leading-snug font-normal animate-fade-in" key={showAcceptedUI ? "accepted" : "initial"}>
+                    {showAcceptedUI
                         ? "You’re all set — let’s make money moves."
                         : "Before we roll, take a minute to read and agree to the boring (but important) stuff."
                     }
@@ -171,7 +242,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             </div>
 
             {/* Bottom Actions */}
-            {!isAccepted && (
+            {showActions && (
                 <div className="px-4 pb-8 pt-2 flex gap-4 animate-fade-in justify-center">
                     <Button
                         variant="outline"
@@ -223,7 +294,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
           background: rgba(255, 255, 255, 0.1);
           border-radius: 10px;
         }
-      `}} />
+`}} />
         </div>
     );
 };
