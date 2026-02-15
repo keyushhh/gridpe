@@ -352,7 +352,7 @@ const AddAddressDetails = () => {
                                 <button
                                     key={tag.label}
                                     onClick={() => handleTagClick(tag.label)}
-                                    className="relative flex items-center justify-center px-4 h-[32px] rounded-full transition-all border border-white/20"
+                                    className="relative flex items-center justify-center px-4 h-[28px] rounded-full transition-all border border-white/20 font-satoshi"
                                     style={{
                                         backgroundColor: isSelected ? "transparent" : "rgba(255,255,255,0.05)",
                                     }}
