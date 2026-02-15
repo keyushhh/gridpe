@@ -17,6 +17,7 @@ import shareIcon from "@/assets/share.svg";
 import deleteIcon from "@/assets/delete.svg";
 import popBgDefault from "@/assets/pop-bg-default.png";
 import buttonCancelWide from "@/assets/button-cancel-wide.png";
+import searchBg from "@/assets/search-bg.png";
 
 const SavedAddresses = () => {
     const navigate = useNavigate();
@@ -98,7 +99,14 @@ const SavedAddresses = () => {
 
             {/* Search Bar */}
             <div className="relative z-10 px-5 mb-6">
-                <div className="relative h-12 flex items-center bg-white/5 border border-white/10 rounded-full px-4 backdrop-blur-md">
+                <div
+                    className="relative h-12 flex items-center rounded-full px-4 backdrop-blur-md"
+                    style={{
+                        backgroundImage: `url(${searchBg})`,
+                        backgroundSize: "100% 100%",
+                        backgroundRepeat: "no-repeat",
+                    }}
+                >
                     <Search className="w-5 h-5 text-white/50 mr-3" />
                     <input
                         type="text"

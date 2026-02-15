@@ -185,6 +185,7 @@ const App = () => {
                 <Route path="/schedule-delivery" element={<ScheduleDelivery />} />
                 <Route path="/saved-addresses" element={<SavedAddresses />} />
                 <Route path="/add-address" element={<AddAddress />} />
+                <Route path="/add-address-details" element={<AddAddressDetails />} />
                 <Route path="/order-cancelled" element={<OrderCancelled />} />
                 <Route path="/order-tracking" element={<OrderTracking />} />
                 <Route path="/wallet" element={<Wallet />} />

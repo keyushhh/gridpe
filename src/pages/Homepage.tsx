@@ -58,6 +58,7 @@ const Homepage = () => {
   const [isRiderAssigned, setIsRiderAssigned] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
+  const [hasSavedAddresses, setHasSavedAddresses] = useState<boolean>(false);
 
   // Map State
   const [viewState, setViewState] = useState({
@@ -78,10 +79,20 @@ const Homepage = () => {
         }
       }
 
-      // Fetch Orders
+      // Fetch Orders and Addresses
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         try {
+          // Check for saved addresses
+          const { count, error: addrError } = await supabase
+            .from('addresses')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', session.user.id);
+
+          if (!addrError) {
+            setHasSavedAddresses((count || 0) > 0);
+          }
+
           const activeOrders = await fetchActiveOrders(session.user.id);
           // Homepage only shows one active order banner (the latest one)
           setActiveOrder(activeOrders.length > 0 ? activeOrders[0] : null);
@@ -89,7 +100,7 @@ const Homepage = () => {
           const recent = await fetchRecentOrders(session.user.id);
           setTransactionHistory(recent);
         } catch (e) {
-          console.error("Failed to fetch orders", e);
+          console.error("Failed to fetch data", e);
         }
       }
     };
@@ -328,7 +339,7 @@ const Homepage = () => {
 
             <button
               onClick={() => {
-                if (savedAddress) {
+                if (hasSavedAddresses) {
                   setIsAddressSheetOpen(true);
                 } else {
                   navigate('/add-address');
