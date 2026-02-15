@@ -276,7 +276,7 @@ const AddAddressDetails = () => {
                 className="flex-1 overflow-y-auto pb-10 relative z-10 font-sans"
                 onScroll={handleScroll}
             >
-                <div className="safe-area-top pt-6 px-5">
+                <div className="pt-[24px] px-5">
                     {/* Header */}
                     <div
                         className="flex items-center mb-[44px] sticky top-0 z-50"

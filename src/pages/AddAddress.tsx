@@ -368,7 +368,7 @@ const AddAddress = () => {
             paddingBottom: "24px"
           }}
         >
-          <div className="safe-area-top pt-6 px-5">
+          <div className="pt-[24px] px-5">
             {/* Header */}
             <div className="flex items-center">
               <button
