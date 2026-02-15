@@ -8,7 +8,7 @@ import { createAddress, updateAddress, Address } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 
 // Assets
-import topAddressContainerBg from "@/assets/top-address-container.png";
+import addressContainerBg from "@/assets/address-container.png";
 import selectedTagBg from "@/assets/selected.png";
 import homeIcon from "@/assets/HomeTag.svg";
 import workIcon from "@/assets/Work.svg";
@@ -279,7 +279,7 @@ const AddAddressDetails = () => {
                 <div className="pt-[24px] px-5">
                     {/* Header */}
                     <div
-                        className="flex items-center mb-[44px] sticky top-0 z-50"
+                        className="flex items-center sticky top-0 z-50"
                         style={{ opacity: headerOpacity, pointerEvents: headerOpacity === 0 ? 'none' : 'auto' }}
                     >
                         <button
@@ -288,56 +288,63 @@ const AddAddressDetails = () => {
                         >
                             <ChevronLeft className="w-6 h-6 text-white" />
                         </button>
-                        <h1 className="flex-1 text-center text-lg font-medium pr-10">
-                            {isEditMode ? "Edit Address" : "Address Details"}
+                        <h1 className="flex-1 text-center text-[22px] font-medium font-satoshi pr-10">
+                            Add New Address
                         </h1>
                     </div>
 
                     {/* Address Container */}
                     <div
-                        className="relative w-full rounded-[12px] p-[11px] mb-[12px]"
+                        className="relative w-full rounded-[12px] p-[11px] mb-[12px] mt-[44px]"
                         style={{ height: "88px" }}
                     >
                         {/* Background Image */}
                         <img
-                            src={topAddressContainerBg}
+                            src={addressContainerBg}
                             alt="Background"
                             className="absolute inset-0 w-full h-full object-cover rounded-[12px] z-0 pointer-events-none"
                         />
 
-                        <div className="relative z-10 flex flex-col justify-between h-full">
+                        <div className="relative z-10 flex flex-col items-start h-full">
                             {/* Top Row: City/Country + Change Button */}
-                            <div className="flex justify-between items-start">
-                                <span className="font-bold text-[16px] truncate pr-2">
+                            <div className="flex justify-between items-center w-full">
+                                <span className="font-bold text-[16px] truncate pr-2 font-satoshi">
                                     {initialState ? `${initialState.city}, India` : "Location Details"}
                                 </span>
                                 <button
                                     onClick={() => navigate(-1)}
-                                    className="flex items-center justify-center bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
+                                    className="flex items-center justify-center transition-colors font-satoshi"
                                     style={{
                                         width: "67px",
                                         height: "22px",
-                                        borderRadius: "9999px",
+                                        borderRadius: "100px",
+                                        background: "rgba(7, 7, 7, 0.84)",
+                                        backdropFilter: "blur(25.02px)",
+                                        border: "0.63px solid rgba(255, 255, 255, 0.12)", // Approximate gradient border
+                                        padding: "4px 12px"
                                     }}
                                 >
                                     <span className="text-[12px] font-medium">Change</span>
                                 </button>
                             </div>
 
-                            {/* Bottom Row: Full Address */}
-                            <p className="text-[12px] font-regular text-gray-300 line-clamp-2 mt-auto">
+                            {/* Bottom Row: Full Address - 15px below top row */}
+                            <p
+                                className="text-[12px] font-regular text-gray-300 font-satoshi mt-[15px]"
+                                style={{ width: "287px" }}
+                            >
                                 {displayAddress}
                             </p>
                         </div>
                     </div>
 
                     {/* Helper Text */}
-                    <p className="text-[12px] font-regular text-gray-400 mb-[12px]">
+                    <p className="text-[12px] font-regular text-[#FFFFFF] mb-[12px] font-satoshi">
                         A detailed address will help our delivery partner reach your doorstep with ease
                     </p>
 
                     {/* Tags Section */}
-                    <h2 className="text-[14px] font-medium mb-[8px]">Save address as<span className="text-[#FF3B30] ml-0.5">*</span></h2>
+                    <h2 className="text-[14px] font-medium mb-[8px] mt-[22px] font-satoshi">Save address as<span className="text-[#FF3B30] ml-0.5">*</span></h2>
                     <div className="flex flex-wrap gap-2 mb-[32px]">
                         {tags.map((tag) => {
                             const isSelected = selectedTag === tag.label;
