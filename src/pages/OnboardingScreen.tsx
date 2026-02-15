@@ -22,8 +22,10 @@ import { hashMpin } from "@/utils/cryptoUtils";
 import { supabase } from "@/lib/supabase";
 import { Capacitor } from "@capacitor/core";
 import { Provider, User } from "@supabase/supabase-js";
+import { useSignIn, useUser as useClerkUser } from "@clerk/clerk-react";
 
 const OnboardingScreen = () => {
+
   const navigate = useNavigate();
   const { setPhoneNumber: savePhoneNumber, setMpin: saveMpin, setBiometricEnabled: saveBiometricEnabled, setProfile, profile, mpin: storedMpin, resetForDemo } = useUser();
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -33,6 +35,9 @@ const OnboardingScreen = () => {
   const [showMpinLogin, setShowMpinLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const { signIn } = useSignIn();
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useClerkUser();
+
 
   // Validation State
   const [phoneError, setPhoneError] = useState("");
@@ -90,7 +95,40 @@ const OnboardingScreen = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Clerk Session Handling
+  useEffect(() => {
+    if (isClerkLoaded && clerkUser) {
+      const handleClerkSession = async () => {
+        console.log("Clerk User found in Onboarding:", clerkUser.id, clerkUser.primaryEmailAddress?.emailAddress);
+
+        // Map Clerk User to a format similar to Supabase User for handleSession
+        const mappedUser: any = {
+          id: clerkUser.id,
+          email: clerkUser.primaryEmailAddress?.emailAddress,
+          user_metadata: {
+            full_name: clerkUser.fullName,
+            name: clerkUser.fullName,
+          },
+          // Clerk users might not have phone numbers if logged in via Google
+          phone: clerkUser.primaryPhoneNumber?.phoneNumber || null
+        };
+
+        console.log("Passing mapped Clerk user to handleSession...");
+        try {
+          await handleSession(mappedUser, true);
+        } catch (err) {
+          console.error("Error in handleSession for Clerk user:", err);
+          setIsAuthChecking(false);
+        }
+      };
+
+      handleClerkSession();
+    }
+  }, [clerkUser, isClerkLoaded]);
+
+
   // Validation Logic
+
   useEffect(() => {
     // Reset success/error on change
     setMpinSuccess(false);
@@ -400,7 +438,6 @@ const OnboardingScreen = () => {
       setIsLoading(false);
     }
   };
-
   const handleLoginMpinVerification = async () => {
     if (mpin.length < 4) return;
     setIsLoading(true);
@@ -452,6 +489,7 @@ const OnboardingScreen = () => {
   };
 
   const handleSocialLogin = async (providerName: string) => {
+
     console.log(`${providerName} Login clicked`);
 
     let provider: Provider | undefined;
@@ -461,7 +499,7 @@ const OnboardingScreen = () => {
       provider = 'x' as Provider;
     }
 
-    if (provider) {
+    if (providerName === "Google" || provider) {
       try {
         const isNative = Capacitor.isNativePlatform();
         let redirectTo: string;
@@ -476,15 +514,31 @@ const OnboardingScreen = () => {
             : `${window.location.origin}/#/auth/v1/callback`;
         }
 
-
-
         if (import.meta.env.DEV) {
           console.log("[Diagnostic] VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
-          console.log(`[Diagnostic] Initiating ${provider} login with redirect: ${redirectTo}`);
+          console.log(`[Diagnostic] Initiating ${providerName} login with redirect: ${redirectTo}`);
         }
 
+        if (providerName === "Google") {
+          if (!signIn) return;
+          try {
+            const absoluteRedirectUrl = window.location.origin + window.location.pathname + "#/auth/v1/callback";
+            console.log("Clerk redirecting to:", absoluteRedirectUrl);
+            await signIn.authenticateWithRedirect({
+              strategy: "oauth_google",
+              redirectUrl: absoluteRedirectUrl,
+              redirectUrlComplete: absoluteRedirectUrl,
+            });
+          } catch (err) {
+            console.error("Clerk Google login error:", err);
+            setPhoneError("Failed to initiate Google login via Clerk.");
+          }
+          return;
+        }
+
+
         const { error } = await supabase.auth.signInWithOAuth({
-          provider,
+          provider: provider!,
           options: {
             redirectTo
           }
@@ -510,6 +564,7 @@ const OnboardingScreen = () => {
   // Determine which error type for styling
   const isPredictableError = mpinError.includes("predictable");
   const isMismatchError = mpinError.includes("close");
+
 
   if (isAuthChecking) {
     return (
