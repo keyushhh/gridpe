@@ -612,11 +612,11 @@ const OnboardingScreen = () => {
               </button>
             </div>
 
-            <p style={{ animationDelay: "0.7s" }} className="text-center text-muted-foreground leading-relaxed animate-fade-in px-4 text-sm font-normal">
-              By continuing, you agree to grid.pe's{" "}
-              <a href="#" className="text-link hover:underline">Terms & Conditions</a>{" "}
-              and{" "}
-              <a href="#" className="text-link hover:underline">Privacy Policy</a>
+            <p style={{ animationDelay: "0.7s" }} className="text-center text-muted-foreground leading-relaxed animate-fade-in px-4 text-[13px] font-normal">
+              By continuing, you agree to grid.pe's<br />
+              <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
+              &{" "}
+              <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
             </p>
           </>
         )}
@@ -710,11 +710,11 @@ const OnboardingScreen = () => {
               </button>
             </div>
 
-            <p className="text-center text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-sm">
-              By continuing, you agree to grid.pe's{" "}
-              <button onClick={() => navigate('/legal/terms')} className="text-link hover:underline">Terms & Conditions</button>{" "}
-              and{" "}
-              <button onClick={() => navigate('/legal/privacy')} className="text-link hover:underline">Privacy Policy</button>
+            <p className="text-center text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-[13px]">
+              By continuing, you agree to grid.pe's<br />
+              <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
+              &{" "}
+              <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
             </p>
           </div>
         )}
@@ -828,7 +828,7 @@ const OnboardingScreen = () => {
                       key={index}
                       index={index}
                       className={`h-[54px] w-[81px] rounded-[12px] border-none text-2xl font-semibold text-white transition-all bg-cover bg-center ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
-                          mpinSuccess ? 'ring-1 ring-green-500' : 'ring-1 ring-white/10'
+                        mpinSuccess ? 'ring-1 ring-green-500' : 'ring-1 ring-white/10'
                         }`}
                       style={{
                         backgroundImage: isPredictableError ? `url(${mpinInputError})` :
@@ -854,7 +854,7 @@ const OnboardingScreen = () => {
                       key={index}
                       index={index}
                       className={`h-[54px] w-[81px] rounded-[12px] border-none text-2xl font-semibold text-white transition-all bg-cover bg-center ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
-                          mpinSuccess ? 'ring-1 ring-green-500' : 'ring-1 ring-white/10'
+                        mpinSuccess ? 'ring-1 ring-green-500' : 'ring-1 ring-white/10'
                         }`}
                       style={{
                         backgroundImage: isMismatchError ? `url(${mpinInputError})` :
