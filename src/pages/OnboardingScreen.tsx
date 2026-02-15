@@ -6,7 +6,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { LockOpen } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
-import logo from "@/assets/grid.pe.svg";
+import logo from "@/assets/gridpe-logo.svg";
 import iconGoogle from "@/assets/icon-google.svg";
 import iconApple from "@/assets/icon-apple.svg";
 import iconX from "@/assets/frame-2095585539.svg";
@@ -545,7 +545,7 @@ const OnboardingScreen = () => {
         <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12">
           <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
             <img src={logo} alt="grid.pe" className="h-12 mb-3" />
-            <p className="text-muted-foreground text-[18px] font-normal text-center">
+            <p className="text-white-foreground text-[18px] font-normal text-center">
               Cash access, reimagined.
             </p>
           </div>
@@ -612,10 +612,10 @@ const OnboardingScreen = () => {
               </button>
             </div>
 
-            <p style={{ animationDelay: "0.7s" }} className="text-center text-muted-foreground leading-relaxed animate-fade-in px-4 text-[13px] font-normal">
-              By continuing, you agree to grid.pe's<br />
+            <p style={{ animationDelay: "0.7s" }} className="text-center text-white-foreground leading-relaxed animate-fade-in px-4 text-[16px] font-normal">
+              By continuing, you agree to Grid.Pe's<br />
               <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
-              &{" "}
+              and{" "}
               <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
             </p>
           </>
@@ -710,8 +710,8 @@ const OnboardingScreen = () => {
               </button>
             </div>
 
-            <p className="text-center text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-[13px]">
-              By continuing, you agree to grid.pe's<br />
+            <p className="text-center text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-[16px]">
+              By continuing, you agree to Grid.Pe's<br />
               <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
               &{" "}
               <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
