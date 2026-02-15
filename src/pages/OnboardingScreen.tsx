@@ -72,7 +72,17 @@ const OnboardingScreen = () => {
           // App Launch: treat as Restore (isExplicitLogin = false)
           await handleSession(session.user, false);
         } else {
-          setIsAuthChecking(false);
+          // If no Supabase session, check if Clerk is still loading
+          if (!isClerkLoaded) {
+            console.log("Onboarding: No Supabase session, waiting for Clerk...");
+            return;
+          }
+
+          // If Clerk is loaded and no user, then we can stop checking
+          if (!clerkUser) {
+            console.log("Onboarding: No active sessions found.");
+            setIsAuthChecking(false);
+          }
         }
       } catch (e) {
         console.error("Session check failed", e);
@@ -80,8 +90,10 @@ const OnboardingScreen = () => {
       }
     };
     checkSession();
+  }, [isClerkLoaded, clerkUser]);
 
-    // 2. Auth Listener for Explicit Logins (OAuth, etc.)
+  // Supabase Auth Listener (Separate from initial check)
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`Auth Event: ${event}`);
       if (event === 'SIGNED_IN' && session?.user) {
@@ -125,9 +137,8 @@ const OnboardingScreen = () => {
       handleClerkSession();
     }
   }, [clerkUser, isClerkLoaded]);
-
-
   // Validation Logic
+
 
   useEffect(() => {
     // Reset success/error on change
@@ -215,11 +226,25 @@ const OnboardingScreen = () => {
     let currentProfile = null;
 
     // 1. Fetch existing profile
-    const { data: initialProfileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    // Clerk IDs are not UUIDs, which might cause Supabase to error if the id column is UUID.
+    // We try to fetch the profile, but catch any "invalid input syntax for type uuid" error.
+    let initialProfileData = null;
+    let profileError: any = null;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      initialProfileData = data;
+      profileError = error;
+    } catch (err) {
+      console.error("HandleSession: Profile fetch threw an error (is user.id a UUID?)", err);
+      profileError = { code: 'UNKNOWN', message: 'Profile fetch failed' };
+    }
+
 
     let profileData = initialProfileData;
     const socialName = user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.preferred_username;
@@ -489,67 +514,10 @@ const OnboardingScreen = () => {
   };
 
   const handleSocialLogin = async (providerName: string) => {
-
-    console.log(`${providerName} Login clicked`);
-
-    let provider: Provider | undefined;
-    if (providerName === "Google") provider = 'google';
-    if (providerName === "X" || providerName === "Twitter") {
-      console.log("Using provider 'x'");
-      provider = 'x' as Provider;
-    }
-
-    if (providerName === "Google" || provider) {
-      try {
-        const isNative = Capacitor.isNativePlatform();
-        let redirectTo: string;
-
-        // X OAuth is strict. Always go through Supabase HTTPS callback.
-        if (provider === 'x') {
-          redirectTo = `${import.meta.env.VITE_SUPABASE_URL}/auth/v1/callback`;
-        }
-        else {
-          redirectTo = isNative
-            ? 'gridpe://auth-callback'
-            : `${window.location.origin}/#/auth/v1/callback`;
-        }
-
-        if (import.meta.env.DEV) {
-          console.log("[Diagnostic] VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
-          console.log(`[Diagnostic] Initiating ${providerName} login with redirect: ${redirectTo}`);
-        }
-
-        if (providerName === "Google") {
-          if (!signIn) return;
-          try {
-            const absoluteRedirectUrl = window.location.origin + window.location.pathname + "#/auth/v1/callback";
-            console.log("Clerk redirecting to:", absoluteRedirectUrl);
-            await signIn.authenticateWithRedirect({
-              strategy: "oauth_google",
-              redirectUrl: absoluteRedirectUrl,
-              redirectUrlComplete: absoluteRedirectUrl,
-            });
-          } catch (err) {
-            console.error("Clerk Google login error:", err);
-            setPhoneError("Failed to initiate Google login via Clerk.");
-          }
-          return;
-        }
-
-
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: provider!,
-          options: {
-            redirectTo
-          }
-        });
-        if (error) throw error;
-      } catch (error) {
-        console.error(`${providerName} login error:`, error);
-        setPhoneError(`Failed to initiate ${providerName} login.`);
-      }
-    }
+    // Social logins are temporarily disabled
+    console.log(`${providerName} Login clicked (disabled)`);
   };
+
 
   const handlePhoneChange = (val: string) => {
     setPhoneNumber(val);
@@ -656,16 +624,17 @@ const OnboardingScreen = () => {
             </div>
 
             <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-              <button onClick={() => handleSocialLogin("Google")} aria-label="Continue with Google" className="w-[52px] h-[52px] transition-transform duration-200 hover:scale-105 active:scale-95">
+              <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconGoogle} alt="" className="w-full h-full" />
-              </button>
-              <button onClick={() => handleSocialLogin("Apple")} aria-label="Continue with Apple" className="w-[52px] h-[52px] transition-transform duration-200 hover:scale-105 active:scale-95">
+              </div>
+              <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconApple} alt="" className="w-full h-full" />
-              </button>
-              <button onClick={() => handleSocialLogin("X")} aria-label="Continue with X" className="w-[52px] h-[52px] transition-transform duration-200 hover:scale-105 active:scale-95">
+              </div>
+              <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconX} alt="" className="w-full h-full" />
-              </button>
+              </div>
             </div>
+
 
             <p style={{ animationDelay: "0.7s" }} className="text-center text-white-foreground leading-relaxed animate-fade-in px-4 text-[16px] font-normal">
               By continuing, you agree to Grid.Pe's<br />
@@ -754,16 +723,17 @@ const OnboardingScreen = () => {
             </div>
 
             <div className="flex justify-center gap-4">
-              <button onClick={() => handleSocialLogin("Google")} aria-label="Continue with Google" className="w-[52px] h-[52px] transition-transform duration-200 hover:scale-105 active:scale-95">
+              <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconGoogle} alt="" className="w-full h-full" />
-              </button>
-              <button onClick={() => handleSocialLogin("Apple")} aria-label="Continue with Apple" className="w-[52px] h-[52px] transition-transform duration-200 hover:scale-105 active:scale-95">
+              </div>
+              <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconApple} alt="" className="w-full h-full" />
-              </button>
-              <button onClick={() => handleSocialLogin("X")} aria-label="Continue with X" className="w-[52px] h-[52px] transition-transform duration-200 hover:scale-105 active:scale-95">
+              </div>
+              <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconX} alt="" className="w-full h-full" />
-              </button>
+              </div>
             </div>
+
 
             <p className="text-center text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-[16px]">
               By continuing, you agree to Grid.Pe's<br />

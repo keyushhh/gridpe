@@ -8,20 +8,29 @@ const AuthCallback = () => {
   const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
-    if (!isLoaded) return;
+    console.log("AuthCallback: Component mounted/updated", { isLoaded, isSignedIn });
+    console.log("AuthCallback: URL Check", window.location.href);
+
+    if (!isLoaded) {
+      console.log("AuthCallback: Clerk is still loading...");
+      return;
+    }
 
     // Handle Clerk session
     if (isSignedIn) {
-      console.log("Clerk session detected, redirecting to onboarding for sync...");
+      console.log("AuthCallback: Clerk session DETECTED. Redirecting to onboarding for sync...");
       navigate("/");
       return;
     }
 
+    console.log("AuthCallback: No Clerk session. Checking Supabase/Listening...");
+
     // Handle Supabase session
     const checkSupabase = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) console.error("AuthCallback: Supabase session check error", error);
       if (session) {
-        console.log("Supabase session detected, redirecting home...");
+        console.log("AuthCallback: Supabase session DETECTED. Redirecting home...");
         navigate("/home");
         return true;
       }
@@ -30,6 +39,7 @@ const AuthCallback = () => {
 
     // 1. Listen for auth state changes (SIGNED_IN)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`AuthCallback: Supabase Auth Event: ${event}`, session ? "Session Exists" : "No Session");
       if (event === 'SIGNED_IN' && session) {
         navigate("/home");
       }
@@ -40,18 +50,21 @@ const AuthCallback = () => {
 
     // 3. Fallback timeout: If nothing happens after 6 seconds, assume failure
     const timeout = setTimeout(async () => {
+      console.log("AuthCallback: 6s Timeout Reached. Final Check.");
       const hasSupabase = await checkSupabase();
       if (!hasSupabase && !isSignedIn) {
-        console.log("No auth session found after timeout, redirecting to onboarding...");
+        console.log("AuthCallback: NO SESSIONS FOUND. Redirecting to onboarding...");
         navigate("/");
       }
     }, 6000);
 
     return () => {
+      console.log("AuthCallback: Component unmounting/cleaning up");
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
   }, [navigate, isLoaded, isSignedIn]);
+
 
 
 
