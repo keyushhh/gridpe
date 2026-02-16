@@ -5,6 +5,7 @@ import checkIcon from "@/assets/check-icon.svg";
 import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/lib/supabase";
 
 const OrderDelivered = () => {
     const navigate = useNavigate();
@@ -21,6 +22,17 @@ const OrderDelivered = () => {
         if (!hasBeenDebited) {
             addWalletBalance(-orderAmount);
             setHasBeenDebited(true);
+
+            // Redundancy check: ensure status is updated in Supabase
+            if (location.state?.order?.id) {
+                supabase
+                    .from('orders')
+                    .update({ status: 'delivered' })
+                    .eq('id', location.state.order.id)
+                    .then(({ error }) => {
+                        if (error) console.error("Failed to update status in OrderDelivered", error);
+                    });
+            }
         }
 
         const timer = setInterval(() => {

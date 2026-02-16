@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import searchIcon from "@/assets/search.svg";
@@ -16,6 +16,9 @@ import { toast } from "@/components/ui/use-toast";
 
 const OrderHistory = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const showOnlyPast = location.state?.showOnlyPast || false;
+
     const [activeOrders, setActiveOrders] = useState<Order[]>([]);
     const [pastOrders, setPastOrders] = useState<Order[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -174,6 +177,10 @@ const OrderHistory = () => {
                 key={order.id}
                 className="w-full rounded-[13px] overflow-hidden mb-[16px] cursor-pointer active:opacity-90 transition-opacity"
                 onClick={() => {
+                    if (showOnlyPast) {
+                        navigate('/help/report', { state: { order } });
+                        return;
+                    }
                     const s = order.status.toLowerCase();
                     const isCompleted = s === 'success' || s === 'delivered';
                     const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
@@ -247,6 +254,24 @@ const OrderHistory = () => {
         );
     };
 
+    // Search Bar JSX
+    const searchBar = (
+        <div className="px-5 mb-[38px]">
+            <div className="w-full h-[48px] rounded-full bg-white/5 border border-white/10 flex items-center px-[10px]">
+                <div className="w-[16px] h-[16px] ml-[6px] mr-[16px] flex items-center justify-center">
+                    <img src={searchIcon} alt="Search" className="w-full h-full" />
+                </div>
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search your orders: “₹2000”, “july”, etc..."
+                    className="flex-1 bg-transparent border-none outline-none text-white text-[14px] font-satoshi placeholder:text-white/40"
+                />
+            </div>
+        </div>
+    );
+
     return (
         <div
             className="h-full w-full overflow-y-auto flex flex-col safe-area-top"
@@ -304,28 +329,15 @@ const OrderHistory = () => {
                     <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
                 <h1 className="w-full text-center text-white text-[18px] font-medium font-sans">
-                    Order History
+                    {showOnlyPast ? "Help & Support" : "Order History"}
                 </h1>
             </div>
 
             {/* Search Bar */}
-            <div className="px-5 mb-[38px]">
-                <div className="w-full h-[48px] rounded-full bg-white/5 border border-white/10 flex items-center px-[10px]">
-                    <div className="w-[16px] h-[16px] ml-[6px] mr-[16px] flex items-center justify-center">
-                        <img src={searchIcon} alt="Search" className="w-full h-full" />
-                    </div>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search your orders: “₹2000”, “july”, etc..."
-                        className="flex-1 bg-transparent border-none outline-none text-white text-[14px] font-satoshi placeholder:text-white/40"
-                    />
-                </div>
-            </div>
+            {!showOnlyPast && searchBar}
 
             {/* Active Orders */}
-            {activeOrders.length > 0 && (
+            {!showOnlyPast && activeOrders.length > 0 && (
                 <div className="px-5 mb-[35px]">
                     <h2 className="text-white text-[16px] font-bold font-satoshi mb-[12px]">
                         Active orders
@@ -337,7 +349,7 @@ const OrderHistory = () => {
             {/* Past Orders */}
             {filteredPastOrders.length > 0 && (
                 <div className="px-5 pb-10">
-                    <h2 className="text-white text-[16px] font-bold font-satoshi mb-[12px]">
+                    <h2 className={`${showOnlyPast ? 'text-[#7E7E7E] text-[14px] font-medium uppercase' : 'text-white text-[16px] font-bold'} font-satoshi mb-[12px]`}>
                         Past orders
                     </h2>
                     {filteredPastOrders.map(order => renderOrderCard(order, false))}

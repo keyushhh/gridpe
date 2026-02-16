@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { OpenLocationCode } from "open-location-code";
 import { Order, dev_updateOrderStatus } from "@/lib/orders";
+import { supabase } from "@/lib/supabase";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 import arrivingIcon from "@/assets/arriving.svg";
@@ -75,14 +76,27 @@ const OrderTracking = () => {
 
     useEffect(() => {
         // Simulate rider entering the OTP after 60 seconds
-        const timer = setTimeout(() => {
+        const timer = setTimeout(async () => {
             setIsOtpVerified(true);
+
+            // Update order status in Supabase
+            if (order?.id) {
+                try {
+                    await supabase
+                        .from('orders')
+                        .update({ status: 'delivered' })
+                        .eq('id', order.id);
+                } catch (e) {
+                    console.error("Failed to update status to delivered", e);
+                }
+            }
+
             setTimeout(() => {
-                navigate('/order-delivered', { state: { order } });
+                navigate('/order-delivered', { state: { order: order ? { ...order, status: 'delivered' } : null } });
             }, 3000);
         }, 60000);
         return () => clearTimeout(timer);
-    }, [navigate]);
+    }, [navigate, order]);
 
     // Calculate dynamic coordinates
     const currentLat = userLocation?.latitude || viewState.latitude;
@@ -411,7 +425,7 @@ const OrderTracking = () => {
             {/* Need Help CTA */}
             <div className="px-5 mt-[16px] pb-10 relative z-0">
                 <button
-                    onClick={() => navigate('/help', { state: { order } })}
+                    onClick={() => navigate('/help/report', { state: { order } })}
                     className="w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center"
                     style={{
                         backgroundImage: `url(${darkbgCta})`,

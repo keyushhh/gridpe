@@ -95,7 +95,9 @@ const Homepage = () => {
 
           const activeOrders = await fetchActiveOrders(session.user.id);
           // Homepage only shows one active order banner (the latest one)
-          setActiveOrder(activeOrders.length > 0 ? activeOrders[0] : null);
+          // Double check status to ensure no delivered/success orders sneak in
+          const filteredActive = activeOrders.filter(o => !['delivered', 'success'].includes(o.status.toLowerCase()));
+          setActiveOrder(filteredActive.length > 0 ? filteredActive[0] : null);
 
           const recent = await fetchRecentOrders(session.user.id);
           setTransactionHistory(recent);

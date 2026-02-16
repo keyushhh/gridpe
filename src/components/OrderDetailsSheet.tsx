@@ -641,7 +641,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                                 backgroundPosition: 'center',
                                 backgroundRepeat: 'no-repeat',
                             }}
-                            onClick={() => navigate('/help', { state: { order } })}
+                            onClick={() => navigate('/help/report', { state: { order } })}
                         >
                             Need Help?
                         </button>
