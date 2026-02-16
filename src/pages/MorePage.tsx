@@ -61,7 +61,7 @@ const MorePage = () => {
                 { icon: addressIcon, label: "Saved Addresses", onClick: () => navigate("/saved-addresses") },
                 { icon: helpIcon, label: "Help & Support", onClick: () => navigate("/help") },
                 { icon: securityIcon, label: "Security Settings", onClick: () => navigate("/security-dashboard") },
-                { icon: subscriptionsIcon, label: "Subscriptions", onClick: () => navigate("/subscription-details") },
+                { icon: subscriptionsIcon, label: "Subscriptions", onClick: () => navigate("/subscriptions") },
             ],
         },
         {

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
 import infoContainerBg from "@/assets/order-cash-info-bg.png";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 
 const OrderCash = () => {
   const navigate = useNavigate();
+  const { isWalletLimitReached } = useUser();
   const [amount, setAmount] = useState<string>("0.00");
 
   const handleKeyPress = (key: string) => {
@@ -27,7 +29,7 @@ const OrderCash = () => {
       if (prev.includes(".")) {
         const [whole, decimal] = prev.split(".");
         if (decimal && decimal.length >= 2) {
-            return prev;
+          return prev;
         }
       }
 
@@ -54,7 +56,7 @@ const OrderCash = () => {
     >
       {icon ? (
         <div className="group-active:brightness-200">
-           {icon}
+          {icon}
         </div>
       ) : (
         <span className="text-white group-active:text-white font-bold font-sans text-[32px]">{label}</span>
@@ -77,7 +79,7 @@ const OrderCash = () => {
     >
       {/* Header - Standard Single Row */}
       <div className="px-5 pt-4 flex items-center justify-between z-10">
-         {/* Back Button */}
+        {/* Back Button */}
         <button
           onClick={() => navigate("/home")}
           className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
@@ -98,8 +100,8 @@ const OrderCash = () => {
       <div className="flex-1 flex flex-col items-center pt-[60px]">
         {/* Amount Display */}
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
-            <span className="text-white text-[32px] font-black font-sans mr-1">₹</span>
-            <span className="text-white text-[32px] font-black font-sans">{amount}</span>
+          <span className="text-white text-[32px] font-black font-sans mr-1">₹</span>
+          <span className="text-white text-[32px] font-black font-sans">{amount}</span>
         </div>
 
         {/* Divider */}
@@ -107,37 +109,43 @@ const OrderCash = () => {
 
         {/* Balance Text */}
         <p className="text-white/60 text-[12px] font-sans font-normal mt-[8px] mb-[17px]">
-            Total Available Balance ₹ 13,00,058.00
+          Total Available Balance ₹ 13,00,058.00
         </p>
 
-        {/* Error Message */}
         {parseFloat(amount) > 0 && parseFloat(amount) < 500 && (
           <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
             Amount needs to be ₹500 or more
           </p>
         )}
 
+        {/* Wallet Limit Reached Message */}
+        {isWalletLimitReached && (
+          <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px] text-center px-10">
+            Wallet limit reached. Please upgrade your wallet to continue.
+          </p>
+        )}
+
         {/* Pills */}
         <div className="flex gap-4 mb-8">
-            {["500", "1000", "1500"].map((val) => (
-                <button
-                    key={val}
-                    onClick={() => handlePillClick(val)}
-                    className="relative h-[30px] flex items-center justify-center px-3 py-[6px] transition-transform active:scale-95"
-                >
-                    <div
-                        className="absolute inset-0 w-full h-full"
-                        style={{
-                            backgroundImage: `url(${pillContainerBg})`,
-                            backgroundSize: "100% 100%",
-                            backgroundRepeat: "no-repeat",
-                        }}
-                    />
-                    <span className="relative z-10 text-white text-[12px] font-medium font-sans">
-                        +₹{val}
-                    </span>
-                </button>
-            ))}
+          {["500", "1000", "1500"].map((val) => (
+            <button
+              key={val}
+              onClick={() => handlePillClick(val)}
+              className="relative h-[30px] flex items-center justify-center px-3 py-[6px] transition-transform active:scale-95"
+            >
+              <div
+                className="absolute inset-0 w-full h-full"
+                style={{
+                  backgroundImage: `url(${pillContainerBg})`,
+                  backgroundSize: "100% 100%",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+              <span className="relative z-10 text-white text-[12px] font-medium font-sans">
+                +₹{val}
+              </span>
+            </button>
+          ))}
         </div>
 
         {/* Spacer to push everything else down to bottom */}
@@ -145,87 +153,87 @@ const OrderCash = () => {
 
         {/* Info Container */}
         <div className="w-full px-5 pb-[16px]">
-            <div
-                className="w-full h-[61px] relative flex flex-col justify-center px-[18px] py-[10px]"
-                style={{
-                    backgroundImage: `url(${infoContainerBg})`,
-                    backgroundSize: "100% 100%",
-                    backgroundRepeat: "no-repeat",
-                }}
-            >
-                <p className="text-white text-[14px] font-medium font-sans mb-[9px] leading-none">
-                    Amount will be held from wallet
-                </p>
-                <p className="text-white text-[12px] font-light font-sans leading-none">
-                    You won’t be charged unless the delivery is completed.
-                </p>
-            </div>
+          <div
+            className="w-full h-[61px] relative flex flex-col justify-center px-[18px] py-[10px]"
+            style={{
+              backgroundImage: `url(${infoContainerBg})`,
+              backgroundSize: "100% 100%",
+              backgroundRepeat: "no-repeat",
+            }}
+          >
+            <p className="text-white text-[14px] font-medium font-sans mb-[9px] leading-none">
+              Amount will be held from wallet
+            </p>
+            <p className="text-white text-[12px] font-light font-sans leading-none">
+              You won’t be charged unless the delivery is completed.
+            </p>
+          </div>
         </div>
 
         {/* Keypad Container */}
         <div className="w-full relative rounded-t-[32px] overflow-hidden">
-             {/* Gradient Border Wrapper */}
-             {/* We use a pseudo-element or absolute div for the gradient border */}
-             <div
-                className="absolute inset-0 rounded-t-[32px] pointer-events-none"
-                style={{
-                    padding: '0.63px', // Border width
-                    background: 'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
-                    mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                    maskComposite: 'exclude',
-                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                    WebkitMaskComposite: 'xor'
-                }}
-             />
+          {/* Gradient Border Wrapper */}
+          {/* We use a pseudo-element or absolute div for the gradient border */}
+          <div
+            className="absolute inset-0 rounded-t-[32px] pointer-events-none"
+            style={{
+              padding: '0.63px', // Border width
+              background: 'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
+              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              maskComposite: 'exclude',
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor'
+            }}
+          />
 
-             {/* Inner Content Background */}
-             <div
-                className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
-                style={{
-                    backgroundColor: 'rgba(23, 23, 23, 0.31)', // #171717 at 31%
-                }}
-             >
-                <div className="flex flex-col gap-[10px] items-center relative z-10">
-                    {/* Row 1 */}
-                    <div className="flex gap-[10px]">
-                        <KeypadButton label="1" onClick={() => handleKeyPress("1")} />
-                        <KeypadButton label="2" onClick={() => handleKeyPress("2")} />
-                        <KeypadButton label="3" onClick={() => handleKeyPress("3")} />
-                    </div>
-                    {/* Row 2 */}
-                    <div className="flex gap-[10px]">
-                        <KeypadButton label="4" onClick={() => handleKeyPress("4")} />
-                        <KeypadButton label="5" onClick={() => handleKeyPress("5")} />
-                        <KeypadButton label="6" onClick={() => handleKeyPress("6")} />
-                    </div>
-                    {/* Row 3 */}
-                    <div className="flex gap-[10px]">
-                        <KeypadButton label="7" onClick={() => handleKeyPress("7")} />
-                        <KeypadButton label="8" onClick={() => handleKeyPress("8")} />
-                        <KeypadButton label="9" onClick={() => handleKeyPress("9")} />
-                    </div>
-                    {/* Row 4 */}
-                    <div className="flex gap-[10px]">
-                        <KeypadButton label="." onClick={() => handleKeyPress(".")} />
-                        <KeypadButton label="0" onClick={() => handleKeyPress("0")} />
-                        <KeypadButton
-                            onClick={handleBackspace}
-                            icon={<img src={backspaceIcon} alt="Backspace" className="w-[18px] h-[18px] object-contain" />}
-                        />
-                    </div>
+          {/* Inner Content Background */}
+          <div
+            className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
+            style={{
+              backgroundColor: 'rgba(23, 23, 23, 0.31)', // #171717 at 31%
+            }}
+          >
+            <div className="flex flex-col gap-[10px] items-center relative z-10">
+              {/* Row 1 */}
+              <div className="flex gap-[10px]">
+                <KeypadButton label="1" onClick={() => handleKeyPress("1")} />
+                <KeypadButton label="2" onClick={() => handleKeyPress("2")} />
+                <KeypadButton label="3" onClick={() => handleKeyPress("3")} />
+              </div>
+              {/* Row 2 */}
+              <div className="flex gap-[10px]">
+                <KeypadButton label="4" onClick={() => handleKeyPress("4")} />
+                <KeypadButton label="5" onClick={() => handleKeyPress("5")} />
+                <KeypadButton label="6" onClick={() => handleKeyPress("6")} />
+              </div>
+              {/* Row 3 */}
+              <div className="flex gap-[10px]">
+                <KeypadButton label="7" onClick={() => handleKeyPress("7")} />
+                <KeypadButton label="8" onClick={() => handleKeyPress("8")} />
+                <KeypadButton label="9" onClick={() => handleKeyPress("9")} />
+              </div>
+              {/* Row 4 */}
+              <div className="flex gap-[10px]">
+                <KeypadButton label="." onClick={() => handleKeyPress(".")} />
+                <KeypadButton label="0" onClick={() => handleKeyPress("0")} />
+                <KeypadButton
+                  onClick={handleBackspace}
+                  icon={<img src={backspaceIcon} alt="Backspace" className="w-[18px] h-[18px] object-contain" />}
+                />
+              </div>
 
-                    {/* CTA */}
-                    <div className="w-full mt-[32px]">
-                        <Button
-                            onClick={() => navigate("/order-cash-summary", { state: { amount } })}
-                            disabled={parseFloat(amount) < 500}
-                            className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Place Order
-                        </Button>
-                    </div>
-                </div>
+              {/* CTA */}
+              <div className="w-full mt-[32px]">
+                <Button
+                  onClick={() => navigate("/order-cash-summary", { state: { amount } })}
+                  disabled={parseFloat(amount) < 500 || isWalletLimitReached}
+                  className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isWalletLimitReached ? "Wallet Locked" : "Place Order"}
+                </Button>
+              </div>
             </div>
+          </div>
         </div>
       </div>
     </div>

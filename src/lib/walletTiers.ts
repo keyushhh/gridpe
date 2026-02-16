@@ -101,7 +101,7 @@ export const tiers: TierConfig[] = [
         chip: freeChip,
         diamond: starterDiamond,
         walletLimit: "₹5,000",
-        withdrawLimit: "₹3,000",
+        withdrawLimit: "₹5,000",
 
         headerTitle: "STARTER",
         headerSubtitle: "₹5,000 / wallet limit",

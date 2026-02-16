@@ -94,7 +94,7 @@ const AddPaymentMethod = () => {
         if (location.state?.flow === "withdrawal") {
             navigate("/select-payment-method", { state: { ...location.state, selectedMethod } });
         } else if (location.state?.flow === "upgrade") {
-            navigate("/subscription-details", { state: { ...location.state, paymentMethod: selectedMethod } });
+            navigate("/subscription-details", { state: { ...location.state, paymentMethod: selectedMethod }, replace: true });
         } else {
             navigate("/order-summary", { state: { ...location.state, paymentMethod: selectedMethod } });
         }

@@ -69,10 +69,16 @@ const WalletUpgradeSuccess = () => {
             {/* CTA Button */}
             <div className="w-full mt-auto mb-[50px] flex justify-center">
                 <button
-                    onClick={() => navigate("/wallet-created")}
+                    onClick={() => {
+                        if (location.state?.fromSubscriptionDashboard) {
+                            navigate("/subscriptions", { replace: true });
+                        } else {
+                            navigate("/wallet-created", { replace: true });
+                        }
+                    }}
                     className="w-[361px] h-[48px] rounded-[296px] bg-[#5260FE] flex items-center justify-center text-white text-[16px] font-bold font-satoshi active:scale-95 transition-transform"
                 >
-                    View Wallet
+                    {location.state?.fromSubscriptionDashboard ? "Go to Subscriptions" : "View Wallet"}
                 </button>
             </div>
         </div>

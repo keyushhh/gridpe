@@ -88,6 +88,10 @@ import FxIntro from "./pages/FxIntro";
 import FxPassportGate from "./pages/FxPassportGate";
 import FxPassportKYC from "./pages/FxPassportKYC";
 import LiveRates from "@/pages/LiveRates";
+import Subscriptions from "@/pages/Subscriptions";
+import ManageSubscription from "@/pages/ManageSubscription";
+import DowngradePlan from "./pages/DowngradePlan";
+import DowngradeSummary from "./pages/DowngradeSummary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -235,6 +239,10 @@ const App = () => {
                 <Route path="/fx-passport-gate" element={<FxPassportGate />} />
                 <Route path="/fx-passport-kyc" element={<FxPassportKYC />} />
                 <Route path="/live-rates" element={<LiveRates />} />
+                <Route path="/subscriptions" element={<Subscriptions />} />
+                <Route path="/manage-subscription" element={<ManageSubscription />} />
+                <Route path="/downgrade-plan" element={<DowngradePlan />} />
+                <Route path="/downgrade-summary" element={<DowngradeSummary />} />
                 <Route path="/auth/v1/callback" element={<AuthCallback />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

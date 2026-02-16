@@ -120,7 +120,7 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
 
 const FxExchange = () => {
     const navigate = useNavigate();
-    const { walletBalance, walletTier } = useUser();
+    const { walletBalance, walletTier, isWalletLimitReached } = useUser();
     const [amount, setAmount] = useState<number>(100);
     const [fromCurrency, setFromCurrency] = useState('USD');
     const [toCurrency, setToCurrency] = useState('INR');
@@ -379,9 +379,11 @@ const FxExchange = () => {
                     </span>
 
                     <p className="absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi text-white w-[85%] leading-tight">
-                        {hasInsufficientFunds
-                            ? "Note: Your wallet has insufficient funds for this transaction. Please add money to continue."
-                            : "Note: Your wallet balance must cover the converted amount to proceed."}
+                        {isWalletLimitReached
+                            ? "Wallet limit reached. Please upgrade your wallet to continue with cash/FX orders."
+                            : hasInsufficientFunds
+                                ? "Note: Your wallet has insufficient funds for this transaction. Please add money to continue."
+                                : "Note: Your wallet balance must cover the converted amount to proceed."}
                     </p>
                 </div>
             </div>
@@ -392,7 +394,8 @@ const FxExchange = () => {
                     (Rate locked for <span className="text-[#5260FE] font-bold">{formatTime(timer)}</span>)
                 </p>
                 <button
-                    className="w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-bold active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
+                    className="w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-bold active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isWalletLimitReached}
                     onClick={() => {
                         if (hasInsufficientFunds) {
                             navigate('/wallet-add-money');
@@ -414,7 +417,7 @@ const FxExchange = () => {
                         }
                     }}
                 >
-                    {hasInsufficientFunds ? "Add Money to Wallet" : "Proceed to Order"}
+                    {isWalletLimitReached ? "Wallet Locked" : hasInsufficientFunds ? "Add Money to Wallet" : "Proceed to Order"}
                 </button>
             </div>
 

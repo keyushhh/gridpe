@@ -183,7 +183,8 @@ const WalletTierDetails = () => {
                     const handleAction = () => {
                         if (isUpgrade) {
                             navigate(currentTier.buttonAction, {
-                                state: { flow: 'upgrade', tier: currentTier.name }
+                                state: { flow: 'upgrade', tier: currentTier.name },
+                                replace: true
                             });
                         } else if (isDowngrade) {
                             navigate('/subscription-details', {

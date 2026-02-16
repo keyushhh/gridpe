@@ -3,12 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
-import starterSub from "@/assets/starter-subscription.png";
-import proSub from "@/assets/pro-subscription.png";
-import eliteSub from "@/assets/elite-subscription.png";
-import supremeSub from "@/assets/supreme-subscription.png";
+import starterSub from "@/assets/subscription-starter.png";
+import proSub from "@/assets/subscription-pro.png";
+import eliteSub from "@/assets/subscription-elite.png";
+import supremeSub from "@/assets/subscription-supreme.png";
 import subscriptionChip from "@/assets/subscription-chip.png";
 import autoRefreshIcon from "@/assets/auto-refresh.svg";
+import { useUser, WalletTier } from "@/contexts/UserContext";
 
 const subscriptionBanners: Record<string, string> = {
     Starter: starterSub,
@@ -31,15 +32,24 @@ const tierPrice: Record<string, number> = {
     Supreme: 100,
 };
 
-import { useUser, WalletTier } from "@/contexts/UserContext";
-
-const SubscriptionSummary = () => {
+const DowngradeSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { setWalletTier } = useUser();
-    const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
+    const { walletTier, scheduleDowngrade } = useUser();
+    const { tier } = location.state || { tier: "" };
 
     const bannerImage = subscriptionBanners[tier] || starterSub;
+
+    // Calculate effective date (e.g. 1 month from now)
+    const getEffectiveDate = () => {
+        const next = new Date();
+        next.setMonth(next.getMonth() + 1);
+        const day = String(next.getDate()).padStart(2, "0");
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+        return `${day} ${months[next.getMonth()]} ${next.getFullYear()}`;
+    };
+
+    const effectiveDate = getEffectiveDate();
 
     return (
         <div
@@ -80,8 +90,8 @@ const SubscriptionSummary = () => {
                 >
                     {/* Banner Text */}
                     <div className="absolute top-[13px] left-[77px] flex flex-col">
-                        <span className="text-white text-[14px] font-medium font-satoshi">
-                            WALLET - {tier?.toUpperCase() || "PRO"}
+                        <span className="text-white text-[14px] font-medium font-satoshi uppercase">
+                            WALLET - {tier}
                         </span>
                         <span className="text-white/70 text-[12px] italic font-satoshi mt-[8px]">
                             Billed monthly. Cancel anytime.
@@ -226,38 +236,14 @@ const SubscriptionSummary = () => {
                         Next Payment Date
                     </span>
                     <span className="text-white text-[14px] font-bold leading-[120%] font-satoshi">
-                        {(() => {
-                            const next = new Date();
-                            next.setMonth(next.getMonth() + 1);
-                            const day = String(next.getDate()).padStart(2, "0");
-                            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-                            return `${day} ${months[next.getMonth()]} ${next.getFullYear()}`;
-                        })()}
+                        {effectiveDate}
                     </span>
                 </div>
 
-                {/* Status Text for Upgrade/Downgrade */}
-                {(() => {
-                    const { walletTier } = useUser();
-                    const stateFlow = location.state?.flow;
-                    // User Request: 
-                    // "upgrading from starter to any tier, the small note will not appear"
-                    // "should appear only from pro till supreme, and whilte downgrading, it should appear on all the tiers"
-
-                    const shouldShowNote =
-                        stateFlow === 'downgrade' ||
-                        (stateFlow === 'upgrade' && walletTier !== 'Starter');
-
-                    if (!shouldShowNote) return null;
-
-                    const actionVerb = stateFlow === 'downgrade' ? 'downgraded' : 'upgraded';
-
-                    return (
-                        <p className="w-[362px] mt-[14px] text-white text-[14px] font-normal leading-[140%] font-satoshi text-left">
-                            Your wallet will be {actionVerb} to {tier} Wallet. Changes will take place on your next billing date. Till then you may enjoy the benefits of {walletTier} Wallet.
-                        </p>
-                    );
-                })()}
+                {/* Status Text for Downgrade */}
+                <p className="w-[362px] mt-[14px] text-white text-[14px] font-normal leading-[140%] font-satoshi text-left">
+                    Your wallet will be downgraded to {tier} Wallet. Changes will take place on your next billing date. Till then you may enjoy the benefits of {walletTier} Wallet.
+                </p>
             </div>
 
             {/* Slide to Pay */}
@@ -265,20 +251,15 @@ const SubscriptionSummary = () => {
                 <SlideToPay
                     onComplete={() => {
                         if (tier) {
-                            setWalletTier(tier as WalletTier);
+                            scheduleDowngrade(tier as WalletTier, effectiveDate);
                         }
-
-                        if (location.state?.flow === 'downgrade') {
-                            navigate("/wallet-created");
-                        } else {
-                            navigate("/wallet-upgrade-success", { state: { tier, flow: location.state?.flow }, replace: true });
-                        }
+                        navigate("/subscriptions", { replace: true });
                     }}
-                    label={location.state?.flow === 'downgrade' ? "Confirm Downgrade" : "Start Monthly Subscription"}
+                    label="Confirm Downgrade"
                 />
             </div>
         </div>
     );
 };
 
-export default SubscriptionSummary;
+export default DowngradeSummary;

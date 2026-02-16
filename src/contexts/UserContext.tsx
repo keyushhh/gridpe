@@ -44,6 +44,8 @@ interface UserState {
   walletLimit: number;
   upgradeTimestamp: number | null;
   isPassportVerified: boolean;
+  isWalletLimitReached: boolean;
+  scheduledDowngrade: { tier: WalletTier; effectiveDate: string } | null;
 }
 
 interface UserContextType extends UserState {
@@ -65,6 +67,9 @@ interface UserContextType extends UserState {
   /* Wallet Tier */
   setWalletTier: (tier: WalletTier) => void;
   setPassportVerified: (verified: boolean) => void;
+  scheduleDowngrade: (tier: WalletTier, effectiveDate: string) => void;
+  cancelDowngrade: () => void;
+  completeScheduledDowngrade: () => void;
 }
 
 /* -------------------- Constants -------------------- */
@@ -90,6 +95,8 @@ const defaultState: UserState = {
   walletLimit: 5000,
   upgradeTimestamp: null,
   isPassportVerified: false,
+  isWalletLimitReached: false,
+  scheduledDowngrade: null,
 };
 
 /* -------------------- Context -------------------- */
@@ -196,9 +203,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     let limit = 5000;
     switch (tier) {
       case 'Starter': limit = 5000; break;
-      case 'Pro': limit = 10000; break;
-      case 'Elite': limit = 25000; break;
-      case 'Supreme': limit = 100000; break;
+      case 'Pro': limit = 15000; break;
+      case 'Elite': limit = 50000; break;
+      case 'Supreme': limit = 150000; break;
     }
     setState(prev => ({ ...prev, walletTier: tier, walletLimit: limit, upgradeTimestamp: Date.now() }));
   };
@@ -207,10 +214,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, isPassportVerified: verified }));
   };
 
+  const scheduleDowngrade = (tier: WalletTier, effectiveDate: string) => {
+    setState(prev => ({ ...prev, scheduledDowngrade: { tier, effectiveDate } }));
+  };
+
+  const cancelDowngrade = () => {
+    setState(prev => ({ ...prev, scheduledDowngrade: null }));
+  };
+
+  const completeScheduledDowngrade = () => {
+    if (state.scheduledDowngrade) {
+      setWalletTier(state.scheduledDowngrade.tier);
+      setState(prev => ({ ...prev, scheduledDowngrade: null }));
+    }
+  };
+
   /* -------------------- Provider -------------------- */
 
-  const contextValue: UserContextType = {
+  const contextValue: UserContextType & { isWalletLimitReached: boolean } = {
     ...state,
+    isWalletLimitReached: state.walletBalance >= state.walletLimit,
     setPhoneNumber,
     setName,
     setEmail,
@@ -227,6 +250,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     activateWallet,
     setWalletTier,
     setPassportVerified,
+    scheduleDowngrade,
+    cancelDowngrade,
+    completeScheduledDowngrade,
   };
 
   return (

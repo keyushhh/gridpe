@@ -1,0 +1,175 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
+import { useUser, WalletTier } from "@/contexts/UserContext";
+import { tiers } from "@/lib/walletTiers";
+import bgDarkMode from "@/assets/bg-dark-mode.png";
+
+// Import Assets
+import subStarterBg from "@/assets/subscription-starter.png";
+import subProBg from "@/assets/subscription-pro.png";
+import subEliteBg from "@/assets/subscription-elite.png";
+import subSupremeBg from "@/assets/subscription-supreme.png";
+import addPaymentCta from "@/assets/add-payment-cta.png";
+
+const subscriptionBgs: Record<WalletTier, string> = {
+    Starter: subStarterBg,
+    Pro: subProBg,
+    Elite: subEliteBg,
+    Supreme: subSupremeBg,
+};
+
+const ManageSubscription = () => {
+    const navigate = useNavigate();
+    const { walletTier, walletLimit } = useUser();
+    const currentTierConfig = tiers.find(t => t.name === walletTier);
+
+    if (!currentTierConfig) return null;
+
+    const backgroundImage = subscriptionBgs[walletTier];
+
+    return (
+        <div
+            className="h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-area-top safe-area-bottom pb-10"
+            style={{
+                fontFamily: "'Satoshi', sans-serif",
+                backgroundColor: "#0a0a12",
+                backgroundImage: `url(${bgDarkMode})`,
+                backgroundSize: "cover",
+                backgroundPosition: "top center",
+                backgroundRepeat: "no-repeat",
+            }}
+        >
+            {/* Header */}
+            <header className="px-5 pt-12 pb-2 flex items-center relative z-10 shrink-0">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="w-10 h-10 flex items-center justify-center rounded-full border border-white/20 active:bg-white/10 absolute left-5"
+                >
+                    <ChevronLeft className="text-white w-6 h-6" />
+                </button>
+                <h1 className="w-full text-center text-white text-[22px] font-medium font-satoshi">
+                    Manage Subscription
+                </h1>
+            </header>
+
+            {/* Current Wallet Tier Container */}
+            <div className="px-5 mt-[31px]">
+                <div
+                    className="w-[360px] mx-auto rounded-[20px] relative overflow-hidden h-[144px]"
+                    style={{
+                        backgroundImage: `url(${backgroundImage})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "top center",
+                        backgroundRepeat: "no-repeat",
+                    }}
+                >
+                    {/* Price Chip */}
+                    <div
+                        className="absolute flex items-center justify-center rounded-full text-[10px] font-medium text-white z-20"
+                        style={{
+                            top: "12px",
+                            right: "12px",
+                            width: "88px",
+                            height: "24px",
+                            backgroundImage: `url(${currentTierConfig.chip})`,
+                            backgroundSize: "100% 100%",
+                            backgroundRepeat: "no-repeat",
+                        }}
+                    >
+                        {currentTierConfig.badge}
+                    </div>
+
+                    {/* Content */}
+                    <div className="absolute top-[12px] left-[77px] flex flex-col">
+                        <span className="text-white text-[15px] font-medium font-satoshi uppercase">
+                            {walletTier}
+                        </span>
+
+                        <div className="flex items-baseline gap-1 mt-[5px]">
+                            <span className="text-white text-[32px] font-bold font-satoshi">
+                                ₹{walletLimit.toLocaleString('en-IN')}
+                            </span>
+                            <span className="text-white text-[16px] font-medium font-satoshi opacity-70">
+                                / wallet limit
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Next Billing Date */}
+                    <span className="absolute bottom-[15px] left-[15px] text-white text-[14px] font-medium font-satoshi">
+                        Next billing date: {(() => {
+                            const next = new Date();
+                            next.setMonth(next.getMonth() + 1);
+                            const day = String(next.getDate()).padStart(2, "0");
+                            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+                            return `${day} ${months[next.getMonth()]}, ${next.getFullYear()}`;
+                        })()}
+                    </span>
+                </div>
+            </div>
+
+            {/* Benefits Section */}
+            <div className="mt-[24px] pl-[37px] pr-5">
+                <h2 className="text-white text-[16px] font-medium font-satoshi mb-[6px]">
+                    Plan benefits you’ll be missing
+                </h2>
+                <ul className="text-white font-regular text-[14px] font-satoshi flex flex-col gap-1">
+                    <li className="flex items-start gap-2">
+                        <span className="mt-1.5 w-1 h-1 rounded-full bg-white shrink-0" />
+                        <span>Higher wallet limit of {currentTierConfig.walletLimit} (Starter is capped at {tiers[0].walletLimit})</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <span className="mt-1.5 w-1 h-1 rounded-full bg-white shrink-0" />
+                        <span>Faster top-ups — up to {currentTierConfig.dailyTopUpLimit}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <span className="mt-1.5 w-1 h-1 rounded-full bg-white shrink-0" />
+                        <span>Quick withdrawals — usually under 30 minutes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <span className="mt-1.5 w-1 h-1 rounded-full bg-white shrink-0" />
+                        <span>{currentTierConfig.verification || "Verified KYC"} for smoother, unrestricted transactions</span>
+                    </li>
+                </ul>
+            </div>
+
+            {/* Note Container */}
+            <div className="mt-[140px] flex flex-col items-center">
+                <div
+                    className="w-[326px] rounded-[12px] p-[10px] border border-white/10"
+                    style={{
+                        backgroundColor: "rgba(0,0,0,0.2)",
+                    }}
+                >
+                    <h3 className="text-[#8F8F8F] text-[12px] font-bold font-satoshi">Note:</h3>
+                    <p className="text-white text-[12px] font-regular font-satoshi mt-[7px]">
+                        Before downgrading or cancelling, make sure your wallet balance is used — once it’s gone, it’s really gone.
+                    </p>
+                </div>
+
+                {/* CTAs */}
+                <div className="mt-[48px] flex flex-col gap-[12px]">
+                    <button
+                        onClick={() => navigate('/downgrade-plan')}
+                        className="w-[362px] h-[48px] rounded-full bg-[#5260FE] text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#5260FE]/20"
+                    >
+                        Downgrade Plan
+                    </button>
+                    <button
+                        className="w-[362px] h-[48px] rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center overflow-hidden relative"
+                        style={{
+                            backgroundImage: `url(${addPaymentCta})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                        }}
+                    >
+                        Cancel Subscription
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ManageSubscription;
