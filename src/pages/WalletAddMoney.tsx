@@ -5,10 +5,12 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
 import backspaceIcon from "@/assets/backspace.png";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/contexts/UserContext";
 
 const WalletAddMoney = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { walletLimit } = useUser();
   const balance = location.state?.balance || "0.00";
   const [amount, setAmount] = useState<string>("0.00");
 
@@ -119,9 +121,9 @@ const WalletAddMoney = () => {
                 Amount needs to be ₹500 or more
               </p>
             )}
-            {parseFloat(amount) > 5000 && (
+            {parseFloat(amount) > walletLimit && (
               <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
-                Amount cannot exceed ₹5,000
+                Amount cannot exceed ₹{walletLimit.toLocaleString('en-IN')}
               </p>
             )}
           </>
@@ -232,15 +234,14 @@ const WalletAddMoney = () => {
                 <Button
                   onClick={() => {
                     const val = parseFloat(amount);
-                    if (val >= 500 && val <= 5000) {
+                    if (val >= 500 && val <= walletLimit) {
                       navigate('/add-payment-method', { state: { amount } });
                     }
                   }}
-                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${
-                    parseFloat(amount) >= 500 && parseFloat(amount) <= 5000
+                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${parseFloat(amount) >= 500 && parseFloat(amount) <= walletLimit
                       ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
                       : "bg-[#5260FE]/50 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   Add Money
                 </Button>

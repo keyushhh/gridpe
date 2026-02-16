@@ -81,6 +81,7 @@ import HelpReportSuccess from "./pages/HelpReportSuccess";
 import Rewards from "./pages/Rewards";
 import LegalPage from "./pages/LegalPage";
 import MorePage from "@/pages/MorePage";
+import FxExchange from "./pages/FxExchange";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -221,6 +222,7 @@ const App = () => {
                 <Route path="/legal/privacy" element={<LegalPage type="privacy" />} />
                 <Route path="/legal/terms" element={<LegalPage type="terms" />} />
                 <Route path="/more" element={<MorePage />} />
+                <Route path="/fx-exchange" element={<FxExchange />} />
                 <Route path="/auth/v1/callback" element={<AuthCallback />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

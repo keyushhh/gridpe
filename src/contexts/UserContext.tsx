@@ -192,9 +192,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     let limit = 5000;
     switch (tier) {
       case 'Starter': limit = 5000; break;
-      case 'Pro': limit = 15000; break;
-      case 'Elite': limit = 50000; break;
-      case 'Supreme': limit = 150000; break;
+      case 'Pro': limit = 10000; break;
+      case 'Elite': limit = 25000; break;
+      case 'Supreme': limit = 100000; break;
     }
     setState(prev => ({ ...prev, walletTier: tier, walletLimit: limit, upgradeTimestamp: Date.now() }));
   };

@@ -510,7 +510,7 @@ const Homepage = () => {
           }, {
             icon: iconFxConvert,
             label: "FX Convert",
-            action: () => { }
+            action: () => navigate('/fx-exchange')
           }].map(action => (
             <button
               key={action.label}
@@ -642,8 +642,10 @@ const Homepage = () => {
                   </div>
                 </div>
 
-                {/* Banner 2: FX Convert */}
-                <div className="flex-[0_0_100%] min-w-0 pr-0">
+                <div
+                  className="flex-[0_0_100%] min-w-0 pr-0 cursor-pointer active:scale-[0.98] transition-all"
+                  onClick={() => navigate('/fx-exchange')}
+                >
                   <div className="rounded-[16px] overflow-hidden flex relative" style={{
                     backgroundImage: `url(${bannerBg})`,
                     backgroundSize: 'cover',
