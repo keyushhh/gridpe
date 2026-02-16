@@ -60,7 +60,7 @@ interface SavedAddress {
 
 const Homepage = () => {
   const navigate = useNavigate();
-  const { walletBalance } = useUser();
+  const { walletBalance, walletTier } = useUser();
   const [showBalance, setShowBalance] = useState(false);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
@@ -510,7 +510,13 @@ const Homepage = () => {
           }, {
             icon: iconFxConvert,
             label: "FX Convert",
-            action: () => navigate('/fx-exchange')
+            action: () => {
+              if (walletTier === 'Starter') {
+                navigate('/fx-intro');
+              } else {
+                navigate('/fx-exchange');
+              }
+            }
           }].map(action => (
             <button
               key={action.label}
@@ -644,7 +650,13 @@ const Homepage = () => {
 
                 <div
                   className="flex-[0_0_100%] min-w-0 pr-0 cursor-pointer active:scale-[0.98] transition-all"
-                  onClick={() => navigate('/fx-exchange')}
+                  onClick={() => {
+                    if (walletTier === 'Starter') {
+                      navigate('/fx-intro');
+                    } else {
+                      navigate('/fx-exchange');
+                    }
+                  }}
                 >
                   <div className="rounded-[16px] overflow-hidden flex relative" style={{
                     backgroundImage: `url(${bannerBg})`,

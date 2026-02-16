@@ -16,6 +16,7 @@ import deliveryInfoIcon from "@/assets/delivery-tip-info.svg";
 import popupBg from "@/assets/popup-bg.png";
 import buttonCloseBg from "@/assets/button-close.png";
 import popupCardIcon from "@/assets/card-ico.svg";
+import chevronSmall from "@/assets/chevron-small.svg";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import { createOrder } from "@/lib/orders";
@@ -37,13 +38,26 @@ interface SavedAddress {
     postcode: string;
 }
 
-const OrderCashSummary = () => {
+const FxExchangeSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { amount } = location.state || { amount: "0.00" };
+
+    // Accept full FX state
+    const {
+        amount = 100,
+        fxRate = 87.36,
+        fromCurrency = 'USD',
+        toCurrency = 'INR',
+        convertedAmount = 0,
+        markupAmount = 0,
+        flatFee = 150,
+        finalAmount = 0,
+        markupPercent = 0.006,
+        currencySymbols = {}
+    } = location.state || {};
 
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
-    const [isPayOpen, setIsPayOpen] = useState(false);
+    const [isPayOpen, setIsPayOpen] = useState(true); // Default open for breakdown
     const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
 
     // Address State
@@ -70,12 +84,6 @@ const OrderCashSummary = () => {
 
     const getAddressDisplay = () => {
         if (!savedAddress) return "Add Address";
-        // Construct a nice display string: House, Area, City - Zip
-        // If displayAddress is already formatted well (like from Nominatim), we can use it,
-        // but the user might want specific "House, Area" format.
-        // The previous hardcoded one was: "C102, Pubali Estate, Guwahati - 781005"
-        // My SavedAddress has: house, area, city, postcode.
-
         const parts = [savedAddress.house, savedAddress.area, savedAddress.city];
         const base = parts.filter(Boolean).join(", ");
         if (savedAddress.postcode) {
@@ -96,13 +104,10 @@ const OrderCashSummary = () => {
     const [tipAmount, setTipAmount] = useState(0);
     const [customTipValue, setCustomTipValue] = useState("");
 
-    // Calculations
-    const parsedAmount = parseFloat((amount || "0").toString().replace(/,/g, "")) || 0;
-    const parsedRewardPoints = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
-    const deliveryFee = 30;
-    const gst = parsedAmount * 0.18;
-    const platformFee = 6.60;
-    const totalAmount = parsedAmount - parsedRewardPoints + deliveryFee + gst + platformFee + tipAmount;
+    // Total amount to be held from wallet is the source amount in INR (if applicable) 
+    // or just the conversion amount. Usually FX checkout holds the source currency equivalent.
+    // For this flow, we'll use 'amount' as the value to be held if from local wallet.
+    const totalAmount = amount;
 
     const handleTipSelect = (option: string) => {
         setSelectedTipOption(option);
@@ -161,8 +166,6 @@ const OrderCashSummary = () => {
             let addressId = savedAddress?.id;
 
             if (!addressId && savedAddress) {
-                // Address exists in state but not DB (e.g. from previous local storage structure or temp selection)
-                // We must create it.
                 try {
                     const newAddress = await createAddress({
                         user_id: user.id,
@@ -172,19 +175,16 @@ const OrderCashSummary = () => {
                         landmark: savedAddress.landmark || "",
                         city: savedAddress.city,
                         state: savedAddress.state,
-                        plus_code: null, // We might not have this if it's legacy data, or we could try to generate it
-                        latitude: 0, // Fallback if missing
-                        longitude: 0, // Fallback if missing
+                        plus_code: null,
+                        latitude: 0,
+                        longitude: 0,
                         contact_name: savedAddress.name,
                         contact_phone: savedAddress.phone
                     });
                     addressId = newAddress.id;
-
-                    // Update local state to include the new ID to prevent re-creation
                     const updatedAddr = { ...savedAddress, id: addressId };
                     setSavedAddress(updatedAddr);
                     localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
-
                 } catch (err) {
                     console.error("Failed to save address before order", err);
                     toast.error("Failed to save address details. Please try again.");
@@ -198,15 +198,6 @@ const OrderCashSummary = () => {
             }
 
             try {
-                // VERIFICATION LOG:
-                console.log("Creating Order with payload:", {
-                    user_id: user.id,
-                    amount: totalAmount,
-                    address_id: addressId,
-                    status: 'processing',
-                    payment_mode: 'wallet',
-                });
-
                 const order = await createOrder({
                     user_id: user.id,
                     amount: totalAmount,
@@ -215,18 +206,16 @@ const OrderCashSummary = () => {
                     payment_mode: 'wallet',
                 });
 
-                navigate(`/order-details/${order.id}`, {
+                navigate(`/fx-success/${order.id}`, {
                     state: {
                         totalAmount: totalAmount,
                         savedAddress: savedAddress,
-                        order: order
+                        order: order,
+                        isFx: true
                     }
                 });
             } catch (orderError: any) {
-                // Retry Logic: If address ID is invalid (FK violation), try to create a new address record
-                // Error code 23503 is foreign_key_violation in Postgres
                 if (orderError?.code === '23503' || orderError?.message?.includes('foreign key constraint')) {
-                    console.log("Stale address ID detected. Creating new address record...");
                     try {
                         const newAddress = await createAddress({
                             user_id: user.id,
@@ -244,12 +233,10 @@ const OrderCashSummary = () => {
                         });
 
                         const newAddressId = newAddress.id;
-                        // Update local state
                         const updatedAddr = { ...savedAddress, id: newAddressId };
                         setSavedAddress(updatedAddr);
                         localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
-                        // Retry Order Creation
                         const order = await createOrder({
                             user_id: user.id,
                             amount: totalAmount,
@@ -258,21 +245,20 @@ const OrderCashSummary = () => {
                             payment_mode: 'wallet',
                         });
 
-                        navigate(`/order-details/${order.id}`, {
+                        navigate(`/fx-success/${order.id}`, {
                             state: {
                                 totalAmount: totalAmount,
                                 savedAddress: updatedAddr,
-                                order: order
+                                order: order,
+                                isFx: true
                             }
                         });
-                        return; // Success after retry
+                        return;
                     } catch (retryError) {
                         console.error("Retry failed", retryError);
-                        // Fall through to generic error
                     }
                 }
-
-                throw orderError; // Re-throw if not recoverable or retry failed
+                throw orderError;
             }
         } catch (error: any) {
             console.error("Failed to create order", error);
@@ -294,7 +280,6 @@ const OrderCashSummary = () => {
     const handleApplyReward = () => {
         if (!rewardPoints) return;
         const points = parseInt(rewardPoints, 10);
-
         if (isNaN(points) || points < 500) {
             setRewardError("Minimum 500 points to redeem.");
             setRewardApplied(false);
@@ -314,7 +299,7 @@ const OrderCashSummary = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col"
+            className="h-full w-full overflow-y-auto no-scrollbar scroll-smooth"
             style={{
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -323,29 +308,28 @@ const OrderCashSummary = () => {
                 backgroundRepeat: "no-repeat",
             }}
         >
-            <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6 safe-area-top">
+            <div className="px-5 pt-6 flex items-center justify-between z-10 mb-6"
+                style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}>
                 <button
-                    onClick={() => navigate("/order-cash")}
+                    onClick={() => navigate("/fx-exchange")}
                     className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
                 >
                     <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
-                <h1 className="text-white text-[18px] font-medium font-sans">
-                    Order Cash
+                <h1 className="text-white text-[24px] font-medium font-sans">
+                    FX Exchange
                 </h1>
                 <div className="w-10" />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 space-y-[10px] no-scrollbar pb-[280px]">
+            <div className="px-5 space-y-[10px] pb-[280px]">
                 {/* Address Container */}
                 <div
                     style={containerStyle}
                     className="w-full relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
                     onClick={() => setIsAddressSheetOpen(true)}
                 >
-                    <div
-                        className="flex items-start py-[11px] px-[12px]"
-                    >
+                    <div className="flex items-start py-[11px] px-[12px]">
                         <div
                             className="w-[52px] h-[52px] shrink-0 flex items-center justify-center mr-[12px]"
                             style={{
@@ -484,233 +468,85 @@ const OrderCashSummary = () => {
                     )}
                 </div>
 
-                {isTipContainerVisible && (
-                    <div
-                        style={containerStyle}
-                        className="w-full overflow-hidden"
-                    >
-                        <div
-                            className={`flex items-center justify-between px-[12px] ${isTipCollapsed ? 'py-[14px]' : 'pt-[14px] pb-[2px]'}`}
-                            onClick={() => {
-                                if (isTipCollapsed) setIsTipCollapsed(false);
-                            }}
-                        >
-                            <div className="flex items-center gap-2">
-                                <span className="text-white text-[16px] font-medium font-sans">Delivery Tip</span>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowDeliveryTipPopup(true);
-                                    }}
-                                    className="flex items-center justify-center w-[14px] h-[14px]"
-                                >
-                                    <img src={deliveryInfoIcon} alt="Info" className="w-full h-full" />
-                                </button>
-                            </div>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCollapseTip();
-                                }}
-                            >
-                                <img
-                                    src={chevronDownIcon}
-                                    alt="Collapse"
-                                    className={`w-4 h-4 transition-transform duration-200 ${!isTipCollapsed ? 'rotate-180' : ''}`}
-                                />
-                            </button>
+                {/* Price Breakdown Container (Replaced "To Pay") */}
+                <div
+                    style={containerStyle}
+                    className={`mt-[10px] w-full bg-[#191919]/[0.31] border border-white/5 backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isPayOpen ? 'h-[270px] rounded-[13px]' : 'h-[64px] rounded-[8px]'}`}
+                >
+                    {/* Header Section */}
+                    <div className={`pt-[14px] px-[12px] flex justify-between items-start ${!isPayOpen ? 'pb-[12px]' : ''}`}>
+                        <div className="text-left">
+                            <h4 className="text-[15px] font-medium font-sans leading-tight text-white">Price Breakdown</h4>
+                            <p className="text-[13px] text-white font-sans mt-[6px]">Incl. all taxes & charges</p>
                         </div>
-
-                        {!isTipCollapsed && (
-                            <div className="px-[12px] pb-[16px]">
-                                <p className="text-white/80 text-[13px] font-normal font-sans mb-5 leading-snug">
-                                    A small tip, goes a big way! Totally optional — but your rider will appreciate it ❤️
-                                </p>
-                                <div className="flex items-center gap-3">
-                                    {['10', '20', '30'].map((val) => (
-                                        <div key={val} className="relative shrink-0" style={{ width: '74px', height: '38px' }}>
-                                            <button
-                                                onClick={() => handleTipSelect(val)}
-                                                className={`relative block w-full h-full transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${val === '20' ? 'rounded-[19px]' : ''}`}
-                                                style={{
-                                                    backgroundImage: `url(${selectedTipOption === val ? selectedPillBg : pillBg})`,
-                                                    backgroundSize: '100% 100%',
-                                                    backgroundRepeat: 'no-repeat',
-                                                    boxSizing: 'border-box'
-                                                }}
-                                            >
-                                                {/* Content Wrapper */}
-                                                <div
-                                                    className={`absolute left-0 right-0 flex justify-center items-center gap-[10px] z-20 ${val === '20' ? 'top-[2px]' : 'top-1/2 -translate-y-1/2'}`}
-                                                >
-                                                    <span className="text-white font-medium font-sans text-[15px] leading-none">
-                                                        ₹{val}
-                                                    </span>
-
-                                                    {selectedTipOption === val && (
-                                                        <div
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleClearTip(e);
-                                                                setIsTipContainerVisible(false);
-                                                            }}
-                                                            className="cursor-pointer hover:opacity-80 flex items-center justify-center w-[12px] h-[12px]"
-                                                        >
-                                                            <img src={crossIcon} alt="Remove" className="w-full h-full object-contain" />
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Most Tipped Banner - Only for 20 */}
-                                                {val === '20' && (
-                                                    <div className="absolute top-[23px] left-0 right-0 h-[14px] bg-[#5260FE] flex items-center justify-center z-10 pointer-events-none">
-                                                        <span className="text-white text-[7px] font-bold font-sans uppercase tracking-wider leading-none">
-                                                            MOST TIPPED
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <div className="relative shrink-0" style={{ width: '74px', height: '38px' }}>
-                                        <button
-                                            onClick={() => handleTipSelect('other')}
-                                            className={`relative flex items-center justify-center transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${selectedTipOption === 'other' ? 'flex-row gap-[10px]' : ''}`}
-                                            style={{
-                                                width: '74px',
-                                                height: '38px',
-                                                minWidth: '74px',
-                                                minHeight: '38px',
-                                                maxWidth: '74px',
-                                                maxHeight: '38px',
-                                                backgroundImage: `url(${selectedTipOption === 'other' ? selectedPillBg : pillBg})`,
-                                                backgroundSize: '100% 100%',
-                                                backgroundRepeat: 'no-repeat',
-                                                boxSizing: 'border-box'
-                                            }}
-                                        >
-                                            <span className="text-white font-medium font-sans text-[15px] z-20 relative leading-none">Other</span>
-                                            {selectedTipOption === 'other' && (
-                                                <div
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleClearCustomTip();
-                                                    }}
-                                                    className="z-30 cursor-pointer hover:opacity-80 flex items-center justify-center w-[12px] h-[12px]"
-                                                >
-                                                    <img src={crossIcon} alt="Remove" className="w-full h-full object-contain" />
-                                                </div>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                                {selectedTipOption === 'other' && (
-                                    <div className="mt-[15px] h-[48px] w-full bg-[#191919] rounded-full border border-white/10 flex items-center pl-4 pr-4">
-                                        <span className="text-white font-medium font-sans mr-2">₹</span>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter tip amount"
-                                            value={customTipValue}
-                                            onChange={handleCustomTipChange}
-                                            className="bg-transparent text-white font-sans text-[14px] placeholder:text-white/30 focus:outline-none flex-1"
-                                        />
-                                        <button
-                                            onClick={tipAmount > 0 ? handleClearCustomTip : handleApplyCustomTip}
-                                            className="text-[#5260FE] text-[13px] font-medium font-sans ml-2"
-                                        >
-                                            {tipAmount > 0 ? "Clear" : "Apply"}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        <button
+                            onClick={() => setIsPayOpen(!isPayOpen)}
+                            className="w-6 h-6 flex items-center justify-center absolute top-[12px] right-[12px] active:scale-95 transition-transform"
+                        >
+                            <img
+                                src={chevronSmall}
+                                alt="Toggle"
+                                className={`w-6 h-6 transition-transform duration-300 ${isPayOpen ? 'rotate-180' : 'rotate-0'}`}
+                            />
+                        </button>
                     </div>
-                )}
 
-                <div style={containerStyle} className="w-full overflow-hidden">
-                    <div
-                        className={`w-full px-[12px] flex flex-col cursor-pointer transition-all pt-[14px] ${isPayOpen ? 'pb-0' : 'pb-[14px]'}`}
-                        onClick={() => setIsPayOpen(!isPayOpen)}
-                    >
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-2">
-                                <span className="text-white text-[16px] font-medium font-sans">To Pay</span>
-                                <span className="text-white text-[16px] font-medium font-sans">
-                                    +₹{amount}
+                    <div className={`px-[12px] flex flex-col items-center transition-opacity duration-300 ${isPayOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                        {/* First Divider */}
+                        <div className="h-[1px] bg-[#202020] w-[338px] mt-[10px]" />
+
+                        <div className="w-full mt-[10px] flex flex-col gap-0 text-white">
+                            {/* Base Rate */}
+                            <div className="flex justify-between items-center h-[18px]">
+                                <span className="text-[13px] font-regular font-sans">Base Rate</span>
+                                <span className="text-[13px] font-bold font-sans">1 {fromCurrency} = {currencySymbols[toCurrency] || ''}{fxRate.toFixed(2)}</span>
+                            </div>
+
+                            {/* Amount Entered */}
+                            <div className="flex justify-between items-center h-[18px] mt-[8px]">
+                                <span className="text-[13px] font-regular font-sans">
+                                    Amount Entered: {currencySymbols[fromCurrency] || ''}{amount}
+                                </span>
+                                <span className="text-[13px] font-bold font-sans">
+                                    {currencySymbols[toCurrency] || ''}{convertedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                             </div>
-                            <img
-                                src={chevronDownIcon}
-                                alt="Toggle"
-                                className={`w-4 h-4 transition-transform duration-200 ${isPayOpen ? 'rotate-180' : ''}`}
-                            />
-                        </div>
-                        <p className="text-white/60 text-[12px] font-normal font-sans mt-[6px]">
-                            Incl. all taxes & charges
-                        </p>
-                        {isPayOpen && (
-                            <div className="w-full mt-[10px]">
-                                <div className="w-full h-[1px] bg-[#202020] mb-[10px]" />
-                                <div className="flex justify-between items-center mb-[2px]">
-                                    <span className="text-white font-light font-sans text-[13px]">Item Value</span>
-                                    <span className="text-white font-bold font-sans text-[13px]">₹{parsedAmount}</span>
-                                </div>
-                                {rewardApplied && (
-                                    <div className="flex justify-between items-center mb-[2px]">
-                                        <span className="text-white font-light font-sans text-[13px]">Reward Points</span>
-                                        <span className="text-[#FF3B30] font-bold font-sans text-[13px]">-₹{parsedRewardPoints}</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between items-center">
-                                    <span className="text-white font-light font-sans text-[13px]">Delivery Fee | 1.2 kms</span>
-                                    <span className="text-white font-bold font-sans text-[13px]">₹{deliveryFee}</span>
-                                </div>
-                                <p className="text-white/50 font-light font-sans text-[13px] mt-[12px] mb-[8px] leading-snug">
-                                    This fee fairly goes to our delivery partners for delivering your orders.
-                                </p>
-                                <div className="w-full h-[1px] bg-[#202020] mb-[8px]" />
-                                <div className="flex justify-between items-center mb-[2px]">
-                                    <span className="text-white font-light font-sans text-[13px]">Delivery Tip</span>
-                                    {tipAmount > 0 ? (
-                                        <span
-                                            className="text-white font-bold font-sans text-[13px] cursor-pointer hover:underline"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsTipContainerVisible(true);
-                                            }}
-                                        >
-                                            ₹{tipAmount}
-                                        </span>
-                                    ) : (
-                                        <span
-                                            className="text-[#5260FE] cursor-pointer font-medium font-sans text-[13px] relative z-50"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsTipContainerVisible(true);
-                                                setIsTipCollapsed(false);
-                                            }}
-                                        >
-                                            Add Tip
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex justify-between items-center mb-[2px]">
-                                    <span className="text-white font-light font-sans text-[13px]">GST (18%)</span>
-                                    <span className="text-white font-bold font-sans text-[13px]">₹{gst.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center mb-[8px]">
-                                    <span className="text-white font-light font-sans text-[13px]">Platform Fee</span>
-                                    <span className="text-white font-bold font-sans text-[13px]">₹{platformFee.toFixed(2)}</span>
-                                </div>
-                                <div className="w-full h-[1px] bg-[#202020] mb-[8px]" />
-                                <div className="flex justify-between items-center pb-[18px]">
-                                    <span className="text-white font-medium font-sans text-[15px]">Total Payable</span>
-                                    <span className="text-white font-bold font-sans text-[15px]">₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
-                                </div>
+
+                            {/* Markup/Spread */}
+                            <div className="flex justify-between items-center h-[18px] mt-[8px]">
+                                <span className="text-[13px] font-regular font-sans">Markup/Spread ({(markupPercent * 100).toFixed(2)}%)</span>
+                                <span className="text-[13px] font-bold font-sans">
+                                    - {currencySymbols[toCurrency] || ''}{markupAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
                             </div>
-                        )}
+
+                            {/* Explanation Title */}
+                            <p className="text-[13px] font-regular font-sans text-white/50 leading-tight mt-[12px]">
+                                Markup/Spread ({(markupPercent * 100).toFixed(2)}%) – This is Grid.Pe's margin on conversion, lower than airport kiosks.
+                            </p>
+
+                            {/* Flat Fee */}
+                            <div className="flex justify-between items-center h-[18px] mt-[8px]">
+                                <span className="text-[13px] font-regular font-sans">Flat Fee</span>
+                                <span className="text-[13px] font-bold font-sans">
+                                    - {currencySymbols[toCurrency] || ''}{flatFee}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Second Divider */}
+                        <div className="h-[1px] bg-[#202020] w-[338px] mt-[8px]" />
+
+                        {/* Final Amount */}
+                        <div className="w-full mt-[8px] flex justify-between items-center h-[20px] text-white">
+                            <span className="text-[15px] font-medium font-sans">Final Amount You'll Receive</span>
+                            <span className="text-[13px] font-bold font-sans">
+                                {currencySymbols[toCurrency] || ''}{finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                        </div>
                     </div>
                 </div>
+
                 <div className="h-4 flex-none" />
             </div>
 
@@ -788,4 +624,4 @@ const OrderCashSummary = () => {
     );
 };
 
-export default OrderCashSummary;
+export default FxExchangeSummary;

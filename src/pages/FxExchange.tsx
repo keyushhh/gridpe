@@ -205,7 +205,10 @@ const FxExchange = () => {
                     <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <h1 className="text-[18px] font-bold">FX Exchange</h1>
-                <button className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 active:scale-90 transition-transform">
+                <button
+                    onClick={() => navigate('/live-rates', { state: { from: currentFrom, to: currentTo } })}
+                    className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 active:scale-90 transition-transform"
+                >
                     <img src={chartLineIcon} alt="Chart" className="w-5 h-5" />
                 </button>
             </div>
@@ -375,11 +378,11 @@ const FxExchange = () => {
                         ₹{walletBalance.toLocaleString('en-IN')}
                     </span>
 
-                    {hasInsufficientFunds && (
-                        <p className="absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi text-white w-[85%] leading-tight">
-                            Note: Your wallet has insufficient funds for this transaction. Please add money to continue.
-                        </p>
-                    )}
+                    <p className="absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi text-white w-[85%] leading-tight">
+                        {hasInsufficientFunds
+                            ? "Note: Your wallet has insufficient funds for this transaction. Please add money to continue."
+                            : "Note: Your wallet balance must cover the converted amount to proceed."}
+                    </p>
                 </div>
             </div>
 
@@ -390,7 +393,26 @@ const FxExchange = () => {
                 </p>
                 <button
                     className="w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-bold active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
-                    onClick={() => hasInsufficientFunds ? navigate('/wallet-add-money') : null}
+                    onClick={() => {
+                        if (hasInsufficientFunds) {
+                            navigate('/wallet-add-money');
+                        } else {
+                            navigate('/fx-exchange-summary', {
+                                state: {
+                                    amount: amount,
+                                    fxRate: fxRate,
+                                    fromCurrency: currentFrom,
+                                    toCurrency: currentTo,
+                                    convertedAmount: convertedAmount,
+                                    markupAmount: markupAmount,
+                                    flatFee: flatFee,
+                                    finalAmount: finalAmount,
+                                    markupPercent: markupPercent,
+                                    currencySymbols: currencySymbols
+                                }
+                            });
+                        }
+                    }}
                 >
                     {hasInsufficientFunds ? "Add Money to Wallet" : "Proceed to Order"}
                 </button>

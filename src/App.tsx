@@ -82,6 +82,10 @@ import Rewards from "./pages/Rewards";
 import LegalPage from "./pages/LegalPage";
 import MorePage from "@/pages/MorePage";
 import FxExchange from "./pages/FxExchange";
+import FxExchangeSummary from "./pages/FxExchangeSummary";
+import FxSuccess from "./pages/FxSuccess";
+import FxIntro from "./pages/FxIntro";
+import LiveRates from "@/pages/LiveRates";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -223,6 +227,10 @@ const App = () => {
                 <Route path="/legal/terms" element={<LegalPage type="terms" />} />
                 <Route path="/more" element={<MorePage />} />
                 <Route path="/fx-exchange" element={<FxExchange />} />
+                <Route path="/fx-exchange-summary" element={<FxExchangeSummary />} />
+                <Route path="/fx-success/:orderId" element={<FxSuccess />} />
+                <Route path="/fx-intro" element={<FxIntro />} />
+                <Route path="/live-rates" element={<LiveRates />} />
                 <Route path="/auth/v1/callback" element={<AuthCallback />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
