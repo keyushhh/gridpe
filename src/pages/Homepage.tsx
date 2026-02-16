@@ -60,7 +60,7 @@ interface SavedAddress {
 
 const Homepage = () => {
   const navigate = useNavigate();
-  const { walletBalance, walletTier } = useUser();
+  const { walletBalance, walletTier, isPassportVerified } = useUser();
   const [showBalance, setShowBalance] = useState(false);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
@@ -513,6 +513,8 @@ const Homepage = () => {
             action: () => {
               if (walletTier === 'Starter') {
                 navigate('/fx-intro');
+              } else if (!isPassportVerified) {
+                navigate('/fx-passport-gate');
               } else {
                 navigate('/fx-exchange');
               }
@@ -653,6 +655,8 @@ const Homepage = () => {
                   onClick={() => {
                     if (walletTier === 'Starter') {
                       navigate('/fx-intro');
+                    } else if (!isPassportVerified) {
+                      navigate('/fx-passport-gate');
                     } else {
                       navigate('/fx-exchange');
                     }

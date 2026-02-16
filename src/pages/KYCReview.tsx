@@ -38,7 +38,7 @@ const KYCReview = () => {
   const handleSubmit = () => {
     // Submit logic here
     console.log("Submitting KYC data...");
-    navigate("/kyc-success");
+    navigate(`/kyc-success?doc=${documentType}${state.flow === 'fx' ? '&flow=fx' : ''}`);
   };
 
   return (

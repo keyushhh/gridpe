@@ -199,7 +199,7 @@ const FxExchange = () => {
             {/* Header */}
             <div className="px-5 pt-12 pb-6 flex items-center justify-between">
                 <button
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate('/home')}
                     className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 active:scale-90 transition-transform"
                 >
                     <ChevronLeft className="w-5 h-5 text-white" />

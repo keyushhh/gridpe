@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Check, X } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import stepsBg from "@/assets/kyc-steps-bg.png";
 import documentBg from "@/assets/kyc-document-bg.png";
+import passportKycBg from "@/assets/passport-kyc.png";
 import iconAadhar from "@/assets/icon-aadhar.png";
 import iconPan from "@/assets/icon-pan.png";
 import iconPassport from "@/assets/icon-passport.png";
@@ -14,7 +15,11 @@ import { Button } from "@/components/ui/button";
 
 const KYCForm = () => {
   const navigate = useNavigate();
-  const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const flow = searchParams.get("flow");
+  const isFxFlow = flow === "fx";
+
+  const [selectedDoc, setSelectedDoc] = useState<string | null>(isFxFlow ? "passport" : null);
 
   const documents = [
     { id: "aadhar", name: "Aadhar Card", icon: iconAadhar },
@@ -22,6 +27,10 @@ const KYCForm = () => {
     { id: "passport", name: "Passport", icon: iconPassport },
     { id: "voter", name: "Voter ID", icon: iconVoter },
   ];
+
+  const filteredDocuments = isFxFlow
+    ? documents.filter(doc => doc.id === "passport")
+    : documents;
 
   const requirements = [
     { text: "Original full-size, unedited document", valid: true },
@@ -43,7 +52,7 @@ const KYCForm = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-12 pb-2">
         <button
-          onClick={() => navigate("/kyc-intro")}
+          onClick={() => navigate(isFxFlow ? "/fx-passport-gate" : "/kyc-intro")}
           className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center transition-colors hover:bg-white/10"
         >
           <ChevronLeft className="w-5 h-5 text-foreground" />
@@ -73,23 +82,31 @@ const KYCForm = () => {
 
         {/* Title */}
         <div className="mb-6">
-          <h2 className="text-white text-[18px] font-semibold mb-1">Choose a document</h2>
+          <h2 className="text-white text-[18px] font-semibold mb-1">
+            {isFxFlow ? "Passport Required" : "Choose a document"}
+          </h2>
           <p className="text-muted-foreground text-[14px]">
-            Use a valid government-issued ID for verification.
+            {isFxFlow
+              ? "Only a valid passport is accepted for FX Exchange KYC"
+              : "Use a valid government-issued ID for verification."
+            }
           </p>
         </div>
 
         {/* Document Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {documents.map((doc) => (
+        <div className={isFxFlow ? "flex flex-col gap-4 mb-8" : "grid grid-cols-2 gap-4 mb-8"}>
+          {filteredDocuments.map((doc) => (
             <div
               key={doc.id}
-              onClick={() => setSelectedDoc(doc.id)}
-              className="relative h-[120px] rounded-[16px] p-4 flex flex-col justify-between cursor-pointer transition-all duration-200 border border-transparent"
+              onClick={() => !isFxFlow && setSelectedDoc(doc.id)}
+              className="relative rounded-[16px] cursor-pointer transition-all duration-200"
               style={{
-                backgroundImage: `url(${documentBg})`,
+                backgroundImage: `url(${isFxFlow ? passportKycBg : documentBg})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
+                width: isFxFlow ? '362px' : 'auto',
+                height: isFxFlow ? '104px' : '120px',
+                padding: '16px'
               }}
             >
               <div className="flex justify-between items-start">
@@ -100,7 +117,12 @@ const KYCForm = () => {
                   className="w-6 h-6"
                 />
               </div>
-              <span className="text-white text-[14px] font-medium">{doc.name}</span>
+              {/* For standard grid, keep text at bottom. For FX flow, it's already in the bg or positioned differently? 
+                  The prompt says "content inside: (we already have a passport option right, same CONTENT to come here, on the same position. the radio button will also follow the same position, top right corner) and the radio button will be pre-selected."
+                  The original Passport item has the name at the bottom left. 
+              */}
+              {!isFxFlow && <span className="text-white text-[14px] font-medium absolute bottom-4 left-4">{doc.name}</span>}
+              {isFxFlow && <span className="text-white text-[14px] font-medium absolute bottom-4 left-4">{doc.name}</span>}
             </div>
           ))}
         </div>
@@ -133,7 +155,7 @@ const KYCForm = () => {
           variant="gradient"
           className="w-full h-[48px] rounded-full text-[16px] font-medium"
           disabled={!selectedDoc}
-          onClick={() => navigate(`/kyc-upload?doc=${selectedDoc}`)}
+          onClick={() => navigate(`/kyc-upload?doc=${selectedDoc}${isFxFlow ? '&flow=fx' : ''}`)}
         >
           Continue
         </Button>

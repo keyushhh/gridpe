@@ -43,6 +43,7 @@ interface UserState {
   walletTier: WalletTier;
   walletLimit: number;
   upgradeTimestamp: number | null;
+  isPassportVerified: boolean;
 }
 
 interface UserContextType extends UserState {
@@ -55,7 +56,7 @@ interface UserContextType extends UserState {
   setMpin: (mpin: string) => void;
   setBiometricEnabled: (enabled: boolean) => void;
   setProfile: (profile: UserProfile | null) => void;
-  submitKyc: () => void;
+  submitKyc: (isPassport?: boolean) => void;
   resetForDemo: () => void;
   addWalletBalance: (amount: number) => void;
   addTransaction: (transaction: WalletTransaction) => void;
@@ -63,6 +64,7 @@ interface UserContextType extends UserState {
 
   /* Wallet Tier */
   setWalletTier: (tier: WalletTier) => void;
+  setPassportVerified: (verified: boolean) => void;
 }
 
 /* -------------------- Constants -------------------- */
@@ -87,6 +89,7 @@ const defaultState: UserState = {
   walletTier: 'Starter',
   walletLimit: 5000,
   upgradeTimestamp: null,
+  isPassportVerified: false,
 };
 
 /* -------------------- Context -------------------- */
@@ -160,11 +163,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, profile }));
   };
 
-  const submitKyc = () => {
+  const submitKyc = (isPassport?: boolean) => {
     setState(prev => ({
       ...prev,
       kycStatus: 'pending',
       kycSubmittedAt: Date.now(),
+      isPassportVerified: isPassport ? true : prev.isPassportVerified,
     }));
   };
 
@@ -199,6 +203,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, walletTier: tier, walletLimit: limit, upgradeTimestamp: Date.now() }));
   };
 
+  const setPassportVerified = (verified: boolean) => {
+    setState(prev => ({ ...prev, isPassportVerified: verified }));
+  };
+
   /* -------------------- Provider -------------------- */
 
   const contextValue: UserContextType = {
@@ -218,6 +226,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     addTransaction,
     activateWallet,
     setWalletTier,
+    setPassportVerified,
   };
 
   return (

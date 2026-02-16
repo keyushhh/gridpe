@@ -20,7 +20,8 @@ const KYCUpload = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const documentType = searchParams.get("doc") || "aadhar";
-  
+  const isFxFlow = searchParams.get("flow") === "fx";
+
   const [otp, setOtp] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [documentNumber, setDocumentNumber] = useState("");
@@ -60,7 +61,7 @@ const KYCUpload = () => {
       case "pan":
         // 10 characters for PAN
         if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value) && !/^[a-zA-Z0-9]{10}$/.test(value)) {
-             return `Enter a valid ${documentLabels[documentType]} number`;
+          return `Enter a valid ${documentLabels[documentType]} number`;
         }
         break;
     }
@@ -105,13 +106,13 @@ const KYCUpload = () => {
   }, [otp, otpVerified]);
 
   // Check if all conditions are met to enable Continue button
-  const isFormComplete = 
-    images.front !== null && 
-    images.back !== null && 
-    documentNumber.trim() !== "" && 
+  const isFormComplete =
+    images.front !== null &&
+    images.back !== null &&
+    documentNumber.trim() !== "" &&
     documentError === "" &&
-    fullName.trim() !== "" && 
-    dob !== undefined && 
+    fullName.trim() !== "" &&
+    dob !== undefined &&
     dobError === "" &&
     otpVerified &&
     !imageQualityError &&
@@ -166,27 +167,27 @@ const KYCUpload = () => {
       reader.onloadend = () => {
         // Simulate image quality validation with 20% error chance for demo
         const hasQualityError = Math.random() < 0.2;
-        
+
         if (hasQualityError) {
           setImageQualityError("The uploaded image is blurry and unreadable. Please fix the background and lighting and try again.");
           return;
         }
-        
+
         // Clear any previous quality error on successful upload
         setImageQualityError(null);
-        
+
         // Simple logic: first upload fills 'front', second fills 'back'
         if (!images.front) {
           setImages(prev => ({ ...prev, front: reader.result as string }));
         } else if (!images.back) {
-           setImages(prev => ({ ...prev, back: reader.result as string }));
+          setImages(prev => ({ ...prev, back: reader.result as string }));
         }
       };
       reader.readAsDataURL(file);
     }
     // Reset input so same file can be selected again if needed
     if (event.target) {
-        event.target.value = '';
+      event.target.value = '';
     }
   };
 
@@ -283,31 +284,31 @@ const KYCUpload = () => {
 
         {/* Camera Area Container */}
         <div className="flex flex-col items-center mb-6">
-            {/* Camera Box */}
-            <div className="w-[362px] h-[184px] bg-black rounded-[24px] flex flex-col items-center justify-center relative overflow-hidden mb-4">
-                {/* Simulated Camera View */}
-            </div>
+          {/* Camera Box */}
+          <div className="w-[362px] h-[184px] bg-black rounded-[24px] flex flex-col items-center justify-center relative overflow-hidden mb-4">
+            {/* Simulated Camera View */}
+          </div>
 
-            {/* Label Pill */}
-            <div className="w-[111px] h-[31px] bg-black rounded-full flex items-center justify-center mb-4">
-                <p className="text-white text-[12px] font-medium">Upload front side</p>
-            </div>
+          {/* Label Pill */}
+          <div className="w-[111px] h-[31px] bg-black rounded-full flex items-center justify-center mb-4">
+            <p className="text-white text-[12px] font-medium">Upload front side</p>
+          </div>
 
-            {/* Controls - Moved outside and below */}
-            <div className="flex items-center gap-4 z-20">
-                <button
-                    onClick={toggleFlash}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${flashOn ? 'bg-white/20' : ''}`}
-                >
-                <img src={iconFlash} alt="Flash" className="w-10 h-10" />
-                </button>
-                <button
-                    onClick={handleGalleryClick}
-                    className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95"
-                >
-                <img src={iconGallery} alt="Gallery" className="w-10 h-10" />
-                </button>
-            </div>
+          {/* Controls - Moved outside and below */}
+          <div className="flex items-center gap-4 z-20">
+            <button
+              onClick={toggleFlash}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${flashOn ? 'bg-white/20' : ''}`}
+            >
+              <img src={iconFlash} alt="Flash" className="w-10 h-10" />
+            </button>
+            <button
+              onClick={handleGalleryClick}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95"
+            >
+              <img src={iconGallery} alt="Gallery" className="w-10 h-10" />
+            </button>
+          </div>
         </div>
 
         {/* Thumbnails Section */}
@@ -319,224 +320,224 @@ const KYCUpload = () => {
             backgroundRepeat: 'no-repeat',
           }}
         >
-            <div className="flex justify-between items-center">
-                <div className="flex gap-4">
-                    {/* Front Side */}
-                    <div className="w-[100px] h-[80px] rounded-[12px] border border-white/10 bg-white/5 flex flex-col items-center justify-center gap-2 overflow-hidden relative">
-                        {images.front ? (
-                            <img src={images.front} alt="Front" className="w-full h-full object-cover" />
-                        ) : (
-                            <>
-                                <img src={iconPlaceholder} alt="" className="w-6 h-6 opacity-50" />
-                                <span className="text-white/60 text-[10px]">Front side</span>
-                            </>
-                        )}
-                    </div>
-                     {/* Back Side */}
-                    <div className="w-[100px] h-[80px] rounded-[12px] border border-white/10 bg-white/5 flex flex-col items-center justify-center gap-2 overflow-hidden relative">
-                        {images.back ? (
-                            <img src={images.back} alt="Back" className="w-full h-full object-cover" />
-                        ) : (
-                            <>
-                                <img src={iconPlaceholder} alt="" className="w-6 h-6 opacity-50" />
-                                <span className="text-white/60 text-[10px]">Back side</span>
-                            </>
-                        )}
-                    </div>
-                </div>
-                <button
-                    onClick={handleClearAll}
-                    disabled={!images.front && !images.back}
-                    className={`text-[12px] underline underline-offset-2 transition-colors ${(!images.front && !images.back) ? 'text-gray-500 cursor-not-allowed' : 'text-red-500 hover:text-red-400'}`}
-                >
-                    Clear All
-                </button>
+          <div className="flex justify-between items-center">
+            <div className="flex gap-4">
+              {/* Front Side */}
+              <div className="w-[100px] h-[80px] rounded-[12px] border border-white/10 bg-white/5 flex flex-col items-center justify-center gap-2 overflow-hidden relative">
+                {images.front ? (
+                  <img src={images.front} alt="Front" className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <img src={iconPlaceholder} alt="" className="w-6 h-6 opacity-50" />
+                    <span className="text-white/60 text-[10px]">Front side</span>
+                  </>
+                )}
+              </div>
+              {/* Back Side */}
+              <div className="w-[100px] h-[80px] rounded-[12px] border border-white/10 bg-white/5 flex flex-col items-center justify-center gap-2 overflow-hidden relative">
+                {images.back ? (
+                  <img src={images.back} alt="Back" className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <img src={iconPlaceholder} alt="" className="w-6 h-6 opacity-50" />
+                    <span className="text-white/60 text-[10px]">Back side</span>
+                  </>
+                )}
+              </div>
             </div>
-            {/* Image Quality Error */}
-            {imageQualityError && (
-              <p className="text-[#FF6B6B] text-[12px] mt-3">{imageQualityError}</p>
-            )}
+            <button
+              onClick={handleClearAll}
+              disabled={!images.front && !images.back}
+              className={`text-[12px] underline underline-offset-2 transition-colors ${(!images.front && !images.back) ? 'text-gray-500 cursor-not-allowed' : 'text-red-500 hover:text-red-400'}`}
+            >
+              Clear All
+            </button>
+          </div>
+          {/* Image Quality Error */}
+          {imageQualityError && (
+            <p className="text-[#FF6B6B] text-[12px] mt-3">{imageQualityError}</p>
+          )}
         </div>
 
         {/* Form Fields */}
         <div className="space-y-4 mb-8">
-            <div>
-              <Input
-                  placeholder="Document Number"
-                  value={documentNumber}
-                  onChange={(e) => {
-                    setDocumentNumber(e.target.value);
-                    setDocumentMismatchError(null); // Clear mismatch error on edit
-                  }}
-                  className={`w-[363px] h-[48px] rounded-[100px] text-white placeholder:text-muted-foreground/60 px-6 mx-auto block ${documentMismatchError ? 'border-2 border-[#FF6B6B]' : 'border-none'}`}
-                  style={{
-                      backgroundImage: `url(${inputFieldBg})`,
-                      backgroundSize: '100% 100%',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundColor: 'transparent'
-                  }}
-              />
-              {documentError && (
-                <p className="text-red-500 text-[12px] mt-1 ml-6">{documentError}</p>
-              )}
-              {documentMismatchError && !documentError && (
-                <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6">{documentMismatchError}</p>
-              )}
-            </div>
-            <div>
-              <Input
-                  placeholder="Full Name as per Document"
-                  value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                    setNameMismatchError(null); // Clear mismatch error on edit
-                  }}
-                  className={`w-[363px] h-[48px] rounded-[100px] text-white placeholder:text-muted-foreground/60 px-6 mx-auto block ${nameMismatchError ? 'border-2 border-[#FF6B6B]' : 'border-none'}`}
-                  style={{
-                      backgroundImage: `url(${inputFieldBg})`,
-                      backgroundSize: '100% 100%',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundColor: 'transparent'
-                  }}
-              />
-              {nameMismatchError && (
-                <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6">{nameMismatchError}</p>
-              )}
-            </div>
-            {/* Date of Birth with Calendar */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowCalendar(!showCalendar)}
-                className="w-[363px] h-[48px] rounded-[100px] border-none text-left px-6 mx-auto flex items-center justify-between"
-                style={{
-                  backgroundImage: `url(${inputFieldBg})`,
-                  backgroundSize: '100% 100%',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                <span className={dob ? "text-white" : "text-muted-foreground/60"}>
-                  {dob ? format(dob, "dd MMM yyyy") : "Date of Birth"}
-                </span>
-                <CalendarIcon className="w-5 h-5 text-muted-foreground/60" />
-              </button>
-              
-              {showCalendar && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50">
-                  <GlassCalendar
-                    selected={dob}
-                    onSelect={(date) => {
-                      if (date) {
-                        if (validateAge(date)) {
-                          setDob(date);
-                          setDobError("");
-                        } else {
-                          setDob(date);
-                          setDobError("You must be 18 years or older");
-                        }
-                      }
-                      setShowCalendar(false);
-                    }}
-                    onClose={() => setShowCalendar(false)}
-                    disableFutureDates={true}
-                  />
-                </div>
-              )}
-              {dobError && (
-                <p className="text-red-500 text-[12px] mt-1 ml-6">{dobError}</p>
-              )}
-            </div>
+          <div>
+            <Input
+              placeholder="Document Number"
+              value={documentNumber}
+              onChange={(e) => {
+                setDocumentNumber(e.target.value);
+                setDocumentMismatchError(null); // Clear mismatch error on edit
+              }}
+              className={`w-[363px] h-[48px] rounded-[100px] text-white placeholder:text-muted-foreground/60 px-6 mx-auto block ${documentMismatchError ? 'border-2 border-[#FF6B6B]' : 'border-none'}`}
+              style={{
+                backgroundImage: `url(${inputFieldBg})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'transparent'
+              }}
+            />
+            {documentError && (
+              <p className="text-red-500 text-[12px] mt-1 ml-6">{documentError}</p>
+            )}
+            {documentMismatchError && !documentError && (
+              <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6">{documentMismatchError}</p>
+            )}
+          </div>
+          <div>
+            <Input
+              placeholder="Full Name as per Document"
+              value={fullName}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                setNameMismatchError(null); // Clear mismatch error on edit
+              }}
+              className={`w-[363px] h-[48px] rounded-[100px] text-white placeholder:text-muted-foreground/60 px-6 mx-auto block ${nameMismatchError ? 'border-2 border-[#FF6B6B]' : 'border-none'}`}
+              style={{
+                backgroundImage: `url(${inputFieldBg})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'transparent'
+              }}
+            />
+            {nameMismatchError && (
+              <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6">{nameMismatchError}</p>
+            )}
+          </div>
+          {/* Date of Birth with Calendar */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="w-[363px] h-[48px] rounded-[100px] border-none text-left px-6 mx-auto flex items-center justify-between"
+              style={{
+                backgroundImage: `url(${inputFieldBg})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'transparent'
+              }}
+            >
+              <span className={dob ? "text-white" : "text-muted-foreground/60"}>
+                {dob ? format(dob, "dd MMM yyyy") : "Date of Birth"}
+              </span>
+              <CalendarIcon className="w-5 h-5 text-muted-foreground/60" />
+            </button>
 
-            {/* Address Proof Section - Only for PAN Card */}
-            {documentType === "pan" && (
-              <div className="mt-4">
-                <p className="text-muted-foreground text-[14px] mb-4">
-                  We'll also need a document that shows your address. Please upload a valid address proof (e.g., Aadhaar, Voter ID, Driver's License, utility bill, or bank statement).
-                </p>
-                <input
-                  type="file"
-                  ref={addressProofInputRef}
-                  className="hidden"
-                  accept=".jpg,.jpeg,.png,.pdf"
-                  onChange={handleAddressProofChange}
+            {showCalendar && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50">
+                <GlassCalendar
+                  selected={dob}
+                  onSelect={(date) => {
+                    if (date) {
+                      if (validateAge(date)) {
+                        setDob(date);
+                        setDobError("");
+                      } else {
+                        setDob(date);
+                        setDobError("You must be 18 years or older");
+                      }
+                    }
+                    setShowCalendar(false);
+                  }}
+                  onClose={() => setShowCalendar(false)}
+                  disableFutureDates={true}
                 />
-                <div
-                  onClick={() => addressProofInputRef.current?.click()}
-                  className="w-full rounded-[16px] bg-black p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-black/80 transition-colors"
-                >
-                  {addressProof ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="text-green-400 text-[14px]">Document uploaded</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAddressProof(null);
-                        }}
-                        className="text-red-400 text-[12px] underline mt-1"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-10 h-10 mb-3 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                      </div>
-                      <p className="text-white/40 text-[14px] mb-1">Only .JPG, .PNG, .PDF file formats are allowed.</p>
-                      <p className="text-white/40 text-[14px] mb-3">Max file size 5MB.</p>
-                      <p className="text-white/60 text-[14px]">Tap to upload your document here.</p>
-                    </>
-                  )}
-                </div>
               </div>
             )}
+            {dobError && (
+              <p className="text-red-500 text-[12px] mt-1 ml-6">{dobError}</p>
+            )}
+          </div>
+
+          {/* Address Proof Section - Only for PAN Card */}
+          {documentType === "pan" && (
+            <div className="mt-4">
+              <p className="text-muted-foreground text-[14px] mb-4">
+                We'll also need a document that shows your address. Please upload a valid address proof (e.g., Aadhaar, Voter ID, Driver's License, utility bill, or bank statement).
+              </p>
+              <input
+                type="file"
+                ref={addressProofInputRef}
+                className="hidden"
+                accept=".jpg,.jpeg,.png,.pdf"
+                onChange={handleAddressProofChange}
+              />
+              <div
+                onClick={() => addressProofInputRef.current?.click()}
+                className="w-full rounded-[16px] bg-black p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-black/80 transition-colors"
+              >
+                {addressProof ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-green-400 text-[14px]">Document uploaded</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAddressProof(null);
+                      }}
+                      className="text-red-400 text-[12px] underline mt-1"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-10 h-10 mb-3 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                    </div>
+                    <p className="text-white/40 text-[14px] mb-1">Only .JPG, .PNG, .PDF file formats are allowed.</p>
+                    <p className="text-white/40 text-[14px] mb-3">Max file size 5MB.</p>
+                    <p className="text-white/60 text-[14px]">Tap to upload your document here.</p>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* OTP Section */}
         <div className="space-y-4">
-            <p className="text-muted-foreground text-[14px]">
-                An OTP has been sent to your registered mobile number.
-            </p>
-            <InputOTP maxLength={6} value={otp} onChange={setOtp} disabled={otpVerified}>
-                <InputOTPGroup className="w-full justify-between gap-2">
-                  {[0, 1, 2, 3, 4, 5].map(index => (
-                    <InputOTPSlot
-                      key={index}
-                      index={index}
-                      className="w-[52px] h-[68px] rounded-[7px] border border-white/10 bg-white/5 text-xl font-semibold text-white"
-                    />
-                  ))}
-                </InputOTPGroup>
-            </InputOTP>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    {otpVerified ? (
-                      <>
-                        <img src={otpVerifiedIcon} alt="Verified" className="w-5 h-5 object-contain" />
-                        <span className="text-green-400 text-[12px]">OTP verified</span>
-                      </>
-                    ) : (
-                      <>
-                        <img src={pendingStatusIcon} alt="Pending" className="w-5 h-5 object-contain" />
-                        <span className="text-white/80 text-[12px]">Awaiting OTP verification</span>
-                      </>
-                    )}
-                </div>
-                <button 
-                  className={`text-[12px] ${otpVerified ? 'text-gray-500 cursor-not-allowed' : 'text-muted-foreground hover:text-white'}`}
-                  disabled={otpVerified}
-                >
-                    Didn't receive OTP?
-                </button>
+          <p className="text-muted-foreground text-[14px]">
+            An OTP has been sent to your registered mobile number.
+          </p>
+          <InputOTP maxLength={6} value={otp} onChange={setOtp} disabled={otpVerified}>
+            <InputOTPGroup className="w-full justify-between gap-2">
+              {[0, 1, 2, 3, 4, 5].map(index => (
+                <InputOTPSlot
+                  key={index}
+                  index={index}
+                  className="w-[52px] h-[68px] rounded-[7px] border border-white/10 bg-white/5 text-xl font-semibold text-white"
+                />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {otpVerified ? (
+                <>
+                  <img src={otpVerifiedIcon} alt="Verified" className="w-5 h-5 object-contain" />
+                  <span className="text-green-400 text-[12px]">OTP verified</span>
+                </>
+              ) : (
+                <>
+                  <img src={pendingStatusIcon} alt="Pending" className="w-5 h-5 object-contain" />
+                  <span className="text-white/80 text-[12px]">Awaiting OTP verification</span>
+                </>
+              )}
             </div>
+            <button
+              className={`text-[12px] ${otpVerified ? 'text-gray-500 cursor-not-allowed' : 'text-muted-foreground hover:text-white'}`}
+              disabled={otpVerified}
+            >
+              Didn't receive OTP?
+            </button>
+          </div>
         </div>
       </div>
 
@@ -556,7 +557,8 @@ const KYCUpload = () => {
               fullName,
               dob: dob?.toISOString(),
               addressProof,
-              documentType
+              documentType,
+              flow: isFxFlow ? "fx" : null
             }
           })}
         >

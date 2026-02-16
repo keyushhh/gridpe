@@ -85,6 +85,8 @@ import FxExchange from "./pages/FxExchange";
 import FxExchangeSummary from "./pages/FxExchangeSummary";
 import FxSuccess from "./pages/FxSuccess";
 import FxIntro from "./pages/FxIntro";
+import FxPassportGate from "./pages/FxPassportGate";
+import FxPassportKYC from "./pages/FxPassportKYC";
 import LiveRates from "@/pages/LiveRates";
 import NotFound from "./pages/NotFound";
 
@@ -230,6 +232,8 @@ const App = () => {
                 <Route path="/fx-exchange-summary" element={<FxExchangeSummary />} />
                 <Route path="/fx-success/:orderId" element={<FxSuccess />} />
                 <Route path="/fx-intro" element={<FxIntro />} />
+                <Route path="/fx-passport-gate" element={<FxPassportGate />} />
+                <Route path="/fx-passport-kyc" element={<FxPassportKYC />} />
                 <Route path="/live-rates" element={<LiveRates />} />
                 <Route path="/auth/v1/callback" element={<AuthCallback />} />
                 <Route path="*" element={<NotFound />} />

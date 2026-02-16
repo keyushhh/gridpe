@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.png";
@@ -7,20 +7,23 @@ import buttonPrimaryWide from "@/assets/button-primary-wide.png";
 
 const SuccessScreen = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isFxFlow = searchParams.get("flow") === "fx";
+  const docType = searchParams.get("doc");
   const { submitKyc } = useUser();
   const [countdown, setCountdown] = useState(30);
 
   // Set KYC status to pending on mount
   useEffect(() => {
-    submitKyc();
-  }, [submitKyc]);
+    submitKyc(docType === 'passport');
+  }, [submitKyc, docType]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate("/home");
+          navigate(isFxFlow ? "/fx-exchange" : "/home");
           return 0;
         }
         return prev - 1;
@@ -28,7 +31,7 @@ const SuccessScreen = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [navigate, isFxFlow]);
 
   return (
     <div
@@ -45,9 +48,9 @@ const SuccessScreen = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center mb-10">
-         {/* Icon */}
+        {/* Icon */}
         <div className="mb-8">
-             <img src={checkIcon} alt="Success" className="w-[80px] h-[80px] object-contain" />
+          <img src={checkIcon} alt="Success" className="w-[80px] h-[80px] object-contain" />
         </div>
 
         {/* Title */}
@@ -65,7 +68,7 @@ const SuccessScreen = () => {
       <div className="w-full pb-10 flex flex-col items-center gap-4">
         {/* Countdown Button */}
         <button
-          onClick={() => navigate("/home")}
+          onClick={() => navigate(isFxFlow ? "/fx-exchange" : "/home")}
           className="flex items-center justify-center text-foreground text-[14px] font-medium transition-transform active:scale-95"
           style={{
             backgroundImage: `url(${buttonPrimaryWide})`,
@@ -75,7 +78,7 @@ const SuccessScreen = () => {
             height: '48px'
           }}
         >
-          Redirecting Home in {countdown}s...
+          {isFxFlow ? "Go to FX Exchange" : `Redirecting Home in ${countdown}s...`}
         </button>
 
         {/* Disclaimer 1 */}
@@ -83,7 +86,7 @@ const SuccessScreen = () => {
           (Because refreshing the screen won’t make it go faster.)
         </p>
 
-         <div className="h-8" /> {/* Spacer */}
+        <div className="h-8" /> {/* Spacer */}
 
         {/* Footer Text */}
         <p className="text-white/60 text-[13px] text-center leading-snug px-4">
