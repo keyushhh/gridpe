@@ -10,7 +10,18 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import addIcon from "@/assets/add-icon.svg";
 import iconWallet from "@/assets/wallet.svg";
 import iconFxConvert from "@/assets/fx-convert.svg";
+import currencyIcon from "@/assets/currency.svg";
 import iconGift from "@/assets/icon-gift.png";
+import useEmblaCarousel from 'embla-carousel-react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  ReferenceLine
+} from 'recharts';
 import orderCashBg from "@/assets/order-cash-button-bg.png";
 import iconOrderCash from "@/assets/order-cash.svg";
 import circleButtonBg from "@/assets/circle-button.png";
@@ -59,6 +70,85 @@ const Homepage = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
   const [hasSavedAddresses, setHasSavedAddresses] = useState<boolean>(false);
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
+  // FX Live Data states
+  const [fxRate, setFxRate] = useState<number>(90.61);
+  const [fxHistory, setFxHistory] = useState<any[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<string>("16 Feb, 6:15 AM UTC");
+  const [isLoadingFx, setIsLoadingFx] = useState<boolean>(true);
+
+  // Fetch Live FX Data
+  useEffect(() => {
+    const fetchFxData = async () => {
+      try {
+        setIsLoadingFx(true);
+        // Calculate date range for last 30 days
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 30);
+
+        const startStr = start.toISOString().split('T')[0];
+        const endStr = end.toISOString().split('T')[0];
+
+        // Fetch latest rate and history in parallel
+        const [latestRes, historyRes] = await Promise.all([
+          fetch('https://api.frankfurter.app/latest?from=USD&to=INR'),
+          fetch(`https://api.frankfurter.app/${startStr}..?from=USD&to=INR`)
+        ]);
+
+        const latestData = await latestRes.json();
+        const historyData = await historyRes.json();
+
+        if (latestData.rates && latestData.rates.INR) {
+          setFxRate(latestData.rates.INR);
+
+          // Format Last Updated (Simulated based on API date + current time for "Live" feel)
+          const now = new Date();
+          const options: Intl.DateTimeFormatOptions = {
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZoneName: 'short'
+          };
+          setLastUpdated(now.toLocaleString('en-GB', options).replace(',', ''));
+        }
+
+        if (historyData.rates) {
+          const formattedHistory = Object.entries(historyData.rates).map(([date, rates]: [string, any]) => ({
+            date: new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            rate: rates.INR
+          }));
+          setFxHistory(formattedHistory);
+        }
+      } catch (error) {
+        console.error("Failed to fetch FX data:", error);
+      } finally {
+        setIsLoadingFx(false);
+      }
+    };
+
+    fetchFxData();
+  }, []);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: false,
+    align: 'start',
+    skipSnaps: false
+  });
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      setActiveBannerIndex(emblaApi.selectedScrollSnap());
+    };
+    emblaApi.on('select', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi]);
 
   // Map State
   const [viewState, setViewState] = useState({
@@ -529,24 +619,119 @@ const Homepage = () => {
           </div>
         ) : (
           <div className="mx-5 mt-6">
-            <div className="rounded-2xl overflow-hidden flex" style={{
-              backgroundImage: `url(${bannerBg})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}>
-              <div className="flex-1 p-4 flex flex-col justify-center">
-                <div className="flex items-center gap-2 mb-2">
-                  <img src={iconGift} alt="Gift" className="w-5 h-5" />
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex">
+                {/* Banner 1: Refer & Earn */}
+                <div className="flex-[0_0_100%] min-w-0 pr-0">
+                  <div className="rounded-[16px] overflow-hidden flex" style={{
+                    backgroundImage: `url(${bannerBg})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    height: '104px',
+                    width: '362px',
+                    borderRadius: '16px'
+                  }}>
+                    <div className="flex-1 p-4 flex flex-col justify-center">
+                      <div className="flex items-center gap-2 mb-2">
+                        <img src={iconGift} alt="Gift" className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-foreground text-[16px] font-semibold mb-1">Refer & Earn!</h3>
+                      <p className="text-muted-foreground text-[12px]">Earn ₹50 on each referral</p>
+                    </div>
+                    <img src={bannerImage} alt="Referral" className="w-[160px] h-[104px] object-cover rounded-r-2xl" />
+                  </div>
                 </div>
-                <h3 className="text-foreground text-[16px] font-semibold mb-1">Refer & Earn!</h3>
-                <p className="text-muted-foreground text-[12px]">Earn ₹50 on each referral</p>
+
+                {/* Banner 2: FX Convert */}
+                <div className="flex-[0_0_100%] min-w-0 pr-0">
+                  <div className="rounded-[16px] overflow-hidden flex relative" style={{
+                    backgroundImage: `url(${bannerBg})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    height: '104px',
+                    width: '362px',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                    borderRadius: '16px'
+                  }}>
+                    {/* Left Section */}
+                    <div className="flex-1 p-4 flex flex-col justify-between relative z-10">
+                      <div className="flex items-center gap-2">
+                        <img src={currencyIcon} alt="Currency" className="w-6 h-6" />
+                        <span className="text-white font-regular text-[10px] font-satoshi opacity-80">
+                          {lastUpdated}
+                        </span>
+                      </div>
+                      <div className="mb-0">
+                        <h3 className="text-white text-[16px] font-bold font-satoshi leading-tight">
+                          1 USD = {fxRate.toFixed(2)} INR
+                        </h3>
+                      </div>
+                      <p className="text-white/60 text-[10px] font-satoshi font-normal">
+                        Tap to convert & withdraw
+                      </p>
+                    </div>
+
+                    {/* Right Section: Mini Chart */}
+                    <div className="w-[140px] h-full relative p-2 pt-4">
+                      {fxHistory.length > 0 && (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={fxHistory}>
+                            <defs>
+                              <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#16B751" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#16B751" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <Area
+                              type="monotone"
+                              dataKey="rate"
+                              stroke="#16B751"
+                              strokeWidth={1.5}
+                              fillOpacity={1}
+                              fill="url(#colorRate)"
+                              isAnimationActive={true}
+                              animationDuration={1500}
+                            />
+                            <YAxis hide domain={['dataMin - 0.2', 'dataMax + 0.2']} />
+                            <XAxis
+                              dataKey="date"
+                              hide
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      )}
+
+                      {/* Last point marker & line */}
+                      <div className="absolute top-[35%] right-[12px] w-[6px] h-[6px] rounded-full bg-[#16B751] shadow-[0_0_8px_#16B751]" />
+                      <div className="absolute top-[35%] bottom-[12px] right-[14.5px] w-[1px] bg-[#16B751]/30" />
+
+                      {/* X-Axis subtle labels overlay */}
+                      <div className="absolute bottom-1 left-4 right-4 flex justify-between">
+                        <span className="text-[7px] text-white/30 font-satoshi">
+                          {fxHistory.length > 5 ? fxHistory[Math.floor(fxHistory.length * 0.2)].date : '26 Jan'}
+                        </span>
+                        <span className="text-[7px] text-white/30 font-satoshi">
+                          {fxHistory.length > 0 ? fxHistory[fxHistory.length - 1].date : '6 Feb'}
+                        </span>
+                      </div>
+
+                      {/* Y-Axis subtle markers (Simulated based on current rate) */}
+                      <div className="absolute top-4 left-0 flex flex-col gap-[10px]">
+                        <span className="text-[7px] text-white/20">{(fxRate + 0.5).toFixed(1)}</span>
+                        <span className="text-[7px] text-white/20">{(fxRate).toFixed(1)}</span>
+                        <span className="text-[7px] text-white/20">{(fxRate - 0.5).toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <img src={bannerImage} alt="Referral" className="w-[160px] h-[104px] object-cover rounded-r-2xl" />
             </div>
+
             {/* Carousel Dots */}
             <div className="flex justify-center gap-2 mt-3">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <div className="w-2 h-2 rounded-full bg-muted" />
+              <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0 ? 'bg-[#5260FE]' : 'bg-muted'}`} />
+              <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1 ? 'bg-[#5260FE]' : 'bg-muted'}`} />
             </div>
           </div>
         )}
@@ -665,7 +850,8 @@ const Homepage = () => {
         order={selectedOrderForSheet}
         onCancel={handleCancelOrder}
       />
-
-    </div>);
+    </div>
+  );
 };
+
 export default Homepage;
