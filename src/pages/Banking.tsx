@@ -481,7 +481,7 @@ const Banking = () => {
 
             {/* Bottom Nav */}
             <div className={contentBlurClass}>
-                <BottomNavigation activeTab="cards" />
+                <BottomNavigation activeTab="cards" isHidden={confirmAction !== null} />
             </div>
 
             {/* Confirmation Modal */}

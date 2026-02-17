@@ -41,7 +41,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <div className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center">
         {/* Card Background Container */}
         <div
-          className="relative w-full overflow-hidden rounded-[32px] p-6 text-center"
+          className="relative w-full overflow-hidden rounded-[32px] p-8 pb-10"
           style={{
             backgroundImage: `url(${popupBg})`,
             backgroundSize: '100% 100%',
@@ -49,7 +49,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           }}
         >
           {/* Text Content */}
-          <div className="mb-6 space-y-2">
+          <div className="mb-6 space-y-2 text-left">
             <h2 className="text-[20px] font-bold text-white font-satoshi">
               {title}
             </h2>

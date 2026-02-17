@@ -13,13 +13,14 @@ import awaitingIcon from "@/assets/awaiting.svg";
 import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import cancelCta from "@/assets/cancel-cta.png";
 import { useUser } from "@/contexts/UserContext";
-import { toast } from "sonner";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 const WithdrawOTP = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { phoneNumber } = useUser();
     const [otp, setOtp] = useState("");
+    const { showToaster } = useCustomToaster();
     const [isVerified, setIsVerified] = useState(false);
     const { selectedMethod, amount } = location.state || {};
 
@@ -27,9 +28,9 @@ const WithdrawOTP = () => {
 
     useEffect(() => {
         if (phoneNumber) {
-            toast.success(`OTP sent to +91 ${phoneNumber}`);
+            showToaster(`OTP sent to +91 ${phoneNumber}`, 'success');
         }
-    }, [phoneNumber]);
+    }, [phoneNumber, showToaster]);
 
     useEffect(() => {
         if (otp === "123456") {
@@ -67,7 +68,7 @@ const WithdrawOTP = () => {
                 navigate("/wallet-withdraw-success", { state: { ...location.state, amount } });
             }
         } else if (otp.length === 6) {
-            toast.error("Invalid OTP. Please enter 123456 for testing.");
+            showToaster("Invalid OTP. Please enter 123456 for testing.", 'error');
         }
     };
 

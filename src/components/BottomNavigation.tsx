@@ -12,10 +12,13 @@ import navbarOverlay from "@/assets/navbar-overlay.png";
 
 interface BottomNavigationProps {
   activeTab: "home" | "cards" | "rewards" | "more";
+  isHidden?: boolean;
 }
 
-const BottomNavigation = ({ activeTab }: BottomNavigationProps) => {
+const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   const navigate = useNavigate();
+
+  if (isHidden) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-[104px] z-50 flex items-center justify-between px-6 backdrop-blur-md bg-black/80 border-t border-white/40 overflow-hidden">

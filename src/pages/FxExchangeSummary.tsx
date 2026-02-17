@@ -22,7 +22,7 @@ import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import { createOrder } from "@/lib/orders";
 import { createAddress } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 interface SavedAddress {
     id?: string;
@@ -41,6 +41,7 @@ interface SavedAddress {
 const FxExchangeSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { showToaster } = useCustomToaster();
 
     // Accept full FX state
     const {
@@ -159,7 +160,7 @@ const FxExchangeSummary = () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                toast.error("You must be logged in to place an order.");
+                showToaster("You must be logged in to place an order.", 'error');
                 return;
             }
 
@@ -187,13 +188,13 @@ const FxExchangeSummary = () => {
                     localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
                 } catch (err) {
                     console.error("Failed to save address before order", err);
-                    toast.error("Failed to save address details. Please try again.");
+                    showToaster("Failed to save address details. Please try again.", 'error');
                     return;
                 }
             }
 
             if (!addressId) {
-                toast.error("Please select a valid address.");
+                showToaster("Please select a valid address.", 'error');
                 return;
             }
 
@@ -262,7 +263,7 @@ const FxExchangeSummary = () => {
             }
         } catch (error: any) {
             console.error("Failed to create order", error);
-            toast.error(`Failed to place order: ${error.message || "Please try again."}`);
+            showToaster(`Failed to place order: ${error.message || "Please try again."}`, 'error');
         }
     };
 

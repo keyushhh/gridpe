@@ -12,7 +12,7 @@ import howItWorksBg from "@/assets/rewards-howitworks.png";
 import detailsIcon from "@/assets/details.svg";
 import popupCloseBtnBg from "@/assets/pop-up-close-btn.png";
 import closeIcon from "@/assets/close.svg";
-import { toast } from "sonner";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser, WalletTransaction } from "@/contexts/UserContext";
 import { fetchPastOrders, Order } from "@/lib/orders";
 
@@ -20,6 +20,7 @@ const POINTS_PER_RUPEE = 40;
 
 const Rewards = () => {
     const { profile, walletTransactions } = useUser();
+    const { showToaster } = useCustomToaster();
     const [cashOrders, setCashOrders] = useState<Order[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showHowItWorks, setShowHowItWorks] = useState(false);
@@ -78,7 +79,7 @@ const Rewards = () => {
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(referralLink);
-        toast.success("Referral link copied!");
+        showToaster("Referral link copied!", 'success');
     };
 
     return (

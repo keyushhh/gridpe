@@ -17,7 +17,7 @@ import securityIncomplete from "@/assets/security-incomplete.png";
 import securityComplete from "@/assets/security-complete.png";
 import securityPending from "@/assets/security-pending.png";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 type SecurityStatus = "incomplete" | "pending" | "complete";
 
@@ -41,6 +41,7 @@ const triggerHaptic = () => {
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { showToaster } = useCustomToaster();
   const { phoneNumber, kycStatus, resetForDemo, name, profileImage } = useUser();
   const [pushNotifications, setPushNotifications] = useState(true);
   const [transactionAlerts, setTransactionAlerts] = useState(false);
@@ -58,7 +59,7 @@ const Settings = () => {
   const handleLogoPress = () => {
     longPressTimer.current = setTimeout(() => {
       resetForDemo();
-      toast.success("Demo reset! All data cleared.");
+      showToaster("Demo reset! All data cleared.", 'success');
     }, 3000);
   };
 

@@ -5,6 +5,8 @@ import { fetchAddresses, deleteAddress, Address } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Button } from "@/components/ui/button";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import buttonRemoveCard from "@/assets/button-remove-card.png";
 
 // Assets
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -49,7 +51,7 @@ const SavedAddresses = () => {
         if (!addressToDelete) return;
         try {
             await deleteAddress(addressToDelete.id);
-            showToaster(`${addressToDelete.contact_name || 'Address'} has been successfully deleted.`);
+            showToaster(`${addressToDelete.contact_name || 'Address'} has been successfully deleted.`, 'delete');
             setAddresses(prev => prev.filter(a => a.id !== addressToDelete.id));
             setAddressToDelete(null);
         } catch (e) {
@@ -181,52 +183,32 @@ const SavedAddresses = () => {
             </div>
 
             {/* Bottom CTA */}
-            <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent pt-10 pb-10 z-20">
-                <button
-                    onClick={() => navigate("/add-address")}
-                    className="w-full h-[56px] bg-black/40 border border-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-[16px] font-medium active:scale-95 transition-transform"
-                    style={{
-                        boxShadow: "0 0 20px rgba(0,0,0,0.5)"
-                    }}
-                >
-                    Add New Address
-                </button>
-            </div>
-
-            {/* Delete Confirmation Popup */}
-            {addressToDelete && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-5">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAddressToDelete(null)} />
-                    <div
-                        className="relative w-full max-w-[362px] p-6 rounded-[32px] flex flex-col items-center text-center"
+            {!addressToDelete && (
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent pt-10 pb-10 z-20">
+                    <button
+                        onClick={() => navigate("/add-address")}
+                        className="w-full h-[56px] bg-black/40 border border-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-[16px] font-medium active:scale-95 transition-transform"
                         style={{
-                            backgroundImage: `url(${popBgDefault})`,
-                            backgroundSize: "100% 100%",
+                            boxShadow: "0 0 20px rgba(0,0,0,0.5)"
                         }}
                     >
-                        <h2 className="text-[18px] font-bold mb-4">
-                            Are you sure you want to<br />delete this address?
-                        </h2>
-                        <p className="text-[14px] text-white/60 mb-8 px-4 line-clamp-2">
-                            {addressToDelete.contact_name} | {addressToDelete.apartment}, {addressToDelete.area}
-                        </p>
-
-                        <button
-                            onClick={handleDelete}
-                            className="w-full h-12 bg-[#FF1E1E] rounded-full font-bold mb-3 active:scale-95 transition-transform shadow-lg shadow-black/20"
-                        >
-                            Yes, Delete
-                        </button>
-                        <button
-                            onClick={() => setAddressToDelete(null)}
-                            className="w-full h-12 relative flex items-center justify-center group active:scale-95 transition-transform"
-                        >
-                            <img src={buttonCancelWide} alt="" className="absolute inset-0 w-full h-full object-fill" />
-                            <span className="relative z-10 font-bold">No</span>
-                        </button>
-                    </div>
+                        Add New Address
+                    </button>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={addressToDelete !== null}
+                onClose={() => setAddressToDelete(null)}
+                title="Are you sure you want to delete this address?"
+                description={addressToDelete ? `${addressToDelete.contact_name} | ${addressToDelete.apartment}, ${addressToDelete.area}` : ""}
+                primaryButtonSrc={buttonRemoveCard}
+                primaryText="Yes, Delete"
+                onPrimaryClick={handleDelete}
+                secondaryButtonSrc={buttonCancelWide}
+                secondaryText="No"
+            />
         </div>
     );
 };

@@ -70,6 +70,7 @@ const Homepage = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
   const [hasSavedAddresses, setHasSavedAddresses] = useState<boolean>(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
   // FX Live Data states
@@ -455,6 +456,7 @@ const Homepage = () => {
           isOpen={isAddressSheetOpen}
           onClose={() => setIsAddressSheetOpen(false)}
           onAddressSelect={handleAddressSelect}
+          onModalStateChange={setIsAddressModalOpen}
         />
 
         {/* Balance Section */}
@@ -860,7 +862,7 @@ const Homepage = () => {
       </div>
 
       {/* Bottom Navigation (Fixed) */}
-      <BottomNavigation activeTab="home" />
+      <BottomNavigation activeTab="home" isHidden={isAddressModalOpen} />
 
       <OrderDetailsSheet
         isOpen={isSheetOpen}

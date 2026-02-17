@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import { toast } from "sonner";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Button } from "@/components/ui/button";
 import SaveAddressSheet from "@/components/SaveAddressSheet";
 import { createAddress, updateAddress, Address } from "@/lib/addresses";
@@ -40,6 +40,7 @@ interface AddressState {
 const AddAddressDetails = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { showToaster } = useCustomToaster();
     const initialState = location.state as AddressState | null;
     const isEditMode = !!initialState?.id;
 
@@ -91,7 +92,7 @@ const AddAddressDetails = () => {
 
     const handleCopyPlusCode = () => {
         navigator.clipboard.writeText(plusCode);
-        toast.success("Plus Code copied!");
+        showToaster("Plus Code copied!", 'success');
     };
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -104,7 +105,7 @@ const AddAddressDetails = () => {
         // If saving via Sheet, we trust the caller (overrideTag)
         // But we still need to validate the main form
         if (!isFormValid) {
-            toast.error("Please fill all required details first.");
+            showToaster("Please fill all required details first.", 'error');
             return;
         }
 
@@ -119,7 +120,7 @@ const AddAddressDetails = () => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.user) {
-                toast.error("You must be logged in to save an address.");
+                showToaster("You must be logged in to save an address.", 'error');
                 return;
             }
 
@@ -195,12 +196,12 @@ const AddAddressDetails = () => {
                 localStorage.setItem("gridpe_user_address", JSON.stringify(uiAddr));
             }
 
-            toast.success(isEditMode ? "Address updated!" : "Address saved successfully!");
+            showToaster(isEditMode ? "Address updated!" : "Address saved successfully!", 'success');
             navigate("/home", { replace: true });
 
         } catch (err: any) {
             console.error("Failed to save address", err);
-            toast.error(`Failed to save address: ${err.message || "Unknown error"}`);
+            showToaster(`Failed to save address: ${err.message || "Unknown error"}`, 'error');
         }
     };
 

@@ -25,6 +25,8 @@ import selectedAddressBg from "@/assets/selected-address.png";
 import popBgDefault from "@/assets/pop-bg-default.png";
 import buttonCancelWide from "@/assets/button-cancel-wide.png";
 import searchBg from "@/assets/search-bg.png";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import buttonRemoveCard from "@/assets/button-remove-card.png";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 // Adapted to match UI needs while using DB Address type
@@ -47,9 +49,10 @@ interface AddressSelectionSheetProps {
     isOpen: boolean;
     onClose: () => void;
     onAddressSelect: (address: SavedAddress | null) => void;
+    onModalStateChange?: (isOpen: boolean) => void;
 }
 
-const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, onClose, onAddressSelect }) => {
+const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, onClose, onAddressSelect, onModalStateChange }) => {
     const navigate = useNavigate();
     const { showToaster } = useCustomToaster();
     const [searchQuery, setSearchQuery] = useState("");
@@ -213,6 +216,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
         setAddressToDelete(savedAddresses[index]);
     };
 
+    useEffect(() => {
+        onModalStateChange?.(addressToDelete !== null);
+    }, [addressToDelete, onModalStateChange]);
+
     const confirmDelete = async () => {
         if (!addressToDelete || !addressToDelete.id) return;
 
@@ -223,7 +230,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
             // "Nisha Paliwal | C102..." -> we need the name from contact info
             // Requirement: "Nisha Paliwal has been successfully deleted."
             const name = addressToDelete.name || "Address";
-            showToaster(`${name} has been successfully deleted.`);
+            showToaster(`${name} has been successfully deleted.`, 'delete');
 
             const newList = savedAddresses.filter(a => a.id !== addressToDelete.id);
             setSavedAddresses(newList);
@@ -470,76 +477,18 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
 
             </div>
 
-            {/* Delete Confirmation Popup */}
-            {addressToDelete && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                        onClick={() => setAddressToDelete(null)}
-                    />
-
-                    {/* Modal */}
-                    <div
-                        className="relative flex flex-col items-center"
-                        style={{
-                            width: '362px',
-                            height: '270px',
-                            backgroundImage: `url(${popBgDefault})`,
-                            backgroundSize: '100% 100%',
-                            backgroundRepeat: 'no-repeat',
-                            paddingTop: '20px',
-                            paddingBottom: '20px',
-                            paddingLeft: '17px',
-                            paddingRight: '17px',
-                            borderRadius: '32px'
-                        }}
-                    >
-                        {/* Header */}
-                        <h2 className="text-white text-[18px] font-bold font-satoshi text-center leading-tight">
-                            Are you sure you want to<br />delete this address?
-                        </h2>
-
-                        <div className="h-[16px]" />
-
-                        {/* Body */}
-                        <p className="text-white text-[14px] font-regular font-satoshi text-center px-2 line-clamp-2">
-                            {addressToDelete.name} | {addressToDelete.displayAddress}
-                        </p>
-
-                        <div className="h-[24px]" />
-
-                        {/* CTA 1: Yes, Delete */}
-                        <button
-                            onClick={confirmDelete}
-                            className="w-full h-[48px] rounded-full flex items-center justify-center text-white text-[16px] font-bold font-satoshi"
-                            style={{
-                                backgroundColor: '#FF1E1E',
-                                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.25)'
-                            }}
-                        >
-                            Yes, Delete
-                        </button>
-
-                        <div className="h-[10px]" />
-
-                        {/* CTA 2: No */}
-                        <button
-                            onClick={() => setAddressToDelete(null)}
-                            className="w-full h-[48px] relative flex items-center justify-center"
-                        >
-                            <img
-                                src={buttonCancelWide}
-                                alt="No"
-                                className="absolute inset-0 w-full h-full object-fill"
-                            />
-                            <span className="relative z-10 text-white text-[16px] font-bold font-satoshi">
-                                No
-                            </span>
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={addressToDelete !== null}
+                onClose={() => setAddressToDelete(null)}
+                title="Are you sure you want to delete this address?"
+                description={addressToDelete ? `${addressToDelete.name} | ${addressToDelete.displayAddress}` : ""}
+                primaryButtonSrc={buttonRemoveCard}
+                primaryText="Yes, Delete"
+                onPrimaryClick={confirmDelete}
+                secondaryButtonSrc={buttonCancelWide}
+                secondaryText="No"
+            />
         </div>
     );
 };

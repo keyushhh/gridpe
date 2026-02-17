@@ -6,11 +6,12 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import buttonRemoveCard from "@/assets/button-remove-card.png";
 import buttonCancel from "@/assets/button-cancel-wide.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
-import { toast } from "sonner";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 const DeleteAccountOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showToaster } = useCustomToaster();
 
   const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(20);
@@ -30,7 +31,7 @@ const DeleteAccountOTP = () => {
     setOtp("");
     setTimeLeft(20);
     setCanResend(false);
-    toast.info("OTP sent successfully");
+    showToaster("OTP sent successfully", 'success');
   };
 
   const handleCancel = () => {

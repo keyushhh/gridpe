@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Search } from "lucide-react";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from "open-location-code";
-import { toast } from "sonner";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { calculateDistance, getDistance, GeocodeResult, reverseGeocode, forwardGeocode } from "@/utils/geoUtils";
@@ -19,6 +19,7 @@ import distanceCallout from "@/assets/distance-callout.svg";
 
 const AddAddress = () => {
   const navigate = useNavigate();
+  const { showToaster } = useCustomToaster();
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState<ViewState>({
     latitude: 12.9716,
@@ -307,7 +308,7 @@ const AddAddress = () => {
   const copyPlusCode = () => {
     if (plusCode) {
       navigator.clipboard.writeText(plusCode);
-      toast.success("Plus Code copied to clipboard!");
+      showToaster("Plus Code copied to clipboard!", 'success');
     }
   };
 
