@@ -91,6 +91,7 @@ import Subscriptions from "@/pages/Subscriptions";
 import ManageSubscription from "@/pages/ManageSubscription";
 import DowngradePlan from "./pages/DowngradePlan";
 import DowngradeSummary from "./pages/DowngradeSummary";
+import HelpCategoryPage from "./pages/HelpCategoryPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -224,6 +225,7 @@ const App = () => {
                 <Route path="/order-delivered" element={<OrderDelivered />} />
                 <Route path="/help" element={<HelpSupport />} />
                 <Route path="/help/report" element={<NeedHelp />} />
+                <Route path="/help/category/:categoryId" element={<HelpCategoryPage />} />
                 <Route path="/help/success" element={<HelpReportSuccess />} />
                 <Route path="/rewards" element={<Rewards />} />
                 <Route path="/legal/privacy" element={<LegalPage type="privacy" />} />

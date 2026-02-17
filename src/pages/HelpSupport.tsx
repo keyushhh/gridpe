@@ -159,10 +159,10 @@ const HelpSupport = () => {
                         style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(25px)' }}
                     >
                         {[
-                            { icon: generalIssuesIcon, label: "General Issues", route: "/help/report" },
-                            { icon: faqsIcon, label: "FAQs", route: "/help/faqs" },
-                            { icon: walletIcon, label: "Grid.Pe Wallet FAQs", route: "/help/wallet-faqs" },
-                            { icon: onboardingIcon, label: "Partner Onboarding", route: "/help/onboarding" },
+                            { icon: generalIssuesIcon, label: "General Issues", route: "/help/category/general-issues" },
+                            { icon: faqsIcon, label: "FAQs", route: "/help/category/faqs" },
+                            { icon: walletIcon, label: "Grid.Pe Wallet FAQs", route: "/help/category/wallet-faqs" },
+                            { icon: onboardingIcon, label: "Partner Onboarding", route: "/help/category/onboarding" },
                         ].map((cat, idx, arr) => (
                             <React.Fragment key={cat.label}>
                                 <button
