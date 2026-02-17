@@ -185,16 +185,17 @@ const HelpSupport = () => {
                 <div className="mb-10">
                     <h3 className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mb-[12px] uppercase">CONTACT US</h3>
                     <button
-                        className="w-[363px] rounded-[13px] border border-white/10 py-[10px] pl-[50px] pr-[40px] relative active:scale-[0.98] transition-all overflow-hidden flex flex-col items-start"
+                        onClick={() => navigate('/help/chat')}
+                        className="w-[363px] h-[72px] rounded-[13px] border border-white/10 flex items-center px-[14px] relative active:bg-white/5 transition-colors overflow-hidden"
                         style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(25px)' }}
                     >
                         <div className="absolute top-[12px] left-[12px] w-[25px] h-[25px] flex items-center justify-center">
                             <img src={chatIcon} alt="" className="w-[18px] h-[18px]" />
                         </div>
-                        <div className="flex flex-col items-start w-full">
+                        <div className="flex flex-col items-start w-full pl-[36px]">
                             <h4 className="text-white text-[14px] font-regular font-satoshi mb-[2px]">Chat with us</h4>
                             <p className="text-white/50 text-[12px] font-medium font-satoshi leading-tight text-left">
-                                Dot is here to help! Chat with dot to clear your doubts.
+                                Zing is here to help! Chat with Zing to clear your doubts.
                             </p>
                         </div>
                         <ChevronRight className="absolute top-[12px] right-[14px] text-white/40 w-5 h-5" />

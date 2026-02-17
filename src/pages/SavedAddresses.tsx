@@ -60,6 +60,17 @@ const SavedAddresses = () => {
             await deleteAddress(idToDelete);
             showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
             setAddresses(prev => prev.filter(a => a.id !== idToDelete));
+
+            // Clear from localStorage if this was the selected address
+            const currentSelected = localStorage.getItem("gridpe_user_address");
+            if (currentSelected) {
+                try {
+                    const parsed = JSON.parse(currentSelected);
+                    if (parsed.id === idToDelete) {
+                        localStorage.removeItem("gridpe_user_address");
+                    }
+                } catch (err) { }
+            }
         } catch (e: any) {
             console.error("Failed to delete address", e);
             showToaster(e.message || "Failed to delete address. Please try again.", 'error');

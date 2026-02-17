@@ -92,6 +92,7 @@ import ManageSubscription from "@/pages/ManageSubscription";
 import DowngradePlan from "./pages/DowngradePlan";
 import DowngradeSummary from "./pages/DowngradeSummary";
 import HelpCategoryPage from "./pages/HelpCategoryPage";
+import ZingChat from "./pages/ZingChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -226,6 +227,7 @@ const App = () => {
                 <Route path="/help" element={<HelpSupport />} />
                 <Route path="/help/report" element={<NeedHelp />} />
                 <Route path="/help/category/:categoryId" element={<HelpCategoryPage />} />
+                <Route path="/help/chat" element={<ZingChat />} />
                 <Route path="/help/success" element={<HelpReportSuccess />} />
                 <Route path="/rewards" element={<Rewards />} />
                 <Route path="/legal/privacy" element={<LegalPage type="privacy" />} />
