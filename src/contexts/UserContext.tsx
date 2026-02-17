@@ -113,7 +113,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   /* Persist to localStorage */
   useEffect(() => {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error("Failed to save user state to localStorage:", error);
+      // Fallback: If quota exceeded (likely due to image), save without profile image
+      if (state.profileImage) {
+        try {
+          const stateWithoutImage = { ...state, profileImage: null };
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(stateWithoutImage));
+          console.warn("User state saved without profile image due to storage limits.");
+        } catch (retryError) {
+          console.error("Failed to save fallback user state:", retryError);
+        }
+      }
+    }
   }, [state]);
 
   /* Auto-transition KYC */
