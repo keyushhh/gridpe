@@ -99,9 +99,13 @@ serve(async (req: Request) => {
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             console.error('Gemini Error:', errorData);
+
+            // Extract meaningful error message
+            const errorMessage = errorData.error?.message || "Unknown error";
+
             return new Response(
                 JSON.stringify({
-                    reply: "Gemini is being temperamental. Check your API key or limits!",
+                    reply: `Gemini API Error: ${errorMessage}. Please check your API key validity and quotas.`,
                     error: errorData
                 }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
