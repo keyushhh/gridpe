@@ -69,7 +69,7 @@ serve(async (req: Request) => {
 
     try {
         const { message } = await req.json()
-        const apiKey = Deno.env.get('OPENAI_API_KEY');
+        const apiKey = Deno.env.get('GEMINI_API_KEY');
 
         if (!apiKey) {
             return new Response(
@@ -81,28 +81,27 @@ serve(async (req: Request) => {
             )
         }
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
-                messages: [
-                    { role: 'system', content: SYSTEM_PROMPT },
-                    { role: 'user', content: message }
-                ],
-                temperature: 0.7,
+                system_instruction: {
+                    parts: [{ text: SYSTEM_PROMPT }]
+                },
+                contents: [{
+                    parts: [{ text: message }]
+                }]
             }),
         })
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('OpenAI Error:', errorData);
+            console.error('Gemini Error:', errorData);
             return new Response(
                 JSON.stringify({
-                    reply: "OpenAI is grumpy right now. Check your API key or limits!",
+                    reply: "Gemini is being temperamental. Check your API key or limits!",
                     error: errorData
                 }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
@@ -111,17 +110,17 @@ serve(async (req: Request) => {
 
         const data = await response.json()
 
-        if (!data.choices || data.choices.length === 0) {
+        if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content || !data.candidates[0].content.parts) {
             return new Response(
                 JSON.stringify({
-                    reply: "OpenAI gave me a blank stare. No response generated.",
-                    error: "Empty choices"
+                    reply: "Gemini gave me a blank stare. No response generated.",
+                    error: "Empty candidates/parts"
                 }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
             )
         }
 
-        const reply = data.choices[0].message.content
+        const reply = data.candidates[0].content.parts[0].text
 
         return new Response(
             JSON.stringify({ reply }),
