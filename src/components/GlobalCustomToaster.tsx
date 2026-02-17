@@ -8,7 +8,7 @@ import trashIcon from '@/assets/trash-delete.svg';
 const GlobalCustomToaster: React.FC = () => {
   const { isVisible, message, type, hideToaster } = useCustomToaster();
   const [progress, setProgress] = useState(0);
-  const duration = 3000; // 3 seconds
+  const duration = 4000; // 4 seconds to match loader animation spec
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -33,7 +33,7 @@ const GlobalCustomToaster: React.FC = () => {
       clearTimeout(timer);
       clearInterval(progressInterval);
     };
-  }, [isVisible, hideToaster]);
+  }, [isVisible, message, type, hideToaster, duration]);
 
   if (!isVisible) return null;
 
@@ -120,10 +120,11 @@ const GlobalCustomToaster: React.FC = () => {
 
         {/* Animated Loader Line */}
         <div
-          className="absolute bottom-0 left-0 h-[2px] transition-all duration-100 ease-linear"
+          className="absolute bottom-0 left-0 h-[2px]"
           style={{
             width: `${progress}%`,
             backgroundColor: getLoaderColor(),
+            transition: progress === 0 ? 'none' : 'width 100ms linear'
           }}
         />
       </div>

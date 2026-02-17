@@ -46,6 +46,7 @@ interface UserState {
   isPassportVerified: boolean;
   isWalletLimitReached: boolean;
   scheduledDowngrade: { tier: WalletTier; effectiveDate: string } | null;
+  lastDowngradeLoss: number | null;
 }
 
 interface UserContextType extends UserState {
@@ -97,6 +98,7 @@ const defaultState: UserState = {
   isPassportVerified: false,
   isWalletLimitReached: false,
   scheduledDowngrade: null,
+  lastDowngradeLoss: null,
 };
 
 /* -------------------- Context -------------------- */
@@ -224,8 +226,31 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const completeScheduledDowngrade = () => {
     if (state.scheduledDowngrade) {
-      setWalletTier(state.scheduledDowngrade.tier);
-      setState(prev => ({ ...prev, scheduledDowngrade: null }));
+      const newTier = state.scheduledDowngrade.tier;
+      let newLimit = 5000;
+      switch (newTier) {
+        case 'Starter': newLimit = 5000; break;
+        case 'Pro': newLimit = 15000; break;
+        case 'Elite': newLimit = 50000; break;
+        case 'Supreme': newLimit = 150000; break;
+      }
+
+      let loss = 0;
+      let newBalance = state.walletBalance;
+      if (state.walletBalance > newLimit) {
+        loss = state.walletBalance - newLimit;
+        newBalance = newLimit;
+      }
+
+      setState(prev => ({
+        ...prev,
+        walletTier: newTier,
+        walletLimit: newLimit,
+        walletBalance: newBalance,
+        lastDowngradeLoss: loss > 0 ? loss : null,
+        scheduledDowngrade: null,
+        upgradeTimestamp: Date.now()
+      }));
     }
   };
 

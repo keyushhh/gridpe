@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tiers } from "@/lib/walletTiers";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 // Import Assets
@@ -35,7 +36,8 @@ const nextTierMap: Record<WalletTier, WalletTier | null> = {
 
 const Subscriptions = () => {
     const navigate = useNavigate();
-    const { walletTier, walletLimit, walletBalance, scheduledDowngrade, completeScheduledDowngrade } = useUser();
+    const { walletTier, walletLimit, walletBalance, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss } = useUser();
+    const { showToaster } = useCustomToaster();
     const currentTierConfig = tiers.find(t => t.name === walletTier);
 
     if (!currentTierConfig) return null;
@@ -56,6 +58,13 @@ const Subscriptions = () => {
             });
         }
     };
+
+    // Toast for loss if it just happened
+    React.useEffect(() => {
+        if (lastDowngradeLoss && lastDowngradeLoss > 0) {
+            showToaster(`You have lost ₹${lastDowngradeLoss.toLocaleString('en-IN')} due to the wallet downgrade.`, 'error');
+        }
+    }, [lastDowngradeLoss, showToaster]);
 
     return (
         <div
@@ -217,10 +226,10 @@ const Subscriptions = () => {
                 {/* Manage Subscription CTA Section */}
                 <div className={`${scheduledDowngrade ? 'mt-[100px]' : 'mt-[214px]'} w-full flex flex-col items-center`}>
                     {scheduledDowngrade && (
-                        <div className="w-[326px] h-[80px] bg-black rounded-[12px] border border-white/10 p-[10px] flex flex-col mb-[24px]">
+                        <div className="w-[326px] min-h-[80px] bg-black rounded-[12px] border border-white/10 p-[10px] flex flex-col mb-[24px]">
                             <span className="text-[#8F8F8F] text-[10px] font-bold font-satoshi">Note:</span>
                             <p className="text-white text-[12px] font-normal font-satoshi mt-[10px] leading-tight pr-4">
-                                Make sure to withdraw or use your wallet balance before the effective downgrade date.
+                                Make sure to withdraw or use your wallet balance before the effective downgrade date. Any balance above the new tier limit will be <span className="text-[#F04248] font-bold">lost forever</span>.
                             </p>
                         </div>
                     )}
@@ -250,7 +259,7 @@ const Subscriptions = () => {
                             <button
                                 onClick={() => {
                                     completeScheduledDowngrade();
-                                    // Optionally toast or navigate
+                                    // Use a slight timeout to ensure state update is processed or just check context after
                                 }}
                                 className="mt-8 px-4 py-2 border border-dashed border-[#5260FE] text-[#5260FE] text-[12px] rounded-md opacity-50 hover:opacity-100 transition-opacity self-center"
                             >

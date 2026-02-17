@@ -221,41 +221,40 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
     }, [addressToDelete, onModalStateChange]);
 
     const confirmDelete = async () => {
-        if (!addressToDelete || !addressToDelete.id) return;
+        if (!addressToDelete) return;
+        const idToDelete = addressToDelete.id;
+        const nameToDelete = addressToDelete.name || "Address";
+
+        // Close modal first so user sees the toaster clearly
+        setAddressToDelete(null);
+        showToaster("Processing deletion...", 'success');
+
+        if (!idToDelete) {
+            showToaster("Error: Address ID missing", 'error');
+            return;
+        }
 
         try {
-            await deleteAddress(addressToDelete.id);
+            await deleteAddress(idToDelete);
+            showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
 
-            // Show Toaster
-            // "Nisha Paliwal | C102..." -> we need the name from contact info
-            // Requirement: "Nisha Paliwal has been successfully deleted."
-            const name = addressToDelete.name || "Address";
-            showToaster(`${name} has been successfully deleted.`, 'delete');
-
-            const newList = savedAddresses.filter(a => a.id !== addressToDelete.id);
+            const newList = savedAddresses.filter(a => a.id !== idToDelete);
             setSavedAddresses(newList);
-            setAddressToDelete(null);
 
-            // If list becomes empty, clear active address and maybe redirect
             if (newList.length === 0) {
                 localStorage.removeItem("gridpe_user_address");
                 setSelectedAddress(null);
                 onAddressSelect(null);
-                // Requirement: "redirect the user to the address selection screen, or back home (if there's 0 addresses saved after the deletion)"
-                // Since we are IN the address selection screen (sheet), if it's empty, we might want to close it and go home?
-                // "back home (if there's 0 addresses...)" implies leaving the sheet context if it was opened from somewhere else, or just going to /home
                 navigate('/home');
                 onClose();
-            } else if (selectedAddress) {
-                // Check if deleted was selected
-                if (selectedAddress.id === addressToDelete.id) {
-                    localStorage.removeItem("gridpe_user_address");
-                    setSelectedAddress(null);
-                    onAddressSelect(null);
-                }
+            } else if (selectedAddress && selectedAddress.id === idToDelete) {
+                localStorage.removeItem("gridpe_user_address");
+                setSelectedAddress(null);
+                onAddressSelect(null);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to delete address", err);
+            showToaster(err.message || "Failed to delete address. Please try again.", 'error');
         }
     };
 

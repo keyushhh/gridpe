@@ -80,10 +80,10 @@ const DowngradeSummary = () => {
             <div className="flex-1 flex flex-col items-center pt-[36px] px-5">
                 {/* Subscription Banner */}
                 <div
-                    className="w-[360px] h-[70px] rounded-[20px] relative"
+                    className="w-[360px] h-[84px] rounded-[20px] relative"
                     style={{
                         backgroundImage: `url(${bannerImage})`,
-                        backgroundSize: "100% 100%",
+                        backgroundSize: "cover",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                     }}
@@ -242,7 +242,7 @@ const DowngradeSummary = () => {
 
                 {/* Status Text for Downgrade */}
                 <p className="w-[362px] mt-[14px] text-white text-[14px] font-normal leading-[140%] font-satoshi text-left">
-                    Your wallet will be downgraded to {tier} Wallet. Changes will take place on your next billing date. Till then you may enjoy the benefits of {walletTier} Wallet.
+                    Your wallet will be downgraded to {tier} Wallet. Changes will take place on your next billing date. Any balance above the new limit will be <span className="text-[#FF0000] font-bold">lost forever</span>.
                 </p>
             </div>
 

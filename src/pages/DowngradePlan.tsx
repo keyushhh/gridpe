@@ -253,7 +253,7 @@ const DowngradePlan = () => {
                 <div className="fixed bottom-0 left-0 right-0 bg-black flex flex-col items-center pt-[20px] pb-[42px] z-[100]">
                     {/* Note Container */}
                     <div
-                        className="w-[340px] h-[50px] rounded-[10px] border border-white/10 flex items-start p-[9px_10px] relative overflow-hidden"
+                        className="w-[340px] min-h-[50px] rounded-[10px] border border-white/10 flex items-start p-[9px_10px] relative"
                         onClick={() => setIsConfirmed(!isConfirmed)}
                     >
                         {/* Custom Checkbox */}
@@ -270,7 +270,7 @@ const DowngradePlan = () => {
 
                         {/* Note Text */}
                         <p className="ml-3 text-white text-[12px] font-normal font-satoshi leading-[1.3] pr-2">
-                            I understand that downgrading will remove my {walletTier} benefits and reduce my wallet limit.
+                            I understand that downgrading will remove my {walletTier} benefits, reduce my wallet limit, and any additional balance above the new limit will be <span className="text-[#FF0000] font-bold">lost forever</span>.
                         </p>
                     </div>
 

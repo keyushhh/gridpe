@@ -49,13 +49,20 @@ const SavedAddresses = () => {
 
     const handleDelete = async () => {
         if (!addressToDelete) return;
+        const idToDelete = addressToDelete.id;
+        const nameToDelete = addressToDelete.contact_name || 'Address';
+
+        // Close modal first
+        setAddressToDelete(null);
+        showToaster("Processing deletion...", 'success');
+
         try {
-            await deleteAddress(addressToDelete.id);
-            showToaster(`${addressToDelete.contact_name || 'Address'} has been successfully deleted.`, 'delete');
-            setAddresses(prev => prev.filter(a => a.id !== addressToDelete.id));
-            setAddressToDelete(null);
-        } catch (e) {
+            await deleteAddress(idToDelete);
+            showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
+            setAddresses(prev => prev.filter(a => a.id !== idToDelete));
+        } catch (e: any) {
             console.error("Failed to delete address", e);
+            showToaster(e.message || "Failed to delete address. Please try again.", 'error');
         }
     };
 
