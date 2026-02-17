@@ -9,6 +9,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 const WalletTierDetails = () => {
     const { tierId } = useParams<{ tierId: string }>();
     const navigate = useNavigate();
+    const { walletTier, setWalletTier } = useUser();
     const currentTier = tiers.find(t => t.name.toLowerCase() === tierId?.toLowerCase());
 
     if (!currentTier) return null;
@@ -173,7 +174,6 @@ const WalletTierDetails = () => {
                 {/* CTA Button */}
                 {/* CTA Button */}
                 {(() => {
-                    const { walletTier, setWalletTier } = useUser();
                     const currentTierIndex = tiers.findIndex(t => t.name === walletTier);
                     const viewedTierIndex = tiers.findIndex(t => t.name === currentTier.name);
                     const isDowngrade = viewedTierIndex < currentTierIndex;

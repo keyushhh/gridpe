@@ -36,7 +36,7 @@ import { useUser, WalletTier } from "@/contexts/UserContext";
 const SubscriptionSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { setWalletTier } = useUser();
+    const { setWalletTier, walletTier } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
 
     const bannerImage = subscriptionBanners[tier] || starterSub;
@@ -238,7 +238,6 @@ const SubscriptionSummary = () => {
 
                 {/* Status Text for Upgrade/Downgrade */}
                 {(() => {
-                    const { walletTier } = useUser();
                     const stateFlow = location.state?.flow;
                     // User Request: 
                     // "upgrading from starter to any tier, the small note will not appear"

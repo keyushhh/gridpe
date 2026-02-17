@@ -1,0 +1,137 @@
+
+> vite_react_shadcn_ts@0.0.0 lint
+> eslint .
+
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/AddressSelectionSheet.tsx
+   56:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:33  error  Empty block statement                     no-empty
+  152:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/OrderDetailsSheet.tsx
+  161:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/SlideToPay.tsx
+  85:6  warning  React Hook useEffect has missing dependencies: 'handleEnd' and 'handleMove'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/ui/badge.tsx
+  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/ui/button.tsx
+  48:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/ui/form.tsx
+  129:10  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/ui/navigation-menu.tsx
+  111:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/ui/sidebar.tsx
+  636:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/ui/sonner.tsx
+  27:19  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/components/ui/toggle.tsx
+  37:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/contexts/CustomToasterContext.tsx
+  36:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/contexts/UserContext.tsx
+  267:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/lib/orders.ts
+  18:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/AccountDeleted.tsx
+  19:6  warning  React Hook useEffect has a missing dependency: 'handleTimeout'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/AddAddress.tsx
+  248:6  warning  React Hook useCallback has a missing dependency: 'fetchAddress'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/AddAddressDetails.tsx
+  143:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  201:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/DeleteAccount.tsx
+  23:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/DeleteAccountMobile.tsx
+  44:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/DeleteAccountOTP.tsx
+  37:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/DeleteAccountReasons.tsx
+  29:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/FxExchangeSummary.tsx
+  217:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  263:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/FxSuccess.tsx
+   87:22  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  181:25  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  193:23  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  240:17  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  254:17  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  385:93  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/Homepage.tsx
+   77:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:99  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  203:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  270:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  395:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/KYCUpload.tsx
+   74:6  warning  React Hook useMemo has a missing dependency: 'validateDocumentNumber'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  212:6  warning  React Hook useEffect has a missing dependency: 'documentError'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/LiveRates.tsx
+   94:44  error  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+  128:36  error  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+  133:21  error  'startDate' is never reassigned. Use 'const' instead  prefer-const
+  146:99  error  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/OnboardingScreen.tsx
+   93:6   warning  React Hook useEffect has a missing dependency: 'handleSession'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  108:6   warning  React Hook useEffect has a missing dependency: 'handleSession'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  117:27  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+  139:6   warning  React Hook useEffect has a missing dependency: 'handleSession'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  232:23  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/OrderCashSummary.tsx
+  225:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  277:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/OrderDelivered.tsx
+  50:8  warning  React Hook useEffect has a missing dependency: 'location.state.order.id'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/OrderDetails.tsx
+   92:22   error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  228:25   error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  240:23   error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  292:17   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  306:17   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  367:156  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  514:93   error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/OrderHistory.tsx
+   53:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  307:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/OrderTracking.tsx
+  123:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/WalletTopUpSuccess.tsx
+  55:8  warning  React Hook useEffect has a missing dependency: 'paymentMethod'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/biradhwaj-s/Desktop/dotpe customer app/screen-weaver/src/pages/WalletWithdrawSuccess.tsx
+  53:8  warning  React Hook useEffect has missing dependencies: 'addTransaction', 'addWalletBalance', 'amount', and 'selectedMethod'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 63 problems (43 errors, 20 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
