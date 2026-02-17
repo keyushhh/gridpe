@@ -1,12 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Full FAQ Context from helpData.ts
 const FAQ_CONTEXT = `
 Categories:
 1. General Issues:
@@ -63,18 +61,14 @@ ${FAQ_CONTEXT}
 If a user asks something NOT in the FAQ, roast them slightly for being off-topic and tell them to contact support for "complex human stuff".
 `;
 
-serve(async (req) => {
+serve(async (req: Request) => {
+    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
 
     try {
         const { message } = await req.json()
-
-        // Replace with your actual OpenAI or Gemini call
-        // For now, we'll implement a witty response logic if key is missing,
-        // or call the AI if process.env.OPEN_AI_KEY or GEMINI_API_KEY is present.
-
         const apiKey = Deno.env.get('OPENAI_API_KEY');
 
         if (!apiKey) {
@@ -103,17 +97,44 @@ serve(async (req) => {
             }),
         })
 
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('OpenAI Error:', errorData);
+            return new Response(
+                JSON.stringify({
+                    reply: "OpenAI is grumpy right now. Check your API key or limits!",
+                    error: errorData
+                }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            )
+        }
+
         const data = await response.json()
+
+        if (!data.choices || data.choices.length === 0) {
+            return new Response(
+                JSON.stringify({
+                    reply: "OpenAI gave me a blank stare. No response generated.",
+                    error: "Empty choices"
+                }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            )
+        }
+
         const reply = data.choices[0].message.content
 
         return new Response(
             JSON.stringify({ reply }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         )
-    } catch (error) {
+    } catch (err: any) {
+        console.error('Function Error:', err.message);
         return new Response(
-            JSON.stringify({ error: error.message }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+            JSON.stringify({
+                reply: "Zing's brain short-circuited.",
+                error: err.message
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         )
     }
 })
