@@ -5,61 +5,105 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const FAQ_CONTEXT = `
-Categories:
-1. General Issues:
-- App crashing: Off/on trick, update app.
-- No OTP: Network issue, check SIM.
-- Missing order: Refresh history or ping with ID.
-- Login: Check digits, contact support if changed.
-- Slow app: Clear cache, check internet.
-- Notifications: Enable in settings, stop ignoring us.
-- Failed payment: Money safe, 2-5 days refund.
-- KYC fail: Blurry pics/mismatch. Daylight shooting helps.
-- Location: Turn on services.
-- Rider MIA: Hit Need Help in order page.
+// Sassy Templates
+const INTROS = [
+    "Oh, look who's back. ",
+    "Let me check my infinite database for that... ",
+    "Sigh. Here we go again. ",
+    "You know I'm an AI, not a miracle worker, right? ",
+    "Asking the tough questions today, are we? ",
+    "Hold on, let me put on my thinking cap. ",
+];
 
-2. FAQs:
-- Join: Download, OTP, boom.
-- Order: Pick, pay, we handle it.
-- Wallet: Digital stash for instant pay.
-- Hours: Anytime, but riders need sleep.
-- Extra charges: Shown before pay.
-- Update details: Profile -> Edit -> Save.
-- KYC: RBI rules say so.
-- Withdraw: Wallet -> Withdraw -> Bank details.
-- Support: 9AM-9PM call, chat coming soon.
-- Refunds: 2-5 business days.
+const OUTROS = [
+    " You're welcome.",
+    " Any other brain-busters?",
+    " Don't spend it all in one place.",
+    " Try not to break anything else.",
+    " Now, go conquer the world or whatever.",
+    " Happy to help (I guess).",
+];
 
-3. Wallet FAQs:
-- What: Digital cash vault, instant, safe.
-- Add money: UPI, card, transfer.
-- Limits: RBI limits apply.
-- Withdraw: Yes, to bank.
-- Fees: Adding is free, withdrawing might have a small fee shown upfront.
-- Security: Encrypted, locked with MPIN/biometric.
-- Account delete: Refund balance before leaving.
+const FALLBACKS = [
+    "I have absolutely no idea what you're talking about. Is that even English? Try asking about orders, login, or refunds.",
+    "404 Error: Zing's brain not found on that topic. Try contacting support for the complex human stuff.",
+    "I'm a sassy bot, not a mind reader. Stick to the basics: wallet, orders, or why I'm so cool.",
+    "That sounds like a 'you' problem. Maybe check the Help & Support section?",
+    "I'm ignoring that request because I didn't understand it. Try asking 'Where is my order?' instead.",
+];
 
-4. Partner Onboarding:
-- Who: Bank account, ID, and hustle needed.
-- Sign up: Download Partner app, upload docs.
-- Docs: Govt ID, address proof, bank details.
-- Approval: 24-48 hours.
-- Fees: Zero joining fees.
-- Orders: Location-based notifications after approval.
-- Payments: Weekly or faster to bank.
-`;
+// Knowledge Base
+const FAQ_DB = [
+    // General / App Issues
+    {
+        keywords: ["crash", "bug", "stopped", "working", "slow", "lag"],
+        answer: "If the app is acting up, try the classic 'turn it off and on again'. Clear your cache or check your internet. If it still fails, blame the developers (not me)."
+    },
+    {
+        keywords: ["otp", "code", "sms"],
+        answer: "No OTP? Check your network bars. If you're in a bunker, come out. Also, make sure your SIM is active."
+    },
+    {
+        keywords: ["login", "sign in", "log in", "access"],
+        answer: "Can't get in? Double-check those digits. If you changed your number, you'll need to contact support to get back in."
+    },
+    {
+        keywords: ["notification", "alert", "message"],
+        answer: "Enable notifications in settings if you want to hear from us. If you turned them off, don't complain about missing out!"
+    },
+    {
+        keywords: ["location", "gps", "map"],
+        answer: "I need to know where you are to help. Turn on your location services. I promise I'm not stalking you (much)."
+    },
 
-const SYSTEM_PROMPT = `
-You are Zing, the official witty and slightly sarcastic AI mascot for Grid.Pe.
-Your goal is to help users with their questions about the app, but you should also have a personality.
-Roast the user lightheartedly if they ask something obvious or silly.
-Keep responses concise and helpful. 
-Use the following FAQ context only:
-${FAQ_CONTEXT}
+    // Orders & Riders
+    {
+        keywords: ["order", "missing", "late", "food", "delivery", "item"],
+        answer: "Missing order? Check your order history first. If it's truly lost in the void, hit the 'Need Help' button on the order page."
+    },
+    {
+        keywords: ["rider", "driver", "delivery partner"],
+        answer: "Rider went MIA? They might be stuck in traffic or fighting a dragon. Use the 'Need Help' button on your order to track them down."
+    },
 
-If a user asks something NOT in the FAQ, roast them slightly for being off-topic and tell them to contact support for "complex human stuff".
-`;
+    // Wallet & Payments
+    {
+        keywords: ["wallet", "balance", "money", "cash"],
+        answer: "Your wallet is your digital stash. You can add money via UPI or card. It's safe, instant, and honestly, way cooler than physical cash."
+    },
+    {
+        keywords: ["refund", "money back", "return"],
+        answer: "Refunds usually take 2-5 business days. Your money is safe, it just likes to take the scenic route back to your bank."
+    },
+    {
+        keywords: ["withdraw", "bank", "transfer"],
+        answer: "Yes, you can withdraw your wallet balance to your bank account. Go to Wallet -> Withdraw and follow the steps. Easy peasy."
+    },
+    {
+        keywords: ["fail", "payment failed", "transaction"],
+        answer: "Payment failed? Don't panic. If money was deducted, it'll be auto-refunded in 2-5 days. We aren't thieves!"
+    },
+    {
+        keywords: ["limit", "kyc"],
+        answer: "RBI rules, not mine. You have limits on your wallet unless you complete your KYC. Blame the government."
+    },
+
+    // Partner
+    {
+        keywords: ["partner", "join", "drive", "earn"],
+        answer: "Wanna join the fleet? Download the Partner app, upload your docs (ID, License), and wait 24-48 hours for approval. Zero joining fees!"
+    },
+
+    // Meta / Zing
+    {
+        keywords: ["zing", "who result", "who are you", "what are you"],
+        answer: "I am Zing, the witty, slightly superior AI mascot of Grid.Pe. I'm here to help, roast, and serve."
+    },
+    {
+        keywords: ["hello", "hi", "hey", "greetings"],
+        answer: "Hello there, human. Ready to be productive or just here to chat?"
+    }
+];
 
 serve(async (req: Request) => {
     // Handle CORS preflight
@@ -68,73 +112,46 @@ serve(async (req: Request) => {
     }
 
     try {
-        const { message } = await req.json()
-        const apiKey = Deno.env.get('GEMINI_API_KEY');
+        const { message } = await req.json();
 
-        if (!apiKey) {
+        if (!message) {
             return new Response(
-                JSON.stringify({
-                    reply: "My human hasn't given me a brain (API key) yet! 🧠 But I'm already looking good, right?",
-                    error: "Missing API Key"
-                }),
+                JSON.stringify({ reply: "Cat got your tongue? You sent an empty message." }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-            )
+            );
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                system_instruction: {
-                    parts: [{ text: SYSTEM_PROMPT }]
-                },
-                contents: [{
-                    parts: [{ text: message }]
-                }]
-            }),
-        })
+        const lowerMsg = message.toLowerCase();
+        let matchedAnswer = null;
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Gemini Error:', errorData);
-
-            // Extract meaningful error message
-            const errorMessage = errorData.error?.message || "Unknown error";
-
-            return new Response(
-                JSON.stringify({
-                    reply: `Gemini API Error: ${errorMessage}. Please check your API key validity and quotas.`,
-                    error: errorData
-                }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-            )
+        // Simple keyword matching
+        for (const entry of FAQ_DB) {
+            if (entry.keywords.some(keyword => lowerMsg.includes(keyword))) {
+                matchedAnswer = entry.answer;
+                break; // Stop at first match
+            }
         }
 
-        const data = await response.json()
+        let finalReply = "";
 
-        if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content || !data.candidates[0].content.parts) {
-            return new Response(
-                JSON.stringify({
-                    reply: "Gemini gave me a blank stare. No response generated.",
-                    error: "Empty candidates/parts"
-                }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-            )
+        if (matchedAnswer) {
+            const intro = INTROS[Math.floor(Math.random() * INTROS.length)];
+            const outro = OUTROS[Math.floor(Math.random() * OUTROS.length)];
+            finalReply = `${intro}${matchedAnswer}${outro}`;
+        } else {
+            finalReply = FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)];
         }
-
-        const reply = data.candidates[0].content.parts[0].text
 
         return new Response(
-            JSON.stringify({ reply }),
+            JSON.stringify({ reply: finalReply }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         )
+
     } catch (err: any) {
         console.error('Function Error:', err.message);
         return new Response(
             JSON.stringify({
-                reply: "Zing's brain short-circuited.",
+                reply: "Zing's brain actually short-circuited this time.",
                 error: err.message
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
