@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import errorBg from "@/assets/error-bg.png";
 import crossFailedIcon from "@/assets/cross failed.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 
 const OrderCancelled = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [seconds, setSeconds] = useState(28);
+
+  const orderAmount = location.state?.order?.amount || 2000;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -56,7 +59,7 @@ const OrderCancelled = () => {
           style={{ width: "362px", backgroundColor: "rgba(25, 25, 25, 0.31)", backdropFilter: "blur(25px)" }}
         >
           <p className="text-white text-[16px] font-medium font-satoshi mb-2">
-            Your order for amount ₹2000 has been cancelled.
+            Your order for amount ₹{orderAmount.toLocaleString('en-IN')} has been cancelled.
           </p>
           <p className="text-white/60 text-[14px] font-normal font-satoshi leading-[150%] mb-4">
             Since you’ve reported the rider’s KYC and rejected to accept the order, the amount will be refunded in your wallet within 30 minutes. We will look into this matter! Thanks for keeping Grid.Pe safe.

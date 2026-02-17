@@ -193,6 +193,14 @@ const OrderTracking = () => {
                     >
                         Set Cancelled
                     </button>
+                    <button
+                        onClick={() => {
+                            navigate('/delivery-caution', { state: { order } });
+                        }}
+                        className="px-2 py-1 bg-yellow-600 text-white text-[10px] rounded hover:bg-yellow-500"
+                    >
+                        Trigger Caution
+                    </button>
                 </div>
             )}
 
