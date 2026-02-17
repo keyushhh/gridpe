@@ -94,6 +94,7 @@ import DowngradeSummary from "./pages/DowngradeSummary";
 import HelpCategoryPage from "./pages/HelpCategoryPage";
 import ZingChat from "./pages/ZingChat";
 import NotFound from "./pages/NotFound";
+import DeliveryCaution from "./pages/DeliveryCaution";
 
 const queryClient = new QueryClient();
 
@@ -245,6 +246,7 @@ const App = () => {
                 <Route path="/downgrade-plan" element={<DowngradePlan />} />
                 <Route path="/downgrade-summary" element={<DowngradeSummary />} />
                 <Route path="/auth/v1/callback" element={<AuthCallback />} />
+                <Route path="/delivery-caution" element={<DeliveryCaution />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </HashRouter>

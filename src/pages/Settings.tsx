@@ -18,6 +18,7 @@ import securityComplete from "@/assets/security-complete.png";
 import securityPending from "@/assets/security-pending.png";
 import { Switch } from "@/components/ui/switch";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import darkbgCta from "@/assets/darkbg-cta.png";
 
 type SecurityStatus = "incomplete" | "pending" | "complete";
 
@@ -102,14 +103,15 @@ const Settings = () => {
           <h1 className="text-foreground text-[18px] font-semibold">Settings</h1>
         </div>
         <button
-          className="px-4 py-2 rounded-full flex items-center gap-2"
+          onClick={() => navigate("/help")}
+          className="px-4 py-2 rounded-full flex items-center gap-2 active:scale-95 transition-transform"
           style={{
-            backgroundImage: 'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")',
+            backgroundImage: `url(${darkbgCta})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          <span className="text-foreground text-[14px]">+ Support</span>
+          <span className="text-white text-[14px] font-medium">+ Support</span>
         </button>
       </div>
 
@@ -158,9 +160,9 @@ const Settings = () => {
           </div>
           <button
             onClick={() => navigate("/security-dashboard")}
-            className="px-4 h-[32px] flex items-center justify-center rounded-full text-[12px] text-foreground"
+            className="px-4 h-[32px] flex items-center justify-center rounded-full text-[12px] text-white font-medium active:scale-95 transition-transform"
             style={{
-              backgroundImage: 'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")',
+              backgroundImage: `url(${darkbgCta})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
