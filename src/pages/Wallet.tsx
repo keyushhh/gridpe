@@ -41,7 +41,7 @@ const Wallet = () => {
                         onClick={() => navigate(-1)}
                         className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md z-20"
                     >
-                        <ChevronLeft className="w-6 h-6 text-white" />
+                        <ChevronLeft className="w-6 h-6 text-foreground" />
                     </button>
                 </div>
 
@@ -117,11 +117,11 @@ const Wallet = () => {
                             <div className="flex flex-col gap-[4px]">
                                 <div className="flex items-start gap-2">
                                     <div className="mt-2 w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                                    <h3 className="text-white text-[16px] font-medium font-sans">
+                                    <h3 className="text-foreground text-[16px] font-medium font-sans">
                                         Your amount is held, not charged
                                     </h3>
                                 </div>
-                                <p className="text-[#A4A4A4] text-[14px] font-normal font-sans pl-[14px]">
+                                <p className="text-muted-foreground text-[14px] font-normal font-sans pl-[14px]">
                                     The money stays in your wallet and is only deducted after successful delivery.
                                 </p>
                             </div>

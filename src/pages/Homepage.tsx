@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from "open-location-code";
 import { fetchRecentOrders, fetchActiveOrders, Order } from "@/lib/orders";
 import { supabase } from "@/lib/supabase";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
+import { useAsset } from "@/hooks/useAsset";
 import addIcon from "@/assets/add-icon.svg";
 import iconWallet from "@/assets/wallet.svg";
 import iconFxConvert from "@/assets/fx-convert.svg";
@@ -60,6 +60,7 @@ interface SavedAddress {
 
 const Homepage = () => {
   const navigate = useNavigate();
+  const mainBg = useAsset("main-bg");
   const { walletBalance, walletTier, isPassportVerified } = useUser();
   const [showBalance, setShowBalance] = useState(false);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
@@ -407,7 +408,7 @@ const Homepage = () => {
     <div
       className="absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain bg-[#0a0a12] scrollbar-hide"
       style={{
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundImage: `url(${mainBg})`,
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
@@ -422,7 +423,7 @@ const Homepage = () => {
             {savedAddress ? (
               <div className="flex items-center gap-1">
                 <img src={getTagIcon(savedAddress.tag)} alt={savedAddress.tag} className="w-3 h-3" />
-                <p className="text-[14px] font-bold text-white font-satoshi tracking-wider uppercase">
+                <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
                   {savedAddress.tag}
                 </p>
               </div>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/contexts/UserContext";
 import BottomNavigation from "@/components/BottomNavigation";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
+import { useAsset } from "@/hooks/useAsset";
 import gridpeLogo from "@/assets/gridpe-logo.svg";
 
 // Assets
@@ -37,7 +37,7 @@ const MoreItem = ({ icon, label, onClick }: MoreItemProps) => (
         >
             <img src={icon} alt={label} className="w-6 h-6 object-contain" />
         </div>
-        <span className="text-white font-medium text-[12px] leading-tight w-16 text-center font-satoshi">
+        <span className="text-foreground font-medium text-[12px] leading-tight w-16 text-center font-satoshi">
             {label}
         </span>
     </button>
@@ -45,6 +45,7 @@ const MoreItem = ({ icon, label, onClick }: MoreItemProps) => (
 
 const MorePage = () => {
     const navigate = useNavigate();
+    const mainBg = useAsset("main-bg");
     const { resetForDemo } = useUser();
 
     const handleLogout = async () => {
@@ -84,7 +85,7 @@ const MorePage = () => {
         <div
             className="absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain bg-[#0a0a12] scrollbar-hide"
             style={{
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundImage: `url(${mainBg})`,
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
@@ -100,7 +101,7 @@ const MorePage = () => {
                 <div className="flex flex-col gap-[66px]">
                     {categories.map((category) => (
                         <div key={category.title} className="flex flex-col">
-                            <h2 className="text-white/40 font-medium text-[14px] tracking-wider mb-[18px] font-satoshi uppercase">
+                            <h2 className="text-muted-foreground font-medium text-[14px] tracking-wider mb-[18px] font-satoshi uppercase">
                                 {category.title}
                             </h2>
                             <div className="flex flex-wrap gap-x-[26px] gap-y-6">

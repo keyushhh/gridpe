@@ -29,7 +29,8 @@ export const PhoneInput = ({
   return (
     <div
       className={cn(
-        "flex items-center h-[48px] rounded-full input-surface transition-all duration-200 border border-transparent",
+        "flex items-center h-[48px] rounded-full transition-all duration-200",
+        "bg-[#F7F8FA] dark:bg-input border border-[#E6E8EB] dark:border-transparent",
         isFocused && !error && "ring-2 ring-primary/50 border-primary/50",
         error && "border-red-500 ring-1 ring-red-500",
         className

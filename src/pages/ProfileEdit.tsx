@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
+import { useAsset } from "@/hooks/useAsset";
 import avatarImg from "@/assets/avatar.png";
 import verifiedIcon from "@/assets/verified-icon.png";
 import inputFieldBg from "@/assets/input-field-bg.png";
@@ -15,6 +15,7 @@ import { useCustomToaster } from "@/contexts/CustomToasterContext";
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
+  const mainBg = useAsset("main-bg");
   const {
     phoneNumber,
     name: contextName,
@@ -107,7 +108,7 @@ const ProfileEdit = () => {
       className="h-full w-full overflow-y-auto overscroll-y-none h-full flex flex-col safe-area-top safe-area-bottom"
       style={{
         backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundImage: `url(${mainBg})`,
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",

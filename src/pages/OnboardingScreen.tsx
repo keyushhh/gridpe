@@ -5,17 +5,14 @@ import { PhoneInput } from "@/components/PhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { LockOpen } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
+import { useAsset } from "@/hooks/useAsset";
 import logo from "@/assets/gridpe-logo.svg";
-import iconGoogle from "@/assets/icon-google.svg";
-import iconApple from "@/assets/icon-apple.svg";
-import iconX from "@/assets/frame-2095585539.svg";
 import otpInputField from "@/assets/otp-input-field.png";
 import toggleOn from "@/assets/toggle-on.svg";
 import toggleOff from "@/assets/toggle-off.svg";
 import mpinInputSuccess from "@/assets/mpin-input-success.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
-import buttonBiometricBg from "@/assets/button-biometric-bg.png";
+// import buttonBiometricBg from "@/assets/button-biometric-bg.png"; // Moved to registry
 import biometricIcon from "@/assets/biometric-icon.png";
 import { isWeakMpin } from "@/utils/validationUtils";
 import { hashMpin } from "@/utils/cryptoUtils";
@@ -43,6 +40,14 @@ const OnboardingScreen = () => {
   const [phoneError, setPhoneError] = useState("");
   const [otpError, setOtpError] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
+
+  const mainBg = useAsset("main-bg");
+  const iconGoogle = useAsset("icon-google");
+  const iconApple = useAsset("icon-apple");
+  const iconX = useAsset("icon-x");
+  const otpInputBg = useAsset("otp-input-bg");
+  const buttonBiometricBg = useAsset("button-biometric-bg");
+  const mpinInputSuccessAsset = useAsset("mpin-input-success");
 
   // MPIN State
   const [mpin, setMpin] = useState("");
@@ -105,6 +110,7 @@ const OnboardingScreen = () => {
     });
 
     return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Clerk Session Handling
@@ -114,6 +120,7 @@ const OnboardingScreen = () => {
         console.log("Clerk User found in Onboarding:", clerkUser.id, clerkUser.primaryEmailAddress?.emailAddress);
 
         // Map Clerk User to a format similar to Supabase User for handleSession
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedUser: any = {
           id: clerkUser.id,
           email: clerkUser.primaryEmailAddress?.emailAddress,
@@ -136,8 +143,8 @@ const OnboardingScreen = () => {
 
       handleClerkSession();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clerkUser, isClerkLoaded]);
-  // Validation Logic
 
 
   useEffect(() => {
@@ -229,6 +236,7 @@ const OnboardingScreen = () => {
     // Clerk IDs are not UUIDs, which might cause Supabase to error if the id column is UUID.
     // We try to fetch the profile, but catch any "invalid input syntax for type uuid" error.
     let initialProfileData = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let profileError: any = null;
 
     try {
@@ -539,14 +547,14 @@ const OnboardingScreen = () => {
       <div className="h-full w-full flex items-center justify-center safe-area-top safe-area-bottom"
         style={{
           backgroundColor: '#0a0a12',
-          backgroundImage: `url(${bgDarkMode})`,
+          backgroundImage: `url(${mainBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'top center',
           backgroundRepeat: 'no-repeat'
         }}
       >
         <div className="flex flex-col items-center animate-pulse">
-          <img src={logo} alt="grid.pe" className="h-12 mb-3" />
+          <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
         </div>
       </div>
     );
@@ -557,7 +565,7 @@ const OnboardingScreen = () => {
       className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom"
       style={{
         backgroundColor: '#0a0a12',
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundImage: `url(${mainBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat'
@@ -567,8 +575,8 @@ const OnboardingScreen = () => {
       {!showMpinSetup && !showMpinLogin && (
         <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12">
           <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
-            <img src={logo} alt="grid.pe" className="h-12 mb-3" />
-            <p className="text-white-foreground text-[18px] font-normal text-center">
+            <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
+            <p className="text-foreground text-[18px] font-normal text-center">
               Cash access, reimagined.
             </p>
           </div>
@@ -617,10 +625,8 @@ const OnboardingScreen = () => {
               </Button>
             </div>
 
-            <div className="flex items-center gap-4 animate-fade-in" style={{ animationDelay: "0.5s" }}>
-              <div className="flex-1 h-px bg-white/10" />
-              <span className="text-muted-foreground text-sm">or</span>
-              <div className="flex-1 h-px bg-white/10" />
+            <div className="flex items-center gap-4 animate-fade-in py-2" style={{ animationDelay: "0.5s" }}>
+              <span className="text-muted-foreground text-sm w-full text-center">or</span>
             </div>
 
             <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
@@ -636,7 +642,7 @@ const OnboardingScreen = () => {
             </div>
 
 
-            <p style={{ animationDelay: "0.7s" }} className="text-center text-white-foreground leading-relaxed animate-fade-in px-4 text-[16px] font-normal">
+            <p style={{ animationDelay: "0.7s" }} className="text-center text-black dark:text-muted-foreground leading-relaxed animate-fade-in px-4 text-[16px] font-normal">
               By continuing, you agree to Grid.Pe's<br />
               <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
               and{" "}
@@ -662,8 +668,16 @@ const OnboardingScreen = () => {
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[48px] w-[48px] rounded-[7px] border-none text-2xl font-semibold text-white transition-all bg-cover bg-center ${otpError ? 'border border-red-500 ring-1 ring-red-500' : 'ring-1 ring-white/10'}`}
-                      style={{ backgroundImage: `url(${otpInputField})`, backgroundColor: 'transparent' }}
+                      className={`h-[48px] w-[48px] rounded-[7px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
+                        ${otpError
+                          ? 'border border-red-500 ring-1 ring-red-500'
+                          : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
+                        }`}
+                      style={{
+                        backgroundImage: otpInputBg ? `url(${otpInputBg})` : 'none',
+                        backgroundColor: otpInputBg ? 'transparent' : undefined // Fallback handled by class
+                      }}
                     />
                   ))}
                 </InputOTPGroup>
@@ -735,7 +749,7 @@ const OnboardingScreen = () => {
             </div>
 
 
-            <p className="text-center text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-[16px]">
+            <p className="text-center text-black dark:text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-[16px]">
               By continuing, you agree to Grid.Pe's<br />
               <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
               &{" "}
@@ -766,10 +780,10 @@ const OnboardingScreen = () => {
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] border-none text-2xl font-semibold text-white transition-all bg-cover bg-center ring-1 ring-white/10`}
-                      style={{
-                        backgroundColor: 'rgba(26, 26, 46, 0.5)'
-                      }}
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
+                        bg-[#F7F8FA] border border-[#E6E8EB] 
+                        dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10`}
                     />
                   ))}
                 </InputOTPGroup>
@@ -838,27 +852,29 @@ const OnboardingScreen = () => {
                 <LockOpen className="w-6 h-6 text-foreground" />
                 <h2 className="text-[26px] font-medium text-foreground">Secure your account</h2>
               </div>
-              <p className="text-muted-foreground text-[14px] font-normal">
+              <p className="text-black dark:text-muted-foreground text-[14px] font-normal">
                 Enable quick unlock for faster, secure access using Biometrics or a PIN?
               </p>
             </div>
 
             {/* Create MPIN */}
             <div className="space-y-3">
-              <p className="text-foreground text-[14px] font-normal">Create a secure 4 digit MPIN</p>
+              <p className="text-black dark:text-foreground text-[14px] font-normal">Create a secure 4 digit MPIN</p>
               <InputOTP maxLength={4} value={mpin} onChange={handleMpinChange} autoFocus>
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] border-none text-2xl font-semibold text-white transition-all bg-cover bg-center ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
-                        mpinSuccess ? 'ring-1 ring-green-500' : 'ring-1 ring-white/10'
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
+                        ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
+                          mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
+                            'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
                         }`}
                       style={{
                         backgroundImage: isPredictableError ? `url(${mpinInputError})` :
-                          mpinSuccess ? `url(${mpinInputSuccess})` : undefined,
-                        backgroundColor: (isPredictableError || mpinSuccess) ? 'transparent' : 'rgba(26, 26, 46, 0.5)'
+                          mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
                       }}
                     />
                   ))}
@@ -871,20 +887,22 @@ const OnboardingScreen = () => {
 
             {/* Confirm MPIN */}
             <div className="space-y-3">
-              <p className="text-foreground text-[14px] font-normal">Re-enter MPIN</p>
+              <p className="text-black dark:text-foreground text-[14px] font-normal">Re-enter MPIN</p>
               <InputOTP maxLength={4} value={confirmMpin} onChange={handleConfirmMpinChange}>
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] border-none text-2xl font-semibold text-white transition-all bg-cover bg-center ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
-                        mpinSuccess ? 'ring-1 ring-green-500' : 'ring-1 ring-white/10'
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
+                        ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
+                          mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
+                            'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
                         }`}
                       style={{
                         backgroundImage: isMismatchError ? `url(${mpinInputError})` :
-                          mpinSuccess ? `url(${mpinInputSuccess})` : undefined,
-                        backgroundColor: (isMismatchError || mpinSuccess) ? 'transparent' : 'rgba(26, 26, 46, 0.5)'
+                          mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
                       }}
                     />
                   ))}
@@ -897,15 +915,16 @@ const OnboardingScreen = () => {
 
             {/* Biometric Toggle */}
             <div
-              className="flex items-center justify-between px-4 w-full h-[54px] rounded-2xl border-none bg-cover bg-center"
+              className={`flex items-center justify-between px-4 w-full h-[54px] rounded-2xl border-none bg-cover bg-center 
+                bg-black dark:bg-transparent`}
               style={{
                 width: '364px', // Explicit width as requested
-                backgroundImage: `url(${buttonBiometricBg})`
+                backgroundImage: buttonBiometricBg ? `url(${buttonBiometricBg})` : 'none'
               }}
             >
               <div className="flex items-center gap-3">
                 <img src={biometricIcon} alt="Biometric" className="w-6 h-6" />
-                <span className="text-foreground text-[16px] font-medium">Biometric Unlock</span>
+                <span className="text-white text-[16px] font-medium">Biometric Unlock</span>
               </div>
               <button
                 onClick={() => setBiometricEnabled(!biometricEnabled)}
@@ -920,7 +939,7 @@ const OnboardingScreen = () => {
             </div>
 
             {/* Note */}
-            <p className="text-muted-foreground text-[14px] font-normal leading-relaxed">
+            <p className="text-black dark:text-muted-foreground text-[14px] font-normal leading-relaxed">
               Note: While creating an MPIN is necessary, Biometric unlock can be enabled for an extra step of security. You can setup Biometric unlock later from Account Settings &gt; Biometric Unlock.
             </p>
 
@@ -961,7 +980,7 @@ const OnboardingScreen = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

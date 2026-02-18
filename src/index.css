@@ -6,48 +6,52 @@
 
 @layer base {
   :root {
-    /* Dark fintech theme */
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    /* Light Mode Defaults */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 6%;
+    /* Dark blue/black for text */
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 6%;
 
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 6%;
 
     --primary: 234 89% 64%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 222 47% 12%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11.2%;
 
-    --muted: 222 30% 18%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 234 89% 64%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11.2%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 14%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
     --ring: 234 89% 64%;
 
     --radius: 0.75rem;
 
-    /* Custom colors */
+    /* Custom colors - Light Mode Overrides */
     --gradient-start: 234 89% 64%;
     --gradient-end: 280 70% 50%;
-    --surface-elevated: 222 47% 10%;
-    --text-secondary: 215 20% 65%;
-    --link-color: 234 89% 70%;
+    --surface-elevated: 0 0% 100%;
+    --text-secondary: 215 16% 47%;
+    --link-color: 234 89% 60%;
   }
 
   .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
+    --input: 217 33% 17%;
+    /* Darker background for inputs in dark mode */
+    --border: 217 33% 17%;
   }
 }
 

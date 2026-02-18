@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { useAsset } from "@/hooks/useAsset";
 import { useUser } from "@/contexts/UserContext";
 import { getCards } from "@/utils/cardUtils";
 import { getBankAccounts } from "@/utils/bankUtils";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
 import avatarImg from "@/assets/avatar.png";
 import gridPeLogo from "@/assets/grid.pe.svg";
 import iconSecurity from "@/assets/icon-security.svg";
@@ -43,12 +44,17 @@ const triggerHaptic = () => {
 const Settings = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
+  const { theme, setTheme } = useTheme();
+  // Ensure we have a default boolean for the switch (true for dark)
+  const isDarkMode = theme === 'dark' || theme === 'system';
+
   const { phoneNumber, kycStatus, resetForDemo, name, profileImage } = useUser();
   const [pushNotifications, setPushNotifications] = useState(true);
   const [transactionAlerts, setTransactionAlerts] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
   const [cardCount, setCardCount] = useState(0);
   const [bankAccountCount, setBankAccountCount] = useState(0);
+
+  const mainBg = useAsset("main-bg");
 
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -85,7 +91,7 @@ const Settings = () => {
       className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom"
       style={{
         backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundImage: `url(${mainBg})`,
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
@@ -260,14 +266,14 @@ const Settings = () => {
           </div>
 
           <div className="flex justify-between">
-            <span className={darkMode ? "text-foreground" : "text-muted-foreground"}>
+            <span className={isDarkMode ? "text-foreground" : "text-muted-foreground"}>
               Dark Mode
             </span>
             <Switch
-              checked={darkMode}
+              checked={isDarkMode}
               onCheckedChange={(val) => {
                 triggerHaptic();
-                setDarkMode(val);
+                setTheme(val ? "dark" : "light");
               }}
             />
           </div>
