@@ -80,6 +80,7 @@
 
   body {
     @apply bg-background text-foreground;
+    /* transition: background-color 1.5s ease-in-out... removed to avoid conflict with View Transition */
     overscroll-behavior-y: none;
     user-select: none;
     -webkit-user-select: none;
@@ -169,5 +170,15 @@
 
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@keyframes expandCircle {
+  0% {
+    clip-path: circle(0% at var(--x) var(--y));
+  }
+
+  100% {
+    clip-path: circle(150% at var(--x) var(--y));
   }
 }

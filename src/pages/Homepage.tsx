@@ -8,10 +8,10 @@ import { fetchRecentOrders, fetchActiveOrders, Order } from "@/lib/orders";
 import { supabase } from "@/lib/supabase";
 import { useAsset } from "@/hooks/useAsset";
 import addIcon from "@/assets/add-icon.svg";
-import iconWallet from "@/assets/wallet.svg";
-import iconFxConvert from "@/assets/fx-convert.svg";
+// import iconWallet from "@/assets/wallet.svg";
+// import iconFxConvert from "@/assets/fx-convert.svg";
 import currencyIcon from "@/assets/currency.svg";
-import iconGift from "@/assets/icon-gift.png";
+// import iconGift from "@/assets/icon-gift.png";
 import useEmblaCarousel from 'embla-carousel-react';
 import {
   AreaChart,
@@ -22,10 +22,10 @@ import {
   Tooltip,
   ReferenceLine
 } from 'recharts';
-import orderCashBg from "@/assets/order-cash-button-bg.png";
-import iconOrderCash from "@/assets/order-cash.svg";
-import circleButtonBg from "@/assets/circle-button.png";
-import bannerBg from "@/assets/banner-bg-new.png";
+// import orderCashBg from "@/assets/order-cash-button-bg.png";
+// import iconOrderCash from "@/assets/order-cash.svg";
+// import circleButtonBg from "@/assets/circle-button.png";
+// import bannerBg from "@/assets/banner-bg-new.png";
 import bannerImage from "@/assets/banner-image.png";
 import avatarImg from "@/assets/avatar.png";
 import currentLocationIcon from "@/assets/current-location.svg";
@@ -61,6 +61,14 @@ interface SavedAddress {
 const Homepage = () => {
   const navigate = useNavigate();
   const mainBg = useAsset("main-bg");
+  const iconWallet = useAsset("icon-wallet");
+  const iconFxConvert = useAsset("icon-fx");
+  const iconOrderCash = useAsset("icon-order-cash");
+  const iconAddMoney = useAsset("icon-add-money");
+  const iconGift = useAsset("icon-gift");
+  const orderCashBg = useAsset("order-cash-bg");
+  const circleButtonBg = useAsset("circle-button-bg");
+  const bannerBg = useAsset("banner-bg");
   const { walletBalance, walletTier, isPassportVerified } = useUser();
   const [showBalance, setShowBalance] = useState(false);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
@@ -428,7 +436,7 @@ const Homepage = () => {
                 </p>
               </div>
             ) : (
-              <p className="text-[12px] text-muted-foreground font-medium tracking-wider">DELIVERING</p>
+              <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider">DELIVERING</p>
             )}
 
             <button
@@ -441,10 +449,10 @@ const Homepage = () => {
               }}
               className="flex items-center gap-1 text-foreground text-[14px] font-normal w-full"
             >
-              <span className="truncate block">
+              <span className="truncate block text-black dark:text-foreground">
                 {getAddressDisplay()}
               </span>
-              <ChevronDown className="w-4 h-4 shrink-0" />
+              <ChevronDown className="w-4 h-4 shrink-0 text-black dark:text-foreground" />
             </button>
           </div>
           <button onClick={() => navigate('/settings')}>
@@ -460,28 +468,27 @@ const Homepage = () => {
           onModalStateChange={setIsAddressModalOpen}
         />
 
-        {/* Balance Section */}
         <div className="flex flex-col items-center mt-8 space-y-4">
           <div className="flex items-center gap-2">
-            <p className="text-muted-foreground text-[14px]">Available Balance</p>
+            <p className="text-black dark:text-muted-foreground text-[14px]">Available Balance</p>
             <button onClick={() => setShowBalance(!showBalance)} className="p-1">
-              {showBalance ? <Eye className="w-5 h-5 text-muted-foreground" /> : <EyeOff className="w-5 h-5 text-muted-foreground" />}
+              {showBalance ? <Eye className="w-5 h-5 text-black dark:text-muted-foreground" /> : <EyeOff className="w-5 h-5 text-black dark:text-muted-foreground" />}
             </button>
           </div>
-          <p className="text-foreground text-[32px] font-semibold">
+          <p className="text-foreground text-[32px] font-normal">
             ₹{showBalance ? walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "******"}
           </p>
           <button
             onClick={() => navigate('/order-cash')}
-            className="flex items-center justify-center gap-2 px-6 py-3 text-foreground text-[14px] font-medium h-12 w-[180px]"
+            className="flex items-center justify-center gap-2 px-6 py-3 text-foreground text-[14px] font-medium h-12 w-[180px] bg-black dark:bg-transparent rounded-full dark:rounded-none"
             style={{
-              backgroundImage: `url(${orderCashBg})`,
+              backgroundImage: orderCashBg ? `url(${orderCashBg})` : 'none',
               backgroundSize: "100% 100%",
               backgroundRepeat: "no-repeat",
             }}
           >
-            <img src={iconOrderCash} alt="Order Cash" className="w-[22px] h-[22px]" />
-            Order Cash
+            <img src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
+            <span className="text-white dark:text-foreground">Order Cash</span>
           </button>
         </div>
 
@@ -493,16 +500,17 @@ const Homepage = () => {
             className="flex flex-col items-center gap-2"
           >
             <div
-              className="w-[52px] h-[52px] flex items-center justify-center"
+              className={`flex items-center justify-center w-[52px] h-[52px] ${circleButtonBg ? 'bg-cover' : 'rounded-full'}`}
               style={{
-                backgroundImage: `url(${circleButtonBg})`,
+                backgroundImage: circleButtonBg ? `url(${circleButtonBg})` : 'none',
+                backgroundColor: circleButtonBg ? 'transparent' : 'rgba(82, 96, 254, 0.13)',
                 backgroundSize: "100% 100%",
                 backgroundRepeat: "no-repeat",
               }}
             >
-              <img src={addIcon} alt="Add" className="w-[22px] h-[22px]" />
+              <img src={iconAddMoney} alt="Add" className="w-[22px] h-[22px]" />
             </div>
-            <span className="text-foreground text-[12px]">Add Money</span>
+            <span className="text-foreground text-[12px] font-medium font-satoshi">Add Money</span>
           </button>
 
           {/* Other Actions */}
@@ -529,16 +537,17 @@ const Homepage = () => {
               className="flex flex-col items-center gap-2"
             >
               <div
-                className="w-[52px] h-[52px] flex items-center justify-center"
+                className={`flex items-center justify-center w-[52px] h-[52px] ${circleButtonBg ? 'bg-cover' : 'rounded-full'}`}
                 style={{
-                  backgroundImage: `url(${circleButtonBg})`,
+                  backgroundImage: circleButtonBg ? `url(${circleButtonBg})` : 'none',
+                  backgroundColor: circleButtonBg ? 'transparent' : 'rgba(82, 96, 254, 0.13)',
                   backgroundSize: "100% 100%",
                   backgroundRepeat: "no-repeat",
                 }}
               >
                 <img src={action.icon} alt={action.label} className="w-[22px] h-[22px]" />
               </div>
-              <span className="text-foreground text-[12px]">{action.label}</span>
+              <span className="text-foreground text-[12px] font-medium font-satoshi">{action.label}</span>
             </button>
           ))}
         </div>
@@ -634,22 +643,28 @@ const Homepage = () => {
               <div className="flex">
                 {/* Banner 1: Refer & Earn */}
                 <div className="flex-[0_0_100%] min-w-0 pr-0">
-                  <div className="rounded-[16px] overflow-hidden flex" style={{
-                    backgroundImage: `url(${bannerBg})`,
+                  <div className="rounded-[16px] overflow-hidden flex bg-black dark:bg-transparent relative" style={{
+                    backgroundImage: bannerBg ? `url(${bannerBg})` : 'none',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     height: '104px',
                     width: '362px',
                     borderRadius: '16px'
                   }}>
-                    <div className="flex-1 p-4 flex flex-col justify-center">
-                      <div className="flex items-center gap-2 mb-2">
-                        <img src={iconGift} alt="Gift" className="w-5 h-5" />
+                    <div className="flex-1 flex flex-col justify-start relative z-10 pt-[14px] pl-[14px]">
+                      <div className="mb-[4px]">
+                        <img src={iconGift} alt="Gift" className="w-6 h-6" />
                       </div>
-                      <h3 className="text-foreground text-[16px] font-semibold mb-1">Refer & Earn!</h3>
-                      <p className="text-muted-foreground text-[12px]">Earn ₹50 on each referral</p>
+                      <div>
+                        <h3 className="text-white text-[16px] font-bold font-satoshi mb-[7px] leading-none">Refer & Earn!</h3>
+                        <p className="text-white/80 dark:text-[#A1A1AA] text-[12px] font-normal font-satoshi leading-none">Earn ₹50 on each referral</p>
+                      </div>
                     </div>
-                    <img src={bannerImage} alt="Referral" className="w-[160px] h-[104px] object-cover rounded-r-2xl" />
+                    <img
+                      src={bannerImage}
+                      alt="Referral"
+                      className="w-[188px] h-full object-cover rounded-r-2xl rounded-l-none shrink-0"
+                    />
                   </div>
                 </div>
 
@@ -665,18 +680,16 @@ const Homepage = () => {
                     }
                   }}
                 >
-                  <div className="rounded-[16px] overflow-hidden flex relative" style={{
-                    backgroundImage: `url(${bannerBg})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    height: '104px',
-                    width: '362px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                    borderRadius: '16px'
-                  }}>
+                  <div
+                    className="shrink-0 w-[362px] h-[104px] rounded-[16px] p-5 flex relative overflow-hidden bg-black dark:bg-transparent"
+                    style={{
+                      backgroundImage: bannerBg ? `url(${bannerBg})` : 'none',
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
                     {/* Left Section */}
-                    <div className="flex-1 p-4 flex flex-col justify-between relative z-10">
+                    <div className="flex-1 flex flex-col justify-between relative z-10">
                       <div className="flex items-center gap-2">
                         <img src={currencyIcon} alt="Currency" className="w-6 h-6" />
                         <span className="text-white font-regular text-[10px] font-satoshi opacity-80">
@@ -751,8 +764,20 @@ const Homepage = () => {
 
             {/* Carousel Dots */}
             <div className="flex justify-center gap-2 mt-3">
-              <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0 ? 'bg-[#5260FE]' : 'bg-muted'}`} />
-              <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1 ? 'bg-[#5260FE]' : 'bg-muted'}`} />
+              {/* Dot 1 */}
+              <div
+                className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0
+                  ? 'bg-[#5260FE]'
+                  : 'bg-[#4B53AF]/18 dark:bg-muted'
+                  }`}
+              />
+              {/* Dot 2 */}
+              <div
+                className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1
+                  ? 'bg-[#5260FE]'
+                  : 'bg-[#4B53AF]/18 dark:bg-muted'
+                  }`}
+              />
             </div>
           </div>
         )}
@@ -766,7 +791,7 @@ const Homepage = () => {
           <button
             onClick={() => navigate('/order-history')}
             disabled={transactionHistory.length === 0 && !activeOrder}
-            className={`text-primary text-[14px] transition-colors ${transactionHistory.length === 0 && !activeOrder
+            className={`text-[#5260FE] text-[14px] transition-colors ${transactionHistory.length === 0 && !activeOrder
               ? 'opacity-50 cursor-not-allowed'
               : 'hover:text-primary/80 cursor-pointer'
               }`}
@@ -777,7 +802,7 @@ const Homepage = () => {
 
         {/* Transaction List */}
         <div className="mx-5 pb-[100px]">
-          <div className="border-t border-white/10 pt-[14px] min-h-[100px]">
+          <div className="border-t border-black/6 dark:border-white/10 pt-[14px] min-h-[100px]">
             {transactionHistory.length > 0 ? (
               <div className="w-full">
                 {/* Headers */}
