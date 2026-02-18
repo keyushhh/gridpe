@@ -14,6 +14,7 @@ import iconAppleLight from "@/assets/apple-light.svg";
 import iconXLight from "@/assets/twitter-light.svg";
 import otpInputField from "@/assets/otp-input-field.png";
 import buttonBiometricBg from "@/assets/button-biometric-bg.png";
+import mpinInputSuccess from "@/assets/mpin-input-success.png";
 
 // Define the shape of our asset registry
 // Each asset has a 'dark' and 'light' version
