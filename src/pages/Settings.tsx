@@ -14,6 +14,7 @@ import iconBankAcc from "@/assets/icon-bank-acc.svg";
 import iconNotifications from "@/assets/icon-notifications.svg";
 import iconDarkMode from "@/assets/icon-dark-mode.svg";
 import iconLogout from "@/assets/icon-logout.svg";
+import verifiedIcon from "@/assets/verified.svg";
 // import securityIncomplete from "@/assets/security-incomplete.png";
 // import securityComplete from "@/assets/security-complete.png";
 // import securityPending from "@/assets/security-pending.png";
@@ -201,7 +202,19 @@ const Settings = () => {
               </h2>
               <div className="flex items-center gap-1">
                 <span className="text-black dark:text-muted-foreground text-[14px]">{phoneNumber}</span>
-                <span className="text-green-500">✓</span>
+                <div
+                  className="w-4 h-4 bg-[#1CB956]"
+                  style={{
+                    maskImage: `url(${verifiedIcon})`,
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                    WebkitMaskImage: `url(${verifiedIcon})`,
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                  }}
+                />
               </div>
             </div>
           </div>
