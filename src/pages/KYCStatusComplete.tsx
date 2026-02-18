@@ -10,7 +10,7 @@ const KYCStatusComplete = () => {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    navigate("/security-dashboard");
+    navigate(-1);
   };
 
   // Reused banner styles

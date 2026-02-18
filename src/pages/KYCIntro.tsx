@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ChevronLeft, X } from "lucide-react";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import iconKyc from "@/assets/icon-kyc.svg";
 import popupBg from "@/assets/popup-bg.png";
@@ -8,6 +9,8 @@ import buttonCloseBg from "@/assets/button-close.png";
 
 const KYCIntro = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const [showWhyModal, setShowWhyModal] = useState(false);
 
   const benefits = [
@@ -31,29 +34,42 @@ const KYCIntro = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom relative"
       style={{
-        backgroundColor: '#0a0a12',
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
+      {/* Light Mode Status Blob (Top Glow) */}
+      {!isDarkMode && (
+        <div
+          className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+          style={{
+            backgroundColor: "#5260FE",
+            filter: "blur(60px)",
+            opacity: 0.8,
+            mixBlendMode: "normal"
+          }}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-2">
+      <div className="flex items-center justify-between px-5 pt-12 pb-2 relative z-10">
         <button
-          onClick={() => navigate("/settings")}
-          className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center"
+          onClick={() => navigate(-1)}
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center`}
         >
-          <ChevronLeft className="w-5 h-5 text-foreground" />
+          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
-        <h1 className="text-foreground text-[18px] font-semibold">KYC</h1>
+        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>KYC</h1>
         <div className="w-10" /> {/* Spacer for centering */}
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-5 pt-6">
-        <p className="text-foreground text-[16px] leading-relaxed mb-6">
+      <div className="flex-1 px-5 pt-6 relative z-10">
+        <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-sans leading-relaxed mb-6`}>
           Complete your eKYC to start using grid.pe with all it's features:
         </p>
 
@@ -61,12 +77,12 @@ const KYCIntro = () => {
           {benefits.map((benefit, index) => (
             <div key={index}>
               <div className="flex items-center gap-2">
-                <span className="text-foreground text-xl leading-none">•</span>
-                <h3 className="text-foreground text-[15px] font-medium">
+                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-xl leading-none`}>•</span>
+                <h3 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-sans`}>
                   {benefit.title}
                 </h3>
               </div>
-              <p className="text-muted-foreground text-[13px] ml-4 mt-1">
+              <p className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal font-sans ml-4 mt-1`}>
                 {benefit.description}
               </p>
             </div>
@@ -75,16 +91,16 @@ const KYCIntro = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="px-5 pb-8 space-y-4">
+      <div className="px-5 pb-8 space-y-4 relative z-10">
         <button
           onClick={() => navigate('/kyc-form')}
-          className="w-full py-4 rounded-full text-foreground font-semibold text-[16px] btn-gradient"
+          className="w-full py-4 rounded-full text-white font-semibold text-[16px] btn-gradient"
         >
           Start KYC
         </button>
         <button
           onClick={() => setShowWhyModal(true)}
-          className="w-full text-center text-foreground text-[14px] underline underline-offset-2"
+          className={`w-full text-center ${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-sans underline underline-offset-2`}
         >
           Why is this needed?
         </button>
@@ -99,22 +115,22 @@ const KYCIntro = () => {
             onClick={() => setShowWhyModal(false)}
           />
 
-          {/* Popup Box with glass background */}
+          {/* Popup Box */}
           <div
-            className="relative rounded-2xl p-6 max-w-[320px] w-full z-10"
-            style={{
+            className={`relative rounded-2xl p-6 max-w-[320px] w-full z-10 ${!isDarkMode ? 'bg-white' : ''}`}
+            style={isDarkMode ? {
               backgroundImage: `url(${popupBg})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-            }}
+            } : {}}
           >
             <div className="flex flex-col items-center">
-              <img src={iconKyc} alt="KYC" className="w-8 h-8 mb-4" />
-              <h2 className="text-foreground text-[18px] font-semibold mb-4">
+              <img src={iconKyc} alt="KYC" className={`w-8 h-8 mb-4 ${!isDarkMode ? 'filter brightness-0' : ''}`} />
+              <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans mb-4`}>
                 Know Your Customer
               </h2>
-              <div className="bg-[#0a0a12]/80 rounded-xl p-4">
-                <p className="text-foreground text-[14px] leading-relaxed">
+              <div className={`${isDarkMode ? 'bg-[#0a0a12]/80' : 'bg-[#F8F9FA]'} rounded-xl p-4`}>
+                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans leading-relaxed`}>
                   In accordance with the Reserve Bank of India (RBI) regulations, completion of eKYC is mandatory to enable wallet functionalities such as fund transfers, cash withdrawals, and account upgrades. This ensures compliance, enhances security, and enables uninterrupted access to regulated financial services.
                 </p>
               </div>
@@ -131,8 +147,8 @@ const KYCIntro = () => {
               backgroundPosition: 'center',
             }}
           >
-            <X className="w-4 h-4 text-foreground" />
-            <span className="text-foreground text-[14px]">Close</span>
+            <X className="w-4 h-4 text-white" />
+            <span className="text-white text-[14px] font-sans">Close</span>
           </button>
         </div>
       )}

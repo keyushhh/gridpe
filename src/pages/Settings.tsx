@@ -374,9 +374,8 @@ const Settings = () => {
                     // Handled by onClick for animation, but kept for accessibility/keyboard
                   }}
                   onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = rect.left + rect.width / 2;
-                    const y = rect.top + rect.height / 2;
+                    const x = e.clientX;
+                    const y = e.clientY;
 
                     // Set CSS variables for the expansion center
                     document.documentElement.style.setProperty('--x', `${x}px`);

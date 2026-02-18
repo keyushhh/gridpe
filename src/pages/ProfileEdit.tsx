@@ -197,7 +197,7 @@ const ProfileEdit = () => {
                 backgroundImage: isDarkMode ? `url(${inputFieldBg})` : 'none',
                 backgroundSize: '100% 100%',
                 backgroundRepeat: 'no-repeat',
-                backgroundColor: isDarkMode ? 'transparent' : '#F7F8FA'
+                backgroundColor: isDarkMode ? 'transparent' : '#F3F3F3'
               }}
             >
               <div className="flex items-center gap-4 flex-1">
@@ -221,7 +221,7 @@ const ProfileEdit = () => {
                 }}
               />
             </div>
-            <p className="text-[#5B5B5B] text-[14px] font-normal px-4">
+            <p className="text-black dark:text-[#5B5B5B] text-[14px] font-normal px-4">
               This is how we know it's you. Or your evil twin.
             </p>
           </div>
@@ -276,7 +276,7 @@ const ProfileEdit = () => {
                 ) : null}
               </div>
             </div>
-            <p className="text-[#5B5B5B] text-[14px] font-normal px-4 mt-2 font-satoshi">
+            <p className="text-black dark:text-[#5B5B5B] text-[14px] font-normal px-4 mt-2 font-satoshi">
               {emailHelperText}
             </p>
           </div>
