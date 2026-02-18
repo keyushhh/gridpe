@@ -2,16 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
-import peLogo from "@/assets/pe_logo.svg";
-import switchTabBg from "@/assets/switch tab.png";
-import selectedTabBg from "@/assets/selected tab.png";
-import buttonPrimary from "@/assets/button-primary-wide.png";
+import { useAsset } from "@/hooks/useAsset";
 
 const Wallet = () => {
     const navigate = useNavigate();
     const { isWalletActivated } = useUser();
     const [activeTab, setActiveTab] = useState<'how-it-works' | 'refund-policy'>('how-it-works');
+
+    const walletBg = useAsset("wallet-bg");
+    const gridPeLogo = useAsset("pe-logo");
+    const switchTabBackground = useAsset("switch-tab-bg");
+    const selectedTabBackground = useAsset("selected-tab-bg");
+    const primaryButton = useAsset("button-primary");
 
     useEffect(() => {
         if (isWalletActivated) {
@@ -24,7 +26,7 @@ const Wallet = () => {
             className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
             style={{
                 backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundImage: `url(${walletBg})`,
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
@@ -46,7 +48,7 @@ const Wallet = () => {
                 {/* Logo */}
                 <div className="mt-[-20px] flex justify-center pointer-events-none">
                     <img
-                        src={peLogo}
+                        src={gridPeLogo}
                         alt="Grid.Pe"
                         style={{ width: '150px', height: '101px' }}
                     />
@@ -58,7 +60,7 @@ const Wallet = () => {
                     style={{
                         width: '362px',
                         height: '62px',
-                        backgroundImage: `url(${switchTabBg})`,
+                        backgroundImage: `url(${switchTabBackground})`,
                         backgroundSize: '100% 100%',
                         backgroundRepeat: 'no-repeat'
                     }}
@@ -70,7 +72,7 @@ const Wallet = () => {
                             style={{
                                 width: '173px',
                                 height: '54px',
-                                backgroundImage: `url(${selectedTabBg})`,
+                                backgroundImage: `url(${selectedTabBackground})`,
                                 backgroundSize: '100% 100%',
                                 backgroundRepeat: 'no-repeat',
                                 left: 0,
@@ -242,7 +244,7 @@ const Wallet = () => {
                     }}
                     className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans"
                     style={{
-                        backgroundImage: `url(${buttonPrimary})`,
+                        backgroundImage: `url(${primaryButton})`,
                         backgroundSize: "100% 100%",
                         backgroundRepeat: "no-repeat",
                     }}
