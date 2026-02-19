@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
 import infoContainerBg from "@/assets/order-cash-info-bg.png";
@@ -12,6 +13,8 @@ const OrderCash = () => {
   const navigate = useNavigate();
   const { isWalletLimitReached } = useUser();
   const [amount, setAmount] = useState<string>("0.00");
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   const handleKeyPress = (key: string) => {
     setAmount((prev) => {
@@ -52,14 +55,17 @@ const OrderCash = () => {
   const KeypadButton = ({ label, onClick, icon }: { label?: string; onClick?: () => void; icon?: React.ReactNode }) => (
     <button
       onClick={onClick}
-      className="w-[113px] h-[65px] bg-[#000000] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group"
+      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group bg-black text-white shadow-sm`}
     >
       {icon ? (
         <div className="group-active:brightness-200">
-          {icon}
+          {React.cloneElement(icon as React.ReactElement, {
+            style: { filter: 'brightness(0) saturate(100%) invert(1)' },
+            className: `${(icon as React.ReactElement).props.className} group-active:filter-none`
+          })}
         </div>
       ) : (
-        <span className="text-white group-active:text-white font-bold font-sans text-[32px]">{label}</span>
+        <span className="font-bold font-sans text-[32px] group-active:text-white text-white">{label}</span>
       )}
     </button>
   );
@@ -68,27 +74,32 @@ const OrderCash = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
+      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
       style={{
-        backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
       }}
     >
+      {/* Light Mode Purple Glow */}
+      {!isDarkMode && (
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+      )}
+
       {/* Header - Standard Single Row */}
       <div className="px-5 pt-4 flex items-center justify-between z-10">
         {/* Back Button */}
         <button
           onClick={() => navigate("/home")}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
+          className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
         >
-          <ChevronLeft className="w-6 h-6 text-white" />
+          <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
 
         {/* Title - Centered */}
-        <h1 className="text-white text-[18px] font-medium font-sans">
+        <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
           Order Cash
         </h1>
 
@@ -97,18 +108,18 @@ const OrderCash = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center pt-[60px]">
+      <div className="flex-1 flex flex-col items-center pt-[60px] z-10 w-full">
         {/* Amount Display */}
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
-          <span className="text-white text-[32px] font-black font-sans mr-1">₹</span>
-          <span className="text-white text-[32px] font-black font-sans">{amount}</span>
+          <span className={`text-[32px] font-black font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
+          <span className={`text-[32px] font-black font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
         </div>
 
         {/* Divider */}
-        <div className="w-[238px] h-[1px] bg-[#373737] mt-[4.5px]" />
+        <div className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-[#E6E8EB]'}`} />
 
         {/* Balance Text */}
-        <p className="text-white/60 text-[12px] font-sans font-normal mt-[8px] mb-[17px]">
+        <p className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
           Total Available Balance ₹ 13,00,058.00
         </p>
 
@@ -131,17 +142,19 @@ const OrderCash = () => {
             <button
               key={val}
               onClick={() => handlePillClick(val)}
-              className="relative h-[30px] flex items-center justify-center px-3 py-[6px] transition-transform active:scale-95"
+              className={`relative h-[30px] flex items-center justify-center px-3 py-[6px] transition-transform active:scale-95 ${!isDarkMode ? 'rounded-full bg-black' : ''}`}
             >
-              <div
-                className="absolute inset-0 w-full h-full"
-                style={{
-                  backgroundImage: `url(${pillContainerBg})`,
-                  backgroundSize: "100% 100%",
-                  backgroundRepeat: "no-repeat",
-                }}
-              />
-              <span className="relative z-10 text-white text-[12px] font-medium font-sans">
+              {isDarkMode && (
+                <div
+                  className="absolute inset-0 w-full h-full"
+                  style={{
+                    backgroundImage: `url(${pillContainerBg})`,
+                    backgroundSize: "100% 100%",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                />
+              )}
+              <span className={`relative z-10 text-[12px] font-medium font-sans text-white`}>
                 +₹{val}
               </span>
             </button>
@@ -154,43 +167,44 @@ const OrderCash = () => {
         {/* Info Container */}
         <div className="w-full px-5 pb-[16px]">
           <div
-            className="w-full h-[61px] relative flex flex-col justify-center px-[18px] py-[10px]"
-            style={{
+            className={`w-full h-[61px] relative flex flex-col justify-center px-[18px] py-[10px] ${!isDarkMode ? 'bg-[#FFFFFF] rounded-[16px] border border-[#E9EAEB]' : ''}`}
+            style={isDarkMode ? {
               backgroundImage: `url(${infoContainerBg})`,
               backgroundSize: "100% 100%",
               backgroundRepeat: "no-repeat",
-            }}
+            } : {}}
           >
-            <p className="text-white text-[14px] font-medium font-sans mb-[9px] leading-none">
+            <p className={`text-[14px] font-medium font-sans mb-[9px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Amount will be held from wallet
             </p>
-            <p className="text-white text-[12px] font-light font-sans leading-none">
+            <p className={`text-[12px] font-light font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black/60'}`}>
               You won’t be charged unless the delivery is completed.
             </p>
           </div>
         </div>
 
         {/* Keypad Container */}
-        <div className="w-full relative rounded-t-[32px] overflow-hidden">
-          {/* Gradient Border Wrapper */}
-          {/* We use a pseudo-element or absolute div for the gradient border */}
-          <div
-            className="absolute inset-0 rounded-t-[32px] pointer-events-none"
-            style={{
-              padding: '0.63px', // Border width
-              background: 'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
-              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              maskComposite: 'exclude',
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor'
-            }}
-          />
+        <div className={`w-full relative rounded-t-[32px] overflow-hidden ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
+          {/* Gradient Border Wrapper (Dark Mode Only) */}
+          {isDarkMode && (
+            <div
+              className="absolute inset-0 rounded-t-[32px] pointer-events-none"
+              style={{
+                padding: '0.63px', // Border width
+                background: 'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
+                mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                maskComposite: 'exclude',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor'
+              }}
+            />
+          )}
 
           {/* Inner Content Background */}
           <div
             className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
             style={{
-              backgroundColor: 'rgba(23, 23, 23, 0.31)', // #171717 at 31%
+              backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : '#FFFFFF',
             }}
           >
             <div className="flex flex-col gap-[10px] items-center relative z-10">

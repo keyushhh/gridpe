@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,8 @@ interface AddressState {
 const AddAddressDetails = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const { showToaster } = useCustomToaster();
     const initialState = location.state as AddressState | null;
     const isEditMode = !!initialState?.id;
@@ -229,7 +232,7 @@ const AddAddressDetails = () => {
 
     // Helper to get input font class
     const getInputClass = (val: string) =>
-        `w-full h-full bg-transparent border-none outline-none text-white transition-all ${val ? "font-bold" : "font-light"
+        `w-full h-full bg-transparent border-none outline-none ${isDarkMode ? 'text-white' : 'text-[#09090B]'} transition-all ${val ? "font-bold" : "font-light"
         } text-[14px] font-satoshi z-10 relative`;
 
     // Custom Input with Placeholder Overlay
@@ -240,10 +243,12 @@ const AddAddressDetails = () => {
         mandatory: boolean = false
     ) => {
         return (
-            <div className="h-[48px] rounded-full bg-[#191919] border border-[#313131] px-6 flex items-center relative">
+            <div
+                className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-[#191919] border border-[#313131]' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
+            >
                 {!value && (
                     <div className="absolute inset-0 px-6 flex items-center pointer-events-none">
-                        <span className="text-white font-light text-[14px] font-satoshi opacity-50">
+                        <span className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}>
                             {placeholder}
                             {mandatory && <span className="text-[#FF3B30] ml-1">*</span>}
                         </span>
@@ -260,17 +265,19 @@ const AddAddressDetails = () => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-black text-white relative">
+        <div className={`h-full flex flex-col relative ${isDarkMode ? 'bg-black text-white' : 'bg-[#FFFFFF] text-[#09090B]'}`}>
             {/* Background - Applied to a container to avoid scroll issues if needed, but fixed attachment works on scrollable too */}
-            <div
-                className="absolute inset-0 z-0"
-                style={{
-                    backgroundImage: `url(${bgDarkMode})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundAttachment: "fixed"
-                }}
-            />
+            {isDarkMode && (
+                <div
+                    className="absolute inset-0 z-0"
+                    style={{
+                        backgroundImage: `url(${bgDarkMode})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundAttachment: "fixed"
+                    }}
+                />
+            )}
 
             {/* Scrollable Content */}
             <div
@@ -280,36 +287,38 @@ const AddAddressDetails = () => {
                 <div className="pt-[24px] px-5">
                     {/* Header */}
                     <div
-                        className="flex items-center sticky top-0 z-50"
+                        className="flex items-center sticky top-0 z-50 transition-colors"
                         style={{ opacity: headerOpacity, pointerEvents: headerOpacity === 0 ? 'none' : 'auto' }}
                     >
                         <button
                             onClick={() => navigate(-1)}
-                            className="w-10 h-10 flex items-center justify-center mr-2 rounded-full border border-white/20 active:bg-white/10"
+                            className={`w-10 h-10 flex items-center justify-center mr-2 rounded-full border transition-colors ${isDarkMode ? 'border-white/20 active:bg-white/10' : 'border-[#E6E8EB] active:bg-gray-100 hover:bg-gray-50'}`}
                         >
-                            <ChevronLeft className="w-6 h-6 text-white" />
+                            <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`} />
                         </button>
-                        <h1 className="flex-1 text-center text-[22px] font-medium font-satoshi pr-10">
+                        <h1 className={`flex-1 text-center text-[22px] font-medium font-satoshi pr-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>
                             Add New Address
                         </h1>
                     </div>
 
                     {/* Address Container */}
                     <div
-                        className="relative w-full rounded-[12px] p-[11px] mb-[12px] mt-[44px]"
+                        className={`relative w-full rounded-[12px] p-[11px] mb-[12px] mt-[44px] ${!isDarkMode ? 'bg-white shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border border-[#E6E8EB]' : ''}`}
                         style={{ height: "88px" }}
                     >
-                        {/* Background Image */}
-                        <img
-                            src={addressContainerBg}
-                            alt="Background"
-                            className="absolute inset-0 w-full h-full object-cover rounded-[12px] z-0 pointer-events-none"
-                        />
+                        {/* Background Image - Only Dark Mode */}
+                        {isDarkMode && (
+                            <img
+                                src={addressContainerBg}
+                                alt="Background"
+                                className="absolute inset-0 w-full h-full object-cover rounded-[12px] z-0 pointer-events-none"
+                            />
+                        )}
 
                         <div className="relative z-10 flex flex-col items-start h-full">
                             {/* Top Row: City/Country + Change Button */}
                             <div className="flex justify-between items-center w-full">
-                                <span className="font-bold text-[16px] truncate pr-2 font-satoshi">
+                                <span className={`font-bold text-[16px] truncate pr-2 font-satoshi ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>
                                     {initialState ? `${initialState.city}, India` : "Location Details"}
                                 </span>
                                 <button
@@ -319,19 +328,19 @@ const AddAddressDetails = () => {
                                         width: "67px",
                                         height: "22px",
                                         borderRadius: "100px",
-                                        background: "rgba(7, 7, 7, 0.84)",
-                                        backdropFilter: "blur(25.02px)",
-                                        border: "0.63px solid rgba(255, 255, 255, 0.12)", // Approximate gradient border
+                                        background: isDarkMode ? "rgba(7, 7, 7, 0.84)" : "#5260FE",
+                                        backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
+                                        border: isDarkMode ? "0.63px solid rgba(255, 255, 255, 0.12)" : "none",
                                         padding: "4px 12px"
                                     }}
                                 >
-                                    <span className="text-[12px] font-medium">Change</span>
+                                    <span className={`text-[12px] font-medium ${isDarkMode ? 'text-white' : 'text-white'}`}>Change</span>
                                 </button>
                             </div>
 
-                            {/* Bottom Row: Full Address - 15px below top row */}
+                            {/* Bottom Row: Full Address - 8px below top row */}
                             <p
-                                className="text-[12px] font-regular text-gray-300 font-satoshi mt-[15px]"
+                                className={`text-[12px] font-regular font-satoshi mt-[8px] ${isDarkMode ? 'text-gray-300' : 'text-[#666666]'}`}
                                 style={{ width: "287px" }}
                             >
                                 {displayAddress}
@@ -340,33 +349,54 @@ const AddAddressDetails = () => {
                     </div>
 
                     {/* Helper Text */}
-                    <p className="text-[12px] font-regular text-[#FFFFFF] mb-[12px] font-satoshi">
+                    <p className={`text-[12px] font-regular mb-[12px] font-satoshi ${isDarkMode ? 'text-[#FFFFFF]' : 'text-[#666666]'}`}>
                         A detailed address will help our delivery partner reach your doorstep with ease
                     </p>
 
                     {/* Tags Section */}
-                    <h2 className="text-[14px] font-medium mb-[8px] mt-[22px] font-satoshi">Save address as<span className="text-[#FF3B30] ml-0.5">*</span></h2>
+                    <h2 className={`text-[14px] font-medium mb-[8px] mt-[22px] font-satoshi ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>
+                        Save address as<span className="text-[#FF3B30] ml-0.5">*</span>
+                    </h2>
                     <div className="flex flex-wrap gap-2 mb-[32px]">
                         {tags.map((tag) => {
                             const isSelected = selectedTag === tag.label;
+                            // Tag Styling Logic
+                            // Dark Mode: Selected (Transparent + Image), Unselected (White/5%)
+                            // Light Mode: Selected (Purple + No Image), Unselected (White + Border)
+
+                            const unselectedClass = isDarkMode
+                                ? "bg-[rgba(255,255,255,0.05)] border-white/20 text-white"
+                                : "bg-white border-[#E6E8EB] text-[#09090B] shadow-sm";
+
+                            const selectedClass = isDarkMode
+                                ? "border-transparent" // dark mode uses image bg
+                                : "bg-[#5260FE] border-transparent shadow-md"; // light mode uses purple bg
+
+                            const selectedTextClass = "text-white";
+
                             return (
                                 <button
                                     key={tag.label}
                                     onClick={() => handleTagClick(tag.label)}
-                                    className="relative flex items-center justify-center px-4 h-[28px] rounded-full transition-all border border-white/20 font-satoshi"
+                                    className={`relative flex items-center justify-center px-4 h-[28px] rounded-full transition-all border font-satoshi ${isSelected ? selectedClass : unselectedClass}`}
                                     style={{
-                                        backgroundColor: isSelected ? "transparent" : "rgba(255,255,255,0.05)",
+                                        // Specific overrides if needed
                                     }}
                                 >
-                                    {isSelected && (
+                                    {isSelected && isDarkMode && (
                                         <img
                                             src={selectedTagBg}
                                             alt=""
                                             className="absolute inset-0 w-full h-full object-cover rounded-full z-0"
                                         />
                                     )}
-                                    <div className="relative z-10 flex items-center gap-2">
-                                        <img src={tag.icon} alt={tag.label} className="w-4 h-4" />
+                                    <div className={`relative z-10 flex items-center gap-2 ${isSelected ? selectedTextClass : (isDarkMode ? 'text-white' : 'text-[#09090B]')}`}>
+                                        <img
+                                            src={tag.icon}
+                                            alt={tag.label}
+                                            className="w-4 h-4"
+                                            style={!isDarkMode && !isSelected ? { filter: 'invert(1)' } : undefined} // Invert white icons to black in light mode unselected
+                                        />
                                         <span className="text-[12px] font-medium">{tag.label}</span>
                                     </div>
                                 </button>
@@ -386,7 +416,9 @@ const AddAddressDetails = () => {
                         {renderInput(landmark, setLandmark, "Landmark (Optional)", false)}
 
                         {/* Plus Code */}
-                        <div className="h-[48px] rounded-full bg-[#191919] border border-[#313131] px-6 flex items-center justify-between">
+                        <div
+                            className={`h-[48px] rounded-full px-6 flex items-center justify-between transition-colors ${isDarkMode ? 'bg-[#191919] border border-[#313131]' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
+                        >
                             <input
                                 type="text"
                                 value={plusCode}
@@ -394,24 +426,28 @@ const AddAddressDetails = () => {
                                 className={`${getInputClass(plusCode)} flex-1 mr-2`}
                             />
                             <button onClick={handleCopyPlusCode}>
-                                <img src={copyIcon} alt="Copy" className="w-5 h-5 opacity-70 hover:opacity-100" />
+                                <img src={copyIcon} alt="Copy" className="w-5 h-5 opacity-70 hover:opacity-100" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                             </button>
                         </div>
                     </div>
 
                     {/* Contact Information */}
-                    <h2 className="text-[14px] font-medium mb-[12px]">Enter contact information<span className="text-[#FF3B30] ml-0.5">*</span></h2>
+                    <h2 className={`text-[14px] font-medium mb-[12px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>
+                        Enter contact information<span className="text-[#FF3B30] ml-0.5">*</span>
+                    </h2>
                     <div className="space-y-[12px] mb-[26px]">
                         {/* Name */}
                         {renderInput(name, setName, "Your Name", true)}
 
                         {/* Phone Number */}
-                        <div className="h-[48px] rounded-full bg-[#191919] border border-[#313131] flex items-center relative overflow-hidden">
-                            <span className="text-[14px] font-medium text-white pl-[30px] pr-[22px]">
+                        <div
+                            className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-[#191919] border border-[#313131]' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
+                        >
+                            <span className={`text-[14px] font-medium pl-[30px] pr-[22px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>
                                 +91
                             </span>
                             {/* Divider */}
-                            <div className="h-[32px] w-[1px] bg-[#313131]"></div>
+                            <div className={`h-[32px] w-[1px] ${isDarkMode ? 'bg-[#313131]' : 'bg-[#E6E8EB]'}`}></div>
 
                             {/* Input */}
                             <div className="flex-1 ml-[22px] mr-[20px] relative h-full flex items-center">
@@ -430,6 +466,7 @@ const AddAddressDetails = () => {
                                 src={phoneIcon}
                                 alt="Phone"
                                 className="absolute right-[20px] w-5 h-5 pointer-events-none"
+                                style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
                             />
                         </div>
                     </div>
@@ -448,7 +485,7 @@ const AddAddressDetails = () => {
                         {isEditMode && (
                             <Button
                                 onClick={() => navigate(-1)}
-                                className="w-full rounded-full bg-[#191919] hover:bg-[#252525] text-white border border-white/20"
+                                className={`w-full rounded-full border ${isDarkMode ? 'bg-[#191919] hover:bg-[#252525] text-white border-white/20' : 'bg-white hover:bg-gray-50 text-[#09090B] border-[#E6E8EB]'}`}
                                 variant="secondary"
                             >
                                 Cancel

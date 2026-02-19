@@ -430,7 +430,12 @@ const Homepage = () => {
           <div className="space-y-1 max-w-[70%]">
             {savedAddress ? (
               <div className="flex items-center gap-1">
-                <img src={getTagIcon(savedAddress.tag)} alt={savedAddress.tag} className="w-3 h-3" />
+                <img
+                  src={getTagIcon(savedAddress.tag)}
+                  alt={savedAddress.tag}
+                  className="w-3 h-3"
+                  style={{ filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' }}
+                />
                 <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
                   {savedAddress.tag}
                 </p>
@@ -888,7 +893,7 @@ const Homepage = () => {
       </div>
 
       {/* Bottom Navigation (Fixed) */}
-      <BottomNavigation activeTab="home" isHidden={isAddressModalOpen} />
+      <BottomNavigation activeTab="home" isHidden={isAddressModalOpen || isAddressSheetOpen} />
 
       <OrderDetailsSheet
         isOpen={isSheetOpen}

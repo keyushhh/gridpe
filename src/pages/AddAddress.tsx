@@ -456,7 +456,7 @@ const AddAddress = () => {
         <div className="flex items-center pointer-events-auto">
           {/* Helper Pill */}
           <div
-            className="flex items-center justify-center shadow-lg"
+            className={`flex items-center justify-center ${isDarkMode ? 'shadow-lg' : ''}`}
             style={{
               width: "302px",
               height: "40px",
@@ -473,7 +473,7 @@ const AddAddress = () => {
               className="w-4 h-4 mr-2 cursor-pointer hover:scale-110 transition-transform"
               onClick={handleSnapToGrid}
               data-testid="helper-pin-icon"
-              style={!isDarkMode ? { filter: 'invert(1)' } : undefined} // Make it black? Or keep white? Reference shows dark icon maybe
+              style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined}
             />
             {/* If icon is white svg, invert for dark text. Assuming icon is white. */}
 
@@ -487,13 +487,13 @@ const AddAddress = () => {
           {/* Navigation Button */}
           <button
             onClick={fetchUserLocation}
-            className="w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden shadow-lg"
+            className={`w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden ${isDarkMode ? 'shadow-lg' : ''}`}
             style={{
               backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
               border: isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid #E6E8EB"
             }}
           >
-            <img src={navigationIcon} alt="Nav" className="w-[18px] h-[18px] object-cover" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
+            <img src={navigationIcon} alt="Nav" className="w-[18px] h-[18px] object-cover" style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined} />
           </button>
         </div>
       </div>
@@ -503,161 +503,180 @@ const AddAddress = () => {
         ref={bottomSheetRef}
         className={`absolute bottom-0 left-0 right-0 rounded-t-[32px] pt-0 pb-10 safe-area-bottom z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] ${isDarkMode ? 'bg-black border-t border-white/10' : 'bg-white'}`}
       >
-        {/* Light Mode: Header Strip "Order will be delivered here" */}
-        <div
-          className={`w-full py-4 px-6 rounded-t-[32px] mb-4 flex items-center ${isDarkMode ? 'bg-transparent' : 'bg-[#F3F4FF]'}`}
-        >
-          <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>Order will be delivered here</h3>
-        </div>
-
-        <div className="px-6">
-          {/* Address Container */}
+        <div className="flex flex-col items-center w-full">
+          {/* Header Pill - 12px from top */}
           <div
-            className="flex items-start mb-[14px]"
+            className="flex items-center mt-[12px]"
             style={{
-              backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
-              border: isDarkMode ? "1px solid rgba(82, 96, 254, 0.21)" : "1px solid #E6E8EB",
-              borderRadius: "12px",
-              paddingTop: "16px",
-              paddingBottom: "16px",
-              paddingLeft: "16px",
-              paddingRight: "16px",
-              boxShadow: !isDarkMode ? "0px 4px 12px rgba(0, 0, 0, 0.05)" : "none"
+              width: '362px',
+              height: '27px',
+              borderRadius: '9999px',
+              background: isDarkMode
+                ? 'linear-gradient(to right, #5260FE, #000000)'
+                : 'linear-gradient(to right, #5260FE, #FFFFFF)',
+              paddingTop: '5px',
+              paddingBottom: '5px',
+              paddingLeft: '10px'
             }}
           >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 ${isDarkMode ? 'bg-white/10' : 'bg-[#F0F2FF]'}`}>
-              <img src={locationPinIcon} alt="Loc" className="w-4 h-4" style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined} /> {/* Tinting to #5260FE approx */}
-            </div>
-
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-[6px]">
-                {isDragging || isLoading ? (
-                  <Skeleton className={`h-6 w-3/4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
-                ) : (
-                  <>
-                    <h4 className={`font-bold text-[16px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`} style={{ fontFamily: 'Satoshi, sans-serif' }}>
-                      {addressTitle}
-                    </h4>
-                    {plusCode && (
-                      <div
-                        onClick={copyPlusCode}
-                        className="flex items-center gap-1.5 px-3 cursor-pointer hover:opacity-80 transition-opacity"
-                        style={{
-                          height: "22px",
-                          backgroundColor: isDarkMode ? "rgba(7, 7, 7, 0.85)" : "#F0F2FF",
-                          borderRadius: "9999px",
-                          border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(82, 96, 254, 0.1)",
-                          display: "inline-flex",
-                          alignItems: "center"
-                        }}
-                        title="Click to copy Plus Code"
-                      >
-                        <span
-                          data-testid="plus-code"
-                          className="text-[#5260FE] font-bold text-xs"
-                          style={{ fontFamily: 'Satoshi, sans-serif' }}
-                        >
-                          {plusCode}
-                        </span>
-                        <img src={copyIcon} alt="Copy" className="w-3 h-3" style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined} />
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {isDragging || isLoading ? (
-                <Skeleton className={`h-4 w-full mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
-              ) : (
-                <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-[#666666]'}`}>
-                  {addressLine || "Fetching details..."}
-                </p>
-              )}
-            </div>
+            <span
+              className="text-white font-medium text-[12px]"
+              style={{ fontFamily: 'Satoshi, sans-serif' }}
+            >
+              Order will be delivered here
+            </span>
           </div>
 
-          {/* Distance Callout */}
-          {!isDragging && !isLoading && distanceInMeters !== null && distanceInMeters > 200 && (
-            <div className="relative w-full flex justify-center -mt-2 mb-4 z-0">
-              <div
-                className="w-full flex items-center justify-center relative"
-                style={{
-                  height: "59px",
-                  paddingTop: "10px"
-                }}
-              >
-                <img
-                  src={distanceCallout}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-                />
-                <span
-                  className="text-center font-medium text-[14px] relative z-10"
-                  style={{
-                    fontFamily: 'Satoshi, sans-serif',
-                    color: "#FACC15",
-                  }}
-                >
-                  This is {distanceInMeters < 1000
-                    ? `${Math.round(distanceInMeters)}m`
-                    : `${(distanceInMeters / 1000).toFixed(1)}km`} away from your current location.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* CTA or Warning */}
-          {viewState.zoom < 16 ? (
+          {/* Address Container - 11px below header */}
+          <div className="w-full px-6 mt-[11px]">
             <div
-              className={`w-full flex items-center justify-center font-medium text-[14px] ${isDarkMode ? 'text-white' : 'text-[#FA1515]'}`}
+              className="flex items-start mb-[12px]"
               style={{
-                marginTop: "0px",
-                height: "45px",
-                backgroundColor: isDarkMode ? "rgba(255, 0, 0, 0.15)" : "#FFF5F5",
-                border: isDarkMode ? "1px solid rgba(255, 0, 0, 0.22)" : "1px solid #FFEBEB",
+                backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
+                border: isDarkMode ? "1px solid rgba(82, 96, 254, 0.21)" : "1px solid #E6E8EB",
                 borderRadius: "12px",
-                fontFamily: 'Satoshi, sans-serif'
+                paddingTop: "16px",
+                paddingBottom: "16px",
+                paddingLeft: "16px",
+                paddingRight: "16px",
+                boxShadow: !isDarkMode ? "0px 4px 12px rgba(0, 0, 0, 0.05)" : "none"
               }}
             >
-              Zoom in to place the pin at exact delivery location
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 ${isDarkMode ? 'bg-white/10' : 'bg-[#F0F2FF]'}`}>
+                <img src={locationPinIcon} alt="Loc" className="w-4 h-4" style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined} /> {/* Tinting to #5260FE approx */}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-[6px]">
+                  {isDragging || isLoading ? (
+                    <Skeleton className={`h-6 w-3/4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+                  ) : (
+                    <>
+                      <h4 className={`font-bold text-[16px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`} style={{ fontFamily: 'Satoshi, sans-serif' }}>
+                        {addressTitle}
+                      </h4>
+                      {plusCode && (
+                        <div
+                          onClick={copyPlusCode}
+                          className="flex items-center gap-1.5 px-3 cursor-pointer hover:opacity-80 transition-opacity"
+                          style={{
+                            height: "22px",
+                            backgroundColor: isDarkMode ? "rgba(7, 7, 7, 0.85)" : "#F0F2FF",
+                            borderRadius: "9999px",
+                            border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(82, 96, 254, 0.1)",
+                            display: "inline-flex",
+                            alignItems: "center"
+                          }}
+                          title="Click to copy Plus Code"
+                        >
+                          <span
+                            data-testid="plus-code"
+                            className="text-[#5260FE] font-bold text-xs"
+                            style={{ fontFamily: 'Satoshi, sans-serif' }}
+                          >
+                            {plusCode}
+                          </span>
+                          <img src={copyIcon} alt="Copy" className="w-3 h-3" style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined} />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {isDragging || isLoading ? (
+                  <Skeleton className={`h-4 w-full mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+                ) : (
+                  <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-[#666666]'}`}>
+                    {addressLine || "Fetching details..."}
+                  </p>
+                )}
+              </div>
             </div>
-          ) : (
-            <div style={{ marginTop: "24px", opacity: isDragging || isLoading ? 0 : 1, transition: 'opacity 0.2s', visibility: isDragging || isLoading ? 'hidden' : 'visible' }}>
-              <Button
-                variant="gradient"
-                onClick={() => {
-                  const addr = currentAddressComponents || {};
 
-                  // Extract details safely - Prioritize City > Town > Village > County > State District
-                  const city = addr.city || addr.town || addr.village || addr.county || addr.state_district || "Bangalore";
-                  const state = addr.state || "Karnataka";
-                  const postcode = addr.postcode || "560001";
-                  const road = addr.road || "";
-                  const houseNumber = addr.house_number || "";
+            {/* Distance Callout */}
+            {!isDragging && !isLoading && distanceInMeters !== null && distanceInMeters > 200 && (
+              <div className="relative w-full flex justify-center -mt-2 mb-4 z-0">
+                <div
+                  className="w-full flex items-center justify-center relative"
+                  style={{
+                    height: "59px",
+                    paddingTop: "10px"
+                  }}
+                >
+                  <img
+                    src={distanceCallout}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+                  />
+                  <span
+                    className="text-center font-medium text-[14px] relative z-10"
+                    style={{
+                      fontFamily: 'Satoshi, sans-serif',
+                      color: "#FACC15",
+                    }}
+                  >
+                    This is {distanceInMeters < 1000
+                      ? `${Math.round(distanceInMeters)}m`
+                      : `${(distanceInMeters / 1000).toFixed(1)}km`} away from your current location.
+                  </span>
+                </div>
+              </div>
+            )}
 
-                  navigate('/add-address-details', {
-                    state: {
-                      addressTitle: addressTitle,
-                      addressLine: addressLine,
-                      plusCode: plusCode,
-                      lat: viewState.latitude,
-                      lng: viewState.longitude,
-                      city,
-                      state,
-                      postcode,
-                      houseNumber,
-                      road,
-                      area: addr.suburb || addr.neighbourhood || ""
-                    }
-                  });
+            {/* CTA or Warning */}
+            {viewState.zoom < 16 ? (
+              <div
+                className={`w-full flex items-center justify-center font-medium text-[14px] ${isDarkMode ? 'text-white' : 'text-[#FA1515]'}`}
+                style={{
+                  marginTop: "0px",
+                  marginBottom: "12px",
+                  height: "45px",
+                  backgroundColor: isDarkMode ? "rgba(255, 0, 0, 0.15)" : "#FFF5F5",
+                  border: isDarkMode ? "1px solid rgba(255, 0, 0, 0.22)" : "1px solid #FFEBEB",
+                  borderRadius: "12px",
+                  fontFamily: 'Satoshi, sans-serif'
                 }}
-                className={`w-full rounded-full ${!isDarkMode ? 'bg-[#5260FE] text-white hover:bg-[#4150EE]' : ''}`}
-                style={!isDarkMode ? { backgroundImage: 'none', backgroundColor: '#5260FE' } : undefined}
               >
-                Confirm Location
-              </Button>
-            </div>
-          )}
+                Zoom in to place the pin at exact delivery location
+              </div>
+            ) : (
+              <div style={{ marginTop: "24px", marginBottom: "12px", opacity: isDragging || isLoading ? 0 : 1, transition: 'opacity 0.2s', visibility: isDragging || isLoading ? 'hidden' : 'visible' }}>
+                <Button
+                  variant="gradient"
+                  onClick={() => {
+                    const addr = currentAddressComponents || {};
+
+                    // Extract details safely - Prioritize City > Town > Village > County > State District
+                    const city = addr.city || addr.town || addr.village || addr.county || addr.state_district || "Bangalore";
+                    const state = addr.state || "Karnataka";
+                    const postcode = addr.postcode || "560001";
+                    const road = addr.road || "";
+                    const houseNumber = addr.house_number || "";
+
+                    navigate('/add-address-details', {
+                      state: {
+                        addressTitle: addressTitle,
+                        addressLine: addressLine,
+                        plusCode: plusCode,
+                        lat: viewState.latitude,
+                        lng: viewState.longitude,
+                        city,
+                        state,
+                        postcode,
+                        houseNumber,
+                        road,
+                        area: addr.suburb || addr.neighbourhood || ""
+                      }
+                    });
+                  }}
+                  className={`w-full rounded-full ${!isDarkMode ? 'bg-[#5260FE] text-white hover:bg-[#4150EE]' : ''}`}
+                  style={!isDarkMode ? { backgroundImage: 'none', backgroundColor: '#5260FE' } : undefined}
+                >
+                  Confirm Location
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

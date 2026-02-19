@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTheme } from "next-themes";
+import { ChevronRight } from 'lucide-react';
 import slideTrack from '@/assets/slide-to-pay-track.png';
 import slideSuccess from '@/assets/slide-to-pay-success.png';
 import swipeCircle from '@/assets/swipe-circle.png';
@@ -18,6 +20,9 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({ onComplete, className = 
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
+
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (completed || disabled) return;
@@ -57,7 +62,7 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({ onComplete, className = 
       setCompleted(true);
       setDragX(maxDrag);
       setTimeout(() => {
-          onComplete();
+        onComplete();
       }, 2000);
     } else {
       setDragX(0);
@@ -91,45 +96,59 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({ onComplete, className = 
       className={`relative w-full select-none ${disabled ? 'opacity-50 grayscale cursor-not-allowed' : ''} ${className}`}
       style={{
         aspectRatio: '1444/256',
-        backgroundImage: `url(${completed ? slideSuccess : slideTrack})`,
+        backgroundImage: completed
+          ? `url(${slideSuccess})`
+          : isDarkMode
+            ? `url(${slideTrack})`
+            : 'none',
+        backgroundColor: !isDarkMode && !completed ? '#000000' : 'transparent',
+        border: !isDarkMode && !completed ? '1px solid #000000' : 'none',
+        borderRadius: !isDarkMode ? '9999px' : '0',
         backgroundSize: '100% 100%',
         backgroundRepeat: 'no-repeat',
-        transition: 'background-image 0.3s ease'
+        transition: 'background-image 0.3s ease, background-color 0.3s ease, border 0.3s ease'
       }}
     >
-        {/* Overlay Text */}
-        <div
-            data-testid="slide-to-pay-text"
-            className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300`}
-        >
-             <span className={`text-white text-[16px] font-medium font-sans tracking-wide drop-shadow-md ${!completed && 'ml-8'}`}>
-                {completed ? "Verifying Order" : label}
-             </span>
-        </div>
+      {/* Overlay Text */}
+      <div
+        data-testid="slide-to-pay-text"
+        className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300`}
+      >
+        <span className={`text-[16px] font-medium font-sans tracking-wide drop-shadow-md text-white ${!completed && 'ml-8'}`}>
+          {completed ? "Verifying Order" : label}
+        </span>
+      </div>
 
       {/* Thumb - Hide when completed */}
       {!completed && (
         <div
-            ref={thumbRef}
-            onMouseDown={handleStart}
-            onTouchStart={handleStart}
-            className="absolute top-1/2 left-[2%] cursor-grab active:cursor-grabbing z-10 flex items-center justify-center"
-            style={{
-                transform: `translate(${dragX}px, -50%)`,
-                transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                height: '82%',
-                aspectRatio: '1/1',
-                backgroundImage: `url(${swipeCircle})`,
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat'
-            }}
+          ref={thumbRef}
+          onMouseDown={handleStart}
+          onTouchStart={handleStart}
+          className="absolute top-1/2 left-[2%] cursor-grab active:cursor-grabbing z-10 flex items-center justify-center"
+          style={{
+            transform: `translate(${dragX}px, -50%)`,
+            transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            height: '82%',
+            aspectRatio: '1/1',
+            backgroundImage: !isDarkMode ? 'none' : `url(${swipeCircle})`,
+            backgroundColor: !isDarkMode ? '#0D992F' : 'transparent',
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            borderRadius: '50%', // Ensure it's a circle
+            filter: !isDarkMode ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' : 'none'
+          }}
         >
-            {/* Swipe Icon */}
+          {/* Swipe Icon */}
+          {!isDarkMode ? (
+            <ChevronRight className="text-white w-8 h-8" />
+          ) : (
             <img
-                src={swipeIcon}
-                alt=""
-                className="w-[40%] h-[40%] object-contain pointer-events-none"
+              src={swipeIcon}
+              alt=""
+              className="w-[40%] h-[40%] object-contain pointer-events-none"
             />
+          )}
         </div>
       )}
     </div>

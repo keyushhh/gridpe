@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { X, Search } from "lucide-react";
 import { forwardGeocode } from "@/utils/geoUtils";
 import { Geolocation } from '@capacitor/geolocation';
@@ -53,6 +54,8 @@ interface AddressSelectionSheetProps {
 }
 
 const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, onClose, onAddressSelect, onModalStateChange }) => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const navigate = useNavigate();
     const { showToaster } = useCustomToaster();
     const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +139,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
     }, [isOpen]);
 
     // Search Logic
-    const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearchInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value;
         setSearchQuery(query);
         if (query.length > 2) {
@@ -301,52 +304,52 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
 
             {/* Sheet */}
             <div
-                className="relative w-full bg-black rounded-t-[36px] pt-4 pb-4 px-5 overflow-y-auto"
+                className={`relative w-full rounded-t-[36px] pt-4 pb-4 px-5 overflow-y-auto ${isDarkMode ? 'bg-black' : 'bg-white'}`}
                 style={{
-                    height: "794px", // Fixed height as requested
+                    height: "794px",
                     boxShadow: "0px -4px 20px rgba(0, 0, 0, 0.5)",
-                    bottom: 0 // Start directly from bottom
+                    bottom: 0
                 }}
             >
                 {/* Header */}
                 <div className="flex justify-between items-center mb-[18px] pt-2">
-                    <h2 className="text-white text-[18px] font-bold font-satoshi">
+                    <h2 className={`text-[18px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         Select Delivery Location
                     </h2>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10"
+                        className={`w-8 h-8 flex items-center justify-center rounded-full ${isDarkMode ? 'bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
                     >
-                        <X className="w-5 h-5 text-white" />
+                        <X className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                     </button>
                 </div>
 
                 {/* Search Bar */}
                 <div className="relative mb-[18px]">
                     <div
-                        className="h-[48px] rounded-full flex items-center px-4"
+                        className={`h-[48px] rounded-full flex items-center px-4 transition-colors ${!isDarkMode ? 'bg-[#F2F4F7] border border-[#E6E8EB]' : ''}`}
                         style={{
-                            backgroundImage: `url(${searchBg})`,
+                            backgroundImage: isDarkMode ? `url(${searchBg})` : 'none',
                             backgroundSize: "100% 100%",
                             backgroundRepeat: "no-repeat",
                         }}
                     >
-                        <Search className="w-5 h-5 text-gray-400 mr-3" />
+                        <Search className={`w-5 h-5 mr-3 ${isDarkMode ? 'text-gray-400' : 'text-black'}`} />
                         <input
                             type="text"
                             placeholder="Search for area, street name..."
-                            className="bg-transparent border-none outline-none text-white text-[14px] font-satoshi flex-1 placeholder:text-[#585858]"
+                            className={`bg-transparent border-none outline-none text-[14px] font-satoshi flex-1 ${isDarkMode ? 'text-white placeholder:text-[#585858]' : 'text-black placeholder:text-[#666666]'}`}
                             value={searchQuery}
-                            onChange={handleSearch}
+                            onChange={handleSearchInput}
                         />
                     </div>
                     {/* Search Results Dropdown */}
                     {searchResults.length > 0 && (
-                        <div className="absolute top-[52px] w-full bg-[#1A1A1A] rounded-xl z-20 overflow-hidden max-h-[200px] overflow-y-auto border border-white/10">
+                        <div className={`absolute top-[52px] w-full rounded-xl z-20 overflow-hidden max-h-[200px] overflow-y-auto ${isDarkMode ? 'bg-[#1A1A1A] border-white/10' : 'bg-white border-[#E6E8EB] shadow-lg'} border`}>
                             {searchResults.map((res, i) => (
                                 <div
                                     key={i}
-                                    className="px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer text-white text-[14px]"
+                                    className={`px-4 py-3 border-b cursor-pointer text-[14px] ${isDarkMode ? 'border-white/5 hover:bg-white/5 text-white' : 'border-gray-100 hover:bg-gray-50 text-black'}`}
                                     onClick={() => handleSearchResultClick(res)}
                                 >
                                     {res.display_name}
@@ -358,114 +361,135 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
 
                 {/* Static Actions Container */}
                 <div
-                    className="bg-[#0D0D0D] rounded-[13px] mb-[32px] flex flex-col border border-white/5"
+                    className={`rounded-[13px] mb-[32px] flex flex-col border ${isDarkMode ? 'bg-[#0D0D0D] border-white/5' : 'bg-white border-[#E6E8EB] shadow-sm'}`}
                     style={{ maxHeight: "153px" }}
                 >
                     {/* 1. Add New Address */}
                     <div
-                        className="flex items-center justify-between cursor-pointer active:bg-white/5"
+                        className={`flex items-center justify-between cursor-pointer ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
                         style={{ paddingTop: '12px', paddingLeft: '10.5px', paddingRight: '10.5px', paddingBottom: '10px' }}
                         onClick={() => navigate('/add-address')}
                     >
                         <div className="flex items-center gap-3">
-                            <img src={addPlusIcon} alt="" className="w-5 h-5 opacity-80" />
-                            <p className="text-white text-[14px] font-medium font-satoshi">Add address</p>
+                            <img src={addPlusIcon} alt="" className={`w-5 h-5 ${isDarkMode ? 'opacity-80' : ''}`} style={!isDarkMode ? { filter: 'brightness(0) saturate(100%) invert(36%) sepia(54%) saturate(3545%) hue-rotate(223deg) brightness(101%) contrast(98%)' } : undefined} />
+                            <p className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>Add address</p>
                         </div>
-                        <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" />
+                        <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                     </div>
-                    <div className="h-[1px] bg-white/5 w-full px-2">
-                        <div className="h-full bg-white/5 w-full" />
+                    <div className={`h-[1px] w-full px-2 ${isDarkMode ? 'bg-white/5' : 'bg-[#E6E8EB]'}`}>
+                        <div className="h-full w-full" />
                     </div>
 
                     {/* 2. Use Current Location */}
                     <div
-                        className="flex items-center justify-between cursor-pointer active:bg-white/5"
+                        className={`flex items-center justify-between cursor-pointer ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
                         style={{ paddingTop: '10px', paddingLeft: '10.5px', paddingRight: '10.5px', paddingBottom: '10px' }}
                         onClick={handleUseCurrentLocation}
                     >
                         <div className="flex items-center gap-3">
-                            <img src={currentLocationIcon} alt="" style={{ width: '15px', height: '18px' }} className="opacity-80" />
+                            <img src={currentLocationIcon} alt="" className={isDarkMode ? 'opacity-80' : ''} style={{ width: '15px', height: '18px', filter: !isDarkMode ? 'brightness(0) saturate(100%) invert(36%) sepia(54%) saturate(3545%) hue-rotate(223deg) brightness(101%) contrast(98%)' : 'none' }} />
                             <div>
-                                <p className="text-white text-[14px] font-medium font-satoshi">Use my current location</p>
-                                <p className="text-white/30 text-[12px] font-regular font-satoshi mt-0.5">
+                                <p className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>Use my current location</p>
+                                <p className={`text-[12px] font-regular font-satoshi mt-0.5 ${isDarkMode ? 'text-white/30' : 'text-black'}`}>
                                     {currentLocationName || "Fetching location..."}
                                 </p>
                             </div>
                         </div>
-                        <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" />
+                        <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                     </div>
-                    <div className="h-[1px] bg-white/5 w-full px-2">
-                        <div className="h-full bg-white/5 w-full" />
+                    <div className={`h-[1px] w-full px-2 ${isDarkMode ? 'bg-white/5' : 'bg-[#E6E8EB]'}`}>
+                        <div className="h-full w-full" />
                     </div>
 
                     {/* 3. Request Address */}
                     <div
-                        className="flex items-center justify-between cursor-pointer active:bg-white/5"
+                        className={`flex items-center justify-between cursor-pointer ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
                         style={{ paddingTop: '10px', paddingLeft: '10.5px', paddingRight: '10.5px', paddingBottom: '12px' }}
                         onClick={() => { }} // No-op as requested
                     >
                         <div className="flex items-center gap-3">
-                            <img src={chatIcon} alt="" className="w-5 h-5 opacity-80" />
-                            <p className="text-white text-[14px] font-medium font-satoshi">Request address from someone else</p>
+                            <img src={chatIcon} alt="" className={`w-5 h-5 ${isDarkMode ? 'opacity-80' : ''}`} style={!isDarkMode ? { filter: 'brightness(0) saturate(100%) invert(36%) sepia(54%) saturate(3545%) hue-rotate(223deg) brightness(101%) contrast(98%)' } : undefined} />
+                            <p className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>Request address from someone else</p>
                         </div>
-                        <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" />
+                        <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                     </div>
                 </div>
 
                 {/* Saved Addresses Section */}
-                <h3 className="text-white text-[18px] font-bold font-satoshi mb-[12px]">
+                <h3 className={`text-[18px] font-bold font-satoshi mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Your saved addresses
                 </h3>
 
                 <div className="space-y-3 pb-20">
                     {savedAddresses.map((addr, idx) => {
-                        const isSelected = selectedAddress && (
+                        const isSingleAddress = savedAddresses.length === 1;
+                        const isActive = selectedAddress && (
                             (selectedAddress.id && addr.id && selectedAddress.id === addr.id) ||
                             (!selectedAddress.id && addr.displayAddress === selectedAddress.displayAddress && addr.tag === selectedAddress.tag)
                         );
+
+                        // Show border only if multiple addresses and this one is active
+                        const showBorder = !isSingleAddress && isActive;
+                        // Show chip if active OR if it's the only address (default)
+                        const showChip = isActive || isSingleAddress;
+
+                        // Card Styling
+                        const cardBg = isDarkMode
+                            ? 'bg-[#0D0D0D]'
+                            : (isSingleAddress ? 'bg-white' : 'bg-white shadow-[0px_4px_12px_rgba(0,0,0,0.05)]');
+
+                        const cardBorder = showBorder
+                            ? (isDarkMode ? 'border-white/20' : 'border-[#5260FE]')
+                            : (isDarkMode ? 'border-transparent' : 'border-[#E6E8EB]');
 
                         return (
                             <div
                                 key={idx}
                                 onClick={() => handleSelectAddress(addr)}
-                                className={`bg-[#0D0D0D] rounded-[12px] p-[11px] relative border ${isSelected ? 'border-white/20' : 'border-transparent'}`}
+                                className={`rounded-[12px] p-[11px] relative border ${cardBg} ${cardBorder}`}
                                 style={{ maxHeight: "131px" }}
                             >
                                 {/* Header Row */}
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-2">
-                                        <img src={getTagIcon(addr.tag)} alt={addr.tag} className="w-4 h-4" />
-                                        <span className="text-white text-[16px] font-bold font-satoshi capitalize">
+                                        <img
+                                            src={getTagIcon(addr.tag)}
+                                            alt={addr.tag}
+                                            className="w-4 h-4"
+                                            style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
+                                        />
+                                        <span className={`text-[16px] font-bold font-satoshi capitalize ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                             {addr.tag}
                                         </span>
-                                        {isSelected && (
+                                        {showChip && (
                                             <div className="relative h-[26px] w-[79px] ml-2 flex items-center justify-center">
-                                                <img src={selectedAddressBg} alt="Selected" className="absolute inset-0 w-full h-full object-contain" />
-                                                <span className="relative z-10 text-white text-[12px] font-medium font-satoshi">Selected</span>
+                                                <img src={selectedAddressBg} alt="Selected" className="absolute inset-0 w-full h-full object-contain" style={!isDarkMode ? { filter: 'hue-rotate(20deg) saturate(1.5)' } : undefined} />
+                                                {/* Adjust selected bg filter if needed or use CSS for light mode pill */}
+                                                <span className="relative z-10 text-white text-[12px] font-medium font-satoshi">Default</span>
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex items-center gap-[13px]">
                                         <button onClick={(e) => handleEdit(e, addr)}>
-                                            <img src={editIcon} alt="Edit" className="w-[22px] h-[22px] opacity-70 hover:opacity-100" />
+                                            <img src={editIcon} alt="Edit" className="w-[22px] h-[22px] opacity-70 hover:opacity-100" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                                         </button>
                                         <button onClick={(e) => e.stopPropagation()}>
-                                            <img src={shareIcon} alt="Share" className="w-[22px] h-[22px] opacity-70 hover:opacity-100" />
+                                            <img src={shareIcon} alt="Share" className="w-[22px] h-[22px] opacity-70 hover:opacity-100" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                                         </button>
                                         <button onClick={(e) => handleDelete(e, idx)}>
-                                            <img src={deleteIcon} alt="Delete" className="w-[22px] h-[22px] opacity-70 hover:opacity-100" />
+                                            <img src={deleteIcon} alt="Delete" className="w-[22px] h-[22px] opacity-70 hover:opacity-100" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="h-[1px] bg-[#747474] w-full opacity-20 mb-[6px]" />
+                                <div className={`h-[1px] w-full opacity-20 mb-[6px] ${isDarkMode ? 'bg-[#747474]' : 'bg-[#E6E8EB]'}`} />
 
                                 {/* Address Details */}
                                 <div className="px-[1px]">
-                                    <p className="text-white text-[12px] font-regular font-satoshi leading-relaxed line-clamp-2 mb-[6px]">
+                                    <p className={`text-[12px] font-regular font-satoshi leading-relaxed line-clamp-2 mb-[6px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                         {addr.displayAddress}
                                     </p>
-                                    <p className="text-white text-[12px] font-regular font-satoshi">
+                                    <p className={`text-[12px] font-regular font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                         Phone number: {addr.phone}
                                     </p>
                                 </div>
