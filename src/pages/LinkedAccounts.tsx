@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,8 @@ import { AVAILABLE_BANKS } from "@/utils/bankUtils";
 const LinkedAccounts = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
 
   const mobile = location.state?.mobile || "9876543210";
@@ -51,8 +54,8 @@ const LinkedAccounts = () => {
     <div
       className="h-full w-full overflow-hidden flex flex-col relative safe-area-top safe-area-bottom overflow-hidden"
       style={{
-        backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
@@ -62,11 +65,11 @@ const LinkedAccounts = () => {
       <div className="px-5 pt-4 flex items-center justify-between shrink-0 z-10">
         <button
           onClick={() => navigate(-1)}
-          className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center transition-colors hover:bg-white/10"
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
         >
-          <ChevronLeft className="w-5 h-5 text-foreground" />
+          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
         </button>
-        <h1 className="text-foreground text-[18px] font-semibold">
+        <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-semibold`}>
           Linked Bank Accounts
         </h1>
         <div className="w-10" />
@@ -74,28 +77,31 @@ const LinkedAccounts = () => {
 
       {/* Content */}
       <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-32">
-        <p className="text-white text-[16px] font-medium leading-relaxed mb-6">
+        <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium leading-relaxed mb-6`}>
           Linked accounts found for +91 {maskMobile(mobile)}. Pick your primary bank account — or select all and let us handle the rest.
         </p>
 
         {/* Unified Container */}
         <div
-          className="relative w-full rounded-2xl overflow-hidden"
-          style={{
+          className={`relative w-full rounded-2xl overflow-hidden ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+          style={isDarkMode ? {
             backgroundImage: `url(${bankContainerBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
+          } : {
+            backgroundColor: "#FFFFFF",
           }}
         >
           {/* Container Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <span className="text-white text-[16px] font-medium">
+          <div className={`flex items-center justify-between px-5 py-4 border-b ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}>
+            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>
               Linked Bank Accounts ({AVAILABLE_BANKS.length})
             </span>
             <img
               src={isAllSelected ? checkBoxSelected : checkBoxBlank}
               alt="select all"
               className="w-6 h-6 cursor-pointer"
+              style={!isDarkMode && !isAllSelected ? { filter: 'brightness(0)' } : undefined}
               onClick={toggleAll}
             />
           </div>
@@ -113,15 +119,16 @@ const LinkedAccounts = () => {
                     className="flex items-center px-5 py-4 cursor-pointer"
                     onClick={() => toggleAccount(account.id)}
                   >
-                     {/* Checkbox */}
+                    {/* Checkbox */}
                     <img
                       src={isSelected ? checkBoxSelected : checkBoxBlank}
                       alt="checkbox"
                       className="w-6 h-6 shrink-0 mr-4"
+                      style={!isDarkMode && !isSelected ? { filter: 'brightness(0)' } : undefined}
                     />
 
                     {/* Logo */}
-                    <div className="w-[42px] h-[42px] bg-white rounded-[10px] flex items-center justify-center shrink-0 overflow-hidden mr-4">
+                    <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0 overflow-hidden mr-4 ${isDarkMode ? 'bg-white' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}>
                       <img
                         src={account.logo}
                         alt={account.bankName}
@@ -131,17 +138,17 @@ const LinkedAccounts = () => {
 
                     {/* Details */}
                     <div className="flex-1">
-                      <h3 className="text-white text-[15px] font-medium">
+                      <h3 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium`}>
                         {account.bankName} | {account.accountType}
                       </h3>
-                      <p className="text-white/40 text-[13px] mt-0.5">
+                      <p className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[13px] mt-0.5`}>
                         Account number ending with {last4}
                       </p>
                     </div>
                   </div>
                   {/* Divider (except for last item) */}
                   {index < AVAILABLE_BANKS.length - 1 && (
-                    <div className="h-[1px] bg-white/10 mx-5" />
+                    <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} mx-5`} />
                   )}
                 </div>
               );

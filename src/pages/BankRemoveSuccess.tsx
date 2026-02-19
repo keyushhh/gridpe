@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.png";
+import checkIconLight from "@/assets/check-icon-light.svg";
 import buttonPrimaryWide from "@/assets/button-primary-wide.png";
+import { useTheme } from "next-themes";
 
 const BankRemoveSuccess = () => {
   const navigate = useNavigate();
@@ -11,6 +13,9 @@ const BankRemoveSuccess = () => {
 
   // Get last4 from state, fallback if missing
   const last4 = location.state?.last4 || "XXXX";
+
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -30,54 +35,70 @@ const BankRemoveSuccess = () => {
   return (
     <div
       className="h-full w-full overflow-hidden flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom px-6"
-      style={{
+      style={isDarkMode ? {
         backgroundImage: `url(${successBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
+      } : {
+        backgroundColor: '#FFFFFF',
       }}
     >
+      {/* Light Mode Green Glow Blob */}
+      {!isDarkMode && (
+        <div
+          className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+          style={{
+            backgroundColor: "#0C7E4B",
+            filter: "blur(60px)",
+            opacity: 0.8,
+            mixBlendMode: "normal"
+          }}
+        />
+      )}
+
       {/* Header */}
-      <div className="w-full pt-6 flex justify-center">
-        <h1 className="text-white text-[18px] font-semibold">Banking</h1>
+      <div className="w-full pt-6 flex justify-center relative z-10">
+        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans`}>Banking</h1>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center mb-10">
-         {/* Icon */}
-        <div className="mb-8">
-             <img src={checkIcon} alt="Success" className="w-[80px] h-[80px] object-contain" />
+      <div className="flex-1 flex flex-col items-center w-full relative z-10">
+        {/* Icon: 62x62px, 22px below heading */}
+        <div className="mt-[22px]">
+          <img
+            src={isDarkMode ? checkIcon : checkIconLight}
+            alt="Success"
+            className="w-[62px] h-[62px] object-contain"
+          />
         </div>
 
-        {/* Title */}
-        <h2 className="text-white text-[22px] font-bold text-center leading-tight mb-4 px-4">
+        {/* Title/Subtext: Satoshi Bold 18px, 25px below icon */}
+        <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold text-center leading-tight mt-[25px] px-4 font-sans`}>
           You have successfully removed a bank account with **** {last4}
         </h2>
 
-        {/* Subtitle */}
-        <p className="text-white/80 text-[14px] text-center leading-relaxed max-w-[320px]">
+        {/* Body Text: 14px below subtext */}
+        <p className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[14px] text-center leading-relaxed max-w-[320px] mt-[14px] font-sans`}>
           Your bank account has been successfully removed, but you can add it back anytime you want from the ‘Banking’ section!
         </p>
-      </div>
 
-      {/* Bottom Section */}
-      <div className="w-full pb-10 flex flex-col items-center gap-4">
-        {/* Countdown Button */}
+        {/* CTA: 190px below body text */}
         <button
           onClick={() => navigate("/banking")}
-          className="flex items-center justify-center text-foreground text-[14px] font-medium transition-transform active:scale-95"
-          style={{
+          className={`flex items-center justify-center ${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px] font-medium transition-transform active:scale-95 mt-[190px] rounded-full`}
+          style={isDarkMode ? {
             backgroundImage: `url(${buttonPrimaryWide})`,
             backgroundSize: '100% 100%',
             backgroundPosition: 'center',
+            width: '362px',
+            height: '48px'
+          } : {
+            backgroundColor: '#000000',
             width: '362px',
             height: '48px'
           }}
         >
           Redirecting Back in {countdown}s...
         </button>
-
-         {/* Spacer to match layout if needed */}
-         <div className="h-8" />
-
       </div>
     </div>
   );

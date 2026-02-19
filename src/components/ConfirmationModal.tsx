@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from "next-themes";
 import popupBg from '../assets/popup-bg-remove.png';
 
 interface ConfirmationModalProps {
@@ -24,6 +25,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   secondaryButtonSrc,
   secondaryText,
 }) => {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
+
   if (!isOpen) return null;
 
   return (
@@ -42,18 +46,20 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         {/* Card Background Container */}
         <div
           className="relative w-full overflow-hidden rounded-[32px] p-8 pb-10"
-          style={{
+          style={isDarkMode ? {
             backgroundImage: `url(${popupBg})`,
             backgroundSize: '100% 100%',
             backgroundRepeat: 'no-repeat',
+          } : {
+            backgroundColor: '#FFFFFF',
           }}
         >
           {/* Text Content */}
           <div className="mb-6 space-y-2 text-left">
-            <h2 className="text-[20px] font-bold text-white font-satoshi">
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi`}>
               {title}
             </h2>
-            <p className="text-[14px] leading-relaxed text-white/80 font-satoshi">
+            <p className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[16px] font-medium leading-relaxed font-satoshi`}>
               {description}
             </p>
           </div>
@@ -67,11 +73,20 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               }}
               className="w-full h-[48px] relative active:scale-95 transition-transform flex items-center justify-center"
             >
-              <img
-                src={primaryButtonSrc}
-                alt="Primary Action"
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-              />
+              {isDarkMode ? (
+                <img
+                  src={primaryButtonSrc}
+                  alt="Primary Action"
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 w-full h-full rounded-full pointer-events-none"
+                  style={{
+                    backgroundColor: primaryText === 'Remove Card' || primaryText === 'Remove Account' ? '#FA1515' : '#5260FE' // #FA1515 for Remove, Blue for others
+                  }}
+                />
+              )}
               <span className="relative z-10 text-white text-[16px] font-bold font-satoshi">
                 {primaryText}
               </span>
@@ -84,12 +99,16 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               }}
               className="w-full h-[48px] relative active:scale-95 transition-transform flex items-center justify-center"
             >
-              <img
-                src={secondaryButtonSrc}
-                alt="Cancel"
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-              />
-              <span className="relative z-10 text-white text-[16px] font-bold font-satoshi">
+              {isDarkMode ? (
+                <img
+                  src={secondaryButtonSrc}
+                  alt="Cancel"
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                />
+              ) : (
+                <div className="absolute inset-0 w-full h-full rounded-full pointer-events-none bg-[#F2F3F5]" />
+              )}
+              <span className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'} text-[16px] font-bold font-satoshi`}>
                 {secondaryText}
               </span>
             </button>

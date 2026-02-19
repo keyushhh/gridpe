@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import cardPreviewBg from "@/assets/card-preview-bg.png";
 import chipIcon from "@/assets/card-chip.png";
@@ -16,6 +17,8 @@ import { luhnCheck, validateExpiry, validateCVV } from "@/utils/validationUtils"
 const AddCard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
 
   // Form State
   const [expiry, setExpiry] = useState("");
@@ -115,8 +118,8 @@ const AddCard = () => {
   };
 
   const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-     clearError("cvv");
-     cvvProps.handleChange(e.target.value.replace(/\D/g, "").slice(0, 3));
+    clearError("cvv");
+    cvvProps.handleChange(e.target.value.replace(/\D/g, "").slice(0, 3));
   };
 
   const validateForm = () => {
@@ -134,8 +137,8 @@ const AddCard = () => {
       newErrors.cardNumber = "Card number is required.";
       isValid = false;
     } else if (cardNumberProps.value.length < 13 || !luhnCheck(cardNumberProps.value)) {
-       newErrors.cardNumber = "Invalid card number.";
-       isValid = false;
+      newErrors.cardNumber = "Invalid card number.";
+      isValid = false;
     }
 
     // Expiry Validation
@@ -182,24 +185,37 @@ const AddCard = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-8"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-8 relative"
       style={{
-        backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
       }}
     >
+      {/* Light Mode Purple Glow Blob */}
+      {!isDarkMode && (
+        <div
+          className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+          style={{
+            backgroundColor: "#5260FE",
+            filter: "blur(60px)",
+            opacity: 0.8,
+            mixBlendMode: "normal"
+          }}
+        />
+      )}
+
       {/* Header */}
-      <div className="px-5 pt-4 flex items-center justify-between relative z-10">
+      <div className="px-5 pt-6 flex items-center justify-between relative z-10">
         <button
           onClick={() => navigate(-1)}
-          className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center transition-colors hover:bg-white/10"
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 hover:bg-white/10' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center transition-colors`}
         >
-          <ChevronLeft className="w-5 h-5 text-foreground" />
+          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
-        <h1 className="text-foreground text-[18px] font-medium absolute left-1/2 -translate-x-1/2">Add Card</h1>
+        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium absolute left-1/2 -translate-x-1/2`}>Add Card</h1>
         <div className="w-10" />
       </div>
 
@@ -207,208 +223,210 @@ const AddCard = () => {
         {/* Interactive Card Preview */}
         {/* Size: 360 x 192 px, Padding L/R: 26px */}
         <div
-            className={`relative w-full max-w-[360px] h-[192px] mx-auto mb-[20px] rounded-[16px] overflow-hidden shrink-0 transition-colors duration-300 ${hasErrors ? 'border border-[#FF3B30]' : ''}`}
-            style={{
-                backgroundImage: `url(${cardPreviewBg})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            }}
+          className={`relative w-full max-w-[360px] h-[192px] mx-auto mb-[20px] rounded-[16px] overflow-hidden shrink-0 transition-colors duration-300 ${hasErrors ? 'border border-[#FF3B30]' : ''}`}
+          style={{
+            backgroundImage: `url(${cardPreviewBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
         >
-            <div className="relative w-full h-full px-[26px]">
-                {/* Top Row: Chip */}
-                <div className="absolute top-[21px] right-[26px] w-[40px] h-[30px] flex justify-end">
-                    <img src={chipIcon} alt="Chip" className="h-[28px] object-contain" />
-                </div>
-
-                {/* Cardholder Name */}
-                <div className="absolute top-[26px] left-[26px] right-[70px] h-[22px]">
-                    {errors.cardHolder ? (
-                        <p
-                          onClick={() => handleErrorClick('cardHolder', nameInputRef)}
-                          className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-snug cursor-text"
-                        >
-                          {errors.cardHolder}
-                        </p>
-                    ) : (
-                        <input
-                            ref={nameInputRef}
-                            type="text"
-                            value={cardHolder}
-                            onChange={handleNameChange}
-                            placeholder="CARDHOLDER NAME"
-                            className="w-full bg-transparent text-white text-[16px] font-medium placeholder:text-white focus:outline-none uppercase p-0 border-none font-satoshi"
-                        />
-                    )}
-                </div>
-
-                {/* Card Number Label */}
-                <div className="absolute top-[70px] left-[26px]">
-                    <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi">Card Number</p>
-                </div>
-
-                {/* Card Number Value */}
-                <div className="absolute top-[93px] left-[26px] right-[26px] flex items-center justify-between h-[24px]">
-                    <div className="relative flex-1 mr-4 h-full">
-                        {errors.cardNumber ? (
-                            <p
-                              onClick={() => handleErrorClick('cardNumber', numberInputRef)}
-                              className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-none cursor-text mt-1"
-                            >
-                              {errors.cardNumber}
-                            </p>
-                        ) : (
-                            <>
-                                {/* The Actual Input (Hidden when masked, Visible when shown/typing) */}
-                                <input
-                                    ref={numberInputRef}
-                                    type="text"
-                                    inputMode="numeric"
-                                    value={formatCardNumber(cardNumberProps.value)}
-                                    onChange={handleCardNumberChange}
-                                    placeholder="XXXX XXXX XXXX XXXX"
-                                    className={`w-full bg-transparent text-white text-[20px] font-bold placeholder:text-white focus:outline-none p-0 border-none font-satoshi tracking-widest h-[24px] ${!cardNumberProps.isVisible ? 'opacity-0 absolute inset-0 z-10' : 'relative z-10'}`}
-                                />
-
-                                {/* The Masked Overlay (Visible when masked) */}
-                                {!cardNumberProps.isVisible && (
-                                   <div className="pointer-events-none text-white text-[20px] font-bold font-satoshi tracking-widest h-[24px] whitespace-nowrap overflow-hidden">
-                                      {cardNumberProps.value.length > 0 ? getMaskedCardNumber() : <span className="text-[18px] text-white">XXXX XXXX XXXX XXXX</span>}
-                                   </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-
-                    {/* Eye Icon */}
-                    <button
-                        type="button"
-                        onClick={() => setIsEyeOpen(!isEyeOpen)}
-                        className="text-white shrink-0 z-20"
-                    >
-                        {isEyeOpen ? <Eye size={20} /> : <EyeOff size={20} />}
-                    </button>
-                </div>
-
-                {/* Expiry & CVV Row */}
-                <div className="absolute top-[129px] left-[26px] flex gap-8">
-                    {/* Expiry Group */}
-                    <div className="flex flex-col gap-[5px] w-[90px]">
-                        <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">Expiry Date</label>
-                        <div className="h-[28px] relative">
-                            <input
-                                ref={expiryInputRef}
-                                type="text"
-                                inputMode="numeric"
-                                value={expiry}
-                                onChange={handleExpiryChange}
-                                onKeyDown={handleExpiryKeyDown}
-                                placeholder="MM/YY"
-                                className="w-[60px] bg-transparent text-white text-[13px] font-bold placeholder:text-white focus:outline-none p-0 border-none font-satoshi leading-none"
-                            />
-                        </div>
-                    </div>
-
-                    {/* CVV Group */}
-                    <div className="flex flex-col gap-[5px] ml-6">
-                        <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">CVV</label>
-
-                         {/* CVV Input with Visibility Logic */}
-                         <div className="relative w-[100px] h-[28px]">
-                             {errors.cvv ? (
-                                <p
-                                  onClick={() => handleErrorClick('cvv', cvvInputRef)}
-                                  className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-tight cursor-text absolute top-0 left-0"
-                                >
-                                  {errors.cvv}
-                                </p>
-                             ) : (
-                                 <>
-                                     <input
-                                        ref={cvvInputRef}
-                                        type="text"
-                                        inputMode="numeric"
-                                        maxLength={3}
-                                        value={cvvProps.value}
-                                        onChange={handleCvvChange}
-                                        placeholder="XXX"
-                                        className={`w-[40px] h-[14px] bg-transparent text-white text-[14px] font-bold placeholder:text-white focus:outline-none p-0 border-none font-satoshi leading-none ${!cvvProps.isVisible ? 'opacity-0 absolute inset-0 z-10' : 'relative z-10'}`}
-                                    />
-                                     {!cvvProps.isVisible && (
-                                        <div className="pointer-events-none text-white text-[14px] font-bold font-satoshi leading-none absolute top-0 left-0">
-                                            {cvvProps.value.length > 0 ? cvvProps.value.replace(/./g, "*") : <span className="text-white">***</span>}
-                                        </div>
-                                     )}
-                                     {!cvvProps.isVisible && cvvProps.value.length === 0 && (
-                                         <div className="pointer-events-none text-white text-[14px] font-bold font-satoshi leading-none absolute top-0 left-0">
-                                             ***
-                                         </div>
-                                     )}
-                                 </>
-                             )}
-                         </div>
-                    </div>
-                </div>
-
-                {/* Network Logo */}
-                <div className="absolute bottom-[26px] right-[26px] h-[24px]">
-                     {cardType === "visa" && <img src={visaLogo} alt="Visa" className="h-full object-contain" />}
-                     {cardType === "mastercard" && <img src={mastercardLogo} alt="Mastercard" className="h-full object-contain" />}
-                     {cardType === "rupay" && <img src={rupayLogo} alt="Rupay" className="h-full object-contain" />}
-                </div>
+          <div className="relative w-full h-full px-[26px]">
+            {/* Top Row: Chip */}
+            <div className="absolute top-[21px] right-[26px] w-[40px] h-[30px] flex justify-end">
+              <img src={chipIcon} alt="Chip" className="h-[28px] object-contain" />
             </div>
+
+            {/* Cardholder Name */}
+            <div className="absolute top-[26px] left-[26px] right-[70px] h-[22px]">
+              {errors.cardHolder ? (
+                <p
+                  onClick={() => handleErrorClick('cardHolder', nameInputRef)}
+                  className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-snug cursor-text"
+                >
+                  {errors.cardHolder}
+                </p>
+              ) : (
+                <input
+                  ref={nameInputRef}
+                  type="text"
+                  value={cardHolder}
+                  onChange={handleNameChange}
+                  placeholder="CARDHOLDER NAME"
+                  className="w-full bg-transparent text-white text-[16px] font-medium placeholder:text-white focus:outline-none uppercase p-0 border-none font-satoshi"
+                />
+              )}
+            </div>
+
+            {/* Card Number Label */}
+            <div className="absolute top-[70px] left-[26px]">
+              <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi">Card Number</p>
+            </div>
+
+            {/* Card Number Value */}
+            <div className="absolute top-[93px] left-[26px] right-[26px] flex items-center justify-between h-[24px]">
+              <div className="relative flex-1 mr-4 h-full">
+                {errors.cardNumber ? (
+                  <p
+                    onClick={() => handleErrorClick('cardNumber', numberInputRef)}
+                    className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-none cursor-text mt-1"
+                  >
+                    {errors.cardNumber}
+                  </p>
+                ) : (
+                  <>
+                    {/* The Actual Input (Hidden when masked, Visible when shown/typing) */}
+                    <input
+                      ref={numberInputRef}
+                      type="text"
+                      inputMode="numeric"
+                      value={formatCardNumber(cardNumberProps.value)}
+                      onChange={handleCardNumberChange}
+                      placeholder="XXXX XXXX XXXX XXXX"
+                      className={`w-full bg-transparent text-white text-[20px] font-bold placeholder:text-white focus:outline-none p-0 border-none font-satoshi tracking-widest h-[24px] ${!cardNumberProps.isVisible ? 'opacity-0 absolute inset-0 z-10' : 'relative z-10'}`}
+                    />
+
+                    {/* The Masked Overlay (Visible when masked) */}
+                    {!cardNumberProps.isVisible && (
+                      <div className="pointer-events-none text-white text-[20px] font-bold font-satoshi tracking-widest h-[24px] whitespace-nowrap overflow-hidden">
+                        {cardNumberProps.value.length > 0 ? getMaskedCardNumber() : <span className="text-[18px] text-white">XXXX XXXX XXXX XXXX</span>}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Eye Icon */}
+              <button
+                type="button"
+                onClick={() => setIsEyeOpen(!isEyeOpen)}
+                className="text-white shrink-0 z-20"
+              >
+                {isEyeOpen ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
+            </div>
+
+            {/* Expiry & CVV Row */}
+            <div className="absolute top-[129px] left-[26px] flex gap-8">
+              {/* Expiry Group */}
+              <div className="flex flex-col gap-[5px] w-[90px]">
+                <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">Expiry Date</label>
+                <div className="h-[28px] relative">
+                  <input
+                    ref={expiryInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    value={expiry}
+                    onChange={handleExpiryChange}
+                    onKeyDown={handleExpiryKeyDown}
+                    placeholder="MM/YY"
+                    className="w-[60px] bg-transparent text-white text-[13px] font-bold placeholder:text-white focus:outline-none p-0 border-none font-satoshi leading-none"
+                  />
+                </div>
+              </div>
+
+              {/* CVV Group */}
+              <div className="flex flex-col gap-[5px] ml-6">
+                <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">CVV</label>
+
+                {/* CVV Input with Visibility Logic */}
+                <div className="relative w-[100px] h-[28px]">
+                  {errors.cvv ? (
+                    <p
+                      onClick={() => handleErrorClick('cvv', cvvInputRef)}
+                      className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-tight cursor-text absolute top-0 left-0"
+                    >
+                      {errors.cvv}
+                    </p>
+                  ) : (
+                    <>
+                      <input
+                        ref={cvvInputRef}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={3}
+                        value={cvvProps.value}
+                        onChange={handleCvvChange}
+                        placeholder="XXX"
+                        className={`w-[40px] h-[14px] bg-transparent text-white text-[14px] font-bold placeholder:text-white focus:outline-none p-0 border-none font-satoshi leading-none ${!cvvProps.isVisible ? 'opacity-0 absolute inset-0 z-10' : 'relative z-10'}`}
+                      />
+                      {!cvvProps.isVisible && (
+                        <div className="pointer-events-none text-white text-[14px] font-bold font-satoshi leading-none absolute top-0 left-0">
+                          {cvvProps.value.length > 0 ? cvvProps.value.replace(/./g, "*") : <span className="text-white">***</span>}
+                        </div>
+                      )}
+                      {!cvvProps.isVisible && cvvProps.value.length === 0 && (
+                        <div className="pointer-events-none text-white text-[14px] font-bold font-satoshi leading-none absolute top-0 left-0">
+                          ***
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Network Logo */}
+            <div className="absolute bottom-[26px] right-[26px] h-[24px]">
+              {cardType === "visa" && <img src={visaLogo} alt="Visa" className="h-full object-contain" />}
+              {cardType === "mastercard" && <img src={mastercardLogo} alt="Mastercard" className="h-full object-contain" />}
+              {cardType === "rupay" && <img src={rupayLogo} alt="Rupay" className="h-full object-contain" />}
+            </div>
+          </div>
         </div>
 
         {errors.expiry && (
-            <div className="px-1 mb-[14px]">
-                <p className="text-[#FF3B30] text-[14px] font-normal leading-relaxed">
-                    {errors.expiry}
-                </p>
-            </div>
+          <div className="px-1 mb-[14px]">
+            <p className="text-[#FF3B30] text-[14px] font-normal leading-relaxed">
+              {errors.expiry}
+            </p>
+          </div>
         )}
 
         {/* Helper Texts */}
-        <div className="flex flex-col gap-[14px] mb-[28px] px-1">
-           <div className="flex flex-col">
-               <p className="text-white/60 text-[14px] leading-relaxed">
-                 Enter your details by tapping on the fields above.
-               </p>
-               <p className="text-white/60 text-[14px] leading-relaxed">
-                 Or scan your card below. Both works!
-               </p>
-           </div>
+        <div className="flex flex-col gap-[12px] mb-[28px] px-1">
+          <div className="flex flex-col">
+            <p className={`${isDarkMode ? 'text-white/60' : 'text-black'} text-[14px] font-medium leading-relaxed`}>
+              Enter your details by tapping on the fields above.
+            </p>
+            <p className={`${isDarkMode ? 'text-white/60' : 'text-black'} text-[14px] font-medium leading-relaxed`}>
+              Or scan your card below. Both works!
+            </p>
+          </div>
 
-           <p className="text-white/60 text-[14px] leading-relaxed">
-             Your card info is encrypted and stored like it’s top-tier gossip — never shared.
-           </p>
+          <p className={`${isDarkMode ? 'text-white/60' : 'text-black'} text-[14px] font-medium leading-relaxed`}>
+            Your card info is encrypted and stored like it’s top-tier gossip — never shared.
+          </p>
         </div>
 
         {/* Scan Card Section */}
         <div
-          className="w-full h-[184px] bg-black rounded-2xl flex items-center justify-center border border-white/5"
+          className={`w-full h-[184px] rounded-2xl flex items-center justify-center border ${isDarkMode ? 'bg-black border-white/5' : 'bg-black border-[#E9EAEB]'}`}
         >
-            <button
-              onClick={() => navigate("/camera-page")}
-              className="px-4 h-[32px] flex items-center justify-center rounded-full text-[14px] text-foreground gap-2 border border-white/10"
-              style={{
-                backgroundImage: 'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")',
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            >
-               <img src={photoCameraIcon} alt="Camera" className="w-4 h-4 opacity-80" />
-               <span className="text-white text-[12px] font-medium">Scan Card</span>
-            </button>
+          <button
+            onClick={() => navigate("/camera-page")}
+            className={`px-4 h-[32px] flex items-center justify-center rounded-full text-[14px] gap-2 ${isDarkMode ? 'border border-white/10' : 'border-none'}`}
+            style={isDarkMode ? {
+              backgroundImage: 'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")',
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            } : {
+              backgroundColor: '#5260FE',
+            }}
+          >
+            <img src={photoCameraIcon} alt="Camera" className="w-4 h-4 opacity-80" />
+            <span className="text-white text-[12px] font-medium">Scan Card</span>
+          </button>
         </div>
 
         {/* CTA Button */}
         <div className="mt-[86px]">
-            <Button
-              onClick={handleSaveCard}
-              disabled={!hasInput || hasErrors}
-              className="w-full h-[48px] rounded-full text-[16px] font-medium bg-[#5260FE] hover:bg-[#5260FE]/90 text-white disabled:opacity-50"
-            >
-              {hasInput ? "Save Card" : "Proceed"}
-            </Button>
+          <Button
+            onClick={handleSaveCard}
+            disabled={!hasInput || hasErrors}
+            className="w-full h-[48px] rounded-full text-[16px] font-medium bg-[#5260FE] hover:bg-[#5260FE]/90 text-white disabled:opacity-50"
+          >
+            {hasInput ? "Save Card" : "Proceed"}
+          </Button>
         </div>
 
       </div>

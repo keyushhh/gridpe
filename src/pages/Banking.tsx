@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, X, Eye, EyeOff } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -8,6 +9,8 @@ import BottomNavigation from "@/components/BottomNavigation";
 import popupBg from "@/assets/popup-bg.png";
 import buttonCloseBg from "@/assets/button-close.png";
 import popupCardIcon from "@/assets/popup-card-icon.png";
+import cardPopupLight from "@/assets/card-popup-light.png";
+import cardLineIcon from "@/assets/card-line-icon.svg";
 import fabPlus from "@/assets/fab-plus.png";
 import defaultIcon from "@/assets/default-icon.png";
 import deleteIcon from "@/assets/delete-icon.png";
@@ -31,6 +34,8 @@ import {
 const Banking = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [accounts, setAccounts] = useState<BankAccount[]>([]);
     const [isFabExpanded, setIsFabExpanded] = useState(false);
@@ -181,8 +186,8 @@ const Banking = () => {
         <div
             className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
@@ -191,18 +196,31 @@ const Banking = () => {
                 if (!isStacked && accounts.length > 1) setIsStacked(true);
             }}
         >
+            {/* Light Mode Purple Glow Blob */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(60px)",
+                        opacity: 0.8,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
+
             {/* Main Content */}
             <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass}`}>
 
                 {/* Header */}
-                <div className="px-5 pt-12 flex items-center justify-between shrink-0">
+                <div className="px-5 pt-12 flex items-center justify-between shrink-0 relative z-10">
                     <button
                         onClick={() => navigate(-1)}
-                        className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center transition-colors hover:bg-white/10"
+                        className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
                     >
-                        <ChevronLeft className="w-5 h-5 text-foreground" />
+                        <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
                     </button>
-                    <h1 className="text-foreground text-[18px] font-semibold">Banking</h1>
+                    <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-semibold`}>Banking</h1>
                     <div className="w-10" />
                 </div>
 
@@ -212,25 +230,28 @@ const Banking = () => {
                     {accounts.length === 0 ? (
                         /* Empty State */
                         <div
-                            className="w-full rounded-2xl p-4"
-                            style={{
+                            className={`w-full rounded-2xl p-4 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+                            style={isDarkMode ? {
                                 backgroundImage: `url(${savedCardsBg})`,
                                 backgroundSize: "cover",
                                 backgroundPosition: "center",
                                 height: "140px",
+                            } : {
+                                backgroundColor: "#FFFFFF",
+                                height: "140px",
                             }}
                         >
                             <div className="flex items-center justify-between">
-                                <h2 className="text-white text-[16px] font-medium">Bank Accounts</h2>
+                                <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>Bank Accounts</h2>
                                 <button
                                     onClick={() => navigate("/banking/add")}
                                     className="opacity-100 active:opacity-70 transition-opacity"
                                 >
-                                    <img src={addIcon} alt="Add" className="w-5 h-5" />
+                                    <img src={addIcon} alt="Add" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
                                 </button>
                             </div>
-                            <div className="h-[1px] bg-white/10 w-full mt-[15px] mb-[15px]" />
-                            <p className="text-white/60 text-[14px]">
+                            <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
+                            <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
                                 You don’t have any bank accounts added yet.
                                 <br />
                                 Please add a bank account to proceed.
@@ -375,17 +396,66 @@ const Banking = () => {
                                         {/* Action Menu */}
                                         {!isStacked && isSelected && (
                                             <div
-                                                className="w-full h-[60px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
-                                                style={{
+                                                className="w-full h-[66px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
+                                                style={isDarkMode ? {
                                                     backgroundImage: `url(${expandContainerBg})`,
                                                     backgroundSize: 'cover',
                                                     backgroundPosition: 'center',
-                                                    marginTop: '-12px',
+                                                    marginTop: '-18px',
+                                                    zIndex: 1,
+                                                } : {
+                                                    background: `linear-gradient(#F5F5F5, #F5F5F5) padding-box, linear-gradient(${isDefault ? 'to bottom, #FFFFFF, #FF2626' : 'to right, #FF2626, #FFD21F'}) border-box`,
+                                                    border: '1px solid transparent',
+                                                    marginTop: '-18px',
                                                     zIndex: 1,
                                                 }}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                <div className="w-full h-full flex items-end justify-center pb-[14px]">
+                                                {/* Light mode glow blobs */}
+                                                {!isDarkMode && isDefault && (
+                                                    /* Single red blob for remove-only */
+                                                    <div
+                                                        className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
+                                                        style={{
+                                                            top: '-35px',
+                                                            width: '120px',
+                                                            height: '40px',
+                                                            backgroundColor: '#FF3B30',
+                                                            filter: 'blur(30px)',
+                                                            opacity: 0.6,
+                                                        }}
+                                                    />
+                                                )}
+                                                {!isDarkMode && !isDefault && (
+                                                    /* Two blobs: red left, yellow right */
+                                                    <>
+                                                        <div
+                                                            className="absolute rounded-full pointer-events-none"
+                                                            style={{
+                                                                top: '-35px',
+                                                                left: '15%',
+                                                                width: '100px',
+                                                                height: '40px',
+                                                                backgroundColor: '#FF3B30',
+                                                                filter: 'blur(30px)',
+                                                                opacity: 0.6,
+                                                            }}
+                                                        />
+                                                        <div
+                                                            className="absolute rounded-full pointer-events-none"
+                                                            style={{
+                                                                top: '-35px',
+                                                                right: '15%',
+                                                                width: '100px',
+                                                                height: '40px',
+                                                                backgroundColor: '#FACC15',
+                                                                filter: 'blur(30px)',
+                                                                opacity: 0.6,
+                                                            }}
+                                                        />
+                                                    </>
+                                                )}
+                                                <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
                                                     {isDefault ? (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
@@ -403,13 +473,13 @@ const Banking = () => {
                                                                 <img src={deleteIcon} alt="Remove" className="w-[18px] h-[18px] object-contain" />
                                                                 <span className="text-[#FF3B30] text-[14px] font-medium">Remove Account</span>
                                                             </button>
-                                                            <div className="w-[1.5px] bg-[#2A2A2A] self-stretch" />
+                                                            <div className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`} />
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleDefaultClick(); }}
                                                                 className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
                                                             >
-                                                                <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" />
-                                                                <span className="text-white text-[14px] font-medium">Set as Default?</span>
+                                                                <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                                                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium`}>Set as Default?</span>
                                                             </button>
                                                         </div>
                                                     )}
@@ -440,7 +510,7 @@ const Banking = () => {
                 id="fab-container"
                 className={`fixed z-50 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex items-center overflow-hidden ${contentBlurClass} ${tutorialStep > 0 ? 'pointer-events-none' : ''}`}
                 style={{
-                    bottom: "100px",
+                    bottom: "120px",
                     right: "20px",
                     height: "56px",
                     width: isFabExpanded ? "240px" : "56px", // Wider for "Add New Bank Account"
@@ -481,7 +551,7 @@ const Banking = () => {
 
             {/* Bottom Nav */}
             <div className={contentBlurClass}>
-                <BottomNavigation activeTab="cards" isHidden={confirmAction !== null} />
+                <BottomNavigation activeTab="more" isHidden={confirmAction !== null} />
             </div>
 
             {/* Confirmation Modal */}
@@ -524,33 +594,75 @@ const Banking = () => {
             {/* Success Modal */}
             {showSuccessModal && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
+                    {/* Background blur overlay */}
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                    {/* Popup Box — 362x199px, radius 13px */}
                     <div
-                        className="relative rounded-2xl p-6 max-w-[320px] w-full z-10 flex flex-col items-center text-center border border-white/10"
-                        style={{
+                        className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? 'border border-white/10' : ''}`}
+                        style={isDarkMode ? {
                             backgroundImage: `url(${popupBg})`,
-                            backgroundSize: 'cover',
+                            backgroundSize: '100% 100%',
                             backgroundPosition: 'center',
+                            width: '362px',
+                            height: '199px',
+                        } : {
+                            backgroundImage: `url(${cardPopupLight})`,
+                            backgroundSize: '100% 100%',
+                            backgroundPosition: 'center',
+                            width: '362px',
+                            height: '199px',
                         }}
                     >
-                        <img src={popupCardIcon} alt="Success" className="w-8 h-8 mb-4 object-contain" />
-                        <h2 className="text-white text-[18px] font-semibold mb-4">Bank Account Added Successfully</h2>
-                        <div className="bg-black rounded-xl w-full px-[12px] py-[11px]">
-                            <p className="text-white text-[14px] leading-relaxed text-left">
+                        {/* Icon — 26x26, 22px from top */}
+                        <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
+                            <img
+                                src={isDarkMode ? popupCardIcon : cardLineIcon}
+                                alt="Success"
+                                className="object-contain"
+                                style={{
+                                    width: '26px',
+                                    height: '26px',
+                                    filter: !isDarkMode ? 'brightness(0)' : undefined,
+                                }}
+                            />
+                        </div>
+
+                        {/* Header — Satoshi Bold 16px, 12px below icon */}
+                        <h2
+                            className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
+                            style={{ marginTop: '12px' }}
+                        >
+                            Bank Account Added Successfully
+                        </h2>
+
+                        {/* Inner Container — 318x73px, radius 16px, 24px below heading */}
+                        <div
+                            className={`${isDarkMode ? 'bg-black' : 'bg-white'} flex items-center px-4`}
+                            style={{
+                                marginTop: '24px',
+                                width: '318px',
+                                height: '73px',
+                                borderRadius: '16px',
+                            }}
+                        >
+                            <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[120%] text-left font-sans`}>
                                 Your bank account has been saved successfully. You can now use this account for withdrawals and deposits.
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={() => setShowSuccessModal(false)}
-                        className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2"
-                        style={{
+                        className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${!isDarkMode ? 'border-none' : ''}`}
+                        style={isDarkMode ? {
                             backgroundImage: `url(${buttonCloseBg})`,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
+                        } : {
+                            backgroundColor: '#5260FE',
                         }}
                     >
-                        <X className="w-4 h-4 text-foreground" />
-                        <span className="text-foreground text-[14px]">Close</span>
+                        <X className={`w-4 h-4 ${isDarkMode ? 'text-foreground' : 'text-white'}`} />
+                        <span className={`${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px]`}>Close</span>
                     </button>
                 </div>
             )}

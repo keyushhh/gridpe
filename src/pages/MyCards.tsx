@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import savedCardsBg from "@/assets/saved-card-bg.png";
 import addIcon from "@/assets/my-cards-add-icon.png";
@@ -8,6 +9,8 @@ import BottomNavigation from "@/components/BottomNavigation";
 import popupBg from "@/assets/popup-bg.png";
 import buttonCloseBg from "@/assets/button-close.png";
 import popupCardIcon from "@/assets/popup-card-icon.png";
+import cardPopupLight from "@/assets/card-popup-light.png";
+import cardLineIcon from "@/assets/card-line-icon.svg";
 import fabPlus from "@/assets/fab-plus.png";
 import chipIcon from "@/assets/card-chip.png";
 import mastercardLogo from "@/assets/mastercard-logo.png";
@@ -37,6 +40,8 @@ const cardBackgrounds = [savedCard1, savedCard2, savedCard3, savedCard4, savedCa
 const MyCards = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [cards, setCards] = useState<Card[]>([]);
     const [isFabExpanded, setIsFabExpanded] = useState(false);
@@ -213,8 +218,8 @@ const MyCards = () => {
         <div
             className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
@@ -225,11 +230,23 @@ const MyCards = () => {
                 }
             }}
         >
+            {/* Light Mode Purple Glow Blob */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(60px)",
+                        opacity: 0.8,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
             {/* Main Content with conditional blur */}
             <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass}`}>
-                {/* Header - Back Button Removed */}
-                <div className="px-5 pt-4 flex items-center justify-between">
-                    <h1 className="text-foreground text-[20px] font-medium">My Cards</h1>
+                {/* Header */}
+                <div className="px-5 pt-6 flex items-center justify-center relative z-10">
+                    <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[20px] font-medium text-center w-full`}>My Cards</h1>
                 </div>
 
                 {/* Content */}
@@ -238,26 +255,29 @@ const MyCards = () => {
                     {cards.length === 0 ? (
                         /* Empty State */
                         <div
-                            className="w-full rounded-2xl p-4"
-                            style={{
+                            className={`w-full rounded-2xl p-4 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+                            style={isDarkMode ? {
                                 backgroundImage: `url(${savedCardsBg})`,
                                 backgroundSize: "cover",
                                 backgroundPosition: "center",
                                 height: "140px",
+                            } : {
+                                backgroundColor: "#FFFFFF",
+                                height: "140px",
                             }}
                         >
                             <div className="flex items-center justify-between">
-                                <h2 className="text-white text-[16px] font-medium">Saved Cards</h2>
+                                <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>Saved Cards</h2>
                                 <button
                                     onClick={() => navigate("/cards/add")}
                                     className="opacity-100 active:opacity-70 transition-opacity"
                                 >
-                                    <img src={addIcon} alt="Add" className="w-5 h-5" />
+                                    <img src={addIcon} alt="Add" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
                                 </button>
                             </div>
-                            <div className="h-[1px] bg-white/10 w-full mt-[15px] mb-[15px]" />
-                            <p className="text-white/60 text-[14px]">
-                                You haven’t added any cards yet.
+                            <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
+                            <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
+                                You haven't added any cards yet.
                             </p>
                         </div>
                     ) : (
@@ -292,7 +312,7 @@ const MyCards = () => {
                                     transform: `scale(${1 - (index * stackScale)})`,
                                     transformOrigin: "top center",
                                     cursor: "pointer",
-                                    boxShadow: "0px -4px 20px rgba(0,0,0,0.4)"
+                                    boxShadow: isDarkMode ? "0px -4px 20px rgba(0,0,0,0.4)" : "none"
                                 } : {
                                     position: "relative" as const,
                                     zIndex: isSelected ? 50 : 1, // Bring selected to front
@@ -414,19 +434,66 @@ const MyCards = () => {
                                         {/* Action Menu (Extending from behind) */}
                                         {!isStacked && isSelected && (
                                             <div
-                                                className="w-full h-[60px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
-                                                style={{
+                                                className="w-full h-[66px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
+                                                style={isDarkMode ? {
                                                     backgroundImage: `url(${expandContainerBg})`,
                                                     backgroundSize: 'cover',
                                                     backgroundPosition: 'center',
-                                                    marginTop: '-12px', // Pull it up to "connect" behind
-                                                    // Padding adjustments handled inside flex container below
-                                                    zIndex: 1, // Behind card
+                                                    marginTop: '-18px',
+                                                    zIndex: 1,
+                                                } : {
+                                                    background: `linear-gradient(#F5F5F5, #F5F5F5) padding-box, linear-gradient(${isDefault ? 'to bottom, #FFFFFF, #FF2626' : 'to right, #FF2626, #FFD21F'}) border-box`,
+                                                    border: '1px solid transparent',
+                                                    marginTop: '-18px',
+                                                    zIndex: 1,
                                                 }}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                <div className="w-full h-full flex items-end justify-center pb-[14px]">
-                                                    {/* Added items-end + pb-[14px] to position actions from bottom */}
+                                                {/* Light mode glow blobs */}
+                                                {!isDarkMode && isDefault && (
+                                                    /* Single red blob for remove-only */
+                                                    <div
+                                                        className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
+                                                        style={{
+                                                            top: '-35px',
+                                                            width: '120px',
+                                                            height: '40px',
+                                                            backgroundColor: '#FF3B30',
+                                                            filter: 'blur(30px)',
+                                                            opacity: 0.6,
+                                                        }}
+                                                    />
+                                                )}
+                                                {!isDarkMode && !isDefault && (
+                                                    /* Two blobs: red left, yellow right */
+                                                    <>
+                                                        <div
+                                                            className="absolute rounded-full pointer-events-none"
+                                                            style={{
+                                                                top: '-35px',
+                                                                left: '15%',
+                                                                width: '100px',
+                                                                height: '40px',
+                                                                backgroundColor: '#FF3B30',
+                                                                filter: 'blur(30px)',
+                                                                opacity: 0.6,
+                                                            }}
+                                                        />
+                                                        <div
+                                                            className="absolute rounded-full pointer-events-none"
+                                                            style={{
+                                                                top: '-35px',
+                                                                right: '15%',
+                                                                width: '100px',
+                                                                height: '40px',
+                                                                backgroundColor: '#FACC15',
+                                                                filter: 'blur(30px)',
+                                                                opacity: 0.6,
+                                                            }}
+                                                        />
+                                                    </>
+                                                )}
+                                                <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
 
                                                     {/* Default Card: Remove Only */}
                                                     {isDefault ? (
@@ -440,10 +507,6 @@ const MyCards = () => {
                                                     ) : (
                                                         /* Non-Default: Remove (First) | Set Default (Second) */
                                                         <div className="w-full flex items-center h-[24px]">
-                                                            {/* Fixed height for the row to contain text/icons properly if needed, but flex handles it.
-                                                    The divider needs to stretch within THIS container.
-                                                */}
-
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
                                                                 className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
@@ -452,15 +515,15 @@ const MyCards = () => {
                                                                 <span className="text-[#FF3B30] text-[14px] font-medium">Remove Card</span>
                                                             </button>
 
-                                                            {/* Divider - Self Stretch to fill height of the row */}
-                                                            <div className="w-[1.5px] bg-[#2A2A2A] self-stretch" />
+                                                            {/* Divider */}
+                                                            <div className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`} />
 
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleDefaultClick(); }}
                                                                 className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
                                                             >
-                                                                <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" />
-                                                                <span className="text-white text-[14px] font-medium">Set as Default?</span>
+                                                                <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                                                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium`}>Set as Default?</span>
                                                             </button>
                                                         </div>
                                                     )}
@@ -481,7 +544,7 @@ const MyCards = () => {
                                         top: `${(sortedCards.length - 1) * 15 + 212 + 24}px`
                                     }}
                                 >
-                                    <p className="text-white/60 text-[14px] font-satoshi">
+                                    <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-satoshi`}>
                                         Cards added: {cards.length}
                                     </p>
                                 </div>
@@ -490,7 +553,7 @@ const MyCards = () => {
                             {/* Cards Count (In List View, standard flow) */}
                             {!isStacked && (
                                 <div className="w-full flex items-center justify-center mt-2 pb-[100px]">
-                                    <p className="text-white/60 text-[14px] font-satoshi">
+                                    <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-satoshi`}>
                                         Cards added: {cards.length}
                                     </p>
                                 </div>
@@ -505,7 +568,7 @@ const MyCards = () => {
                 id="fab-container"
                 className={`fixed z-50 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex items-center overflow-hidden ${contentBlurClass} ${tutorialStep > 0 ? 'pointer-events-none' : ''}`}
                 style={{
-                    bottom: "100px",
+                    bottom: "120px",
                     right: "20px",
                     height: "56px",
                     width: isFabExpanded ? "180px" : "56px",
@@ -580,36 +643,77 @@ const MyCards = () => {
                 secondaryText="Cancel"
             />
 
-            {/* Success Modal */}
             {showSuccessModal && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
+                    {/* Background blur overlay */}
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                    {/* Popup Box — 362x199px, radius 13px */}
                     <div
-                        className="relative rounded-2xl p-6 max-w-[320px] w-full z-10 flex flex-col items-center text-center border border-white/10"
-                        style={{
+                        className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? 'border border-white/10' : ''}`}
+                        style={isDarkMode ? {
                             backgroundImage: `url(${popupBg})`,
-                            backgroundSize: 'cover',
+                            backgroundSize: '100% 100%',
                             backgroundPosition: 'center',
+                            width: '362px',
+                            height: '199px',
+                        } : {
+                            backgroundImage: `url(${cardPopupLight})`,
+                            backgroundSize: '100% 100%',
+                            backgroundPosition: 'center',
+                            width: '362px',
+                            height: '199px',
                         }}
                     >
-                        <img src={popupCardIcon} alt="Card Success" className="w-8 h-8 mb-4 object-contain" />
-                        <h2 className="text-white text-[18px] font-semibold mb-4">Card Added Successfully</h2>
-                        <div className="bg-black rounded-xl w-full px-[12px] py-[11px]">
-                            <p className="text-white text-[14px] leading-relaxed text-left">
+                        {/* Icon — 26x26, 22px from top */}
+                        <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
+                            <img
+                                src={isDarkMode ? popupCardIcon : cardLineIcon}
+                                alt="Card Success"
+                                className="object-contain"
+                                style={{
+                                    width: '26px',
+                                    height: '26px',
+                                    filter: !isDarkMode ? 'brightness(0)' : undefined,
+                                }}
+                            />
+                        </div>
+
+                        {/* Header — Satoshi Bold 16px, 12px below icon */}
+                        <h2
+                            className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
+                            style={{ marginTop: '12px' }}
+                        >
+                            Card Added Successfully
+                        </h2>
+
+                        {/* Inner Container — 318x73px, radius 16px, 24px below heading */}
+                        <div
+                            className={`${isDarkMode ? 'bg-black' : 'bg-white'} flex items-center px-4`}
+                            style={{
+                                marginTop: '24px',
+                                width: '318px',
+                                height: '73px',
+                                borderRadius: '16px',
+                            }}
+                        >
+                            <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[120%] text-left font-sans`}>
                                 Your card has been saved successfully. You can now use this card for withdrawals and payments.
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={() => setShowSuccessModal(false)}
-                        className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2"
-                        style={{
+                        className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${!isDarkMode ? 'border-none' : ''}`}
+                        style={isDarkMode ? {
                             backgroundImage: `url(${buttonCloseBg})`,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
+                        } : {
+                            backgroundColor: '#5260FE',
                         }}
                     >
-                        <X className="w-4 h-4 text-foreground" />
-                        <span className="text-foreground text-[14px]">Close</span>
+                        <X className={`w-4 h-4 ${isDarkMode ? 'text-foreground' : 'text-white'}`} />
+                        <span className={`${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px]`}>Close</span>
                     </button>
                 </div>
             )}

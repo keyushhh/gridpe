@@ -19,7 +19,7 @@ const DeleteAccount = () => {
   const [selectedOption, setSelectedOption] = useState<OptionType>('deactivate');
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate('/security-dashboard');
   };
 
   const handleProceed = () => {

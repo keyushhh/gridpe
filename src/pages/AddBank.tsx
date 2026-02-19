@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -27,6 +28,8 @@ interface RazorpayBankDetails {
 
 const AddBank = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const [selection, setSelection] = useState<Selection>("auto");
 
   // Auto Flow State
@@ -182,8 +185,8 @@ const AddBank = () => {
     <div
       className="h-full w-full overflow-hidden flex flex-col relative safe-area-top safe-area-bottom overflow-hidden"
       style={{
-        backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
@@ -193,17 +196,17 @@ const AddBank = () => {
       <div className="px-5 pt-4 flex items-center justify-between shrink-0 z-10">
         <button
           onClick={() => navigate(-1)}
-          className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center transition-colors hover:bg-white/10"
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
         >
-          <ChevronLeft className="w-5 h-5 text-foreground" />
+          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
         </button>
-        <h1 className="text-foreground text-[18px] font-semibold">Banking</h1>
+        <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-semibold`}>Banking</h1>
         <div className="w-10" /> {/* Spacer */}
       </div>
 
       {/* Content */}
       <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-32">
-        <p className="text-white text-[16px] font-medium leading-relaxed mb-8">
+        <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium leading-relaxed mb-8`}>
           Whether you like shortcuts or full control —
           <br />
           we’ve got you.
@@ -213,22 +216,23 @@ const AddBank = () => {
         <div className="space-y-4">
           {/* Auto Fetch */}
           <div
-            className={`relative rounded-2xl p-[12px] border transition-all duration-200 overflow-hidden ${
-              selection === "auto"
-                ? "border-white/20 bg-white/5"
-                : "border-white/10 bg-black/20"
-            }`}
+            className={`relative rounded-2xl p-[12px] border transition-all duration-200 overflow-hidden ${selection === "auto"
+                ? (isDarkMode ? "border-white/20 bg-white/5" : "border-[#E9EAEB] bg-[#F7F8FA]")
+                : (isDarkMode ? "border-white/10 bg-black/20" : "border-[#E9EAEB] bg-white")
+              }`}
             onClick={() => setSelection("auto")}
           >
-            {/* Background Asset */}
-            <div
-              className="absolute inset-0 z-0 opacity-100"
-              style={{
-                backgroundImage: `url(${autoFetchBg})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
+            {/* Background Asset - Dark Mode Only */}
+            {isDarkMode && (
+              <div
+                className="absolute inset-0 z-0 opacity-100"
+                style={{
+                  backgroundImage: `url(${autoFetchBg})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            )}
 
             {/* Content Layer */}
             <div className="relative z-10">
@@ -238,19 +242,25 @@ const AddBank = () => {
                     src={selection === "auto" ? radioFilled : radioEmpty}
                     alt="radio"
                     className="w-5 h-5 shrink-0"
+                    style={!isDarkMode && selection !== "auto" ? { filter: 'invert(1)' } : undefined}
                   />
-                  <span className="text-white text-[15px] font-medium">
+                  <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium`}>
                     Auto-fetch bank accounts
                   </span>
                 </div>
                 {/* Recommended Badge */}
                 <div
-                  className="flex items-center justify-center"
-                  style={{
+                  className="flex items-center justify-center rounded-[4px]" // rounded matched asset roughly? Asset might be pills.
+                  style={isDarkMode ? {
                     width: '109px',
                     height: '25px',
                     backgroundImage: `url(${recommendedBadge})`,
                     backgroundSize: 'cover'
+                  } : {
+                    width: '109px',
+                    height: '25px',
+                    backgroundColor: '#0D992F',
+                    borderRadius: '4px' // Assuming pill or rounded rect
                   }}
                 >
                   <span className="text-white text-[12px] font-medium mb-[1px]">Recommended</span>
@@ -259,7 +269,7 @@ const AddBank = () => {
 
               {/* Description */}
               <div className="pl-9">
-                <p className="text-white/60 text-[13px] leading-relaxed">
+                <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[13px] leading-relaxed`}>
                   Let Anumati do the digging. We’ll fetch your linked<br />
                   accounts in a snap.<br />
                   Safe, fast, and totally RBI-approved.
@@ -270,23 +280,24 @@ const AddBank = () => {
 
           {/* Manual Entry */}
           <div
-            className={`relative rounded-2xl p-[12px] border transition-all duration-200 overflow-hidden flex items-center ${
-              selection === "manual"
-                ? "border-white/20 bg-white/5"
-                : "border-white/10 bg-black/20"
-            }`}
+            className={`relative rounded-2xl p-[12px] border transition-all duration-200 overflow-hidden flex items-center ${selection === "manual"
+                ? (isDarkMode ? "border-white/20 bg-white/5" : "border-[#E9EAEB] bg-[#F7F8FA]")
+                : (isDarkMode ? "border-white/10 bg-black/20" : "border-[#E9EAEB] bg-white")
+              }`}
             onClick={() => setSelection("manual")}
             style={{ height: "64px" }}
           >
-            {/* Background Asset */}
-            <div
-              className="absolute inset-0 z-0 opacity-100"
-              style={{
-                backgroundImage: `url(${manualEntryBg})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
+            {/* Background Asset - Dark Mode Only */}
+            {isDarkMode && (
+              <div
+                className="absolute inset-0 z-0 opacity-100"
+                style={{
+                  backgroundImage: `url(${manualEntryBg})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            )}
 
             {/* Content Layer */}
             <div className="relative z-10 flex items-center gap-4 w-full">
@@ -294,8 +305,9 @@ const AddBank = () => {
                 src={selection === "manual" ? radioFilled : radioEmpty}
                 alt="radio"
                 className="w-5 h-5 shrink-0"
+                style={!isDarkMode && selection !== "manual" ? { filter: 'invert(1)' } : undefined}
               />
-              <span className="text-white text-[15px] font-medium">
+              <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium`}>
                 Add bank account manually
               </span>
             </div>
@@ -305,7 +317,7 @@ const AddBank = () => {
         {/* Input Section - Conditional Rendering */}
         {selection === 'auto' ? (
           <div className="mt-[18px] animate-fade-in">
-            <label className="text-white text-[15px] font-medium font-sans mb-4 block">
+            <label className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-sans mb-4 block`}>
               Bank-registered mobile number
             </label>
             <PhoneInput
@@ -314,12 +326,13 @@ const AddBank = () => {
               countryCode="+91"
               placeholder="Enter your mobile number"
               disabled={showOtpInput}
+              className={!isDarkMode ? "bg-[#F7F8FA] border-[#E6E8EB] text-black" : ""}
             />
 
             {/* OTP Section */}
             {showOtpInput && (
               <div className="mt-8 animate-fade-in space-y-4">
-                <p className="text-white/60 text-[14px]">
+                <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
                   An OTP has been sent to your registered mobile number.
                 </p>
 
@@ -329,10 +342,13 @@ const AddBank = () => {
                       <InputOTPSlot
                         key={index}
                         index={index}
-                        className="h-[52px] w-12 rounded-[7px] border-none text-xl font-semibold text-white transition-all bg-cover bg-center ring-1 ring-white/10"
-                        style={{
+                        className={`h-[52px] w-12 rounded-[7px] border-none text-xl font-semibold transition-all bg-cover bg-center ${isDarkMode ? 'text-white ring-white/10' : 'text-black ring-black/10 bg-[#F7F8FA]'}`}
+                        style={isDarkMode ? {
                           backgroundImage: `url(${otpInputField})`,
                           backgroundColor: 'transparent'
+                        } : {
+                          backgroundColor: '#F7F8FA',
+                          border: '1px solid #E6E8EB'
                         }}
                       />
                     ))}
@@ -342,16 +358,16 @@ const AddBank = () => {
                 <div className="flex items-center justify-between mt-4">
                   <div className="flex items-center gap-2">
                     <img src={awaitingOtp} alt="pending" className="w-5 h-5" />
-                    <span className="text-white/60 text-[13px]">Awaiting OTP verification</span>
+                    <span className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[13px]`}>Awaiting OTP verification</span>
                   </div>
                   <button
                     onClick={() => {
-                       if (resendTimer === 0) {
-                         setResendTimer(30);
-                       }
+                      if (resendTimer === 0) {
+                        setResendTimer(30);
+                      }
                     }}
                     disabled={resendTimer > 0}
-                    className="text-white/60 text-[13px] hover:text-white transition-colors disabled:opacity-50"
+                    className={`${isDarkMode ? 'text-white/60 hover:text-white' : 'text-black/60 hover:text-black'} text-[13px] transition-colors disabled:opacity-50`}
                   >
                     {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Didn't receive OTP?"}
                   </button>
@@ -362,7 +378,7 @@ const AddBank = () => {
         ) : (
           /* Manual Entry Form */
           <div className="mt-[18px] animate-fade-in space-y-6">
-            <h2 className="text-white text-[15px] font-medium font-sans">
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-sans`}>
               Enter your account details:
             </h2>
 
@@ -373,9 +389,11 @@ const AddBank = () => {
                 placeholder="Account Number"
                 value={"*".repeat(accountNumber.length)}
                 onChange={handleMaskedChange}
-                className={`w-full h-[48px] bg-[#191919]/30 border-[0.65px] border-white/20 rounded-full px-5 text-white placeholder:text-white/40 text-[14px] font-normal font-sans outline-none focus:border-white/40 transition-colors ${
-                  accountNumber.length > 0 ? "tracking-widest" : ""
-                }`}
+                className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${isDarkMode
+                    ? "bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
+                    : "bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20"
+                  } ${accountNumber.length > 0 ? "tracking-widest" : ""
+                  }`}
               />
 
               <div className="flex flex-col gap-1">
@@ -388,11 +406,14 @@ const AddBank = () => {
                     setTouchedConfirm(false);
                   }}
                   onBlur={() => setTouchedConfirm(true)}
-                  className={`w-full h-[48px] bg-[#191919]/30 border-[0.65px] rounded-full px-5 text-white placeholder:text-white/40 text-[14px] font-normal font-sans outline-none transition-colors ${
-                    confirmAccountNumber.length > 0 ? "tracking-widest" : ""
-                  } ${
-                    showMatchError ? "border-red-500/50 focus:border-red-500" : "border-white/20 focus:border-white/40"
-                  }`}
+                  className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${isDarkMode
+                      ? "bg-[#191919]/30 border-[0.65px] text-white placeholder:text-white/40"
+                      : "bg-[#F7F8FA] border text-black placeholder:text-black/40"
+                    } ${confirmAccountNumber.length > 0 ? "tracking-widest" : ""
+                    } ${showMatchError
+                      ? "border-red-500/50 focus:border-red-500"
+                      : (isDarkMode ? "border-white/20 focus:border-white/40" : "border-[#E6E8EB] focus:border-black/20")
+                    }`}
                 />
                 {showMatchError && (
                   <p className="text-red-500 text-[11px] ml-5">
@@ -409,7 +430,10 @@ const AddBank = () => {
                     value={ifscCode}
                     onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
                     maxLength={11}
-                    className="w-full h-[48px] bg-[#191919]/30 border-[0.65px] border-white/20 rounded-full pl-5 pr-24 text-white placeholder:text-white/40 text-[14px] font-normal font-sans outline-none focus:border-white/40 transition-colors uppercase"
+                    className={`w-full h-[48px] rounded-full pl-5 pr-24 text-[14px] font-normal font-sans outline-none transition-colors uppercase ${isDarkMode
+                        ? "bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
+                        : "bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20"
+                      }`}
                   />
                   <button
                     className="absolute right-5 top-1/2 -translate-y-1/2 text-[#5260FE] text-[13px] font-medium hover:text-[#5260FE]/80 transition-colors"
@@ -422,8 +446,8 @@ const AddBank = () => {
                 {/* Bank Name Success State */}
                 {bankName && (
                   <div className="flex items-center gap-2 mt-4 ml-1">
-                     <span className="text-white font-bold text-[16px] leading-snug">{bankName}</span>
-                     <img src={verifiedIcon} alt="verified" className="w-[18px] h-[18px]" />
+                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} font-bold text-[16px] leading-snug`}>{bankName}</span>
+                    <img src={verifiedIcon} alt="verified" className="w-[18px] h-[18px]" />
                   </div>
                 )}
               </div>
@@ -441,13 +465,13 @@ const AddBank = () => {
           disabled={isButtonDisabled()}
         >
           {isLoading ? (
-             <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                {getButtonText().replace("...", "")}...
-             </span>
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              {getButtonText().replace("...", "")}...
+            </span>
           ) : (
             getButtonText()
           )}

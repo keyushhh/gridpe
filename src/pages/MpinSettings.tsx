@@ -10,6 +10,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import popupBg from "@/assets/popup-bg.png";
 import buttonCloseBg from "@/assets/button-close.png";
 import mpinIcon from "@/assets/mpin-icon.png";
+import mpinPopupLight from "@/assets/mpin-popup-light.png";
 
 const MpinSettings = () => {
   const navigate = useNavigate();
@@ -153,34 +154,54 @@ const MpinSettings = () => {
 
           {/* Popup Box */}
           <div
-            className="relative rounded-[20px] p-6 max-w-[320px] w-full z-10 min-h-[220px] flex flex-col items-center justify-center gap-4"
+            className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? '' : ''}`}
             style={isDarkMode ? {
               backgroundImage: `url(${popupBg})`,
               backgroundSize: '100% 100%',
               backgroundPosition: 'center',
+              width: '362px',
+              height: '199px',
             } : {
-              backgroundColor: '#FFFFFF',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              backgroundImage: `url(${mpinPopupLight})`,
+              backgroundSize: '100% 100%',
+              backgroundPosition: 'center',
+              width: '362px',
+              height: '199px',
             }}
           >
-            {/* Icon */}
-            <div className="w-[48px] h-[48px] flex items-center justify-center">
+            {/* Icon — 26x26, 22px from top */}
+            <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
               <img
                 src={mpinIcon}
                 alt="Locked"
-                className="w-full h-full object-contain"
-                style={{ filter: isDarkMode ? 'brightness(0) invert(1)' : 'brightness(0)' }}
+                className="object-contain"
+                style={{
+                  width: '26px',
+                  height: '26px',
+                  filter: isDarkMode ? 'brightness(0) invert(1)' : 'brightness(0)',
+                }}
               />
             </div>
 
-            {/* Header */}
-            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium font-sans text-center`}>
+            {/* Header — Satoshi Bold 16px, 12px below icon */}
+            <h2
+              className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
+              style={{ marginTop: '12px' }}
+            >
               MPIN Updated!
             </h2>
 
-            {/* Body Pill */}
-            <div className={`${isDarkMode ? 'bg-[#090909]' : 'bg-white border border-[#E9EAEB]'} rounded-xl px-4 py-3 w-full`}>
-              <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal leading-snug text-left`}>
+            {/* Body Pill — 318x73px, radius 16px, 24px below heading */}
+            <div
+              className={`${isDarkMode ? 'bg-[#090909]' : 'bg-white'} flex items-center px-4`}
+              style={{
+                marginTop: '24px',
+                width: '318px',
+                height: '73px',
+                borderRadius: '16px',
+              }}
+            >
+              <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[120%] text-left font-sans`}>
                 All set. Just don't write it on a sticky note. Or worse—use 1234 again.
               </p>
             </div>

@@ -3,6 +3,7 @@ export interface Card {
   number: string;
   holder: string;
   expiry: string;
+  cvv?: string;
   type: "visa" | "mastercard" | "rupay" | null;
   isDefault: boolean;
   backgroundIndex: number;
