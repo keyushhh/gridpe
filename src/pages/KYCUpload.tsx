@@ -2,13 +2,14 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, CalendarIcon } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import stepsBg from "@/assets/kyc-steps-bg.png";
-import iconFlash from "@/assets/icon-flash.png";
-import iconGallery from "@/assets/icon-gallery.png";
+import iconFlash from "@/assets/flash.svg";
+import iconGallery from "@/assets/gallery.svg";
 import iconPlaceholder from "@/assets/icon-gallery-placeholder.png";
 import inputFieldBg from "@/assets/input-field-bg.png";
-import pendingStatusIcon from "@/assets/pending-status.png";
+import pendingStatusIcon from "@/assets/awaiting.svg";
 import otpVerifiedIcon from "@/assets/otp-verified.png";
 import thumbnailsBg from "@/assets/thumbnails-bg.png";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,8 @@ import { GlassCalendar } from "@/components/GlassCalendar";
 
 const KYCUpload = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const [searchParams] = useSearchParams();
   const documentType = searchParams.get("doc") || "aadhar";
   const isFxFlow = searchParams.get("flow") === "fx";
@@ -226,14 +229,27 @@ const KYCUpload = () => {
 
   return (
     <div
-      className="h-full w-full flex flex-col safe-area-top safe-area-bottom overflow-hidden"
+      className="h-[100dvh] w-full flex flex-col safe-area-top safe-area-bottom overflow-hidden relative"
       style={{
-        backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
+      {/* Light Mode Status Blob (Top Glow) */}
+      {!isDarkMode && (
+        <div
+          className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+          style={{
+            backgroundColor: "#5260FE",
+            filter: "blur(60px)",
+            opacity: 0.8,
+            mixBlendMode: "normal"
+          }}
+        />
+      )}
+
       {/* Hidden File Input */}
       <input
         type="file"
@@ -244,326 +260,349 @@ const KYCUpload = () => {
       />
 
       {/* Header */}
-      <div className="flex-none flex items-center justify-between px-5 pt-4 pb-2 z-10">
+      <div className="flex-none flex items-center justify-between px-5 pt-12 pb-2 z-10">
         <button
-          onClick={() => navigate("/kyc-form")}
-          className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center transition-colors hover:bg-white/10"
+          onClick={() => navigate(-1)}
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center transition-colors hover:bg-white/10`}
         >
-          <ChevronLeft className="w-5 h-5 text-foreground" />
+          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
-        <h1 className="text-foreground text-[18px] font-semibold">KYC</h1>
+        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>KYC</h1>
         <div className="w-10" />
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-y-none px-5 pt-4 pb-32 no-scrollbar">
-        {/* Steps Indicator */}
-        <div
-          className="w-full h-[88px] rounded-[20px] p-5 mb-6 relative overflow-hidden flex-none"
-          style={{
-            backgroundImage: `url(${stepsBg})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-white text-[14px] font-medium">Step 2/4</span>
-            <span className="text-white text-[14px] font-medium">Upload & Verify</span>
-          </div>
-          <div className="w-full h-[6px] bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full w-[50%] bg-[#5260FE] rounded-full" />
-          </div>
-        </div>
-
-        {/* Title */}
-        <div className="mb-4 flex-none">
-          <h2 className="text-white text-[18px] font-semibold mb-1">Upload Document</h2>
-          <p className="text-muted-foreground text-[14px]">
-            Position your ID clearly within the frame.
-          </p>
-        </div>
-
-        {/* Camera Area Container */}
-        <div className="flex flex-col items-center mb-6">
-          {/* Camera Box */}
-          <div className="w-[362px] h-[184px] bg-black rounded-[24px] flex flex-col items-center justify-center relative overflow-hidden mb-4">
-            {/* Simulated Camera View */}
-          </div>
-
-          {/* Label Pill */}
-          <div className="w-[111px] h-[31px] bg-black rounded-full flex items-center justify-center mb-4">
-            <p className="text-white text-[12px] font-medium">Upload front side</p>
-          </div>
-
-          {/* Controls - Moved outside and below */}
-          <div className="flex items-center gap-4 z-20">
-            <button
-              onClick={toggleFlash}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${flashOn ? 'bg-white/20' : ''}`}
-            >
-              <img src={iconFlash} alt="Flash" className="w-10 h-10" />
-            </button>
-            <button
-              onClick={handleGalleryClick}
-              className="w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95"
-            >
-              <img src={iconGallery} alt="Gallery" className="w-10 h-10" />
-            </button>
-          </div>
-        </div>
-
-        {/* Thumbnails Section */}
-        <div
-          className="mb-6 rounded-[16px] p-4"
-          style={{
-            backgroundImage: `url(${thumbnailsBg})`,
-            backgroundSize: '100% 100%',
-            backgroundRepeat: 'no-repeat',
-          }}
-        >
-          <div className="flex justify-between items-center">
-            <div className="flex gap-4">
-              {/* Front Side */}
-              <div className="w-[100px] h-[80px] rounded-[12px] border border-white/10 bg-white/5 flex flex-col items-center justify-center gap-2 overflow-hidden relative">
-                {images.front ? (
-                  <img src={images.front} alt="Front" className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <img src={iconPlaceholder} alt="" className="w-6 h-6 opacity-50" />
-                    <span className="text-white/60 text-[10px]">Front side</span>
-                  </>
-                )}
-              </div>
-              {/* Back Side */}
-              <div className="w-[100px] h-[80px] rounded-[12px] border border-white/10 bg-white/5 flex flex-col items-center justify-center gap-2 overflow-hidden relative">
-                {images.back ? (
-                  <img src={images.back} alt="Back" className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <img src={iconPlaceholder} alt="" className="w-6 h-6 opacity-50" />
-                    <span className="text-white/60 text-[10px]">Back side</span>
-                  </>
-                )}
-              </div>
+      <div className="flex-1 overflow-y-auto min-h-0 relative">
+        <div className="min-h-full flex flex-col px-5 pt-4 pb-10">
+          {/* Steps Indicator */}
+          <div
+            className={`w-full h-[88px] rounded-[20px] p-5 mb-6 relative overflow-hidden flex-none ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+            style={isDarkMode ? {
+              backgroundImage: `url(${stepsBg})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            } : {}}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-sans`}>Step 2/4</span>
+              <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-sans`}>Upload & Verify</span>
             </div>
-            <button
-              onClick={handleClearAll}
-              disabled={!images.front && !images.back}
-              className={`text-[12px] underline underline-offset-2 transition-colors ${(!images.front && !images.back) ? 'text-gray-500 cursor-not-allowed' : 'text-red-500 hover:text-red-400'}`}
-            >
-              Clear All
-            </button>
+            <div className={`w-full h-[6px] ${isDarkMode ? 'bg-white/20' : 'bg-[#F2F4F7]'} rounded-full overflow-hidden`}>
+              <div className="h-full w-[50%] bg-[#5260FE] rounded-full" />
+            </div>
           </div>
-          {/* Image Quality Error */}
-          {imageQualityError && (
-            <p className="text-[#FF6B6B] text-[12px] mt-3">{imageQualityError}</p>
-          )}
-        </div>
 
-        {/* Form Fields */}
-        <div className="space-y-4 mb-8">
-          <div>
-            <Input
-              placeholder="Document Number"
-              value={documentNumber}
-              onChange={(e) => {
-                setDocumentNumber(e.target.value);
-                setDocumentMismatchError(null); // Clear mismatch error on edit
-              }}
-              className={`w-[363px] h-[48px] rounded-[100px] text-white placeholder:text-muted-foreground/60 px-6 mx-auto block ${documentMismatchError ? 'border-2 border-[#FF6B6B]' : 'border-none'}`}
-              style={{
-                backgroundImage: `url(${inputFieldBg})`,
-                backgroundSize: '100% 100%',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'transparent'
-              }}
-            />
-            {documentError && (
-              <p className="text-red-500 text-[12px] mt-1 ml-6">{documentError}</p>
-            )}
-            {documentMismatchError && !documentError && (
-              <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6">{documentMismatchError}</p>
-            )}
+          {/* Title */}
+          <div className="mb-4 flex-none">
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold mb-1 font-sans`}>Upload Document</h2>
+            <p className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black'} text-[14px] font-sans font-normal`}>
+              Position your ID clearly within the frame.
+            </p>
           </div>
-          <div>
-            <Input
-              placeholder="Full Name as per Document"
-              value={fullName}
-              onChange={(e) => {
-                setFullName(e.target.value);
-                setNameMismatchError(null); // Clear mismatch error on edit
-              }}
-              className={`w-[363px] h-[48px] rounded-[100px] text-white placeholder:text-muted-foreground/60 px-6 mx-auto block ${nameMismatchError ? 'border-2 border-[#FF6B6B]' : 'border-none'}`}
+
+          {/* Camera Area Container */}
+          <div className="flex flex-col items-center mb-6">
+            {/* Camera Box */}
+            <div className="w-[362px] h-[184px] bg-black rounded-[24px] flex flex-col items-center justify-center relative overflow-hidden mb-4">
+              {/* Simulated Camera View */}
+            </div>
+
+            {/* Label Pill */}
+            <div
+              className="h-[31px] px-6 rounded-full flex items-center justify-center mb-4 transition-colors"
               style={{
-                backgroundImage: `url(${inputFieldBg})`,
-                backgroundSize: '100% 100%',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'transparent'
-              }}
-            />
-            {nameMismatchError && (
-              <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6">{nameMismatchError}</p>
-            )}
-          </div>
-          {/* Date of Birth with Calendar */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowCalendar(!showCalendar)}
-              className="w-[363px] h-[48px] rounded-[100px] border-none text-left px-6 mx-auto flex items-center justify-between"
-              style={{
-                backgroundImage: `url(${inputFieldBg})`,
-                backgroundSize: '100% 100%',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'transparent'
+                backgroundColor: isDarkMode ? "#000000" : "#5260FE"
               }}
             >
-              <span className={dob ? "text-white" : "text-muted-foreground/60"}>
-                {dob ? format(dob, "dd MMM yyyy") : "Date of Birth"}
-              </span>
-              <CalendarIcon className="w-5 h-5 text-muted-foreground/60" />
-            </button>
-
-            {showCalendar && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50">
-                <GlassCalendar
-                  selected={dob}
-                  onSelect={(date) => {
-                    if (date) {
-                      if (validateAge(date)) {
-                        setDob(date);
-                        setDobError("");
-                      } else {
-                        setDob(date);
-                        setDobError("You must be 18 years or older");
-                      }
-                    }
-                    setShowCalendar(false);
-                  }}
-                  onClose={() => setShowCalendar(false)}
-                  disableFutureDates={true}
-                />
-              </div>
-            )}
-            {dobError && (
-              <p className="text-red-500 text-[12px] mt-1 ml-6">{dobError}</p>
-            )}
-          </div>
-
-          {/* Address Proof Section - Only for PAN Card */}
-          {documentType === "pan" && (
-            <div className="mt-4">
-              <p className="text-muted-foreground text-[14px] mb-4">
-                We'll also need a document that shows your address. Please upload a valid address proof (e.g., Aadhaar, Voter ID, Driver's License, utility bill, or bank statement).
+              <p className="text-white text-[12px] font-medium font-sans">
+                {images.front ? "Upload back side" : "Upload front side"}
               </p>
-              <input
-                type="file"
-                ref={addressProofInputRef}
-                className="hidden"
-                accept=".jpg,.jpeg,.png,.pdf"
-                onChange={handleAddressProofChange}
-              />
-              <div
-                onClick={() => addressProofInputRef.current?.click()}
-                className="w-full rounded-[16px] bg-black p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-black/80 transition-colors"
-              >
-                {addressProof ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-green-400 text-[14px]">Document uploaded</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAddressProof(null);
-                      }}
-                      className="text-red-400 text-[12px] underline mt-1"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-10 h-10 mb-3 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                      </svg>
-                    </div>
-                    <p className="text-white/40 text-[14px] mb-1">Only .JPG, .PNG, .PDF file formats are allowed.</p>
-                    <p className="text-white/40 text-[14px] mb-3">Max file size 5MB.</p>
-                    <p className="text-white/60 text-[14px]">Tap to upload your document here.</p>
-                  </>
-                )}
-              </div>
             </div>
-          )}
-        </div>
 
-        {/* OTP Section */}
-        <div className="space-y-4">
-          <p className="text-muted-foreground text-[14px]">
-            An OTP has been sent to your registered mobile number.
-          </p>
-          <InputOTP maxLength={6} value={otp} onChange={setOtp} disabled={otpVerified}>
-            <InputOTPGroup className="w-full justify-between gap-2">
-              {[0, 1, 2, 3, 4, 5].map(index => (
-                <InputOTPSlot
-                  key={index}
-                  index={index}
-                  className="w-[52px] h-[68px] rounded-[7px] border border-white/10 bg-white/5 text-xl font-semibold text-white"
+            {/* Controls - Moved outside and below */}
+            <div className="flex items-center gap-4 z-20">
+              <button
+                onClick={toggleFlash}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${!isDarkMode ? 'bg-white' : 'border border-white/10 bg-white/10'}`}
+              >
+                <img
+                  src={iconFlash}
+                  alt="Flash"
+                  className="w-10 h-10"
                 />
-              ))}
-            </InputOTPGroup>
-          </InputOTP>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {otpVerified ? (
-                <>
-                  <img src={otpVerifiedIcon} alt="Verified" className="w-5 h-5 object-contain" />
-                  <span className="text-green-400 text-[12px]">OTP verified</span>
-                </>
-              ) : (
-                <>
-                  <img src={pendingStatusIcon} alt="Pending" className="w-5 h-5 object-contain" />
-                  <span className="text-white/80 text-[12px]">Awaiting OTP verification</span>
-                </>
+              </button>
+              <button
+                onClick={handleGalleryClick}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95 ${!isDarkMode ? 'bg-white' : 'border border-white/10 bg-white/10'}`}
+              >
+                <img
+                  src={iconGallery}
+                  alt="Gallery"
+                  className="w-10 h-10"
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Thumbnails Section */}
+          <div
+            className={`mb-6 rounded-[16px] p-4 ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+            style={isDarkMode ? {
+              backgroundImage: `url(${thumbnailsBg})`,
+              backgroundSize: '100% 100%',
+              backgroundRepeat: 'no-repeat',
+            } : {}}
+          >
+            <div className="flex justify-between items-center">
+              <div className="flex gap-4">
+                {/* Front Side */}
+                <div
+                  onClick={handleGalleryClick}
+                  className={`w-[100px] h-[80px] cursor-pointer rounded-[12px] border ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-[#E9EAEB] bg-[#F9FAFB]'} flex flex-col items-center justify-center gap-2 overflow-hidden relative`}
+                >
+                  {images.front ? (
+                    <img src={images.front} alt="Front" className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <img src={iconPlaceholder} alt="" className={`w-6 h-6 ${isDarkMode ? 'opacity-50' : 'filter brightness-0 opacity-20'}`} />
+                      <span className={`${isDarkMode ? 'text-white/60' : 'text-black'} text-[10px] font-sans`}>Front side</span>
+                    </>
+                  )}
+                </div>
+                {/* Back Side */}
+                <div
+                  onClick={handleGalleryClick}
+                  className={`w-[100px] h-[80px] cursor-pointer rounded-[12px] border ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-[#E9EAEB] bg-[#F9FAFB]'} flex flex-col items-center justify-center gap-2 overflow-hidden relative`}
+                >
+                  {images.back ? (
+                    <img src={images.back} alt="Back" className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <img src={iconPlaceholder} alt="" className={`w-6 h-6 ${isDarkMode ? 'opacity-50' : 'filter brightness-0 opacity-20'}`} />
+                      <span className={`${isDarkMode ? 'text-white/60' : 'text-black'} text-[10px] font-sans`}>Back side</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={handleClearAll}
+                disabled={!images.front && !images.back}
+                className={`text-[12px] underline underline-offset-2 transition-colors font-sans ${(!images.front && !images.back) ? 'text-gray-500 cursor-not-allowed' : 'text-red-500 hover:text-red-400'}`}
+              >
+                Clear All
+              </button>
+            </div>
+            {/* Image Quality Error */}
+            {imageQualityError && (
+              <p className="text-[#FF6B6B] text-[12px] mt-3 font-sans">{imageQualityError}</p>
+            )}
+          </div>
+
+          {/* Form Fields */}
+          <div className="space-y-4 mb-8">
+            <div>
+              <Input
+                placeholder="Document Number"
+                value={documentNumber}
+                onChange={(e) => {
+                  setDocumentNumber(e.target.value);
+                  setDocumentMismatchError(null); // Clear mismatch error on edit
+                }}
+                className={`w-[363px] h-[48px] rounded-[100px] ${isDarkMode ? 'text-white border-none' : 'text-black bg-[#F7F8FA] border border-[#E6E8EB]'} placeholder:text-muted-foreground/60 px-6 mx-auto block ${documentMismatchError ? 'border-2 border-[#FF6B6B]' : ''}`}
+                style={isDarkMode ? {
+                  backgroundImage: `url(${inputFieldBg})`,
+                  backgroundSize: '100% 100%',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundColor: 'transparent'
+                } : {}}
+              />
+              {documentError && (
+                <p className="text-red-500 text-[12px] mt-1 ml-6 font-sans">{documentError}</p>
+              )}
+              {documentMismatchError && !documentError && (
+                <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6 font-sans">{documentMismatchError}</p>
               )}
             </div>
-            <button
-              className={`text-[12px] ${otpVerified ? 'text-gray-500 cursor-not-allowed' : 'text-muted-foreground hover:text-white'}`}
-              disabled={otpVerified}
-            >
-              Didn't receive OTP?
-            </button>
+            <div>
+              <Input
+                placeholder="Full Name as per Document"
+                value={fullName}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  setNameMismatchError(null); // Clear mismatch error on edit
+                }}
+                className={`w-[363px] h-[48px] rounded-[100px] ${isDarkMode ? 'text-white border-none' : 'text-black bg-[#F7F8FA] border border-[#E6E8EB]'} placeholder:text-muted-foreground/60 px-6 mx-auto block ${nameMismatchError ? 'border-2 border-[#FF6B6B]' : ''}`}
+                style={isDarkMode ? {
+                  backgroundImage: `url(${inputFieldBg})`,
+                  backgroundSize: '100% 100%',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundColor: 'transparent'
+                } : {}}
+              />
+              {nameMismatchError && (
+                <p className="text-[#FF6B6B] text-[12px] mt-1 ml-6 font-sans">{nameMismatchError}</p>
+              )}
+            </div>
+            {/* Date of Birth with Calendar */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className={`w-[363px] h-[48px] rounded-[100px] text-left px-6 mx-auto flex items-center justify-between ${isDarkMode ? 'border-none' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
+                style={isDarkMode ? {
+                  backgroundImage: `url(${inputFieldBg})`,
+                  backgroundSize: '100% 100%',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundColor: 'transparent'
+                } : {}}
+              >
+                <span className={`${dob ? (isDarkMode ? "text-white" : "text-black") : "text-muted-foreground/60"} font-sans`}>
+                  {dob ? format(dob, "dd MMM yyyy") : "Date of Birth"}
+                </span>
+                <CalendarIcon className="w-5 h-5 text-muted-foreground/60" />
+              </button>
+
+              {showCalendar && (
+                <div className="relative mt-2 z-50 flex justify-center">
+                  <GlassCalendar
+                    selected={dob}
+                    onSelect={(date) => {
+                      if (date) {
+                        if (validateAge(date)) {
+                          setDob(date);
+                          setDobError("");
+                        } else {
+                          setDob(date);
+                          setDobError("You must be 18 years or older");
+                        }
+                      }
+                      setShowCalendar(false);
+                    }}
+                    onClose={() => setShowCalendar(false)}
+                    disableFutureDates={true}
+                  />
+                </div>
+              )}
+              {dobError && (
+                <p className="text-red-500 text-[12px] mt-1 ml-6 font-sans">{dobError}</p>
+              )}
+            </div>
+
+            {/* Address Proof Section - Only for PAN Card */}
+            {documentType === "pan" && (
+              <div className="mt-4">
+                <p className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black'} text-[14px] mb-4 font-sans`}>
+                  We'll also need a document that shows your address. Please upload a valid address proof (e.g., Aadhaar, Voter ID, Driver's License, utility bill, or bank statement).
+                </p>
+                <input
+                  type="file"
+                  ref={addressProofInputRef}
+                  className="hidden"
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={handleAddressProofChange}
+                />
+                <div
+                  onClick={() => addressProofInputRef.current?.click()}
+                  className={`w-full rounded-[16px] p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${isDarkMode ? 'bg-black hover:bg-black/80' : 'bg-[#F9FAFB] border border-[#E9EAEB] hover:bg-[#F2F4F7]'}`}
+                >
+                  {addressProof ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="text-green-400 text-[14px] font-sans">Document uploaded</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddressProof(null);
+                        }}
+                        className="text-red-400 text-[12px] underline mt-1 font-sans"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 mb-3 flex items-center justify-center">
+                        <svg className={`w-6 h-6 ${isDarkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                      </div>
+                      <p className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[14px] mb-1 font-sans`}>Only .JPG, .PNG, .PDF file formats are allowed.</p>
+                      <p className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[14px] mb-3 font-sans`}>Max file size 5MB.</p>
+                      <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-sans`}>Tap to upload your document here.</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* OTP Section */}
+          <div className="space-y-4">
+            <p className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black'} text-[14px] font-sans`}>
+              An OTP has been sent to your registered mobile number.
+            </p>
+            <InputOTP maxLength={6} value={otp} onChange={setOtp} disabled={otpVerified}>
+              <InputOTPGroup className="w-full justify-between gap-2">
+                {[0, 1, 2, 3, 4, 5].map(index => (
+                  <InputOTPSlot
+                    key={index}
+                    index={index}
+                    className={`w-[52px] h-[68px] rounded-[7px] border ${isDarkMode ? 'border-white/10 bg-white/5 text-white' : 'border-[#E9EAEB] bg-white text-black'} text-xl font-semibold`}
+                  />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {otpVerified ? (
+                  <>
+                    <img src={otpVerifiedIcon} alt="Verified" className="w-5 h-5 object-contain" />
+                    <span className="text-green-400 text-[12px] font-sans">OTP verified</span>
+                  </>
+                ) : (
+                  <>
+                    <img src={pendingStatusIcon} alt="Pending" className={`w-5 h-5 object-contain ${!isDarkMode ? '' : ''}`} />
+                    <span className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[12px] font-sans`}>Awaiting OTP verification</span>
+                  </>
+                )}
+              </div>
+              <button
+                className={`text-[12px] font-sans ${otpVerified ? 'text-gray-500 cursor-not-allowed' : (isDarkMode ? 'text-muted-foreground hover:text-white' : 'text-black hover:text-black/80')}`}
+                disabled={otpVerified}
+              >
+                Didn't receive OTP?
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-gradient-to-t from-[#0a0a12] to-transparent z-20">
-        <Button
-          variant="gradient"
-          className="w-full h-[48px] rounded-full text-[16px] font-medium"
-          disabled={!isFormComplete}
-          style={{
-            opacity: isFormComplete ? 1 : 0.5,
-          }}
-          onClick={() => navigate("/kyc-selfie", {
-            state: {
-              images,
-              documentNumber,
-              fullName,
-              dob: dob?.toISOString(),
-              addressProof,
-              documentType,
-              flow: isFxFlow ? "fx" : null
-            }
-          })}
-        >
-          Continue
-        </Button>
+        {/* Footer - Constrained container */}
+        <div className={`mt-auto pb-8 pt-4 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20 px-5`}>
+          <Button
+            variant="gradient"
+            className="w-full h-[48px] rounded-full text-white font-semibold text-[16px]"
+            disabled={!isFormComplete}
+            style={{
+              opacity: isFormComplete ? 1 : 0.5,
+            }}
+            onClick={() => navigate("/kyc-selfie", {
+              state: {
+                images,
+                documentNumber,
+                fullName,
+                dob: dob?.toISOString(),
+                addressProof,
+                documentType,
+                flow: isFxFlow ? "fx" : null
+              }
+            })}
+          >
+            Continue
+          </Button>
+        </div>
       </div>
     </div>
   );

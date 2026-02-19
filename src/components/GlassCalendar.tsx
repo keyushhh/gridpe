@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 import { getDaysInMonth, startOfMonth, getDay, addMonths, subMonths, setYear, startOfDay, isBefore } from "date-fns";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import calendarBg from "@/assets/calendar-bg.png";
@@ -32,6 +33,8 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
   const [currentDate, setCurrentDate] = useState(selected || new Date());
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const today = new Date();
 
   const year = currentDate.getFullYear();
@@ -111,21 +114,21 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
     <div
       ref={calendarRef}
       className={cn(
-        "w-[340px] rounded-[20px] p-3 relative overflow-hidden",
-        "backdrop-blur-[25.2px]",
+        "w-[340px] rounded-[20px] p-3 relative overflow-hidden transition-all duration-300",
+        isDarkMode ? "backdrop-blur-[25.2px]" : "bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-[#E9EAEB]",
         className
       )}
-      style={{
+      style={isDarkMode ? {
         backgroundImage: `url(${calendarBg})`,
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
-      }}
+      } : {}}
     >
-      {/* Inner content with black 20% opacity fill */}
+      {/* Inner content */}
       <div
         className="rounded-[16px] p-4 relative"
         style={{
-          backgroundColor: "rgba(0, 0, 0, 0.20)",
+          backgroundColor: isDarkMode ? "rgba(0, 0, 0, 0.20)" : "transparent",
         }}
       >
         {/* Header with Month/Year and Navigation */}
@@ -133,15 +136,23 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
           {/* Previous Month Button */}
           <button
             onClick={handlePrevMonth}
-            className="w-10 h-10 rounded-[10px] bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center transition-all hover:bg-white/20 active:scale-95"
+            className={cn(
+              "w-10 h-10 rounded-[10px] backdrop-blur-sm border flex items-center justify-center transition-all active:scale-95",
+              isDarkMode
+                ? "bg-white/10 border-white/20 hover:bg-white/20"
+                : "bg-[#F7F8FA] border-[#E9EAEB] hover:bg-gray-100"
+            )}
           >
-            <ChevronLeft className="w-5 h-5 text-white" />
+            <ChevronLeft className={cn("w-5 h-5", isDarkMode ? "text-white" : "text-black")} />
           </button>
 
           {/* Month/Year Selector */}
           <button
             onClick={() => setShowYearDropdown(!showYearDropdown)}
-            className="flex items-center gap-2 text-white text-lg font-semibold hover:opacity-80 transition-opacity"
+            className={cn(
+              "flex items-center gap-2 text-lg font-semibold hover:opacity-80 transition-opacity font-sans",
+              isDarkMode ? "text-white" : "text-black"
+            )}
           >
             <span>{MONTHS[month]} {year}</span>
             {showYearDropdown ? (
@@ -154,33 +165,43 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
           {/* Next Month Button */}
           <button
             onClick={handleNextMonth}
-            className="w-10 h-10 rounded-[10px] bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center transition-all hover:bg-white/20 active:scale-95"
+            className={cn(
+              "w-10 h-10 rounded-[10px] backdrop-blur-sm border flex items-center justify-center transition-all active:scale-95",
+              isDarkMode
+                ? "bg-white/10 border-white/20 hover:bg-white/20"
+                : "bg-[#F7F8FA] border-[#E9EAEB] hover:bg-gray-100"
+            )}
           >
-            <ChevronRight className="w-5 h-5 text-white" />
+            <ChevronRight className={cn("w-5 h-5", isDarkMode ? "text-white" : "text-black")} />
           </button>
         </div>
 
         {/* Year Dropdown */}
         {showYearDropdown && (
           <div
-            className="absolute left-1/2 -translate-x-1/2 top-16 z-50 w-[160px] rounded-[16px] overflow-hidden backdrop-blur-[25.2px]"
-            style={{
+            className={cn(
+              "absolute left-1/2 -translate-x-1/2 top-16 z-50 w-[160px] rounded-[16px] overflow-hidden",
+              isDarkMode ? "backdrop-blur-[25.2px]" : "bg-white shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-[#E9EAEB]"
+            )}
+            style={isDarkMode ? {
               backgroundColor: "rgba(0, 0, 0, 0.70)",
               backgroundImage: `url(${yearDropdownBg})`,
               backgroundSize: "100% 100%",
               backgroundRepeat: "no-repeat",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
-            }}
+            } : {}}
           >
             {/* Year header */}
             <div
-              className="px-4 py-3 flex items-center justify-between border-b border-black/10 cursor-pointer"
+              className={cn(
+                "px-4 py-3 flex items-center justify-between border-b cursor-pointer",
+                isDarkMode ? "border-black/10" : "border-[#E9EAEB]"
+              )}
               onClick={() => setShowYearDropdown(false)}
             >
-              <span className="text-white text-lg font-semibold">{year}</span>
-              <ChevronUp className="w-5 h-5 text-white" />
+              <span className={cn("text-lg font-semibold", isDarkMode ? "text-white" : "text-black")}>{year}</span>
+              <ChevronUp className={cn("w-5 h-5", isDarkMode ? "text-white" : "text-black")} />
             </div>
-            
+
             {/* Scrollable year list */}
             <ScrollArea className="h-[220px]">
               <div className="py-1">
@@ -189,10 +210,11 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
                     key={y}
                     onClick={() => handleYearSelect(y)}
                     className={cn(
-                      "w-full px-4 py-2.5 text-left text-lg font-medium transition-colors text-white",
+                      "w-full px-4 py-2.5 text-left text-lg font-medium transition-colors",
+                      isDarkMode ? "text-white" : "text-black",
                       y === year
-                        ? "bg-[rgba(0,0,0,0.49)]"
-                        : "hover:bg-black/20"
+                        ? (isDarkMode ? "bg-[rgba(0,0,0,0.49)]" : "bg-[#5260FE] text-white")
+                        : (isDarkMode ? "hover:bg-black/20" : "hover:bg-[#F7F8FA]")
                     )}
                   >
                     {y}
@@ -200,11 +222,6 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
                 ))}
               </div>
             </ScrollArea>
-            
-            {/* Custom scrollbar indicator */}
-            <div className="absolute right-1 top-[52px] bottom-2 w-1 bg-black/30 rounded-full">
-              <div className="w-full h-[60px] bg-blue-500 rounded-full" />
-            </div>
           </div>
         )}
 
@@ -213,7 +230,10 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
           {DAYS.map((day) => (
             <div
               key={day}
-              className="h-8 flex items-center justify-center text-white/60 text-xs font-medium"
+              className={cn(
+                "h-8 flex items-center justify-center text-xs font-semibold font-sans",
+                isDarkMode ? "text-white/60" : "text-black/40"
+              )}
             >
               {day}
             </div>
@@ -229,13 +249,14 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
                   onClick={() => handleDayClick(day)}
                   disabled={isDisabledDate(day)}
                   className={cn(
-                    "w-10 h-10 rounded-[10px] flex items-center justify-center text-base font-medium transition-all",
+                    "w-10 h-10 rounded-[10px] flex items-center justify-center text-base font-semibold transition-all font-sans",
                     isDisabledDate(day)
-                      ? "text-white/30 cursor-not-allowed"
-                      : "text-white",
-                    !isSelected(day) && !isDisabledDate(day) && "hover:bg-white/10 active:scale-95"
+                      ? (isDarkMode ? "text-white/30" : "text-black/20")
+                      : (isDarkMode ? "text-white" : "text-black"),
+                    !isSelected(day) && !isDisabledDate(day) && (isDarkMode ? "hover:bg-white/10" : "hover:bg-[#F7F8FA]"),
+                    !isDarkMode && isSelected(day) && "bg-[#5260FE] text-white shadow-[0_4px_12px_rgba(82,96,254,0.3)]"
                   )}
-                  style={isSelected(day) ? {
+                  style={isDarkMode && isSelected(day) ? {
                     backgroundImage: `url(${calendarSelection})`,
                     backgroundSize: "100% 100%",
                     backgroundRepeat: "no-repeat",

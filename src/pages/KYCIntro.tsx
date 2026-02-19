@@ -141,10 +141,12 @@ const KYCIntro = () => {
           <button
             onClick={() => setShowWhyModal(false)}
             className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2"
-            style={{
+            style={isDarkMode ? {
               backgroundImage: `url(${buttonCloseBg})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+            } : {
+              backgroundColor: '#5260FE',
             }}
           >
             <X className="w-4 h-4 text-white" />

@@ -26,7 +26,7 @@ const SecurityDashboard = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
+  const { kycStatus, setKycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
 
   // Get assets via useAsset for theme support
@@ -269,14 +269,20 @@ const SecurityDashboard = () => {
         />
       )}
       {/* Header - Fixed */}
-      <div className="px-5 pt-12 flex items-center justify-center relative z-50 flex-none">
+      <div className="px-5 pt-12 flex items-center justify-between relative z-50 flex-none">
         <button
           onClick={() => navigate(-1)}
-          className={`absolute left-5 w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center backdrop-blur-md`}
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center backdrop-blur-md`}
         >
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>Security & Kyc</h1>
+        <button
+          onClick={() => setKycStatus('incomplete')}
+          className="text-[10px] px-2 py-1 rounded bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 transition-colors uppercase font-bold tracking-wider"
+        >
+          Reset KYC
+        </button>
       </div>
 
       {/* Scrollable Content */}
