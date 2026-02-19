@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, X } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import MpinSheet from "@/components/MpinSheet";
-import bannerComplete from "@/assets/banner-complete.png";
+import { useAsset } from "@/hooks/useAsset";
 import kycBadge from "@/assets/kyc-badge.png";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import popupBg from "@/assets/popup-bg.png";
@@ -13,76 +14,111 @@ import mpinIcon from "@/assets/mpin-icon.png";
 const MpinSettings = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [sheetMode, setSheetMode] = useState<'change' | 'reset'>('change');
+  const bannerAsset = useAsset("security-complete");
 
   useEffect(() => {
     if (location.state?.resetMpin) {
-        setSheetMode('reset');
-        setShowMpinSheet(true);
-        // Clean up state
-        window.history.replaceState({}, document.title);
+      setSheetMode('reset');
+      setShowMpinSheet(true);
+      // Clean up state
+      window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
   return (
     <div
-      className="min-h-screen bg-[#0a0a12] flex flex-col safe-area-top safe-area-bottom font-sans"
+      className="min-h-screen flex flex-col safe-area-top safe-area-bottom font-sans relative"
       style={{
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
       }}
     >
+      {/* Light Mode Status Blob (Top Glow — Purple) */}
+      {!isDarkMode && (
+        <div
+          className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+          style={{
+            backgroundColor: "#5260FE",
+            filter: "blur(60px)",
+            opacity: 0.8,
+            mixBlendMode: "normal"
+          }}
+        />
+      )}
+
       {/* Header */}
-      <div className="px-5 pt-4 flex items-center justify-center relative">
+      <div className="px-5 pt-4 flex items-center justify-center relative z-10">
         <button
           onClick={() => navigate('/security-dashboard')}
-          className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center bg-black/20 backdrop-blur-md absolute left-5"
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
         >
-          <ChevronLeft className="w-5 h-5 text-white" />
+          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
-        {/* Header: Satoshi Medium 22px, White, Centered */}
-        <h1 className="text-white text-[22px] font-medium font-sans text-center">MPIN</h1>
+        {/* Header: Satoshi Medium 22px, Centered */}
+        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans text-center`}>MPIN</h1>
       </div>
 
       {/* Content */}
-      <div className="px-5 flex flex-col">
-        {/* Body Text: Spacing 46px from header, Satoshi Bold 16px, White */}
-        <p className="mt-[46px] text-white text-[16px] font-bold leading-[22px]">
+      <div className="px-5 flex flex-col relative z-10">
+        {/* Body Text: Spacing 46px from header, Satoshi Bold 16px */}
+        <p className={`mt-[46px] ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold leading-[22px]`}>
           For your security, this MPIN will be used to log in, approve payments, and keep the wrong hands out.
         </p>
 
-        {/* Status Card - Spacing added top (arbitrary visual gap based on screenshot, likely ~24px or similar) */}
+        {/* Status Card */}
         <div className="mt-6 flex justify-center">
-            <div
-            className="w-[362px] h-[101px] rounded-xl relative overflow-hidden flex items-center px-5 shrink-0"
-            style={{
-                backgroundImage: `url(${bannerComplete})`,
-                backgroundSize: "100% 100%", // Force fit to container to fix stroke issues
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat"
+          <div
+            className={`w-[362px] h-[101px] rounded-xl relative overflow-hidden flex items-center px-5 shrink-0 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+            style={isDarkMode ? {
+              backgroundImage: `url(${bannerAsset})`,
+              backgroundSize: "100% 100%",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat"
+            } : {
+              backgroundColor: 'rgba(28, 185, 86, 0.1)',
+              borderColor: '#1CB956',
             }}
-            >
+          >
             <div className="flex flex-col w-full gap-1">
-                <div className="flex items-center justify-between w-full">
+              <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
+                  {!isDarkMode ? (
+                    <div
+                      className="w-6 h-6"
+                      style={{
+                        backgroundColor: "#1CB956",
+                        WebkitMaskImage: `url(${kycBadge})`,
+                        maskImage: `url(${kycBadge})`,
+                        WebkitMaskSize: 'contain',
+                        maskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskRepeat: 'no-repeat',
+                      }}
+                    />
+                  ) : (
                     <img src={kycBadge} alt="Secure" className="w-6 h-6 object-contain" />
-                    <span className="text-white text-[18px] font-medium">MPIN Set</span>
+                  )}
+                  <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium`}>MPIN Set</span>
                 </div>
-                </div>
-                <p className="text-[#7E7E7E] text-[13px] font-normal leading-tight mt-1">
-                Your MPIN’s set. Want to update it? Tap ‘Change MPIN’ below.
-                </p>
+              </div>
+              <p className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal leading-tight mt-1`}>
+                Your MPIN's set. Want to update it? Tap 'Change MPIN' below.
+              </p>
             </div>
-            </div>
+          </div>
         </div>
       </div>
 
       {/* Bottom CTA */}
-      <div className="mt-auto px-5 pb-10">
+      <div className="mt-auto px-5 pb-10 relative z-10">
         <Button
           onClick={() => {
             setSheetMode('change');
@@ -118,50 +154,48 @@ const MpinSettings = () => {
           {/* Popup Box */}
           <div
             className="relative rounded-[20px] p-6 max-w-[320px] w-full z-10 min-h-[220px] flex flex-col items-center justify-center gap-4"
-            style={{
+            style={isDarkMode ? {
               backgroundImage: `url(${popupBg})`,
               backgroundSize: '100% 100%',
               backgroundPosition: 'center',
+            } : {
+              backgroundColor: '#FFFFFF',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
             }}
           >
-             {/* Icon */}
-             <div className="w-[48px] h-[48px] flex items-center justify-center">
-                 <img src={mpinIcon} alt="Locked" className="w-full h-full object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
-                 {/* Note: mpin-icon.png might be colored or dark.
-                     The screenshot shows a white outline lock.
-                     If mpin-icon.png is the purple icon from the menu,
-                     I might need to use a different icon or filter it.
-                     However, user explicitly asked to use mpin-icon.png.
-                     I will try without filter first if it looks right, or inverted if it's black.
-                     Actually the screenshot shows a simple white line icon.
-                     The menu icon is usually colored.
-                     Let's check the asset.
-                     For now I will assume user knows best and use it as is.
-                     If it looks wrong in verification I will fix.
-                  */}
-             </div>
+            {/* Icon */}
+            <div className="w-[48px] h-[48px] flex items-center justify-center">
+              <img
+                src={mpinIcon}
+                alt="Locked"
+                className="w-full h-full object-contain"
+                style={{ filter: isDarkMode ? 'brightness(0) invert(1)' : 'brightness(0)' }}
+              />
+            </div>
 
-             {/* Header */}
-             <h2 className="text-white text-[18px] font-medium font-sans text-center">
-                MPIN Updated!
-             </h2>
+            {/* Header */}
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium font-sans text-center`}>
+              MPIN Updated!
+            </h2>
 
-             {/* Body Pill */}
-             <div className="bg-[#090909] rounded-xl px-4 py-3 w-full">
-                <p className="text-white text-[14px] font-normal leading-snug text-center">
-                  All set. Just don’t write it on a sticky note. Or worse—use 1234 again.
-                </p>
-             </div>
+            {/* Body Pill */}
+            <div className={`${isDarkMode ? 'bg-[#090909]' : 'bg-white border border-[#E9EAEB]'} rounded-xl px-4 py-3 w-full`}>
+              <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal leading-snug text-left`}>
+                All set. Just don't write it on a sticky note. Or worse—use 1234 again.
+              </p>
+            </div>
           </div>
 
           {/* Close Button */}
           <button
             onClick={() => setShowSuccessPopup(false)}
             className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 w-[160px]"
-            style={{
+            style={isDarkMode ? {
               backgroundImage: `url(${buttonCloseBg})`,
               backgroundSize: '100% 100%',
               backgroundPosition: 'center',
+            } : {
+              backgroundColor: '#5260FE',
             }}
           >
             <X className="w-4 h-4 text-white" />

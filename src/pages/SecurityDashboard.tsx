@@ -271,7 +271,7 @@ const SecurityDashboard = () => {
       {/* Header - Fixed */}
       <div className="px-5 pt-12 flex items-center justify-between relative z-50 flex-none">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/settings')}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center backdrop-blur-md`}
         >
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />

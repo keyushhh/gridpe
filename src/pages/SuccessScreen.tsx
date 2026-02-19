@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import successBg from "@/assets/success-bg.png";
-import checkIcon from "@/assets/check-icon.png";
+import checkIconSvg from "@/assets/check-icon.svg";
+import checkIconLight from "@/assets/check-icon-light.svg";
 import buttonPrimaryWide from "@/assets/button-primary-wide.png";
 
 const SuccessScreen = () => {
@@ -38,7 +39,7 @@ const SuccessScreen = () => {
 
   return (
     <div
-      className="h-full w-full flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom px-6"
+      className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${successBg})` : "none",
@@ -46,12 +47,12 @@ const SuccessScreen = () => {
         backgroundPosition: "center",
       }}
     >
-      {/* Light Mode Status Blob (Top Glow) */}
+      {/* Light Mode Status Blob (Top Glow — Green) */}
       {!isDarkMode && (
         <div
           className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
           style={{
-            backgroundColor: "#5260FE",
+            backgroundColor: "#0C7E4B",
             filter: "blur(60px)",
             opacity: 0.8,
             mixBlendMode: "normal"
@@ -59,41 +60,45 @@ const SuccessScreen = () => {
         />
       )}
 
-      {/* Header */}
-      <div className="w-full pt-6 flex justify-center relative">
-        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>KYC</h1>
+      {/* Header — "KYC" */}
+      <div className="w-full pt-12 flex justify-center relative z-10">
+        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans`}>KYC</h1>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center mb-10 relative">
-        {/* Icon */}
-        <div className="mb-0">
-          <img
-            src={checkIcon}
-            alt="Success"
-            className={`w-[130px] h-[130px] object-contain ${!isDarkMode ? 'filter drop-shadow-[0_0_20px_rgba(82,96,254,0.3)]' : ''}`}
-          />
-        </div>
-
-        {/* Title */}
-        <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-bold text-center leading-tight mb-4 font-sans`}>
-          Your KYC details has been submitted successfully!
-        </h2>
-
-        {/* Subtitle */}
-        <p className={`${isDarkMode ? 'text-white/80' : 'text-black/60'} text-[14px] text-center leading-relaxed max-w-[320px] font-sans`}>
-          We’ve received your KYC details. Verification typically takes under 30 minutes.
-        </p>
+      {/* Check Icon — 22px below header */}
+      <div className="mt-[22px]">
+        <img
+          src={isDarkMode ? checkIconSvg : checkIconLight}
+          alt="Success"
+          className="w-[62px] h-[62px] object-contain"
+        />
       </div>
 
-      {/* Bottom Section */}
-      <div className="w-full pb-10 flex flex-col items-center gap-4 relative">
-        {/* Countdown Button */}
+      {/* Sub-heading — 35px below check icon */}
+      <h2
+        className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold text-center leading-tight font-sans mt-[35px]`}
+        style={{ width: '310px' }}
+      >
+        Your KYC details has been submitted successfully!
+      </h2>
+
+      {/* Body text — 14px below sub-heading */}
+      <p
+        className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[16px] font-normal text-center leading-relaxed font-sans mt-[14px]`}
+        style={{ maxWidth: '320px' }}
+      >
+        We've received your KYC details. Verification typically takes under 30 minutes.
+      </p>
+
+      {/* CTA — 210px below body text */}
+      <div className="mt-[210px] flex flex-col items-center">
         <button
           onClick={() => navigate(isFxFlow ? "/fx-exchange" : "/home")}
-          className={`flex items-center justify-center ${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px] font-semibold transition-transform active:scale-95 rounded-full`}
+          className={`flex items-center justify-center text-[14px] font-semibold transition-transform active:scale-95 rounded-full font-sans`}
           style={{
             backgroundImage: isDarkMode ? `url(${buttonPrimaryWide})` : 'none',
-            backgroundColor: isDarkMode ? 'transparent' : '#5260FE',
+            backgroundColor: isDarkMode ? 'transparent' : '#000000',
+            color: isDarkMode ? undefined : '#FFFFFF',
             backgroundSize: '100% 100%',
             backgroundPosition: 'center',
             width: '362px',
@@ -103,16 +108,16 @@ const SuccessScreen = () => {
           {isFxFlow ? "Go to FX Exchange" : `Redirecting Home in ${countdown}s...`}
         </button>
 
-        {/* Disclaimer 1 */}
-        <p className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] text-center font-sans`}>
-          (Because refreshing the screen won’t make it go faster.)
+        {/* Disclaimer — 12px below CTA */}
+        <p className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] text-center font-sans mt-[12px]`}>
+          (Because refreshing the screen won't make it go faster.)
         </p>
+      </div>
 
-        <div className="h-8" /> {/* Spacer */}
-
-        {/* Footer Text */}
-        <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[13px] text-center leading-snug px-4 font-sans`}>
-          If accepted, you’ll officially be one of us. If rejected... it’s probably your lighting.
+      {/* Footer Text — pushed to bottom */}
+      <div className="mt-auto pb-10 px-4">
+        <p className={`${isDarkMode ? 'text-white' : 'text-black/60'} text-[13px] text-center leading-snug font-sans`}>
+          If accepted, you'll officially be one of us. If rejected... it's probably your lighting.
         </p>
       </div>
     </div>

@@ -1,65 +1,97 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useAsset } from "@/hooks/useAsset";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
-import bannerComplete from "@/assets/banner-complete.png";
 import kycBadge from "@/assets/kyc-badge.png";
 import { Button } from "@/components/ui/button";
 
 const KYCStatusComplete = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
+  const bannerAsset = useAsset("security-complete");
 
   const handleGoBack = () => {
-    navigate(-1);
-  };
-
-  // Reused banner styles
-  const commonClasses = "w-full h-[80px] rounded-xl flex items-center justify-between px-4 relative overflow-hidden pt-[17px] pl-[17px] pb-[15px]";
-  const bgStyle = {
-    backgroundImage: `url(${bannerComplete})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
+    navigate("/security-dashboard");
   };
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
+      className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
       style={{
-        backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
       }}
     >
+      {/* Light Mode Status Blob (Top Glow — Green for success) */}
+      {!isDarkMode && (
+        <div
+          className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+          style={{
+            backgroundColor: "#0C7E4B",
+            filter: "blur(60px)",
+            opacity: 0.8,
+            mixBlendMode: "normal"
+          }}
+        />
+      )}
+
       {/* Header */}
-      <div className="px-5 pt-12 flex items-center relative z-50 mb-8">
+      <div className="px-5 pt-12 flex items-center relative z-10 mb-8">
         <button
           onClick={handleGoBack}
-          className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center bg-black/20 backdrop-blur-md absolute left-5"
+          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
         >
-          <ChevronLeft className="w-5 h-5 text-white" />
+          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
-        <h1 className="text-white text-[18px] font-semibold font-sans w-full text-center">KYC</h1>
+        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans w-full text-center`}>KYC</h1>
       </div>
 
       {/* Content Container */}
       <div className="px-5 flex-1">
-        {/* Banner */}
-        <div className={commonClasses} style={bgStyle}>
+        {/* Banner — same as SecurityDashboard "Looks Good!" banner */}
+        <div
+          className={`w-full h-[80px] rounded-xl flex items-center justify-between px-4 relative overflow-hidden pt-[17px] pl-[17px] pb-[15px] ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+          style={{
+            backgroundImage: `url(${bannerAsset})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF',
+          }}
+        >
           <div className="flex flex-col justify-center w-full h-full">
             <div className="flex items-center gap-2">
-              <img src={kycBadge} className="w-[24px] h-[24px] object-contain" alt="Badge" />
-              <span className="text-white text-[18px] font-medium font-sans">Looks Good!</span>
+              {!isDarkMode ? (
+                <div
+                  className="w-[24px] h-[24px]"
+                  style={{
+                    backgroundColor: "#1CB956",
+                    WebkitMaskImage: `url(${kycBadge})`,
+                    maskImage: `url(${kycBadge})`,
+                    WebkitMaskSize: 'contain',
+                    maskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                  }}
+                />
+              ) : (
+                <img src={kycBadge} className="w-[24px] h-[24px] object-contain" alt="Badge" />
+              )}
+              <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium font-sans`}>Looks Good!</span>
             </div>
-            <span className="text-[#7E7E7E] text-[13px] font-normal font-sans mt-[2px]">Your KYC status looks good and completed.</span>
+            <span className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal font-sans mt-[2px]`}>Your KYC status looks good and completed.</span>
           </div>
         </div>
 
         {/* Sub-text */}
         <div className="mt-4">
-          <p className="text-white text-[14px] font-normal font-sans leading-snug">
-            There’s nothing to be done here anymore, you’re good to continue! If anything seems sus, we’ll let you know!
+          <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans leading-snug`}>
+            There's nothing to be done here anymore, you're good to continue! If anything seems sus, we'll let you know!
           </p>
         </div>
       </div>
