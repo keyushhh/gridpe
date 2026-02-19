@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Map, { ViewState, ViewStateChangeEvent, MapRef } from "react-map-gl/maplibre";
+import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Search } from "lucide-react";
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -19,6 +20,8 @@ import distanceCallout from "@/assets/distance-callout.svg";
 
 const AddAddress = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const { showToaster } = useCustomToaster();
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState<ViewState>({
@@ -343,7 +346,7 @@ const AddAddress = () => {
   }, []);
 
   return (
-    <div className="h-full w-full relative bg-black text-white overflow-hidden">
+    <div className={`h-full w-full relative ${isDarkMode ? 'bg-black text-white' : 'bg-white text-black'} overflow-hidden`}>
       {/* Map */}
       <Map
         ref={mapRef}
@@ -352,7 +355,11 @@ const AddAddress = () => {
         onMove={handleMove}
         onMoveEnd={handleMoveEnd}
         style={{ width: "100%", height: "100%" }}
-        mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+        // Use carto positron for light mode
+        mapStyle={isDarkMode
+          ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+          : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        }
         attributionControl={false}
       />
 
@@ -361,12 +368,13 @@ const AddAddress = () => {
         className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
       >
         <div
-          className="rounded-b-[32px] overflow-hidden pointer-events-auto"
+          className="rounded-b-[32px] overflow-hidden pointer-events-auto transition-colors duration-300"
           style={{
-            backgroundColor: "rgba(7, 7, 7, 0.81)", // #070707 at 81%
+            backgroundColor: isDarkMode ? "rgba(7, 7, 7, 0.81)" : "rgba(255, 255, 255, 0.8)",
             backdropFilter: "blur(25px)",
             WebkitBackdropFilter: "blur(25px)",
-            paddingBottom: "24px"
+            paddingBottom: "24px",
+            borderBottom: isDarkMode ? 'none' : '1px solid rgba(0,0,0,0.05)'
           }}
         >
           <div className="pt-[24px] px-5">
@@ -374,11 +382,11 @@ const AddAddress = () => {
             <div className="flex items-center">
               <button
                 onClick={() => navigate(-1)}
-                className="w-10 h-10 flex items-center justify-center mr-2"
+                className="w-10 h-10 flex items-center justify-center mr-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
-                <ChevronLeft className="w-6 h-6 text-white" />
+                <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
               </button>
-              <h1 className="flex-1 text-center text-lg font-medium pr-10">Add New Address</h1>
+              <h1 className={`flex-1 text-center text-lg font-medium pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>Add New Address</h1>
             </div>
           </div>
         </div>
@@ -386,25 +394,25 @@ const AddAddress = () => {
         {/* Search Bar - 18px below the container */}
         <div className="flex justify-center mt-[18px] pointer-events-auto relative" style={{ zIndex: 60 }}>
           <div
-            className="flex items-center px-4"
+            className="flex items-center px-4 shadow-sm"
             style={{
               width: "363px",
               height: "44px",
               borderRadius: "9999px",
-              background: "rgba(255, 255, 255, 0.1)", // Glass effect base
+              background: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "#FFFFFF",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)"
+              border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid #E6E8EB"
             }}
           >
-            <Search className="w-5 h-5 text-white mr-3" />
+            <Search className={`w-5 h-5 mr-3 ${isDarkMode ? 'text-white' : 'text-[#666666]'}`} />
             <input
               type="text"
               placeholder="“near the tree” doesn’t help anyone"
               value={searchQuery}
               onChange={handleSearchInput}
               onKeyDown={handleSearch}
-              className="bg-transparent border-none outline-none flex-1 text-[14px] text-white placeholder-white font-normal font-sans"
+              className={`bg-transparent border-none outline-none flex-1 text-[14px] ${isDarkMode ? 'text-white placeholder-white' : 'text-black placeholder-[#666666]'} font-normal font-sans`}
               style={{ fontFamily: 'Satoshi, sans-serif' }}
             />
           </div>
@@ -412,17 +420,17 @@ const AddAddress = () => {
           {/* Dropdown Results */}
           {showDropdown && searchResults.length > 0 && (
             <div
-              className="absolute top-[52px] w-[363px] bg-[#1A1A1A]/95 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden max-h-[300px] overflow-y-auto"
+              className={`absolute top-[52px] w-[363px] backdrop-blur-md border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto shadow-xl ${isDarkMode ? 'bg-[#1A1A1A]/95 border-white/10' : 'bg-white/95 border-black/5'}`}
               style={{ zIndex: 50 }}
             >
               {searchResults.map((result, idx) => (
                 <div
                   key={idx}
                   onClick={() => handleSelectResult(result)}
-                  className="px-4 py-3 border-b border-white/5 hover:bg-white/10 cursor-pointer flex items-center"
+                  className={`px-4 py-3 border-b cursor-pointer flex items-center ${isDarkMode ? 'border-white/5 hover:bg-white/10' : 'border-black/5 hover:bg-black/5'}`}
                 >
-                  <img src={locationPinIcon} alt="Pin" className="w-3 h-3 mr-3 opacity-70" />
-                  <span className="text-sm text-white font-satoshi truncate">
+                  <img src={locationPinIcon} alt="Pin" className="w-3 h-3 mr-3 opacity-70" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                  <span className={`text-sm font-satoshi truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {result.display_name}
                   </span>
                 </div>
@@ -436,6 +444,7 @@ const AddAddress = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
         <div className="relative z-0 -mt-10">
           <img src={mapPinIcon} alt="Pin" className="w-[46px] h-[58px]" />
+          {/* Light mode pulse effect could be added here if needed */}
         </div>
       </div>
 
@@ -447,24 +456,28 @@ const AddAddress = () => {
         <div className="flex items-center pointer-events-auto">
           {/* Helper Pill */}
           <div
-            className="flex items-center justify-center"
+            className="flex items-center justify-center shadow-lg"
             style={{
               width: "302px",
               height: "40px",
               borderRadius: "9999px",
-              backgroundColor: "rgba(0,0,0,0.6)",
+              backgroundColor: isDarkMode ? "rgba(0,0,0,0.6)" : "#EAEBFF", // Light Purple in Light Mode
               backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.1)"
+              border: isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(82, 96, 254, 0.1)"
             }}
           >
+            {/* Can swap icon color or use filter */}
             <img
               src={locationPinIcon}
               alt="Snap"
               className="w-4 h-4 mr-2 cursor-pointer hover:scale-110 transition-transform"
               onClick={handleSnapToGrid}
               data-testid="helper-pin-icon"
+              style={!isDarkMode ? { filter: 'invert(1)' } : undefined} // Make it black? Or keep white? Reference shows dark icon maybe
             />
-            <span className="text-white font-medium text-[14px]" style={{ fontFamily: 'Satoshi, sans-serif' }}>
+            {/* If icon is white svg, invert for dark text. Assuming icon is white. */}
+
+            <span className={`font-medium text-[14px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`} style={{ fontFamily: 'Satoshi, sans-serif' }}>
               Drag the pin to set your location
             </span>
           </div>
@@ -474,13 +487,13 @@ const AddAddress = () => {
           {/* Navigation Button */}
           <button
             onClick={fetchUserLocation}
-            className="w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden"
+            className="w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden shadow-lg"
             style={{
-              backgroundColor: "#1A1A1A",
-              border: "1px solid rgba(255,255,255,0.1)"
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              border: isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid #E6E8EB"
             }}
           >
-            <img src={navigationIcon} alt="Nav" className="w-[18px] h-[18px] object-cover" />
+            <img src={navigationIcon} alt="Nav" className="w-[18px] h-[18px] object-cover" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
           </button>
         </div>
       </div>
@@ -488,153 +501,164 @@ const AddAddress = () => {
       {/* Bottom Sheet */}
       <div
         ref={bottomSheetRef}
-        className="absolute bottom-0 left-0 right-0 bg-black rounded-t-[32px] p-6 pb-10 safe-area-bottom z-20 border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
+        className={`absolute bottom-0 left-0 right-0 rounded-t-[32px] pt-0 pb-10 safe-area-bottom z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] ${isDarkMode ? 'bg-black border-t border-white/10' : 'bg-white'}`}
       >
-        <h3 className="text-white text-base font-semibold mb-4">Order will be delivered here</h3>
-
-        {/* Address Container */}
+        {/* Light Mode: Header Strip "Order will be delivered here" */}
         <div
-          className="flex items-start mb-[14px]"
-          style={{
-            backgroundColor: "#000000",
-            border: "1px solid rgba(82, 96, 254, 0.21)",
-            borderRadius: "12px",
-            paddingTop: "12px",
-            paddingBottom: "12px",
-            paddingLeft: "14px",
-            paddingRight: "14px"
-          }}
+          className={`w-full py-4 px-6 rounded-t-[32px] mb-4 flex items-center ${isDarkMode ? 'bg-transparent' : 'bg-[#F3F4FF]'}`}
         >
-          <img src={locationPinIcon} alt="Loc" className="w-5 h-5 mt-1 shrink-0 mr-3" />
-
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-[6px]">
-              {isDragging || isLoading ? (
-                <Skeleton className="h-6 w-3/4 bg-gray-800" />
-              ) : (
-                <>
-                  <h4 className="text-white font-bold text-[16px]" style={{ fontFamily: 'Satoshi, sans-serif' }}>
-                    {addressTitle}
-                  </h4>
-                  {plusCode && (
-                    <div
-                      onClick={copyPlusCode}
-                      className="flex items-center gap-1.5 px-3 cursor-pointer hover:bg-white/5 transition-colors"
-                      style={{
-                        height: "22px",
-                        backgroundColor: "rgba(7, 7, 7, 0.85)", // #070707 at 85% opacity
-                        borderRadius: "9999px", // 100% pill shaped
-                        border: "1px solid rgba(255, 255, 255, 0.12)", // #FFFFFF at 12% opacity
-                        display: "inline-flex",
-                        alignItems: "center"
-                      }}
-                      title="Click to copy Plus Code"
-                    >
-                      <span
-                        data-testid="plus-code"
-                        className="text-[#5260FE] font-bold text-xs"
-                        style={{ fontFamily: 'Satoshi, sans-serif' }}
-                      >
-                        {plusCode}
-                      </span>
-                      <img src={copyIcon} alt="Copy" className="w-3 h-3" />
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {isDragging || isLoading ? (
-              <Skeleton className="h-4 w-full bg-gray-800 mt-2" />
-            ) : (
-              <p className="text-gray-400 text-sm leading-relaxed">
-                {addressLine || "Fetching details..."}
-              </p>
-            )}
-          </div>
+          <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>Order will be delivered here</h3>
         </div>
 
-        {/* Distance Callout */}
-        {!isDragging && !isLoading && distanceInMeters !== null && distanceInMeters > 200 && (
-          <div className="relative w-full flex justify-center -mt-2 mb-4 z-0">
-            <div
-              className="w-full flex items-center justify-center relative"
-              style={{
-                height: "59px",
-                paddingTop: "10px"
-              }}
-            >
-              <img
-                src={distanceCallout}
-                alt=""
-                className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-              />
-              <span
-                className="text-center font-medium text-[14px] relative z-10"
-                style={{
-                  fontFamily: 'Satoshi, sans-serif',
-                  color: "#FACC15",
-                }}
-              >
-                This is {distanceInMeters < 1000
-                  ? `${Math.round(distanceInMeters)}m`
-                  : `${(distanceInMeters / 1000).toFixed(1)}km`} away from your current location.
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* CTA or Warning */}
-        {viewState.zoom < 16 ? (
+        <div className="px-6">
+          {/* Address Container */}
           <div
-            className="w-full flex items-center justify-center text-white font-medium text-[14px]"
+            className="flex items-start mb-[14px]"
             style={{
-              marginTop: "0px",
-              height: "45px",
-              backgroundColor: "rgba(255, 0, 0, 0.15)",
-              border: "1px solid rgba(255, 0, 0, 0.22)",
+              backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
+              border: isDarkMode ? "1px solid rgba(82, 96, 254, 0.21)" : "1px solid #E6E8EB",
               borderRadius: "12px",
-              fontFamily: 'Satoshi, sans-serif'
+              paddingTop: "16px",
+              paddingBottom: "16px",
+              paddingLeft: "16px",
+              paddingRight: "16px",
+              boxShadow: !isDarkMode ? "0px 4px 12px rgba(0, 0, 0, 0.05)" : "none"
             }}
           >
-            Zoom in to place the pin at exact delivery location
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 ${isDarkMode ? 'bg-white/10' : 'bg-[#F0F2FF]'}`}>
+              <img src={locationPinIcon} alt="Loc" className="w-4 h-4" style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined} /> {/* Tinting to #5260FE approx */}
+            </div>
+
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-[6px]">
+                {isDragging || isLoading ? (
+                  <Skeleton className={`h-6 w-3/4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+                ) : (
+                  <>
+                    <h4 className={`font-bold text-[16px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`} style={{ fontFamily: 'Satoshi, sans-serif' }}>
+                      {addressTitle}
+                    </h4>
+                    {plusCode && (
+                      <div
+                        onClick={copyPlusCode}
+                        className="flex items-center gap-1.5 px-3 cursor-pointer hover:opacity-80 transition-opacity"
+                        style={{
+                          height: "22px",
+                          backgroundColor: isDarkMode ? "rgba(7, 7, 7, 0.85)" : "#F0F2FF",
+                          borderRadius: "9999px",
+                          border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(82, 96, 254, 0.1)",
+                          display: "inline-flex",
+                          alignItems: "center"
+                        }}
+                        title="Click to copy Plus Code"
+                      >
+                        <span
+                          data-testid="plus-code"
+                          className="text-[#5260FE] font-bold text-xs"
+                          style={{ fontFamily: 'Satoshi, sans-serif' }}
+                        >
+                          {plusCode}
+                        </span>
+                        <img src={copyIcon} alt="Copy" className="w-3 h-3" style={!isDarkMode ? { filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' } : undefined} />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {isDragging || isLoading ? (
+                <Skeleton className={`h-4 w-full mt-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+              ) : (
+                <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-[#666666]'}`}>
+                  {addressLine || "Fetching details..."}
+                </p>
+              )}
+            </div>
           </div>
-        ) : (
-          <div style={{ marginTop: "24px", opacity: isDragging || isLoading ? 0 : 1, transition: 'opacity 0.2s', visibility: isDragging || isLoading ? 'hidden' : 'visible' }}>
-            <Button
-              variant="gradient"
-              onClick={() => {
-                const addr = currentAddressComponents || {};
 
-                // Extract details safely - Prioritize City > Town > Village > County > State District
-                const city = addr.city || addr.town || addr.village || addr.county || addr.state_district || "Bangalore";
-                const state = addr.state || "Karnataka";
-                const postcode = addr.postcode || "560001";
-                const road = addr.road || "";
-                const houseNumber = addr.house_number || "";
+          {/* Distance Callout */}
+          {!isDragging && !isLoading && distanceInMeters !== null && distanceInMeters > 200 && (
+            <div className="relative w-full flex justify-center -mt-2 mb-4 z-0">
+              <div
+                className="w-full flex items-center justify-center relative"
+                style={{
+                  height: "59px",
+                  paddingTop: "10px"
+                }}
+              >
+                <img
+                  src={distanceCallout}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+                />
+                <span
+                  className="text-center font-medium text-[14px] relative z-10"
+                  style={{
+                    fontFamily: 'Satoshi, sans-serif',
+                    color: "#FACC15",
+                  }}
+                >
+                  This is {distanceInMeters < 1000
+                    ? `${Math.round(distanceInMeters)}m`
+                    : `${(distanceInMeters / 1000).toFixed(1)}km`} away from your current location.
+                </span>
+              </div>
+            </div>
+          )}
 
-                navigate('/add-address-details', {
-                  state: {
-                    addressTitle: addressTitle,
-                    addressLine: addressLine,
-                    plusCode: plusCode,
-                    lat: viewState.latitude,
-                    lng: viewState.longitude,
-                    city,
-                    state,
-                    postcode,
-                    houseNumber,
-                    road,
-                    area: addr.suburb || addr.neighbourhood || ""
-                  }
-                });
+          {/* CTA or Warning */}
+          {viewState.zoom < 16 ? (
+            <div
+              className={`w-full flex items-center justify-center font-medium text-[14px] ${isDarkMode ? 'text-white' : 'text-[#FA1515]'}`}
+              style={{
+                marginTop: "0px",
+                height: "45px",
+                backgroundColor: isDarkMode ? "rgba(255, 0, 0, 0.15)" : "#FFF5F5",
+                border: isDarkMode ? "1px solid rgba(255, 0, 0, 0.22)" : "1px solid #FFEBEB",
+                borderRadius: "12px",
+                fontFamily: 'Satoshi, sans-serif'
               }}
-              className="w-full rounded-full"
             >
-              Confirm Location
-            </Button>
-          </div>
-        )}
+              Zoom in to place the pin at exact delivery location
+            </div>
+          ) : (
+            <div style={{ marginTop: "24px", opacity: isDragging || isLoading ? 0 : 1, transition: 'opacity 0.2s', visibility: isDragging || isLoading ? 'hidden' : 'visible' }}>
+              <Button
+                variant="gradient"
+                onClick={() => {
+                  const addr = currentAddressComponents || {};
+
+                  // Extract details safely - Prioritize City > Town > Village > County > State District
+                  const city = addr.city || addr.town || addr.village || addr.county || addr.state_district || "Bangalore";
+                  const state = addr.state || "Karnataka";
+                  const postcode = addr.postcode || "560001";
+                  const road = addr.road || "";
+                  const houseNumber = addr.house_number || "";
+
+                  navigate('/add-address-details', {
+                    state: {
+                      addressTitle: addressTitle,
+                      addressLine: addressLine,
+                      plusCode: plusCode,
+                      lat: viewState.latitude,
+                      lng: viewState.longitude,
+                      city,
+                      state,
+                      postcode,
+                      houseNumber,
+                      road,
+                      area: addr.suburb || addr.neighbourhood || ""
+                    }
+                  });
+                }}
+                className={`w-full rounded-full ${!isDarkMode ? 'bg-[#5260FE] text-white hover:bg-[#4150EE]' : ''}`}
+                style={!isDarkMode ? { backgroundImage: 'none', backgroundColor: '#5260FE' } : undefined}
+              >
+                Confirm Location
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
