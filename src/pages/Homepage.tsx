@@ -38,6 +38,7 @@ import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import OrderDetailsSheet from "@/components/OrderDetailsSheet";
 import { useUser } from "@/contexts/UserContext";
 import { cancelOrder } from "@/lib/orders";
+import { useTheme } from "next-themes";
 
 // Tag Icons
 import homeIcon from "@/assets/HomeTag.svg";
@@ -70,6 +71,8 @@ const Homepage = () => {
   const circleButtonBg = useAsset("circle-button-bg");
   const bannerBg = useAsset("banner-bg");
   const { walletBalance, walletTier, isPassportVerified } = useUser();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   const [showBalance, setShowBalance] = useState(false);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
@@ -414,7 +417,7 @@ const Homepage = () => {
 
   return (
     <div
-      className="absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain bg-[#0a0a12] scrollbar-hide"
+      className="absolute inset-0 flex flex-col overflow-hidden bg-[#0a0a12]"
       style={{
         backgroundImage: `url(${mainBg})`,
         backgroundSize: "cover",
@@ -422,123 +425,87 @@ const Homepage = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Fixed Top Section (Header, Balance, Actions, Banner) */}
-      <div className="shrink-0 flex flex-col safe-area-top z-10">
+      <div className="flex-1 w-full overflow-y-auto overscroll-y-contain scrollbar-hide flex flex-col">
+        {/* Fixed Top Section (Header, Balance, Actions, Banner) */}
+        <div className="shrink-0 flex flex-col safe-area-top z-10">
 
-        {/* Header */}
-        <div className="px-5 pt-12 flex items-start justify-between">
-          <div className="space-y-1 max-w-[70%]">
-            {savedAddress ? (
-              <div className="flex items-center gap-1">
-                <img
-                  src={getTagIcon(savedAddress.tag)}
-                  alt={savedAddress.tag}
-                  className="w-3 h-3"
-                  style={{ filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' }}
-                />
-                <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
-                  {savedAddress.tag}
-                </p>
-              </div>
-            ) : (
-              <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider">DELIVERING</p>
-            )}
+          {/* Header */}
+          <div className="px-5 pt-12 flex items-start justify-between">
+            <div className="space-y-1 max-w-[70%]">
+              {savedAddress ? (
+                <div className="flex items-center gap-1">
+                  <img
+                    src={getTagIcon(savedAddress.tag)}
+                    alt={savedAddress.tag}
+                    className="w-3 h-3"
+                    style={{ filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' }}
+                  />
+                  <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
+                    {savedAddress.tag}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider">DELIVERING</p>
+              )}
 
+              <button
+                onClick={() => {
+                  if (hasSavedAddresses) {
+                    setIsAddressSheetOpen(true);
+                  } else {
+                    navigate('/add-address');
+                  }
+                }}
+                className="flex items-center gap-1 text-foreground text-[14px] font-normal w-full"
+              >
+                <span className="truncate block text-black dark:text-foreground">
+                  {getAddressDisplay()}
+                </span>
+                <ChevronDown className="w-4 h-4 shrink-0 text-black dark:text-foreground" />
+              </button>
+            </div>
+            <button onClick={() => navigate('/settings')}>
+              <img src={avatarImg} alt="Profile" className="w-12 h-12 rounded-full" />
+            </button>
+          </div>
+
+          {/* Address Selection Sheet */}
+          <AddressSelectionSheet
+            isOpen={isAddressSheetOpen}
+            onClose={() => setIsAddressSheetOpen(false)}
+            onAddressSelect={handleAddressSelect}
+            onModalStateChange={setIsAddressModalOpen}
+          />
+
+          <div className="flex flex-col items-center mt-8 space-y-4">
+            <div className="flex items-center gap-2">
+              <p className="text-black dark:text-muted-foreground text-[14px]">Available Balance</p>
+              <button onClick={() => setShowBalance(!showBalance)} className="p-1">
+                {showBalance ? <Eye className="w-5 h-5 text-black dark:text-muted-foreground" /> : <EyeOff className="w-5 h-5 text-black dark:text-muted-foreground" />}
+              </button>
+            </div>
+            <p className="text-foreground text-[32px] font-normal">
+              ₹{showBalance ? walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "******"}
+            </p>
             <button
-              onClick={() => {
-                if (hasSavedAddresses) {
-                  setIsAddressSheetOpen(true);
-                } else {
-                  navigate('/add-address');
-                }
-              }}
-              className="flex items-center gap-1 text-foreground text-[14px] font-normal w-full"
-            >
-              <span className="truncate block text-black dark:text-foreground">
-                {getAddressDisplay()}
-              </span>
-              <ChevronDown className="w-4 h-4 shrink-0 text-black dark:text-foreground" />
-            </button>
-          </div>
-          <button onClick={() => navigate('/settings')}>
-            <img src={avatarImg} alt="Profile" className="w-12 h-12 rounded-full" />
-          </button>
-        </div>
-
-        {/* Address Selection Sheet */}
-        <AddressSelectionSheet
-          isOpen={isAddressSheetOpen}
-          onClose={() => setIsAddressSheetOpen(false)}
-          onAddressSelect={handleAddressSelect}
-          onModalStateChange={setIsAddressModalOpen}
-        />
-
-        <div className="flex flex-col items-center mt-8 space-y-4">
-          <div className="flex items-center gap-2">
-            <p className="text-black dark:text-muted-foreground text-[14px]">Available Balance</p>
-            <button onClick={() => setShowBalance(!showBalance)} className="p-1">
-              {showBalance ? <Eye className="w-5 h-5 text-black dark:text-muted-foreground" /> : <EyeOff className="w-5 h-5 text-black dark:text-muted-foreground" />}
-            </button>
-          </div>
-          <p className="text-foreground text-[32px] font-normal">
-            ₹{showBalance ? walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "******"}
-          </p>
-          <button
-            onClick={() => navigate('/order-cash')}
-            className="flex items-center justify-center gap-2 px-6 py-3 text-foreground text-[14px] font-medium h-12 w-[180px] bg-black dark:bg-transparent rounded-full dark:rounded-none"
-            style={{
-              backgroundImage: orderCashBg ? `url(${orderCashBg})` : 'none',
-              backgroundSize: "100% 100%",
-              backgroundRepeat: "no-repeat",
-            }}
-          >
-            <img src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
-            <span className="text-white dark:text-foreground">Order Cash</span>
-          </button>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex justify-center gap-6 mt-8 px-5">
-          {/* Add Money - Custom Circle Button */}
-          <button
-            onClick={() => navigate('/wallet-add-money')}
-            className="flex flex-col items-center gap-2"
-          >
-            <div
-              className={`flex items-center justify-center w-[52px] h-[52px] ${circleButtonBg ? 'bg-cover' : 'rounded-full'}`}
+              onClick={() => navigate('/order-cash')}
+              className="flex items-center justify-center gap-2 px-6 py-3 text-foreground text-[14px] font-medium h-12 w-[180px] bg-black dark:bg-transparent rounded-full dark:rounded-none"
               style={{
-                backgroundImage: circleButtonBg ? `url(${circleButtonBg})` : 'none',
-                backgroundColor: circleButtonBg ? 'transparent' : 'rgba(82, 96, 254, 0.13)',
+                backgroundImage: orderCashBg ? `url(${orderCashBg})` : 'none',
                 backgroundSize: "100% 100%",
                 backgroundRepeat: "no-repeat",
               }}
             >
-              <img src={iconAddMoney} alt="Add" className="w-[22px] h-[22px]" />
-            </div>
-            <span className="text-foreground text-[12px] font-medium font-satoshi">Add Money</span>
-          </button>
+              <img src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
+              <span className="text-white dark:text-foreground">Order Cash</span>
+            </button>
+          </div>
 
-          {/* Other Actions */}
-          {[{
-            icon: iconWallet,
-            label: "Wallet",
-            action: () => navigate('/wallet')
-          }, {
-            icon: iconFxConvert,
-            label: "FX Convert",
-            action: () => {
-              if (walletTier === 'Starter') {
-                navigate('/fx-intro');
-              } else if (!isPassportVerified) {
-                navigate('/fx-passport-gate');
-              } else {
-                navigate('/fx-exchange');
-              }
-            }
-          }].map(action => (
+          {/* Quick Actions */}
+          <div className="flex justify-center gap-6 mt-8 px-5">
+            {/* Add Money - Custom Circle Button */}
             <button
-              key={action.label}
-              onClick={action.action}
+              onClick={() => navigate('/wallet-add-money')}
               className="flex flex-col items-center gap-2"
             >
               <div
@@ -550,344 +517,384 @@ const Homepage = () => {
                   backgroundRepeat: "no-repeat",
                 }}
               >
-                <img src={action.icon} alt={action.label} className="w-[22px] h-[22px]" />
+                <img src={iconAddMoney} alt="Add" className="w-[22px] h-[22px]" />
               </div>
-              <span className="text-foreground text-[12px] font-medium font-satoshi">{action.label}</span>
+              <span className="text-foreground text-[12px] font-medium font-satoshi">Add Money</span>
             </button>
-          ))}
-        </div>
 
-        {/* Active Order OR Referral Banner */}
-        {activeOrder ? (
-          <div className="mx-5 mt-6 mb-[16px] flex flex-col">
-            {/* Header Row (Top Container) */}
-            <div
-              className="w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px]"
-              style={{
-                backgroundColor: "#000000",
-              }}
-            >
-              <span className="text-white text-[12px] font-medium font-sans whitespace-nowrap mr-2">
-                Delivering to - {activeOrder.addresses?.label || "Home"}
-              </span>
-              <span className="text-white text-[12px] font-medium font-sans text-right leading-tight">
-                {getActiveOrderAddressDisplay()}
-              </span>
-            </div>
-
-            {/* Status & Map Container (Bottom Container) */}
-            <div
-              className="w-full rounded-b-[14px] flex cursor-pointer"
-              style={{
-                backgroundColor: "rgba(25, 25, 25, 0.34)",
-                padding: "12px",
-                marginTop: 0
-              }}
-              onClick={() => navigate(`/order-details/${activeOrder.id}`, { state: { order: activeOrder } })}
-            >
-              {/* Left Text */}
-              <div className="flex-1 flex flex-col justify-start pr-2">
-                <p className="text-white text-[14px] font-medium font-sans leading-snug mb-[12px]">
-                  {getActiveOrderBannerContent().title}
-                </p>
-                <p className="text-white text-[12px] font-light font-sans leading-snug mb-[4px]">
-                  {getActiveOrderBannerContent().sub}
-                </p>
-              </div>
-
-              {/* Mini Map */}
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate('/order-tracking', { state: { order: activeOrder } });
-                }}
-                className="shrink-0 relative rounded-[8px] overflow-hidden cursor-pointer active:scale-95 transition-transform"
-                style={{
-                  width: "110px",
-                  height: "82px",
-                  backgroundColor: "#1A1A1A"
-                }}
+            {/* Other Actions */}
+            {[{
+              icon: iconWallet,
+              label: "Wallet",
+              action: () => navigate('/wallet')
+            }, {
+              icon: iconFxConvert,
+              label: "FX Convert",
+              action: () => {
+                if (walletTier === 'Starter') {
+                  navigate('/fx-intro');
+                } else if (!isPassportVerified) {
+                  navigate('/fx-passport-gate');
+                } else {
+                  navigate('/fx-exchange');
+                }
+              }
+            }].map(action => (
+              <button
+                key={action.label}
+                onClick={action.action}
+                className="flex flex-col items-center gap-2"
               >
-                <Map
-                  {...viewState}
-                  style={{ width: "100%", height: "100%" }}
-                  mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-                  attributionControl={false}
-                  interactive={false}
-                >
-                  {/* Dashed Route Line - Only when rider assigned */}
-                  {isRiderAssigned && (
-                    <Source id="route" type="geojson" data={routeGeoJson}>
-                      <Layer {...routeLayer} />
-                    </Source>
-                  )}
-
-                  {/* Delivery/User Location Marker */}
-                  <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
-                    <div className="animate-pulse">
-                      <img src={currentLocationIcon} alt="User" className="w-4 h-4" />
-                    </div>
-                  </Marker>
-
-                  {/* Mock Rider Marker (slightly offset) - Only when rider assigned */}
-                  {isRiderAssigned && (
-                    <Marker
-                      latitude={viewState.latitude + 0.002}
-                      longitude={viewState.longitude + 0.002}
-                    >
-                      <img src={deliveryRiderIcon} alt="Rider" className="w-6 h-6" />
-                    </Marker>
-                  )}
-                </Map>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mx-5 mt-6">
-            <div className="overflow-hidden" ref={emblaRef}>
-              <div className="flex">
-                {/* Banner 1: Refer & Earn */}
-                <div className="flex-[0_0_100%] min-w-0 pr-0">
-                  <div className="rounded-[16px] overflow-hidden flex bg-black dark:bg-transparent relative" style={{
-                    backgroundImage: bannerBg ? `url(${bannerBg})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    height: '104px',
-                    width: '362px',
-                    borderRadius: '16px'
-                  }}>
-                    <div className="flex-1 flex flex-col justify-start relative z-10 pt-[14px] pl-[14px]">
-                      <div className="mb-[4px]">
-                        <img src={iconGift} alt="Gift" className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-white text-[16px] font-bold font-satoshi mb-[7px] leading-none">Refer & Earn!</h3>
-                        <p className="text-white/80 dark:text-[#A1A1AA] text-[12px] font-normal font-satoshi leading-none">Earn ₹50 on each referral</p>
-                      </div>
-                    </div>
-                    <img
-                      src={bannerImage}
-                      alt="Referral"
-                      className="w-[188px] h-full object-cover rounded-r-2xl rounded-l-none shrink-0"
-                    />
-                  </div>
-                </div>
-
                 <div
-                  className="flex-[0_0_100%] min-w-0 pr-0 cursor-pointer active:scale-[0.98] transition-all"
-                  onClick={() => {
-                    if (walletTier === 'Starter') {
-                      navigate('/fx-intro');
-                    } else if (!isPassportVerified) {
-                      navigate('/fx-passport-gate');
-                    } else {
-                      navigate('/fx-exchange');
-                    }
+                  className={`flex items-center justify-center w-[52px] h-[52px] ${circleButtonBg ? 'bg-cover' : 'rounded-full'}`}
+                  style={{
+                    backgroundImage: circleButtonBg ? `url(${circleButtonBg})` : 'none',
+                    backgroundColor: circleButtonBg ? 'transparent' : 'rgba(82, 96, 254, 0.13)',
+                    backgroundSize: "100% 100%",
+                    backgroundRepeat: "no-repeat",
                   }}
                 >
-                  <div
-                    className="shrink-0 w-[362px] h-[104px] rounded-[16px] p-5 flex relative overflow-hidden bg-black dark:bg-transparent"
-                    style={{
+                  <img src={action.icon} alt={action.label} className="w-[22px] h-[22px]" />
+                </div>
+                <span className="text-foreground text-[12px] font-medium font-satoshi">{action.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Active Order OR Referral Banner */}
+          {activeOrder ? (
+            <div className="mx-5 mt-6 mb-[16px] flex flex-col">
+              {/* Header Row (Top Container) */}
+              <div
+                className="w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px]"
+                style={{
+                  backgroundColor: "#000000",
+                }}
+              >
+                <span className="text-white text-[12px] font-medium font-sans whitespace-nowrap mr-2">
+                  Delivering to - {activeOrder.addresses?.label || "Home"}
+                </span>
+                <span className="text-white text-[12px] font-medium font-sans text-right leading-tight">
+                  {getActiveOrderAddressDisplay()}
+                </span>
+              </div>
+
+              {/* Status & Map Container (Bottom Container) */}
+              <div
+                className={`w-full rounded-b-[14px] flex cursor-pointer ${isDarkMode ? 'bg-white/10' : 'bg-white'}`}
+                style={{
+                  backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.34)" : "#FFFFFF",
+                  padding: "12px",
+                  marginTop: 0,
+                  border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                  borderTop: "none"
+                }}
+                onClick={() => navigate(`/order-details/${activeOrder.id}`, { state: { order: activeOrder } })}
+              >
+                {/* Left Text */}
+                <div className="flex-1 flex flex-col justify-start pr-2">
+                  <p className={`text-[14px] font-medium font-sans leading-snug mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    {getActiveOrderBannerContent().title}
+                  </p>
+                  <p className={`text-[12px] font-light font-sans leading-snug mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    {getActiveOrderBannerContent().sub}
+                  </p>
+                </div>
+
+                {/* Mini Map */}
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/order-tracking', { state: { order: activeOrder } });
+                  }}
+                  className="shrink-0 relative rounded-[8px] overflow-hidden cursor-pointer active:scale-95 transition-transform"
+                  style={{
+                    width: "110px",
+                    height: "82px",
+                    backgroundColor: "#1A1A1A"
+                  }}
+                >
+                  <Map
+                    {...viewState}
+                    style={{ width: "100%", height: "100%" }}
+                    mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+                    attributionControl={false}
+                    interactive={false}
+                  >
+                    {/* Dashed Route Line - Only when rider assigned */}
+                    {isRiderAssigned && (
+                      <Source id="route" type="geojson" data={routeGeoJson}>
+                        <Layer {...routeLayer} />
+                      </Source>
+                    )}
+
+                    {/* Delivery/User Location Marker */}
+                    <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
+                      <div className="animate-pulse">
+                        <img src={currentLocationIcon} alt="User" className="w-4 h-4" />
+                      </div>
+                    </Marker>
+
+                    {/* Mock Rider Marker (slightly offset) - Only when rider assigned */}
+                    {isRiderAssigned && (
+                      <Marker
+                        latitude={viewState.latitude + 0.002}
+                        longitude={viewState.longitude + 0.002}
+                      >
+                        <img src={deliveryRiderIcon} alt="Rider" className="w-6 h-6" />
+                      </Marker>
+                    )}
+                  </Map>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mx-5 mt-6">
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex">
+                  {/* Banner 1: Refer & Earn */}
+                  <div className="flex-[0_0_100%] min-w-0 pr-0">
+                    <div className="rounded-[16px] overflow-hidden flex bg-black dark:bg-transparent relative" style={{
                       backgroundImage: bannerBg ? `url(${bannerBg})` : 'none',
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      height: '104px',
+                      width: '362px',
+                      borderRadius: '16px'
+                    }}>
+                      <div className="flex-1 flex flex-col justify-start relative z-10 pt-[14px] pl-[14px]">
+                        <div className="mb-[4px]">
+                          <img src={iconGift} alt="Gift" className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-white text-[16px] font-bold font-satoshi mb-[7px] leading-none">Refer & Earn!</h3>
+                          <p className="text-white/80 dark:text-[#A1A1AA] text-[12px] font-normal font-satoshi leading-none">Earn ₹50 on each referral</p>
+                        </div>
+                      </div>
+                      <img
+                        src={bannerImage}
+                        alt="Referral"
+                        className="w-[188px] h-full object-cover rounded-r-2xl rounded-l-none shrink-0"
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    className="flex-[0_0_100%] min-w-0 pr-0 cursor-pointer active:scale-[0.98] transition-all"
+                    onClick={() => {
+                      if (walletTier === 'Starter') {
+                        navigate('/fx-intro');
+                      } else if (!isPassportVerified) {
+                        navigate('/fx-passport-gate');
+                      } else {
+                        navigate('/fx-exchange');
+                      }
                     }}
                   >
-                    {/* Left Section */}
-                    <div className="flex-1 flex flex-col justify-between relative z-10">
-                      <div className="flex items-center gap-2">
-                        <img src={currencyIcon} alt="Currency" className="w-6 h-6" />
-                        <span className="text-white font-regular text-[10px] font-satoshi opacity-80">
-                          {lastUpdated}
-                        </span>
-                      </div>
-                      <div className="mb-0">
-                        <h3 className="text-white text-[16px] font-bold font-satoshi leading-tight">
-                          1 USD = {fxRate.toFixed(2)} INR
-                        </h3>
-                      </div>
-                      <p className="text-white/60 text-[10px] font-satoshi font-normal">
-                        Tap to convert & withdraw
-                      </p>
-                    </div>
-
-                    {/* Right Section: Mini Chart */}
-                    <div className="w-[140px] h-full relative p-2 pt-4">
-                      {fxHistory.length > 0 && (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={fxHistory}>
-                            <defs>
-                              <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#16B751" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#16B751" stopOpacity={0} />
-                              </linearGradient>
-                            </defs>
-                            <Area
-                              type="monotone"
-                              dataKey="rate"
-                              stroke="#16B751"
-                              strokeWidth={1.5}
-                              fillOpacity={1}
-                              fill="url(#colorRate)"
-                              isAnimationActive={true}
-                              animationDuration={1500}
-                            />
-                            <YAxis hide domain={['dataMin - 0.2', 'dataMax + 0.2']} />
-                            <XAxis
-                              dataKey="date"
-                              hide
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      )}
-
-                      {/* Last point marker & line */}
-                      <div className="absolute top-[35%] right-[12px] w-[6px] h-[6px] rounded-full bg-[#16B751] shadow-[0_0_8px_#16B751]" />
-                      <div className="absolute top-[35%] bottom-[12px] right-[14.5px] w-[1px] bg-[#16B751]/30" />
-
-                      {/* X-Axis subtle labels overlay */}
-                      <div className="absolute bottom-1 left-4 right-4 flex justify-between">
-                        <span className="text-[7px] text-white/30 font-satoshi">
-                          {fxHistory.length > 5 ? fxHistory[Math.floor(fxHistory.length * 0.2)].date : '26 Jan'}
-                        </span>
-                        <span className="text-[7px] text-white/30 font-satoshi">
-                          {fxHistory.length > 0 ? fxHistory[fxHistory.length - 1].date : '6 Feb'}
-                        </span>
+                    <div
+                      className="shrink-0 w-[362px] h-[104px] rounded-[16px] p-5 flex relative overflow-hidden bg-black dark:bg-transparent"
+                      style={{
+                        backgroundImage: bannerBg ? `url(${bannerBg})` : 'none',
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    >
+                      {/* Left Section */}
+                      <div className="flex-1 flex flex-col justify-between relative z-10">
+                        <div className="flex items-center gap-2">
+                          <img src={currencyIcon} alt="Currency" className="w-6 h-6" />
+                          <span className="text-white font-regular text-[10px] font-satoshi opacity-80">
+                            {lastUpdated}
+                          </span>
+                        </div>
+                        <div className="mb-0">
+                          <h3 className="text-white text-[16px] font-bold font-satoshi leading-tight">
+                            1 USD = {fxRate.toFixed(2)} INR
+                          </h3>
+                        </div>
+                        <p className="text-white/60 text-[10px] font-satoshi font-normal">
+                          Tap to convert & withdraw
+                        </p>
                       </div>
 
-                      {/* Y-Axis subtle markers (Simulated based on current rate) */}
-                      <div className="absolute top-4 left-0 flex flex-col gap-[10px]">
-                        <span className="text-[7px] text-white/20">{(fxRate + 0.5).toFixed(1)}</span>
-                        <span className="text-[7px] text-white/20">{(fxRate).toFixed(1)}</span>
-                        <span className="text-[7px] text-white/20">{(fxRate - 0.5).toFixed(1)}</span>
+                      {/* Right Section: Mini Chart */}
+                      <div className="w-[140px] h-full relative p-2 pt-4">
+                        {fxHistory.length > 0 && (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={fxHistory}>
+                              <defs>
+                                <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#16B751" stopOpacity={0.3} />
+                                  <stop offset="95%" stopColor="#16B751" stopOpacity={0} />
+                                </linearGradient>
+                              </defs>
+                              <Area
+                                type="monotone"
+                                dataKey="rate"
+                                stroke="#16B751"
+                                strokeWidth={1.5}
+                                fillOpacity={1}
+                                fill="url(#colorRate)"
+                                isAnimationActive={true}
+                                animationDuration={1500}
+                              />
+                              <YAxis hide domain={['dataMin - 0.2', 'dataMax + 0.2']} />
+                              <XAxis
+                                dataKey="date"
+                                hide
+                              />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        )}
+
+                        {/* Last point marker & line */}
+                        <div className="absolute top-[35%] right-[12px] w-[6px] h-[6px] rounded-full bg-[#16B751] shadow-[0_0_8px_#16B751]" />
+                        <div className="absolute top-[35%] bottom-[12px] right-[14.5px] w-[1px] bg-[#16B751]/30" />
+
+                        {/* X-Axis subtle labels overlay */}
+                        <div className="absolute bottom-1 left-4 right-4 flex justify-between">
+                          <span className="text-[7px] text-white/30 font-satoshi">
+                            {fxHistory.length > 5 ? fxHistory[Math.floor(fxHistory.length * 0.2)].date : '26 Jan'}
+                          </span>
+                          <span className="text-[7px] text-white/30 font-satoshi">
+                            {fxHistory.length > 0 ? fxHistory[fxHistory.length - 1].date : '6 Feb'}
+                          </span>
+                        </div>
+
+                        {/* Y-Axis subtle markers (Simulated based on current rate) */}
+                        <div className="absolute top-4 left-0 flex flex-col gap-[10px]">
+                          <span className="text-[7px] text-white/20">{(fxRate + 0.5).toFixed(1)}</span>
+                          <span className="text-[7px] text-white/20">{(fxRate).toFixed(1)}</span>
+                          <span className="text-[7px] text-white/20">{(fxRate - 0.5).toFixed(1)}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Carousel Dots */}
-            <div className="flex justify-center gap-2 mt-3">
-              {/* Dot 1 */}
-              <div
-                className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0
-                  ? 'bg-[#5260FE]'
-                  : 'bg-[#4B53AF]/18 dark:bg-muted'
-                  }`}
-              />
-              {/* Dot 2 */}
-              <div
-                className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1
-                  ? 'bg-[#5260FE]'
-                  : 'bg-[#4B53AF]/18 dark:bg-muted'
-                  }`}
-              />
+              {/* Carousel Dots */}
+              <div className="flex justify-center gap-2 mt-3">
+                {/* Dot 1 */}
+                <div
+                  className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0
+                    ? 'bg-[#5260FE]'
+                    : 'bg-[#4B53AF]/18 dark:bg-muted'
+                    }`}
+                />
+                {/* Dot 2 */}
+                <div
+                  className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1
+                    ? 'bg-[#5260FE]'
+                    : 'bg-[#4B53AF]/18 dark:bg-muted'
+                    }`}
+                />
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Flexible Transaction Section */}
-      <div className="flex flex-col w-full">
-        {/* Fixed Title Row */}
-        <div className="mx-5 mt-6 shrink-0 flex items-center justify-between mb-4">
-          <h3 className="text-foreground text-[16px] font-medium">Recent Transactions</h3>
-          <button
-            onClick={() => navigate('/order-history')}
-            disabled={transactionHistory.length === 0 && !activeOrder}
-            className={`text-[#5260FE] text-[14px] transition-colors ${transactionHistory.length === 0 && !activeOrder
-              ? 'opacity-50 cursor-not-allowed'
-              : 'hover:text-primary/80 cursor-pointer'
-              }`}
-          >
-            View All
-          </button>
+          )}
         </div>
 
-        {/* Transaction List */}
-        <div className="mx-5 pb-[100px]">
-          <div className="border-t border-black/6 dark:border-white/10 pt-[14px] min-h-[100px]">
-            {transactionHistory.length > 0 ? (
-              <div className="w-full">
-                {/* Headers */}
-                <div className="grid grid-cols-[1fr_100px_80px] gap-x-6 mb-[12px] px-0">
-                  <div>
-                    <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
-                      Details
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
-                      Price
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
-                      Status
-                    </span>
-                  </div>
-                </div>
+        {/* Flexible Transaction Section - Scrollable */}
+        <div className="flex flex-col w-full">
+          {/* Fixed Title Row */}
+          <div className="mx-5 mt-6 shrink-0 flex items-center justify-between mb-4">
+            <h3 className="text-foreground text-[16px] font-medium">Recent Transactions</h3>
+            <button
+              onClick={() => navigate('/order-history')}
+              disabled={transactionHistory.length === 0 && !activeOrder}
+              className={`text-[#5260FE] text-[14px] transition-colors ${transactionHistory.length === 0 && !activeOrder
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:text-primary/80 cursor-pointer'
+                }`}
+            >
+              View All
+            </button>
+          </div>
 
-                {/* Rows */}
-                <div className="flex flex-col gap-[16px]">
-                  {transactionHistory.map((tx) => (
-                    <div
-                      key={tx.id}
-                      className="grid grid-cols-[1fr_100px_80px] gap-x-6 items-start cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => {
-                        const s = tx.status.toLowerCase();
-                        const isCompleted = s === 'success' || s === 'delivered';
-                        const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
+          {/* Transaction List */}
+          <div className="mx-5 pb-[100px]">
+            <div className="border-t border-black/6 dark:border-white/10 pt-[14px] min-h-[100px]">
+              {transactionHistory.length > 0 ? (
+                <div className="w-full">
+                  {/* Headers */}
+                  <div className="grid grid-cols-[1fr_100px_80px] gap-x-6 mb-[12px] px-0">
+                    <div>
+                      <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
+                        Details
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
+                        Price
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
+                        Status
+                      </span>
+                    </div>
+                  </div>
 
-                        if (isCompleted || isFailedOrCancelled) {
-                          setSelectedOrderForSheet(tx);
-                          setIsSheetOpen(true);
-                        } else {
-                          navigate(`/order-details/${tx.id}`, { state: { order: tx } });
-                        }
-                      }}
-                    >
-                      {/* Details Column */}
-                      <div className="flex items-start">
-                        <img src={getStatusIcon(tx.status)} alt="Status" className="w-[26px] h-[26px]" />
-                        <div className="ml-[7px] flex flex-col">
-                          <span className="text-white text-[13px] font-normal font-sans leading-none mb-[2px]">
-                            {tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"}
+                  {/* Rows */}
+                  <div className="flex flex-col gap-[16px]">
+                    {transactionHistory.map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="grid grid-cols-[1fr_100px_80px] gap-x-6 items-start cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                          const s = tx.status.toLowerCase();
+                          const isCompleted = s === 'success' || s === 'delivered';
+                          const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
+
+                          if (isCompleted || isFailedOrCancelled) {
+                            setSelectedOrderForSheet(tx);
+                            setIsSheetOpen(true);
+                          } else {
+                            navigate(`/order-details/${tx.id}`, { state: { order: tx } });
+                          }
+                        }}
+                      >
+                        {/* Details Column */}
+                        <div className="flex items-start">
+                          <img src={getStatusIcon(tx.status)} alt="Status" className="w-[26px] h-[26px]" />
+                          <div className="ml-[7px] flex flex-col">
+                            <span className="text-white text-[13px] font-normal font-sans leading-none mb-[2px]">
+                              {tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"}
+                            </span>
+                            <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
+                              {new Date(tx.created_at).toLocaleDateString('en-IN', {
+                                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Price Column */}
+                        <div className="text-right">
+                          <span className="text-white text-[13px] font-normal font-sans">
+                            ₹{(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
-                          <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
-                            {new Date(tx.created_at).toLocaleDateString('en-IN', {
-                              day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                            })}
+                        </div>
+
+                        {/* Status Column */}
+                        <div className="text-right">
+                          <span
+                            className="text-[13px] font-normal font-sans capitalize"
+                            style={{ color: getStatusInfo(tx.status).color }}
+                          >
+                            {getStatusInfo(tx.status).text}
                           </span>
                         </div>
                       </div>
-
-                      {/* Price Column */}
-                      <div className="text-right">
-                        <span className="text-white text-[13px] font-normal font-sans">
-                          ₹{(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-
-                      {/* Status Column */}
-                      <div className="text-right">
-                        <span
-                          className="text-[13px] font-normal font-sans capitalize"
-                          style={{ color: getStatusInfo(tx.status).color }}
-                        >
-                          {getStatusInfo(tx.status).text}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-[14px] text-center">
-                Your recent transactions will show up here
-              </p>
-            )}
+              ) : (
+                <p className="text-muted-foreground text-[14px] text-center">
+                  Your recent transactions will show up here
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

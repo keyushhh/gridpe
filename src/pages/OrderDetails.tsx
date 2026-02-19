@@ -9,7 +9,9 @@ import errorBg from "@/assets/error-bg.png";
 import popBgDefault from "@/assets/pop-bg-default.png";
 import popBgExpanded from "@/assets/pop-bg-expanded.png";
 import checkIcon from "@/assets/check-icon.png";
+import checkIconLight from "@/assets/check-icon-light.svg";
 import crossIcon from "@/assets/cross-icon.png";
+import failedIconLight from "@/assets/failed-light.svg";
 import hamburgerMenu from "@/assets/hamburger-menu.svg";
 import currentLocationIcon from "@/assets/current-location.svg";
 import deliveryRiderIcon from "@/assets/delivery-rider.svg";
@@ -20,11 +22,14 @@ import cancelIcon from "@/assets/cancel-ico.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
 import { Order, dev_updateOrderStatus } from "@/lib/orders";
+import { useTheme } from "next-themes";
 
 const OrderDetails = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { orderId } = useParams<{ orderId: string }>();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
 
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
@@ -60,7 +65,7 @@ const OrderDetails = () => {
     // Fetch Order logic
     useEffect(() => {
         const fetchOrder = async () => {
-            if (location.state?.order) {
+            if (location.state?.order && location.state.order.addresses) {
                 setOrder(location.state.order);
                 setLoading(false);
                 return;
@@ -256,7 +261,7 @@ const OrderDetails = () => {
         // Default / Processing
         let config = {
             bgImage: successBg,
-            mainIcon: checkIcon,
+            mainIcon: isDarkMode ? checkIcon : checkIconLight,
             headerTitle: "Order Successful",
             statusTitle: "Your order is being processed!",
             statusAmount: currentOrder.amount,
@@ -270,7 +275,7 @@ const OrderDetails = () => {
         if (currentOrder.status === 'success' || currentOrder.status === 'delivered') {
             config = {
                 bgImage: successBg,
-                mainIcon: checkIcon,
+                mainIcon: isDarkMode ? checkIcon : checkIconLight,
                 headerTitle: "Order Delivered",
                 statusTitle: "Order delivered successfully!",
                 statusAmount: currentOrder.amount,
@@ -283,7 +288,7 @@ const OrderDetails = () => {
         } else if (currentOrder.status === 'failed') {
             config = {
                 bgImage: errorBg,
-                mainIcon: crossIcon,
+                mainIcon: isDarkMode ? crossIcon : failedIconLight,
                 headerTitle: "Order Failed",
                 statusTitle: "Order could not be processed",
                 statusAmount: currentOrder.amount,
@@ -297,7 +302,7 @@ const OrderDetails = () => {
         } else if (currentOrder.status === 'cancelled') {
             config = {
                 bgImage: errorBg,
-                mainIcon: cancelIcon,
+                mainIcon: isDarkMode ? cancelIcon : failedIconLight,
                 headerTitle: "Order Cancelled",
                 statusTitle: "Order Cancelled",
                 statusAmount: currentOrder.amount,
@@ -320,13 +325,18 @@ const OrderDetails = () => {
         <div
             className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom animate-in fade-in duration-500 relative"
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${statusConfig.bgImage})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Glow - Green for Success, Red/Orange for others if needed, but user asked for Green for Order Success */}
+            {!isDarkMode && (
+                <div className={`absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0 ${order?.status === 'success' || order?.status === 'delivered' || order?.status === 'processing' ? 'bg-[#0D992F]' : 'bg-[#FF3B30]'}`} />
+                // Using Red for failed/cancelled to be semantic, Green for success/processing.
+            )}
             {/* DEV CONTROLS */}
             {import.meta.env.DEV && (
                 <div className="fixed top-24 right-4 z-[9999] flex flex-col gap-2 bg-black/90 p-2 rounded-lg border border-red-500/50 shadow-xl pointer-events-auto">
@@ -376,7 +386,7 @@ const OrderDetails = () => {
             {/* Header */}
             <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-[21px] relative">
                 <div className="w-6" /> {/* Spacer */}
-                <h1 className="text-white text-[18px] font-medium font-sans">
+                <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {statusConfig.headerTitle}
                 </h1>
                 <button
@@ -384,7 +394,7 @@ const OrderDetails = () => {
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     className="w-6 h-6 flex items-center justify-center"
                 >
-                    <img src={hamburgerMenu} alt="Menu" className="w-full h-full" />
+                    <img src={hamburgerMenu} alt="Menu" className={`w-full h-full ${!isDarkMode ? 'brightness-0' : ''}`} />
                 </button>
 
                 {/* Hamburger Menu Dropdown */}
@@ -448,12 +458,12 @@ const OrderDetails = () => {
                 </div>
 
                 {/* Status Text */}
-                <h2 className="text-white text-[18px] font-bold font-sans mb-[1px]">
+                <h2 className={`text-[18px] font-bold font-sans mb-[1px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {statusConfig.statusTitle}
                 </h2>
 
                 {/* Amount */}
-                <p className="text-white text-[25px] font-medium font-sans mb-[39px]">
+                <p className={`text-[25px] font-medium font-sans mb-[39px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     ₹{(statusConfig.statusAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
 
@@ -461,34 +471,38 @@ const OrderDetails = () => {
                 <div className="w-full mb-[16px] flex flex-col">
                     {/* Header Row (Top Container) */}
                     <div
-                        className="w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px]"
+                        className={`w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px] bg-black`}
                         style={{
                             backgroundColor: "#000000",
+                            border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                            borderBottom: "none"
                         }}
                     >
-                        <span className="text-white text-[12px] font-medium font-sans whitespace-nowrap mr-2">
+                        <span className={`text-[12px] font-medium font-sans whitespace-nowrap mr-2 text-white`}>
                             Delivering to - {order.addresses?.label || "Home"}
                         </span>
-                        <span className="text-white text-[12px] font-medium font-sans text-right leading-tight">
+                        <span className={`text-[12px] font-medium font-sans text-right leading-tight text-white`}>
                             {getAddressDisplay()}
                         </span>
                     </div>
 
                     {/* Status & Map Container (Bottom Container) */}
                     <div
-                        className="w-full rounded-b-[14px] flex"
+                        className={`w-full rounded-b-[14px] flex ${isDarkMode ? 'bg-white/10' : 'bg-white'}`}
                         style={{
-                            backgroundColor: "rgba(25, 25, 25, 0.34)",
+                            backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.34)" : "#FFFFFF",
                             padding: "12px",
-                            marginTop: 0
+                            marginTop: 0,
+                            border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                            borderTop: "none"
                         }}
                     >
                         {/* Left Text */}
                         <div className="flex-1 flex flex-col justify-start pr-2">
-                            <p className="text-white text-[14px] font-medium font-sans leading-snug mb-[12px] whitespace-pre-line">
+                            <p className={`text-[14px] font-medium font-sans leading-snug mb-[12px] whitespace-pre-line ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 {statusConfig.deliveryText}
                             </p>
-                            <p className="text-white text-[12px] font-light font-sans leading-snug mb-[4px]">
+                            <p className={`text-[12px] font-light font-sans leading-snug mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 {statusConfig.deliverySubText}
                             </p>
                         </div>
@@ -506,7 +520,7 @@ const OrderDetails = () => {
                                 <Map
                                     {...viewState}
                                     style={{ width: "100%", height: "100%" }}
-                                    mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+                                    mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
                                     attributionControl={false}
                                     interactive={false}
                                 >
@@ -540,22 +554,23 @@ const OrderDetails = () => {
                     className="w-full rounded-[13px] p-[12px] mb-[29px]"
                     style={{
                         height: "239px",
-                        backgroundColor: "rgba(25, 25, 25, 0.34)"
+                        backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.34)" : "#FFFFFF",
+                        border: isDarkMode ? "none" : "1px solid #E9EAEB"
                     }}
                 >
-                    <h3 className="text-white text-[16px] font-medium font-sans">
+                    <h3 className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         Transaction Details
                     </h3>
-                    <div className="w-full h-[1px] bg-[#202020] mt-[10px] mb-[10px]" />
+                    <div className={`w-full h-[1px] mt-[10px] mb-[10px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />
 
                     <div className="flex justify-between items-center mb-[8px]">
-                        <span className="text-white text-[13px] font-normal font-sans">Transaction Number</span>
-                        <span className="text-white text-[13px] font-bold font-sans">{order.id.slice(0, 8).toUpperCase()}...</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Transaction Number</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{order.id.slice(0, 8).toUpperCase()}...</span>
                     </div>
 
                     <div className="flex justify-between items-center mb-[8px]">
-                        <span className="text-white text-[13px] font-normal font-sans">Date & Time</span>
-                        <span className="text-white text-[13px] font-bold font-sans">
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Date & Time</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>
                             {new Date(order.created_at).toLocaleString('en-IN', {
                                 day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
                             })}
@@ -563,16 +578,16 @@ const OrderDetails = () => {
                     </div>
 
                     <div className="flex justify-between items-center mb-[12px]">
-                        <span className="text-white text-[13px] font-normal font-sans">Payment Mode</span>
-                        <span className="text-white text-[13px] font-bold font-sans">grid.pe Wallet</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Payment Mode</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>grid.pe Wallet</span>
                     </div>
 
-                    <p className="text-white/50 text-[13px] font-normal font-sans mb-[14px] leading-snug">
+                    <p className={`text-[13px] font-normal font-sans mb-[14px] leading-snug ${isDarkMode ? 'text-white/50' : 'text-black/50'}`}>
                         {statusConfig.transactionNote}
                     </p>
 
                     {statusConfig.canCancel && (
-                        <p className="text-white text-[13px] font-normal font-sans leading-snug">
+                        <p className={`text-[13px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             If you need to cancel, you can do so within 30 seconds or before a delivery partner is assigned, whichever is earlier.
                         </p>
                     )}
@@ -582,9 +597,9 @@ const OrderDetails = () => {
                 <div className="w-full">
                     <button
                         onClick={() => navigate("/home")}
-                        className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans"
+                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : ''}`}
                         style={{
-                            backgroundImage: `url(${buttonPrimary})`,
+                            backgroundImage: isDarkMode ? `url(${buttonPrimary})` : 'none',
                             backgroundSize: "100% 100%",
                             backgroundRepeat: "no-repeat",
                         }}
