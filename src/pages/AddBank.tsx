@@ -217,8 +217,8 @@ const AddBank = () => {
           {/* Auto Fetch */}
           <div
             className={`relative rounded-2xl p-[12px] border transition-all duration-200 overflow-hidden ${selection === "auto"
-                ? (isDarkMode ? "border-white/20 bg-white/5" : "border-[#E9EAEB] bg-[#F7F8FA]")
-                : (isDarkMode ? "border-white/10 bg-black/20" : "border-[#E9EAEB] bg-white")
+              ? (isDarkMode ? "border-white/20 bg-white/5" : "border-[#E9EAEB] bg-[#F7F8FA]")
+              : (isDarkMode ? "border-white/10 bg-black/20" : "border-[#E9EAEB] bg-white")
               }`}
             onClick={() => setSelection("auto")}
           >
@@ -260,7 +260,7 @@ const AddBank = () => {
                     width: '109px',
                     height: '25px',
                     backgroundColor: '#0D992F',
-                    borderRadius: '4px' // Assuming pill or rounded rect
+                    borderRadius: '20px'
                   }}
                 >
                   <span className="text-white text-[12px] font-medium mb-[1px]">Recommended</span>
@@ -281,8 +281,8 @@ const AddBank = () => {
           {/* Manual Entry */}
           <div
             className={`relative rounded-2xl p-[12px] border transition-all duration-200 overflow-hidden flex items-center ${selection === "manual"
-                ? (isDarkMode ? "border-white/20 bg-white/5" : "border-[#E9EAEB] bg-[#F7F8FA]")
-                : (isDarkMode ? "border-white/10 bg-black/20" : "border-[#E9EAEB] bg-white")
+              ? (isDarkMode ? "border-white/20 bg-white/5" : "border-[#E9EAEB] bg-[#F7F8FA]")
+              : (isDarkMode ? "border-white/10 bg-black/20" : "border-[#E9EAEB] bg-white")
               }`}
             onClick={() => setSelection("manual")}
             style={{ height: "64px" }}
@@ -390,8 +390,8 @@ const AddBank = () => {
                 value={"*".repeat(accountNumber.length)}
                 onChange={handleMaskedChange}
                 className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${isDarkMode
-                    ? "bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
-                    : "bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20"
+                  ? "bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
+                  : "bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20"
                   } ${accountNumber.length > 0 ? "tracking-widest" : ""
                   }`}
               />
@@ -407,8 +407,8 @@ const AddBank = () => {
                   }}
                   onBlur={() => setTouchedConfirm(true)}
                   className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${isDarkMode
-                      ? "bg-[#191919]/30 border-[0.65px] text-white placeholder:text-white/40"
-                      : "bg-[#F7F8FA] border text-black placeholder:text-black/40"
+                    ? "bg-[#191919]/30 border-[0.65px] text-white placeholder:text-white/40"
+                    : "bg-[#F7F8FA] border text-black placeholder:text-black/40"
                     } ${confirmAccountNumber.length > 0 ? "tracking-widest" : ""
                     } ${showMatchError
                       ? "border-red-500/50 focus:border-red-500"
@@ -431,8 +431,8 @@ const AddBank = () => {
                     onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
                     maxLength={11}
                     className={`w-full h-[48px] rounded-full pl-5 pr-24 text-[14px] font-normal font-sans outline-none transition-colors uppercase ${isDarkMode
-                        ? "bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
-                        : "bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20"
+                      ? "bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
+                      : "bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20"
                       }`}
                   />
                   <button

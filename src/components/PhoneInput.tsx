@@ -8,6 +8,7 @@ interface PhoneInputProps {
   placeholder?: string;
   className?: string;
   error?: boolean;
+  disabled?: boolean;
 }
 
 export const PhoneInput = ({
@@ -17,6 +18,7 @@ export const PhoneInput = ({
   placeholder = "Enter your mobile number",
   className,
   error,
+  disabled,
 }: PhoneInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -33,6 +35,7 @@ export const PhoneInput = ({
         "bg-[#F7F8FA] dark:bg-input border border-[#E6E8EB] dark:border-transparent",
         isFocused && !error && "ring-2 ring-primary/50 border-primary/50",
         error && "border-red-500 ring-1 ring-red-500",
+        disabled && "opacity-50 pointer-events-none",
         className
       )}
     >
@@ -50,7 +53,8 @@ export const PhoneInput = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder}
-        className="flex-1 h-full bg-transparent px-4 text-sm font-normal text-foreground placeholder:text-muted-foreground focus:outline-none"
+        disabled={disabled}
+        className="flex-1 h-full bg-transparent px-4 text-sm font-normal text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed"
         maxLength={10}
       />
     </div>
