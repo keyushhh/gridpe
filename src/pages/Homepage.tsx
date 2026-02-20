@@ -858,7 +858,7 @@ const Homepage = () => {
                         <div className="flex items-start">
                           <img src={getStatusIcon(tx.status)} alt="Status" className="w-[26px] h-[26px]" />
                           <div className="ml-[7px] flex flex-col">
-                            <span className="text-white text-[13px] font-normal font-sans leading-none mb-[2px]">
+                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}>
                               {tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"}
                             </span>
                             <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
@@ -871,7 +871,7 @@ const Homepage = () => {
 
                         {/* Price Column */}
                         <div className="text-right">
-                          <span className="text-white text-[13px] font-normal font-sans">
+                          <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}>
                             ₹{(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
