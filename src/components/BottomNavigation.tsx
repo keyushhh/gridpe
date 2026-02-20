@@ -12,10 +12,14 @@ import navMoreFilled from "@/assets/more-filled.svg";
 import navbarOverlay from "@/assets/navbar-overlay.png";
 import navbarLight from "@/assets/navbar-light.png";
 import homeLight from "@/assets/home-light.svg";
+import homeNotselectedLight from "@/assets/home-notselected-light.svg";
 import cardLight from "@/assets/card-light.svg";
+import cardSelectedLight from "@/assets/card-selected-light.svg";
 import fabLight from "@/assets/fab-light.svg";
 import rewardLight from "@/assets/reward-light.svg";
+import rewardsSelectedLight from "@/assets/rewards-selected-light.svg";
 import moreLight from "@/assets/more-light.svg";
+import moreSelectedLight from "@/assets/more-selected-light.svg";
 
 interface BottomNavigationProps {
   activeTab: "home" | "cards" | "rewards" | "more";
@@ -47,9 +51,9 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
         className="flex flex-col items-center gap-1 min-w-[60px]"
       >
         <img
-          src={!isDarkMode ? homeLight : (activeTab === "home" ? navHome : navHomeInactive)}
+          src={!isDarkMode ? (activeTab === "home" ? homeLight : homeNotselectedLight) : (activeTab === "home" ? navHome : navHomeInactive)}
           alt="Home"
-          className={`w-6 h-6 object-contain ${!isDarkMode && activeTab !== "home" ? "opacity-40" : ""}`}
+          className="w-6 h-6 object-contain"
         />
         <span
           className={`text-[11px] font-medium ${activeTab === "home" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
@@ -64,9 +68,9 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
         className="flex flex-col items-center gap-1 min-w-[60px]"
       >
         <img
-          src={!isDarkMode ? cardLight : (activeTab === "cards" ? navCardsActive : navCards)}
+          src={!isDarkMode ? (activeTab === "cards" ? cardSelectedLight : cardLight) : (activeTab === "cards" ? navCardsActive : navCards)}
           alt="Cards"
-          className={`w-6 h-6 object-contain ${!isDarkMode && activeTab !== "cards" ? "opacity-40" : ""}`}
+          className="w-6 h-6 object-contain"
         />
         <span
           className={`text-[11px] font-medium ${activeTab === "cards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
@@ -96,9 +100,9 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
         className="flex flex-col items-center gap-1 min-w-[60px]"
       >
         <img
-          src={!isDarkMode ? rewardLight : (activeTab === "rewards" ? navRewardsActive : navRewards)}
+          src={!isDarkMode ? (activeTab === "rewards" ? rewardsSelectedLight : rewardLight) : (activeTab === "rewards" ? navRewardsActive : navRewards)}
           alt="Rewards"
-          className={`w-6 h-6 object-contain ${!isDarkMode && activeTab !== "rewards" ? "opacity-40" : ""}`}
+          className="w-6 h-6 object-contain"
         />
         <span
           className={`text-[11px] font-medium ${activeTab === "rewards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
@@ -113,9 +117,9 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
         className="flex flex-col items-center gap-1 min-w-[60px]"
       >
         <img
-          src={!isDarkMode ? moreLight : (activeTab === "more" ? navMoreFilled : navMore)}
+          src={!isDarkMode ? (activeTab === "more" ? moreSelectedLight : moreLight) : (activeTab === "more" ? navMoreFilled : navMore)}
           alt="More"
-          className={`w-6 h-6 object-contain ${!isDarkMode && activeTab !== "more" ? "opacity-40" : ""}`}
+          className="w-6 h-6 object-contain"
         />
         <span
           className={`text-[11px] font-medium ${activeTab === "more" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
