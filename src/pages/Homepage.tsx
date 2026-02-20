@@ -45,6 +45,7 @@ import homeIcon from "@/assets/HomeTag.svg";
 import workIcon from "@/assets/Work.svg";
 import friendsIcon from "@/assets/Friends Family.svg";
 import otherIcon from "@/assets/Other.svg";
+import walletDarkIcon from "@/assets/wallet-dark.svg";
 
 interface SavedAddress {
   tag: string;
@@ -524,7 +525,7 @@ const Homepage = () => {
 
             {/* Other Actions */}
             {[{
-              icon: iconWallet,
+              icon: isDarkMode ? walletDarkIcon : iconWallet,
               label: "Wallet",
               action: () => navigate('/wallet')
             }, {

@@ -48,6 +48,7 @@ const OrderDetails = () => {
     const [cancelReason, setCancelReason] = useState<number | null>(0);
     const [otherReason, setOtherReason] = useState("");
     const [timer, setTimer] = useState(30);
+    const [redirectTimer, setRedirectTimer] = useState(30);
 
     const cancelReasons = [
         "I changed my mind",
@@ -137,6 +138,18 @@ const OrderDetails = () => {
             return () => clearInterval(interval);
         }
     }, [timer, order?.status]);
+
+    // Redirect Timer for Cancelled/Failed Orders
+    useEffect(() => {
+        if ((order?.status === 'cancelled' || order?.status === 'failed') && redirectTimer > 0) {
+            const interval = setInterval(() => {
+                setRedirectTimer((prev) => prev - 1);
+            }, 1000);
+            return () => clearInterval(interval);
+        } else if ((order?.status === 'cancelled' || order?.status === 'failed') && redirectTimer === 0) {
+            navigate("/home");
+        }
+    }, [redirectTimer, order?.status, navigate]);
 
     // Click outside to close menu
     useEffect(() => {
@@ -553,7 +566,7 @@ const OrderDetails = () => {
                 <div
                     className="w-full rounded-[13px] p-[12px] mb-[29px]"
                     style={{
-                        height: "239px",
+                        height: "auto",
                         backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.34)" : "#FFFFFF",
                         border: isDarkMode ? "none" : "1px solid #E9EAEB"
                     }}
@@ -595,17 +608,36 @@ const OrderDetails = () => {
 
                 {/* Footer CTA */}
                 <div className="w-full">
-                    <button
-                        onClick={() => navigate("/home")}
-                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : ''}`}
-                        style={{
-                            backgroundImage: isDarkMode ? `url(${buttonPrimary})` : 'none',
-                            backgroundSize: "100% 100%",
-                            backgroundRepeat: "no-repeat",
-                        }}
-                    >
-                        Go Home
-                    </button>
+                    {order?.status === 'cancelled' || order?.status === 'failed' ? (
+                        <div className="flex flex-col items-center">
+                            <button
+                                onClick={() => navigate("/home")}
+                                className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : ''}`}
+                                style={{
+                                    backgroundImage: isDarkMode ? `url(${buttonPrimary})` : 'none',
+                                    backgroundSize: "100% 100%",
+                                    backgroundRepeat: "no-repeat",
+                                }}
+                            >
+                                Redirecting to Home in {redirectTimer}s
+                            </button>
+                            <p className={`mt-[12px] text-center text-[14px] font-normal font-satoshi ${isDarkMode ? 'text-white/50' : 'text-black/50'}`}>
+                                (so you don’t sit here questioning your life choices — again)
+                            </p>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => navigate("/home")}
+                            className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : ''}`}
+                            style={{
+                                backgroundImage: isDarkMode ? `url(${buttonPrimary})` : 'none',
+                                backgroundSize: "100% 100%",
+                                backgroundRepeat: "no-repeat",
+                            }}
+                        >
+                            Go Home
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -651,47 +683,46 @@ const OrderDetails = () => {
             {showCancelPopup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-5">
                     <div
-                        className="relative rounded-[13px] p-[22px] w-full max-w-[353px] flex flex-col items-center border border-white/10"
-                        style={{
+                        className={`relative rounded-[13px] p-[22px] w-full max-w-[353px] flex flex-col items-center border ${isDarkMode ? 'border-white/10' : 'bg-white border-[#E9EAEB]'}`}
+                        style={isDarkMode ? {
                             backgroundImage: `url(${cancelReason === 5 ? popBgExpanded : popBgDefault})`,
                             backgroundSize: '100% 100%',
                             backgroundRepeat: 'no-repeat',
-                        }}
+                        } : {}}
                     >
                         {/* Icon */}
                         <div className="w-[32px] h-[32px] mb-[16px]">
-                            <img src={cancelIcon} alt="Cancel" className="w-full h-full" />
+                            <img src={cancelIcon} alt="Cancel" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                         </div>
 
                         {/* Header */}
-                        <h2 className="text-white text-[18px] font-bold font-sans mb-[8px] text-center">
+                        <h2 className={`text-[18px] font-bold font-sans mb-[8px] text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Cancel Order?
                         </h2>
 
                         {/* Subtext */}
-                        <p className="text-white text-[13px] font-medium font-sans text-center leading-[1.4] mb-[24px] px-[13px]">
-                            We’re not mad. Just disappointed. Help us understand why<br />
-                            you’re cancelling. It helps us improve your experience (and<br />
-                            emotionally prepare for this moment).
+                        <p className={`w-full text-[12px] font-medium font-satoshi text-center leading-[140%] mb-[24px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                            We’re not mad. Just disappointed. Help us understand why you’re cancelling. It helps us improve your experience (and emotionally prepare for this moment).
                         </p>
 
                         {/* Reason List Container */}
                         <div
                             className="flex flex-col mb-[24px] overflow-hidden w-full"
                             style={{
-                                backgroundColor: "rgba(0, 0, 0, 0.60)",
+                                backgroundColor: isDarkMode ? "rgba(0, 0, 0, 0.60)" : "#F9F9F9",
                                 borderRadius: "12px",
+                                border: isDarkMode ? 'none' : '1px solid #E9EAEB'
                             }}
                         >
                             {/* Title inside container */}
                             <div className="pt-[14px] px-[12px]">
-                                <p className="text-white text-[12px] font-medium font-sans">
+                                <p className={`text-[12px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                     Reason for Cancellation? (Required)
                                 </p>
                             </div>
 
                             {/* Divider */}
-                            <div className="mt-[14px] w-full h-[1px] bg-white/10" />
+                            <div className={`mt-[14px] w-full h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
 
                             {/* List */}
                             <div>
@@ -699,15 +730,20 @@ const OrderDetails = () => {
                                     <div
                                         key={index}
                                         onClick={() => setCancelReason(index)}
-                                        className={`w-full h-[44px] flex items-center px-[12px] cursor-pointer ${index !== cancelReasons.length - 1 ? 'border-b border-white/5' : ''
-                                            } hover:bg-white/5 transition-colors`}
+                                        className={`w-full h-[44px] flex items-center px-[12px] cursor-pointer ${index !== cancelReasons.length - 1 ? (isDarkMode ? 'border-b border-white/5' : 'border-b border-[#E9EAEB]') : ''
+                                            } ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'} transition-colors`}
                                     >
                                         <img
                                             src={cancelReason === index ? radioFilled : radioEmpty}
                                             alt="radio"
                                             className="w-[16px] h-[16px] mr-[12px]"
+                                            style={{
+                                                filter: cancelReason === index
+                                                    ? 'invert(35%) sepia(87%) saturate(3025%) hue-rotate(224deg) brightness(97%) contrast(92%)'
+                                                    : 'invert(35%) sepia(87%) saturate(3025%) hue-rotate(224deg) brightness(97%) contrast(92%) opacity(0.6)'
+                                            }}
                                         />
-                                        <span className="text-white text-[13px] font-medium font-sans">
+                                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                             {reason}
                                         </span>
                                     </div>
@@ -721,7 +757,7 @@ const OrderDetails = () => {
                                         value={otherReason}
                                         onChange={(e) => setOtherReason(e.target.value)}
                                         placeholder="Tell us more..."
-                                        className="w-full h-[80px] bg-white/5 rounded-[12px] border border-white/10 p-[12px] text-white text-[13px] font-sans focus:outline-none focus:border-white/20 resize-none placeholder:text-[#6F6F6F]"
+                                        className={`w-full h-[80px] rounded-[12px] border p-[12px] text-[13px] font-sans focus:outline-none resize-none ${isDarkMode ? 'bg-white/5 border-white/10 text-white focus:border-white/20 placeholder:text-[#6F6F6F]' : 'bg-transparent border-[#E9EAEB] text-black focus:border-[#CCCCCC] placeholder:text-black/40'}`}
                                     />
                                 </div>
                             )}
@@ -731,11 +767,11 @@ const OrderDetails = () => {
                         <div className="w-full flex gap-[12px] justify-center">
                             <button
                                 onClick={() => setShowCancelPopup(false)}
-                                className="rounded-full text-white text-[14px] font-medium font-sans flex items-center justify-center shrink-0"
+                                className={`rounded-full text-white text-[14px] font-medium font-sans flex items-center justify-center shrink-0 ${!isDarkMode ? 'bg-black' : ''}`}
                                 style={{
                                     width: '158px',
                                     height: '37px',
-                                    backgroundImage: `url(${buttonPrimary})`,
+                                    backgroundImage: isDarkMode ? `url(${buttonPrimary})` : 'none',
                                     backgroundSize: "100% 100%",
                                     backgroundRepeat: "no-repeat",
                                 }}
