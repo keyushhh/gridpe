@@ -7,6 +7,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { OpenLocationCode } from "open-location-code";
 import { Order, dev_updateOrderStatus } from "@/lib/orders";
 import { supabase } from "@/lib/supabase";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 import arrivingIcon from "@/assets/arriving.svg";
@@ -22,6 +23,8 @@ import darkbgCta from "@/assets/darkbg-cta.png";
 const OrderTracking = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const [order, setOrder] = useState<Order | null>(location.state?.order || null);
 
     // Map State
@@ -150,10 +153,10 @@ const OrderTracking = () => {
 
     return (
         <div
-            className="fixed inset-0 w-full flex flex-col bg-[#0a0a12] safe-area-top safe-area-bottom overflow-y-auto no-scrollbar scroll-smooth"
+            className={`fixed inset-0 w-full flex flex-col safe-area-top safe-area-bottom overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#F9F9FB]'}`}
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#F9F9FB",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
@@ -219,12 +222,12 @@ const OrderTracking = () => {
                     >
                         <button
                             onClick={() => navigate('/home')}
-                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
+                            className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-white border border-[#E9EAEB]'}`}
                         >
-                            <ChevronLeft className="text-white w-6 h-6" />
+                            <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                         </button>
 
-                        <h1 className="text-white text-[18px] font-medium font-sans flex-1 text-center pr-10">
+                        <h1 className={`text-[18px] font-medium font-sans flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Order Tracking
                         </h1>
                     </div>
@@ -240,7 +243,7 @@ const OrderTracking = () => {
                     {...viewState}
                     onMove={evt => setViewState(evt.viewState)}
                     style={{ width: "100%", height: "100%" }}
-                    mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+                    mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
                     attributionControl={false}
                     scrollZoom={false}
                     dragPan={true}
@@ -263,13 +266,13 @@ const OrderTracking = () => {
 
             <div className="px-5 mt-[20px] relative z-0">
                 <div
-                    className="w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden"
+                    className={`w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
                     style={{
                         height: "135px",
-                        backgroundImage: `url(${arrivingContainerBg})`,
+                        backgroundImage: isDarkMode ? `url(${arrivingContainerBg})` : 'none',
                         backgroundSize: "cover",
                         backgroundPosition: "center",
-                        border: isDelivered ? "1px solid #16B751" : "1px solid rgba(255,255,255,0.1)"
+                        border: isDelivered ? "1px solid #16B751" : (isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid #E9EAEB")
                     }}
                 >
                     <div className="flex justify-between items-start mb-[8px]">
@@ -277,7 +280,7 @@ const OrderTracking = () => {
                             <p className="text-[#7E7E7E] text-[12px] font-bold font-satoshi tracking-widest uppercase leading-none">
                                 {isDelivered ? "ORDER STATUS" : "ARRIVING IN"}
                             </p>
-                            <p className="text-white text-[20px] font-bold font-satoshi mt-[1px]" style={{ lineHeight: "140%", color: isDelivered ? "#1CB956" : "#FFFFFF" }}>
+                            <p className={`text-[20px] font-bold font-satoshi mt-[1px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ lineHeight: "140%", color: isDelivered ? "#1CB956" : undefined }}>
                                 {isDelivered ? 'Delivered' : order?.status === 'arrived' ? 'Arrived' : '1 Min'}
                             </p>
                         </div>
@@ -290,12 +293,12 @@ const OrderTracking = () => {
                                 height: "31px"
                             }}
                         >
-                            <img src={isDelivered ? verifiedCircleIcon : arrivingIcon} alt="StatusIcon" className="w-full h-full" />
+                            <img src={isDelivered ? verifiedCircleIcon : arrivingIcon} alt="StatusIcon" className="w-full h-full" style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined} />
                         </div>
                     </div>
 
                     {/* Loader */}
-                    <div className="h-[9px] bg-white/10 rounded-full overflow-hidden mb-[14px]">
+                    <div className={`h-[9px] rounded-full overflow-hidden mb-[14px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
                         <div
                             className="h-full rounded-full transition-all duration-300 ease-linear"
                             style={{
@@ -307,10 +310,10 @@ const OrderTracking = () => {
                     </div>
 
                     <div>
-                        <p className="text-white text-[12px] font-medium font-satoshi mb-[4px]">
+                        <p className={`text-[12px] font-medium font-satoshi mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             {getStatusText()}
                         </p>
-                        <p className="text-white/50 text-[12px] font-normal font-satoshi leading-tight">
+                        <p className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
                             {isDelivered
                                 ? "Your package has been handed over successfully."
                                 : order?.status === 'processing'
@@ -328,9 +331,9 @@ const OrderTracking = () => {
                     style={{
                         height: "345px",
                         maxWidth: "362px",
-                        backgroundColor: "rgba(25, 25, 25, 0.31)",
-                        backdropFilter: "blur(25.02px)",
-                        border: "0.63px solid rgba(255, 255, 255, 0.12)",
+                        backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
+                        backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
+                        border: isDarkMode ? "0.63px solid rgba(255, 255, 255, 0.12)" : "1px solid #E9EAEB",
                     }}
                 >
                     <div className="flex items-start gap-[12px] mb-6">
@@ -352,7 +355,7 @@ const OrderTracking = () => {
                         <div className="flex-1">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <p className="text-white text-[15px] font-bold font-satoshi leading-snug">
+                                    <p className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                         Hi, I’m Rohit Khandelwal,<br />
                                         your delivery partner
                                     </p>
@@ -360,7 +363,7 @@ const OrderTracking = () => {
                                 <button
                                     className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20"
                                 >
-                                    <img src={callIcon} alt="Call" className="w-full h-full" />
+                                    <img src={callIcon} alt="Call" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                                 </button>
                             </div>
                             <button
@@ -377,15 +380,15 @@ const OrderTracking = () => {
                         </div>
                     </div>
 
-                    <p className="text-white/50 text-[14px] font-normal font-satoshi leading-snug mb-[8px]">
+                    <p className={`text-[14px] font-normal font-satoshi leading-snug mb-[8px] ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
                         Your delivery partner is KYC Verified. Please check the KYC details while accepting the order.
                     </p>
 
-                    <div className="h-[1px] bg-[#202020] w-full mb-[12px]" />
+                    <div className={`h-[1px] w-full mb-[12px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />
 
                     {/* OTP Section */}
                     <div>
-                        <p className="text-white text-[15px] font-bold font-satoshi mb-[12px]">
+                        <p className={`text-[15px] font-bold font-satoshi mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Please provide this OTP to confirm the delivery
                         </p>
                         <div className="w-full flex justify-center mb-6">
@@ -393,24 +396,27 @@ const OrderTracking = () => {
                                 {displayOtp.split('').map((digit, index) => (
                                     <div
                                         key={index}
-                                        className="w-[48px] h-[64px] rounded-[7px] flex items-center justify-center text-white text-[32px] font-bold font-satoshi relative overflow-hidden"
+                                        className={`w-[48px] h-[64px] rounded-[7px] flex items-center justify-center text-[32px] font-bold font-satoshi relative overflow-hidden ${isDarkMode ? 'text-white' : 'text-black'}`}
                                         style={{
-                                            backgroundColor: "rgba(25, 25, 25, 0.31)",
-                                            backdropFilter: "blur(23.51px)",
-                                            WebkitBackdropFilter: "blur(23.51px)",
+                                            backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#F7F8FA",
+                                            backdropFilter: isDarkMode ? "blur(23.51px)" : "none",
+                                            WebkitBackdropFilter: isDarkMode ? "blur(23.51px)" : "none",
+                                            border: isDarkMode ? 'none' : '1px solid #E6E8EB'
                                         }}
                                     >
                                         {/* Gradient Border Overlay - 0.59px */}
-                                        <div
-                                            className="absolute inset-0 pointer-events-none rounded-[7px]"
-                                            style={{
-                                                padding: "0.59px",
-                                                background: "linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))",
-                                                WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                                                WebkitMaskComposite: "xor",
-                                                maskComposite: "exclude",
-                                            }}
-                                        />
+                                        {isDarkMode && (
+                                            <div
+                                                className="absolute inset-0 pointer-events-none rounded-[7px]"
+                                                style={{
+                                                    padding: "0.59px",
+                                                    background: "linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))",
+                                                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                                    WebkitMaskComposite: "xor",
+                                                    maskComposite: "exclude",
+                                                }}
+                                            />
+                                        )}
                                         {digit}
                                     </div>
                                 ))}
@@ -422,7 +428,7 @@ const OrderTracking = () => {
                     <div className="flex items-center w-full mt-[12px]">
                         <div className="flex items-center gap-3">
                             <img src={isOtpVerified ? verifiedCircleIcon : awaitingIcon} alt="Status" className="w-[20px] h-[20px]" />
-                            <span className="text-white text-[12px] font-normal font-satoshi">
+                            <span className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 {isOtpVerified ? "OTP Verified" : "Awaiting OTP verification"}
                             </span>
                         </div>
@@ -434,9 +440,9 @@ const OrderTracking = () => {
             <div className="px-5 mt-[16px] pb-10 relative z-0">
                 <button
                     onClick={() => navigate('/help/report', { state: { order } })}
-                    className="w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center"
+                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${!isDarkMode ? 'bg-black' : ''}`}
                     style={{
-                        backgroundImage: `url(${darkbgCta})`,
+                        backgroundImage: isDarkMode ? `url(${darkbgCta})` : 'none',
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         backgroundRepeat: "no-repeat"

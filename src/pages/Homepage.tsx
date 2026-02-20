@@ -564,40 +564,35 @@ const Homepage = () => {
 
           {/* Active Order OR Referral Banner */}
           {activeOrder ? (
-            <div className="mx-5 mt-6 mb-[16px] flex flex-col">
+            <div
+              className="mx-5 mt-6 mb-[16px] relative rounded-[13px] overflow-hidden flex flex-col"
+              style={{
+                background: 'linear-gradient(#000000, #000000) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box',
+                border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
+                paddingTop: '8px',
+              }}
+            >
               {/* Header Row (Top Container) */}
-              <div
-                className="w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px]"
-                style={{
-                  backgroundColor: "#000000",
-                }}
-              >
-                <span className="text-white text-[12px] font-medium font-sans whitespace-nowrap mr-2">
+              <div className="w-full px-[16px] flex justify-between items-start mb-2 z-10 shrink-0">
+                <span className="text-white text-[12px] font-medium font-satoshi whitespace-nowrap mr-2">
                   Delivering to - {activeOrder.addresses?.label || "Home"}
                 </span>
-                <span className="text-white text-[12px] font-medium font-sans text-right leading-tight">
+                <span className="text-white text-[12px] font-medium font-satoshi text-right leading-tight truncate">
                   {getActiveOrderAddressDisplay()}
                 </span>
               </div>
 
               {/* Status & Map Container (Bottom Container) */}
               <div
-                className={`w-full rounded-b-[14px] flex cursor-pointer ${isDarkMode ? 'bg-white/10' : 'bg-white'}`}
-                style={{
-                  backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.34)" : "#FFFFFF",
-                  padding: "12px",
-                  marginTop: 0,
-                  border: isDarkMode ? "none" : "1px solid #E9EAEB",
-                  borderTop: "none"
-                }}
+                className={`w-full relative flex cursor-pointer p-[14px] items-center ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}
                 onClick={() => navigate(`/order-details/${activeOrder.id}`, { state: { order: activeOrder } })}
               >
                 {/* Left Text */}
                 <div className="flex-1 flex flex-col justify-start pr-2">
-                  <p className={`text-[14px] font-medium font-sans leading-snug mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                  <p className={`text-[14px] font-medium font-satoshi leading-tight mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {getActiveOrderBannerContent().title}
                   </p>
-                  <p className={`text-[12px] font-light font-sans leading-snug mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                  <p className={`text-[12px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#7E7E7E]'}`}>
                     {getActiveOrderBannerContent().sub}
                   </p>
                 </div>
@@ -608,10 +603,10 @@ const Homepage = () => {
                     e.stopPropagation();
                     navigate('/order-tracking', { state: { order: activeOrder } });
                   }}
-                  className="shrink-0 relative rounded-[8px] overflow-hidden cursor-pointer active:scale-95 transition-transform"
+                  className="shrink-0 relative rounded-[6px] overflow-hidden cursor-pointer active:scale-95 transition-transform"
                   style={{
-                    width: "110px",
-                    height: "82px",
+                    width: "98px",
+                    height: "68px",
                     backgroundColor: "#1A1A1A"
                   }}
                 >

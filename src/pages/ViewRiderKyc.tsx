@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import riderKycImg from "@/assets/rider-kyc.png";
 import hideKycImg from "@/assets/hide-kyc.png";
+import lightmodeKycCoverImg from "@/assets/lightmode-kyc-cover.png";
 import closeIcon from "@/assets/close.svg";
 import popupCloseBtnBg from "@/assets/pop-up-close-btn.png";
 
 const ViewRiderKyc = () => {
     const navigate = useNavigate();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const [isRevealed, setIsRevealed] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [rotation, setRotation] = useState(0);
@@ -28,15 +32,27 @@ const ViewRiderKyc = () => {
 
     return (
         <div
-            className="fixed inset-0 w-full h-full flex flex-col bg-[#0a0a12] safe-area-top safe-area-bottom overflow-hidden"
+            className={`fixed inset-0 w-full h-full flex flex-col safe-area-top safe-area-bottom overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Purple Glowing Blob */}
+            {!isDarkMode && (
+                <div
+                    className="absolute -top-[150px] left-1/2 -translate-x-1/2 w-[350px] h-[350px] rounded-full pointer-events-none"
+                    style={{
+                        background: 'radial-gradient(50% 50% at 50% 50%, rgba(82, 96, 254, 0.25) 0%, rgba(82, 96, 254, 0) 100%)',
+                        filter: 'blur(40px)',
+                        zIndex: 0
+                    }}
+                />
+            )}
+
             {/* Header */}
             <div
                 className="safe-area-top px-5 flex items-center justify-between pb-6"
@@ -44,12 +60,12 @@ const ViewRiderKyc = () => {
             >
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
+                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-white border border-[#E9EAEB]'}`}
                 >
-                    <ChevronLeft className="text-white w-6 h-6" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
 
-                <h1 className="text-white text-[18px] font-medium font-satoshi flex-1 text-center pr-10">
+                <h1 className={`text-[18px] font-medium font-satoshi flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Partner KYC
                 </h1>
             </div>
@@ -62,9 +78,9 @@ const ViewRiderKyc = () => {
                     style={{
                         width: "316px",
                         height: "402px",
-                        backgroundColor: "rgba(25, 25, 25, 0.31)",
-                        backdropFilter: "blur(25.02px)",
-                        border: "0.63px solid rgba(255, 255, 255, 0.12)",
+                        backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
+                        backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
+                        border: isDarkMode ? "0.63px solid rgba(255, 255, 255, 0.12)" : "1px solid #E9EAEB",
                         perspective: '1000px',
                         transform: `rotateY(${rotation}deg)`
                     }}
@@ -73,23 +89,23 @@ const ViewRiderKyc = () => {
                     <img
                         src={riderKycImg}
                         alt="Rider KYC"
-                        className={`w-full h-full object-cover transition-all duration-300 ${!isRevealed ? 'blur-[20px] brightness-[0.25]' : 'blur-0 brightness-100'}`}
+                        className={`w-full h-full object-cover transition-all duration-300 ${!isRevealed ? `blur-[20px] ${isDarkMode ? 'brightness-[0.25]' : 'brightness-[0.9]'}` : 'blur-0 brightness-100'}`}
                     />
 
                     {/* Overlay */}
                     {!isRevealed && !isAnimating && (
                         <div className="absolute inset-0 z-10 transition-opacity duration-300">
                             <img
-                                src={hideKycImg}
+                                src={isDarkMode ? hideKycImg : lightmodeKycCoverImg}
                                 alt=""
                                 className="w-full h-full object-cover"
                             />
                             {/* Text Overlay */}
                             <div className="absolute inset-0 flex flex-col items-center">
-                                <p className="mt-[162px] text-white text-[18px] font-bold font-satoshi text-center flex items-center justify-center h-[22px]">
+                                <p className="mt-[162px] text-[18px] font-bold font-satoshi text-center flex items-center justify-center h-[22px] text-white">
                                     Tap to view verified KYC ID
                                 </p>
-                                <p className="mt-[19px] text-white text-[16px] font-normal font-satoshi text-center leading-[120%]">
+                                <p className="mt-[19px] text-[16px] font-normal font-satoshi text-center leading-[120%] text-white">
                                     Yes, you’re allowed to<br />snoop responsibly.
                                 </p>
                             </div>
@@ -100,16 +116,16 @@ const ViewRiderKyc = () => {
                 {/* Close Button - 17px below container */}
                 <button
                     onClick={() => navigate(-1)}
-                    className="mt-[17px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0"
+                    className={`mt-[17px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 ${!isDarkMode ? 'bg-[#5260FE] rounded-full' : ''}`}
                     style={{
-                        backgroundImage: `url(${popupCloseBtnBg})`,
+                        backgroundImage: isDarkMode ? `url(${popupCloseBtnBg})` : 'none',
                         backgroundSize: '100% 100%',
                         backgroundRepeat: 'no-repeat',
                     }}
                 >
                     <img src={closeIcon} alt="" className="w-6 h-6" />
                     <span
-                        className="text-white text-[16px] font-medium leading-[120%] font-satoshi"
+                        className="text-[16px] font-medium leading-[120%] font-satoshi text-white"
                     >
                         Close
                     </span>
@@ -119,9 +135,9 @@ const ViewRiderKyc = () => {
                 <div className="mt-[75px] w-[364px]">
                     <button
                         onClick={() => navigate('/report-rider-kyc')}
-                        className="w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center"
+                        className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${!isDarkMode ? 'bg-black' : ''}`}
                         style={{
-                            backgroundImage: `url(${darkbgCta})`,
+                            backgroundImage: isDarkMode ? `url(${darkbgCta})` : 'none',
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             backgroundRepeat: "no-repeat"
@@ -132,14 +148,14 @@ const ViewRiderKyc = () => {
                 </div>
 
                 {/* Footer Security Text - 55px below need help */}
-                <p className="mt-[55px] text-[#9C9C9C] text-[16px] font-medium font-satoshi text-center">
+                <p className={`mt-[55px] text-[16px] font-medium font-satoshi text-center ${isDarkMode ? 'text-[#9C9C9C]' : 'text-[#7E7E7E]'}`}>
                     (Optional – helps us keep things secure)
                 </p>
 
                 {/* Hyperlink - 10px below security text */}
                 <button
                     onClick={() => navigate('/verify-rider-kyc')}
-                    className="mt-[10px] text-white text-[16px] font-medium font-satoshi text-center underline pb-10 active:opacity-70 transition-opacity"
+                    className={`mt-[10px] text-[16px] font-medium font-satoshi text-center underline pb-10 active:opacity-70 transition-opacity ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
                 >
                     Does this KYC look correct?
                 </button>
