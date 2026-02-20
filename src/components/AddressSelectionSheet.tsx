@@ -430,8 +430,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
 
                         // Show border only if multiple addresses and this one is active
                         const showBorder = !isSingleAddress && isActive;
-                        // Show chip if active OR if it's the only address (default)
-                        const showChip = isActive || isSingleAddress;
+                        // Show "Default" chip ONLY for the first added address (last in the sorted list)
+                        const showChip = idx === savedAddresses.length - 1;
 
                         // Card Styling
                         const cardBg = isDarkMode
