@@ -34,7 +34,13 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   if (isHidden) return null;
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 h-[104px] z-50 flex items-center justify-between px-6 backdrop-blur-lg overflow-hidden ${isDarkMode ? 'bg-black/80 border-t border-white/40' : 'bg-white/80 border-t border-[#E9EAEB]'}`}>
+    <div
+      className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 backdrop-blur-lg ${isDarkMode ? 'bg-black/80 border-t border-white/40' : 'bg-white/80 border-t border-[#E9EAEB]'}`}
+      style={{
+        height: 'calc(104px + env(safe-area-inset-bottom))',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
+    >
       {/* Background Overlay */}
       <div
         className="absolute inset-0 pointer-events-none z-[-1]"
