@@ -15,10 +15,14 @@ import currentLocationIcon from "@/assets/current-location.svg";
 import deliveryRiderIcon from "@/assets/delivery-rider.svg";
 import hourGlassIcon from "@/assets/hour-glass.svg";
 import innerFrameBg from "@/assets/inner-frame.png";
+import optionBg from "@/assets/option-bg.png";
+import textInputBg from "@/assets/text-input.png";
 import transactionDetailsBg from "@/assets/transaction-details.png";
 import darkCtaBg from "@/assets/darkbg-cta.png";
 import deliveryTipInfo from "@/assets/delivery-tip-info.svg";
+import infoTipIcon from "@/assets/info-tip.svg";
 import verifiedIcon from "@/assets/verified.svg";
+import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import pillBg from "@/assets/pill.png";
 import selectedPillBg from "@/assets/selected-pill.png";
 import crossIconPng from "@/assets/cross-icon.png";
@@ -45,6 +49,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
     const [selectedTipOption, setSelectedTipOption] = useState<string | null>(null);
     const [tipAmount, setTipAmount] = useState(0);
     const [customTipValue, setCustomTipValue] = useState("");
+
 
     const handleTipSelect = (option: string) => {
         setSelectedTipOption(option);
@@ -117,11 +122,13 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                 bgOpacity: 0.21,
                 icon: processingIcon,
                 statusIcon: refreshIcon,
-                label: 'Processing'
+                label: 'Processing',
+                statusFilter: 'brightness(0) saturate(100%) invert(60%) sepia(59%) saturate(1914%) hue-rotate(18deg) brightness(95%) contrast(101%)'
             };
         } else if (s === 'success' || s === 'delivered') {
             return {
                 color: '#1CB956',
+                bgColor: '#1CB956',
                 bgOpacity: 0.21,
                 icon: successIcon,
                 statusIcon: checkIcon,
@@ -130,10 +137,12 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
         } else {
             return {
                 color: '#FF1E1E',
+                bgColor: '#FF1E1E',
                 bgOpacity: 0.21,
                 icon: failedIcon,
                 statusIcon: crossIcon,
-                label: s === 'cancelled' ? 'Cancelled' : 'Failed'
+                label: s === 'cancelled' ? 'Cancelled' : 'Failed',
+                statusFilter: 'invert(27%) sepia(91%) saturate(7483%) hue-rotate(356deg) brightness(101%) contrast(106%)'
             };
         }
     };
@@ -184,7 +193,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
             {/* Sheet */}
             <div
-                className={`relative w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] pt-4 pb-10 px-5 overflow-y-auto custom-scrollbar transition-all duration-300 shadow-2xl mt-[100px] ${isDarkMode ? '' : 'bg-white'}`}
+                className={`relative w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-all duration-300 shadow-2xl mt-[100px] ${isDarkMode ? '' : 'bg-white'}`}
                 style={{
                     background: isDarkMode ? 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box' : undefined,
                     border: isDarkMode ? '0.63px solid transparent' : 'none',
@@ -192,261 +201,282 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                     borderTopRightRadius: '32px',
                     backdropFilter: isDarkMode ? 'blur(16px)' : 'none',
                     WebkitBackdropFilter: isDarkMode ? 'blur(16px)' : 'none',
+                    transform: 'translateZ(0)', // Hardware acceleration to force correct clipping
+                    WebkitTransform: 'translateZ(0)',
                 }}
             >
-                {/* Drag Handle Container (approx 40px padding top/bottom equivalent) */}
-                <div className="w-full flex justify-center pb-6">
-                    <div className={`w-[48px] h-[5px] rounded-full ${isDarkMode ? 'bg-[#313033]' : 'bg-[#E6E8EB]'}`} />
-                </div>
-
-                {/* Order Summary Card */}
-                <div
-                    className="relative mb-[13px] mx-auto overflow-hidden"
-                    style={{
-                        width: '362px',
-                        height: '137px',
-                        background: `linear-gradient(${(config.bgColor || config.color)}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}, ${(config.bgColor || config.color)}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box`,
-                        border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
-                        borderRadius: '13px',
-                        backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
-                        WebkitBackdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
-                    }}
-                >
-                    {/* Status Frame */}
-                    <div className="h-[25px] flex items-center pl-[13.5px]">
-                        <div className="flex items-center gap-[6px]">
-                            <img src={config.statusIcon} alt="" className="w-[14px] h-[14px]" style={!isDarkMode && isProcessing ? { filter: 'brightness(0) saturate(100%) invert(54%) sepia(93%) saturate(2311%) hue-rotate(18deg) brightness(96%) contrast(101%)' } : {}} />
-                            <span className="text-[12px] font-bold font-satoshi tracking-wide" style={{ color: config.color }}>
-                                {config.label}
-                            </span>
-                        </div>
+                {/* Internal Scroller - This ensures padding and scrolling don't break the rounded top corners */}
+                <div className="w-full h-full max-h-[inherit] overflow-y-auto custom-scrollbar pt-4 pb-10 px-5 rounded-t-[32px]">
+                    {/* Drag Handle Container */}
+                    <div className="w-full flex justify-center pb-6">
+                        <div className={`w-[48px] h-[5px] rounded-full ${isDarkMode ? 'bg-[#313033]' : 'bg-[#E6E8EB]'}`} />
                     </div>
 
-                    {/* Inner Frame */}
+                    {/* Order Summary Card */}
                     <div
-                        className={`absolute top-[25px] left-0 w-full rounded-b-[13px] ${isDarkMode ? '' : 'bg-white border-t border-[#E9EAEB]'}`}
-                        style={{
-                            height: '112px',
-                            backgroundImage: isDarkMode ? `url(${innerFrameBg})` : 'none',
-                            backgroundSize: '100% 100%',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat'
-                        }}
-                    >
-                        <img src={config.icon} alt="" className="absolute top-[17px] left-[17px] w-[35px] h-[35px]" />
-
-                        <div className="absolute top-[17px] left-[65px] flex flex-col">
-                            <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                {order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"}
-                            </span>
-                            <span className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-black/50'}`}>
-                                {formatOrderDate(order.created_at)}
-                            </span>
-                        </div>
-
-                        <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-
-                        <div className="absolute left-[12px] h-[1px]" style={{ top: '65px', width: '338px', backgroundColor: isDarkMode ? '#363636' : '#E6E8EB' }} />
-
-                        <div className="absolute left-[17px] right-[17px] flex justify-between items-center px-0" style={{ top: '78px' }}>
-                            <span className={`text-[12px] font-satoshi font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Order ID</span>
-                            <span className={`text-[12px] font-bold font-satoshi tracking-wider uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                DTP{order.id.substring(0, 8).toUpperCase()}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Details Separator */}
-                <div className="flex items-center gap-4 mb-6">
-                    <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
-                    <span className={`text-[12px] font-bold tracking-[0.2em] ${isDarkMode ? 'text-white/40' : 'text-black/40'}`}>DETAILS</span>
-                    <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
-                </div>
-
-                {/* Delivery Container - Processing/Success only */}
-                {(isProcessing || isSuccess) && (
-                    <div
-                        className="relative rounded-[13px] overflow-hidden mb-6 mx-auto"
+                        className="relative mb-[13px] mx-auto overflow-hidden"
                         style={{
                             width: '362px',
-                            height: '128px',
-                            background: 'linear-gradient(#000000, #000000) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box',
+                            height: '137px',
+                            background: isDarkMode
+                                ? `linear-gradient(${(config.bgColor || config.color)}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}, ${(config.bgColor || config.color)}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box`
+                                : `${(config.bgColor || config.color)}36`, // ~21% opacity
                             border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
-                            paddingTop: '8px',
+                            borderRadius: '13px',
+                            backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                            WebkitBackdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                         }}
                     >
-                        {/* Address Info Header */}
-                        <div className="px-[16px] flex justify-between items-start mb-2">
-                            <span className="text-white text-[12px] font-medium font-satoshi">Delivered to - {order.addresses?.label || "Home"}</span>
-                            <span className="text-white text-[12px] font-satoshi max-w-[150px] truncate text-right">
-                                {order.addresses?.apartment}, {order.addresses?.area}
+                        {/* Status Frame */}
+                        <div className="h-[25px] flex items-center pl-[13.5px]">
+                            <div className="flex items-center gap-[6px]">
+                                <img src={config.statusIcon} alt="" className="w-[14px] h-[14px]" style={!isDarkMode ? { filter: config.statusFilter } : {}} />
+                                <span className="text-[12px] font-bold font-satoshi tracking-wide" style={{ color: config.color }}>
+                                    {config.label}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Inner Frame */}
+                        <div
+                            className={`absolute top-[25px] left-0 w-full rounded-b-[13px] ${isDarkMode ? '' : 'bg-white border-t border-[#E9EAEB]'}`}
+                            style={{
+                                height: '112px',
+                                backgroundImage: isDarkMode ? `url(${innerFrameBg})` : 'none',
+                                backgroundSize: '100% 100%',
+                                backgroundPosition: 'center',
+                                backgroundRepeat: 'no-repeat'
+                            }}
+                        >
+                            <img src={config.icon} alt="" className="absolute top-[17px] left-[17px] w-[35px] h-[35px]" />
+
+                            <div className="absolute top-[17px] left-[65px] flex flex-col">
+                                <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                    {order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"}
+                                </span>
+                                <span className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-black/50'}`}>
+                                    {formatOrderDate(order.created_at)}
+                                </span>
+                            </div>
+
+                            <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                             </span>
-                        </div>
 
-                        {isProcessing && (
-                            <div className="w-full px-0">
-                                <div className={`relative h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
-                                    <div className="p-[14px]">
-                                        <div className="max-w-[170px]">
-                                            <p className={`text-[14px] font-medium font-satoshi leading-tight mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                                We’re assigning a delivery <br /> partner soon!
-                                            </p>
-                                            <p className={`text-[12px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#7E7E7E]'}`}>Assigning a delivery partner in the next 2 minutes.</p>
-                                        </div>
-                                        <div className="absolute top-[13.5px] right-[13.5px] w-[98px] h-[68px] rounded-[6px] overflow-hidden">
-                                            <Map
-                                                {...viewState}
-                                                style={{ width: "100%", height: "100%" }}
-                                                mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-                                                attributionControl={false}
-                                                interactive={false}
-                                            >
-                                                <Source id="route" type="geojson" data={routeGeoJson}>
-                                                    <Layer {...routeLayer} />
-                                                </Source>
-                                                <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
-                                                    <div className="animate-pulse">
-                                                        <img src={currentLocationIcon} alt="User" className="w-4 h-4" />
-                                                    </div>
-                                                </Marker>
-                                                <Marker latitude={viewState.latitude + 0.002} longitude={viewState.longitude + 0.002}>
-                                                    <img src={deliveryRiderIcon} alt="Rider" className="w-5 h-5" />
-                                                </Marker>
-                                            </Map>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="absolute left-[12px] h-[1px]" style={{ top: '65px', width: '338px', backgroundColor: isDarkMode ? '#363636' : '#E6E8EB' }} />
+
+                            <div className="absolute left-[17px] right-[17px] flex justify-between items-center px-0" style={{ top: '78px' }}>
+                                <span className={`text-[12px] font-satoshi font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Order ID</span>
+                                <span className={`text-[12px] font-bold font-satoshi tracking-wider uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                    DTP{order.id.substring(0, 8).toUpperCase()}
+                                </span>
                             </div>
-                        )}
+                        </div>
+                    </div>
 
-                        {isSuccess && (
-                            <div className="w-full px-0">
-                                <div className={`relative h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
-                                    <div className="p-[14px]">
-                                        <div className="flex gap-4 items-start">
-                                            <div className="w-[64px] h-[68px] relative shrink-0 rounded-[6px] overflow-hidden">
-                                                <img
-                                                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
-                                                    alt="Rider"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                {/* Verified Tag Bar */}
-                                                <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
-                                                    <img src={verifiedIcon} alt="V" className="w-[12px] h-[12px]" />
-                                                    <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-1 -mt-1">
-                                                <p className={`text-[14px] font-medium font-satoshi leading-tight mb-[6px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                                    Your order was successfully delivered by Rohit Khandelwal.
+                    {/* Details Separator */}
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
+                        <span className={`text-[12px] font-bold tracking-[0.2em] ${isDarkMode ? 'text-white/40' : 'text-black'}`}>DETAILS</span>
+                        <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
+                    </div>
+
+                    {/* Delivery Container - Processing/Success only */}
+                    {(isProcessing || isSuccess) && (
+                        <div
+                            className="relative rounded-[13px] overflow-hidden mb-6 mx-auto"
+                            style={{
+                                width: '362px',
+                                height: '128px',
+                                background: 'linear-gradient(#000000, #000000) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box',
+                                border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
+                                paddingTop: '8px',
+                            }}
+                        >
+                            {/* Address Info Header */}
+                            <div className="px-[16px] flex justify-between items-start mb-2">
+                                <span className="text-white text-[12px] font-medium font-satoshi">Delivered to - {order.addresses?.label || "Home"}</span>
+                                <span className="text-white text-[12px] font-satoshi max-w-[150px] truncate text-right">
+                                    {order.addresses?.apartment}, {order.addresses?.area}
+                                </span>
+                            </div>
+
+                            {isProcessing && (
+                                <div className="w-full px-0">
+                                    <div className={`relative h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
+                                        <div className="p-[14px]">
+                                            <div className="max-w-[170px]">
+                                                <p className={`text-[14px] font-medium font-satoshi leading-tight mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                                    We’re assigning a delivery <br /> partner soon!
                                                 </p>
-                                                <div className="flex gap-2">
-                                                    {[1, 2, 3, 4, 5].map((s) => (
-                                                        <Star
-                                                            key={s}
-                                                            size={20}
-                                                            fill={rating >= s ? "#FACC15" : "none"}
-                                                            stroke={rating >= s ? "#FACC15" : "#4A4A4A"}
-                                                            className="cursor-pointer"
-                                                            onClick={() => setRating(s)}
-                                                        />
-                                                    ))}
+                                                <p className={`text-[12px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#7E7E7E]'}`}>Assigning a delivery partner in the next 2 minutes.</p>
+                                            </div>
+                                            <div className="absolute top-[13.5px] right-[13.5px] w-[98px] h-[68px] rounded-[6px] overflow-hidden">
+                                                <Map
+                                                    {...viewState}
+                                                    style={{ width: "100%", height: "100%" }}
+                                                    mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+                                                    attributionControl={false}
+                                                    interactive={false}
+                                                >
+                                                    <Source id="route" type="geojson" data={routeGeoJson}>
+                                                        <Layer {...routeLayer} />
+                                                    </Source>
+                                                    <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
+                                                        <div className="animate-pulse">
+                                                            <img src={currentLocationIcon} alt="User" className="w-4 h-4" />
+                                                        </div>
+                                                    </Marker>
+                                                    <Marker latitude={viewState.latitude + 0.002} longitude={viewState.longitude + 0.002}>
+                                                        <img src={deliveryRiderIcon} alt="Rider" className="w-5 h-5" />
+                                                    </Marker>
+                                                </Map>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {isSuccess && (
+                                <div className="w-full px-0">
+                                    <div className={`relative h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
+                                        <div className="p-[14px]">
+                                            <div className="flex gap-4 items-start">
+                                                <div className="w-[64px] h-[68px] relative shrink-0 rounded-[6px] overflow-hidden">
+                                                    <img
+                                                        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
+                                                        alt="Rider"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    {/* Verified Tag Bar */}
+                                                    <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
+                                                        <img src={verifiedIcon} alt="V" className="w-[12px] h-[12px]" />
+                                                        <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 -mt-1">
+                                                    <p className={`text-[14px] font-medium font-satoshi leading-tight mb-[6px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                                        Your order was successfully delivered by Rohit Khandelwal.
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        {[1, 2, 3, 4, 5].map((s) => (
+                                                            <Star
+                                                                key={s}
+                                                                size={20}
+                                                                fill={rating >= s ? "#FACC15" : "none"}
+                                                                stroke="#FACC15"
+                                                                className="cursor-pointer"
+                                                                onClick={() => setRating(s)}
+                                                            />
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    )}
 
-                {/* Transaction Details Box - Only for Processing state */}
-                {isProcessing && (
-                    <div
-                        className="relative w-[362px] mx-auto rounded-[12px] mb-6 overflow-hidden"
-                        style={{
-                            height: '249px',
-                            backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF',
-                            backgroundImage: isDarkMode ? `url(${transactionDetailsBg})` : 'none',
-                            backgroundSize: '100% 100%',
-                            padding: '10px 10px 17px 10px',
-                            border: isDarkMode ? 'none' : '1px solid #E9EAEB'
-                        }}
-                    >
-                        <h3 className={`text-[16px] font-medium font-satoshi px-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>Transaction Details</h3>
+                    {/* Transaction Details Box - Only for Processing state */}
+                    {isProcessing && (
+                        <div
+                            className="relative w-[362px] mx-auto rounded-[12px] mb-6 overflow-hidden"
+                            style={{
+                                height: '249px',
+                                backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF',
+                                backgroundImage: isDarkMode ? `url(${transactionDetailsBg})` : 'none',
+                                backgroundSize: '100% 100%',
+                                padding: '10px 10px 17px 10px',
+                                border: isDarkMode ? 'none' : '1px solid #E9EAEB'
+                            }}
+                        >
+                            <h3 className={`text-[16px] font-medium font-satoshi px-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>Transaction Details</h3>
 
-                        <div className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
+                            <div className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
 
-                        <div className="flex flex-col gap-[8px] px-1">
-                            <div className="flex justify-between items-center">
-                                <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Transaction Number</span>
-                                <span className={`text-[14px] font-bold font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    201239AHSUBW234
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Date & Time</span>
-                                <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, {new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Payment Mode</span>
-                                <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Grid.Pe Wallet</span>
-                            </div>
+                            <div className="flex flex-col gap-[8px] px-1">
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Transaction Number</span>
+                                    <span className={`text-[14px] font-bold font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                        201239AHSUBW234
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Date & Time</span>
+                                    <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                        {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, {new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Payment Mode</span>
+                                    <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Grid.Pe Wallet</span>
+                                </div>
 
-                            <div className="mt-2 flex flex-col gap-4">
-                                <p className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}>
-                                    No charges yet — your wallet will only be debited after you confirm the delivery.
-                                </p>
-                                <p className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    If you need to cancel, you can do so within 30 seconds or before a delivery partner is assigned, whichever is earlier.
-                                </p>
+                                <div className="mt-2 flex flex-col gap-4">
+                                    <p className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}>
+                                        No charges yet — your wallet will only be debited after you confirm the delivery.
+                                    </p>
+                                    <p className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                        If you need to cancel, you can do so within 30 seconds or before a delivery partner is assigned, whichever is earlier.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {isSuccess && (
-                    <>
-                        {/* Tip Section - Exact Implementation from OrderCashSummary */}
-                        <div className="mb-6 px-1">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className={`text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Delivery Tip</span>
+                    {/* Tip & Feedback Container - Only for Success state */}
+                    {isSuccess && (
+                        <div
+                            className="mx-auto rounded-[13px] mb-[13px] overflow-y-auto custom-scrollbar relative"
+                            style={{
+                                width: '362px',
+                                height: '367px',
+                                background: isDarkMode ? 'rgba(25, 25, 25, 0.30)' : '#FFFFFF',
+                                border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
+                                padding: '14px 15px 24px 15px',
+                                backdropFilter: isDarkMode ? 'blur(24px)' : 'none',
+                                WebkitBackdropFilter: isDarkMode ? 'blur(24px)' : 'none',
+                            }}
+                        >
+                            {/* Tip Header */}
+                            <div className="flex items-center gap-2 mb-[15px]">
+                                <span className={`text-[15px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Add Tip</span>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowDeliveryTipPopup(true);
                                     }}
-                                    className="flex items-center justify-center w-[14px] h-[14px]"
+                                    className="flex items-center justify-center w-[16px] h-[16px]"
                                 >
-                                    <img src={deliveryTipInfo} alt="Info" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
+                                    <img src={isDarkMode ? deliveryTipInfo : infoTipIcon} alt="Info" className={`w-full h-full ${!isDarkMode ? '' : 'brightness-0 opacity-100 invert-[38%] sepia-[68%] saturate-[3440%] hue-rotate-[197deg] brightness-[102%] contrast-[106%]'}`} style={isDarkMode ? { filter: 'none' } : {}} />
                                 </button>
                             </div>
-                            <p className={`text-[13px] font-normal font-sans mb-5 leading-snug ${isDarkMode ? 'text-white/80' : 'text-black/70'}`}>
-                                A small tip, goes a big way! Totally optional — but your rider will appreciate it ❤️
+
+                            {/* Tip Subheading */}
+                            <p className={`text-[12px] font-normal font-satoshi mb-[15px] leading-tight ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                                Your tip goes directly to the rider and Grid.Pe and doesn’t keep any share of it.
                             </p>
-                            <div className="flex items-center gap-3">
+
+                            {/* Tip Chips */}
+                            <div className="flex items-center justify-between mb-[22px]">
                                 {['10', '20', '30'].map((val) => (
-                                    <div key={val} className="relative shrink-0" style={{ width: '74px', height: '38px' }}>
+                                    <div key={val} className="relative shrink-0" style={{ width: '78px', height: '37px' }}>
                                         <button
                                             onClick={() => handleTipSelect(val)}
-                                            className={`relative block w-full h-full transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${val === '20' ? 'rounded-[19px]' : ''}`}
-                                            style={{
+                                            className={`relative block w-full h-full transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${val === '20' ? 'rounded-[19px]' : 'rounded-full'}`}
+                                            style={isDarkMode ? {
                                                 backgroundImage: `url(${selectedTipOption === val ? selectedPillBg : pillBg})`,
                                                 backgroundSize: '100% 100%',
                                                 backgroundRepeat: 'no-repeat',
                                                 boxSizing: 'border-box'
-                                            }}
+                                            } : { backgroundColor: selectedTipOption === val ? '#5260FE' : '#FFFFFF', border: '1px solid #E6E8EB' }}
                                         >
                                             <div
-                                                className={`absolute left-0 right-0 flex justify-center items-center gap-[10px] z-20 ${val === '20' ? 'top-[2px]' : 'top-1/2 -translate-y-1/2'}`}
+                                                className={`absolute left-0 right-0 flex justify-center items-center gap-[10px] z-20 ${val === '20' ? 'top-[2.5px]' : 'top-1/2 -translate-y-1/2'}`}
                                             >
-                                                <span className="text-white font-medium font-satoshi text-[15px] leading-none">
+                                                <span className={`font-medium font-satoshi text-[15px] leading-none ${isDarkMode || selectedTipOption === val ? 'text-white' : 'text-black'}`}>
                                                     ₹{val}
                                                 </span>
 
@@ -473,31 +503,32 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                                         </button>
                                     </div>
                                 ))}
-                                <div className="relative shrink-0" style={{ width: '74px', height: '38px' }}>
+                                <div className="relative shrink-0" style={{ width: '78px', height: '37px' }}>
                                     <button
                                         onClick={() => handleTipSelect('other')}
-                                        className={`relative flex items-center justify-center transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${selectedTipOption === 'other' ? 'flex-row gap-[10px]' : ''}`}
-                                        style={{
-                                            width: '74px',
-                                            height: '38px',
-                                            minWidth: '74px',
-                                            minHeight: '38px',
-                                            maxWidth: '74px',
-                                            maxHeight: '38px',
+                                        className={`relative flex items-center justify-center transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none rounded-full ${selectedTipOption === 'other' ? 'flex-row gap-[6px]' : ''}`}
+                                        style={isDarkMode ? {
+                                            width: '78px',
+                                            height: '37px',
                                             backgroundImage: `url(${selectedTipOption === 'other' ? selectedPillBg : pillBg})`,
                                             backgroundSize: '100% 100%',
                                             backgroundRepeat: 'no-repeat',
                                             boxSizing: 'border-box'
+                                        } : {
+                                            width: '78px',
+                                            height: '37px',
+                                            backgroundColor: selectedTipOption === 'other' ? '#5260FE' : '#FFFFFF',
+                                            border: '1px solid #E6E8EB'
                                         }}
                                     >
-                                        <span className="text-white font-medium font-satoshi text-[15px] z-20 relative leading-none">Other</span>
+                                        <span className={`font-medium font-satoshi text-[14px] z-20 relative leading-none ${isDarkMode || selectedTipOption === 'other' ? 'text-white' : 'text-black'}`}>Other</span>
                                         {selectedTipOption === 'other' && (
                                             <div
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleClearCustomTip();
                                                 }}
-                                                className="z-30 cursor-pointer hover:opacity-80 flex items-center justify-center w-[12px] h-[12px]"
+                                                className="z-30 cursor-pointer hover:opacity-80 flex items-center justify-center w-[10px] h-[10px]"
                                             >
                                                 <img src={crossIconPng} alt="Remove" className="w-full h-full object-contain" />
                                             </div>
@@ -505,58 +536,66 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Other Tip Input Overlay - Not absolute anymore, follows OrderCashSummary style */}
                             {selectedTipOption === 'other' && (
-                                <div className={`mt-[15px] h-[48px] w-full rounded-full border flex items-center pl-4 pr-4 ${isDarkMode ? 'bg-[#191919] border-white/10' : 'bg-[#F2F4F7] border-[#E6E8EB]'}`}>
-                                    <span className={`font-medium font-satoshi mr-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter tip amount"
-                                        value={customTipValue}
-                                        onChange={handleCustomTipChange}
-                                        className={`bg-transparent font-satoshi text-[14px] focus:outline-none flex-1 ${isDarkMode ? 'text-white placeholder:text-white/30' : 'text-black placeholder:text-black/30'}`}
-                                    />
-                                    <button
-                                        onClick={tipAmount > 0 ? handleClearCustomTip : handleApplyCustomTip}
-                                        className="text-[#5260FE] text-[13px] font-medium font-satoshi ml-2"
-                                    >
-                                        {tipAmount > 0 ? "Clear" : "Apply"}
-                                    </button>
+                                <div className="w-full mb-[22px]">
+                                    <div className={`h-[48px] w-full rounded-full border flex items-center px-4 ${isDarkMode ? 'bg-[#191919] border-white/10' : 'bg-white border-[#E6E8EB]'}`}>
+                                        <span className={`font-medium font-satoshi mr-2 text-[14px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter tip amount"
+                                            value={customTipValue}
+                                            onChange={handleCustomTipChange}
+                                            className={`bg-transparent font-satoshi text-[14px] focus:outline-none flex-1 ${isDarkMode ? 'text-white placeholder:text-white/30' : 'text-black placeholder:text-black/30'}`}
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={tipAmount > 0 ? handleClearCustomTip : handleApplyCustomTip}
+                                            className="text-[#5260FE] text-[13px] font-medium font-satoshi ml-2"
+                                        >
+                                            {tipAmount > 0 ? "Clear" : "Apply"}
+                                        </button>
+                                    </div>
                                 </div>
                             )}
-                        </div>
 
-                        {/* Feedback Section */}
-                        <div className="mb-6 px-1">
-                            <div className={`rounded-[16px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-[#E6E8EB]'}`}>
+                            {/* Feedback Section */}
+                            <div
+                                className={`rounded-[12px] border overflow-hidden mb-[22px] ${isDarkMode ? 'border-white/10' : 'border-[#E6E8EB]'}`}
+                                style={{ width: '332px', height: '111px' }}
+                            >
                                 <div className={`px-4 py-2 border-b ${isDarkMode ? 'border-white/10' : 'border-[#E6E8EB]'}`}>
                                     <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Feedback (Optional)</span>
                                 </div>
                                 <textarea
-                                    className={`w-full h-[90px] bg-transparent p-4 text-[14px] font-satoshi outline-none resize-none ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/30'}`}
+                                    className={`w-full h-[70px] bg-transparent p-4 text-[14px] font-satoshi outline-none resize-none ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/30'}`}
                                     placeholder="Driver was... (e.g. punctual, polite, helpful)"
                                     value={feedback}
                                     onChange={(e) => setFeedback(e.target.value)}
                                 />
                             </div>
+
+                            {/* Submit Button */}
+                            <button
+                                className={`rounded-full flex items-center justify-center text-[16px] font-bold active:scale-[0.98] transition-all border-none ${isDarkMode ? 'text-white' : 'text-white bg-black'}`}
+                                style={{
+                                    width: '332px',
+                                    height: '48px',
+                                    backgroundImage: isDarkMode ? `url(${darkCtaBg})` : 'none',
+                                    backgroundSize: '100% 100%',
+                                    backgroundPosition: 'center',
+                                    backgroundRepeat: 'no-repeat',
+                                }}
+                                onClick={onClose}
+                            >
+                                Submit
+                            </button>
                         </div>
+                    )}
 
-                        {/* Submit Button */}
-                        <button
-                            className="mx-auto rounded-full flex items-center justify-center text-white text-[16px] font-bold active:scale-[0.98] transition-all border-none mb-6"
-                            style={{
-                                width: '364px',
-                                height: '48px',
-                                backgroundImage: `url(${darkCtaBg})`,
-                                backgroundSize: '100% 100%',
-                                backgroundPosition: 'center',
-                                backgroundRepeat: 'no-repeat',
-                            }}
-                            onClick={onClose}
-                        >
-                            Submit
-                        </button>
-
-                        {/* Repeat Order Button */}
+                    {/* Repeat Order Button */}
+                    {isSuccess && (
                         <button
                             className="mx-auto rounded-full bg-[#5260FE] flex items-center justify-center mb-[10px] active:scale-[0.98] transition-all"
                             style={{
@@ -570,137 +609,138 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                         >
                             <span className="text-white text-[16px] font-medium font-satoshi">Repeat Order</span>
                         </button>
-                    </>
-                )}
+                    )}
 
+                    {/* Reason for Failure Box - Only for Failed/Cancelled state */}
+                    {isFailed && (
+                        <div
+                            className="relative w-[362px] mx-auto rounded-[12px] mb-6 overflow-hidden"
+                            style={{
+                                height: 'auto',
+                                minHeight: '230px',
+                                backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF',
+                                backgroundImage: isDarkMode ? `url(${transactionDetailsBg})` : 'none',
+                                backgroundSize: '100% 100%',
+                                padding: '10px 10px 17px 10px',
+                                border: isDarkMode ? 'none' : '1px solid #E9EAEB'
+                            }}
+                        >
+                            <h3 className={`text-[16px] font-medium font-satoshi px-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>Reason for failure</h3>
 
+                            <div className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
 
-                {/* Reason for Failure Box - Only for Failed/Cancelled state */}
-                {isFailed && (
-                    <div
-                        className="relative w-[362px] mx-auto rounded-[12px] mb-6 overflow-hidden"
-                        style={{
-                            height: 'auto',
-                            minHeight: '230px',
-                            backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF',
-                            backgroundImage: isDarkMode ? `url(${transactionDetailsBg})` : 'none',
-                            backgroundSize: '100% 100%',
-                            padding: '10px 10px 17px 10px',
-                            border: isDarkMode ? 'none' : '1px solid #E9EAEB'
-                        }}
-                    >
-                        <h3 className={`text-[16px] font-medium font-satoshi px-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>Reason for failure</h3>
+                            <div className="flex flex-col gap-[12px] px-1">
+                                <p className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                    {order.metadata?.cancellation_reason || (order.status === 'cancelled' ? 'Order was cancelled by the user.' : 'Payment was declined by your bank.')}
+                                </p>
 
-                        <div className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Time</span>
+                                    <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                        {new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                    </span>
+                                </div>
 
-                        <div className="flex flex-col gap-[12px] px-1">
-                            <p className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                {order.metadata?.cancellation_reason || (order.status === 'cancelled' ? 'Order was cancelled by the user.' : 'Payment was declined by your bank.')}
-                            </p>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Payment Mode</span>
+                                    <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Wallet</span>
+                                </div>
 
-                            <div className="flex justify-between items-center">
-                                <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Time</span>
-                                <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                </span>
+                                <div className={`w-full h-[1px] my-1 ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
+
+                                <p className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}>
+                                    No amount has been deducted from your mode of payment. Any deducted amount will be refunded within 1-2 business days.
+                                </p>
                             </div>
-
-                            <div className="flex justify-between items-center">
-                                <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Payment Mode</span>
-                                <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Wallet</span>
-                            </div>
-
-                            <div className={`w-full h-[1px] my-1 ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
-
-                            <p className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}>
-                                No amount has been deducted from your mode of payment. Any deducted amount will be refunded within 1-2 business days.
-                            </p>
                         </div>
+                    )}
+
+                    {/* Action Buttons - For Processing and Failed/Success Help */}
+                    <div className="flex flex-col gap-3">
+                        {isProcessing && (
+                            <button
+                                onClick={() => onCancel?.(order.id)}
+                                className="mx-auto rounded-full flex items-center justify-center text-white text-[16px] font-bold active:scale-95 transition-transform mb-6"
+                                style={{
+                                    width: '364px',
+                                    height: '48px',
+                                    backgroundImage: isDarkMode ? `url(${darkCtaBg})` : 'none',
+                                    backgroundColor: isDarkMode ? 'transparent' : '#000000',
+                                    backgroundSize: '100% 100%',
+                                    backgroundPosition: 'center',
+                                    backgroundRepeat: 'no-repeat',
+                                    border: 'none'
+                                }}
+                            >
+                                Cancel Order
+                            </button>
+                        )}
+
+                        {isFailed && (
+                            <button
+                                onClick={() => navigate('/help/report', { state: { order } })}
+                                className="mx-auto rounded-full flex items-center justify-center text-[16px] font-bold active:scale-95 transition-transform mb-6"
+                                style={{
+                                    width: '364px',
+                                    height: '48px',
+                                    backgroundImage: isDarkMode ? `url(${darkCtaBg})` : 'none',
+                                    backgroundColor: isDarkMode ? 'transparent' : '#000000',
+                                    border: isDarkMode ? 'none' : 'none',
+                                    color: 'white',
+                                    backgroundSize: '100% 100%',
+                                    backgroundPosition: 'center',
+                                    backgroundRepeat: 'no-repeat',
+                                }}
+                            >
+                                Need Help?
+                            </button>
+                        )}
                     </div>
-                )}
-
-                {/* Action Buttons - For Processing and Failed/Success Help */}
-                <div className="flex flex-col gap-3">
-                    {isProcessing && (
-                        <button
-                            onClick={() => onCancel?.(order.id)}
-                            className="mx-auto rounded-full flex items-center justify-center text-white text-[16px] font-bold active:scale-95 transition-transform mb-6"
-                            style={{
-                                width: '364px',
-                                height: '48px',
-                                backgroundImage: isDarkMode ? `url(${darkCtaBg})` : 'none',
-                                backgroundColor: isDarkMode ? 'transparent' : '#000000',
-                                backgroundSize: '100% 100%',
-                                backgroundPosition: 'center',
-                                backgroundRepeat: 'no-repeat',
-                                border: 'none'
-                            }}
-                        >
-                            Cancel Order
-                        </button>
-                    )}
-
-                    {(isFailed || isSuccess) && (
-                        <button
-                            className="mx-auto rounded-full flex items-center justify-center text-white text-[16px] font-medium active:scale-95 transition-transform mb-6"
-                            style={{
-                                width: '364px',
-                                height: '48px',
-                                backgroundImage: isDarkMode ? `url(${darkCtaBg})` : 'none',
-                                backgroundColor: isDarkMode ? 'transparent' : '#000000',
-                                backgroundSize: '100% 100%',
-                                backgroundPosition: 'center',
-                                backgroundRepeat: 'no-repeat',
-                                border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-                            }}
-                            onClick={() => navigate('/help/report', { state: { order } })}
-                        >
-                            Need Help?
-                        </button>
-                    )}
                 </div>
+
+                {/* Delivery Tip Popup - Exact Implementation from OrderCashSummary */}
+                {
+                    showDeliveryTipPopup && (
+                        <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+                            <div
+                                className="relative rounded-2xl p-6 max-w-[320px] w-full z-10 flex flex-col items-center text-center border border-white/10"
+                                style={{
+                                    backgroundImage: `url(${popupBg})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                }}
+                            >
+                                <img src={popupCardIcon} alt="Delivery Tip" className="w-8 h-8 mb-4 object-contain" />
+                                <h2 className="text-white text-[18px] font-medium mb-4 font-satoshi">Delivery Tip</h2>
+                                <div className="bg-black rounded-xl w-full px-[12px] py-[11px]">
+                                    <p className="text-white text-[13px] font-normal font-satoshi leading-relaxed text-left mb-[6px]">
+                                        Our delivery partners ride through traffic, harsh weather, and long distances to bring your cash safely to your door.
+                                    </p>
+                                    <p className="text-white text-[13px] font-normal font-satoshi leading-relaxed text-left">
+                                        Tipping isn’t mandatory — but it goes directly to them and helps support their daily hustle, fuel, and hard work.
+                                        <br />
+                                        Even a small amount makes a big difference.
+                                        <br />
+                                        Every rupee = recognition. 💙
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowDeliveryTipPopup(false)}
+                                className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2"
+                                style={{
+                                    backgroundImage: `url(${buttonCloseBg})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                }}
+                            >
+                                <X className="w-4 h-4 text-white" />
+                                <span className="text-white text-[14px] font-satoshi">Close</span>
+                            </button>
+                        </div>
+                    )
+                }
             </div>
-
-            {/* Delivery Tip Popup - Exact Implementation from OrderCashSummary */}
-            {showDeliveryTipPopup && (
-                <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-                    <div
-                        className="relative rounded-2xl p-6 max-w-[320px] w-full z-10 flex flex-col items-center text-center border border-white/10"
-                        style={{
-                            backgroundImage: `url(${popupBg})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                        }}
-                    >
-                        <img src={popupCardIcon} alt="Delivery Tip" className="w-8 h-8 mb-4 object-contain" />
-                        <h2 className="text-white text-[18px] font-medium mb-4 font-satoshi">Delivery Tip</h2>
-                        <div className="bg-black rounded-xl w-full px-[12px] py-[11px]">
-                            <p className="text-white text-[13px] font-normal font-satoshi leading-relaxed text-left mb-[6px]">
-                                Our delivery partners ride through traffic, harsh weather, and long distances to bring your cash safely to your door.
-                            </p>
-                            <p className="text-white text-[13px] font-normal font-satoshi leading-relaxed text-left">
-                                Tipping isn’t mandatory — but it goes directly to them and helps support their daily hustle, fuel, and hard work.
-                                <br />
-                                Even a small amount makes a big difference.
-                                <br />
-                                Every rupee = recognition. 💙
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setShowDeliveryTipPopup(false)}
-                        className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2"
-                        style={{
-                            backgroundImage: `url(${buttonCloseBg})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                        }}
-                    >
-                        <X className="w-4 h-4 text-white" />
-                        <span className="text-white text-[14px] font-satoshi">Close</span>
-                    </button>
-                </div>
-            )}
         </div>
     );
 };

@@ -56,6 +56,7 @@ const NeedHelp = () => {
                 bgOpacity: 0.21,
                 icon: processingIcon,
                 statusIcon: refreshIcon,
+                statusFilter: 'brightness(0) saturate(100%) invert(60%) sepia(59%) saturate(1914%) hue-rotate(18deg) brightness(95%) contrast(101%)',
                 label: 'Processing'
             };
         } else if (isSuccess) {
@@ -65,6 +66,7 @@ const NeedHelp = () => {
                 bgOpacity: 0.21,
                 icon: successIcon,
                 statusIcon: checkIcon,
+                statusFilter: isDarkMode ? 'invert(53%) sepia(76%) saturate(446%) hue-rotate(92deg) brightness(94%) contrast(92%)' : 'none',
                 label: 'Success'
             };
         } else {
@@ -150,7 +152,7 @@ const NeedHelp = () => {
                     {/* Status Frame */}
                     <div className="h-[25px] flex items-center pl-[13.5px]">
                         <div className="flex items-center gap-[6px]">
-                            <img src={config.statusIcon} alt="" className="w-[14px] h-[14px]" style={!isDarkMode ? { filter: 'brightness(0) saturate(100%) invert(60%) sepia(59%) saturate(1914%) hue-rotate(18deg) brightness(95%) contrast(101%)' } : undefined} />
+                            <img src={config.statusIcon} alt="" className="w-[14px] h-[14px]" style={!isDarkMode ? { filter: config.statusFilter } : undefined} />
                             <span className="text-[12px] font-bold font-satoshi tracking-wide" style={{ color: config.color }}>
                                 {config.label}
                             </span>
@@ -170,7 +172,7 @@ const NeedHelp = () => {
                             border: !isDarkMode ? '1px solid #E9EAEB' : 'none'
                         }}
                     >
-                        <img src={config.icon} alt="" className="absolute top-[17px] left-[17px] w-[35px] h-[35px]" />
+                        <img src={config.icon} alt="" className="absolute top-[17px] left-[17px] w-[35px] h-[35px]" style={!isDarkMode ? { filter: config.statusFilter } : undefined} />
 
                         <div className="absolute top-[17px] left-[65px] flex flex-col">
                             <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>

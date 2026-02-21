@@ -14,6 +14,11 @@ import walletIcon from "@/assets/wallet.svg";
 import onboardingIcon from "@/assets/onboarding.svg";
 import chatIcon from "@/assets/chat.svg";
 import walletWhiteIcon from "@/assets/wallet-whiteclr.svg";
+import generalBlackIcon from "@/assets/general-black.svg";
+import faqBlackIcon from "@/assets/faq-black.svg";
+import walletBlackIcon from "@/assets/wallet-black.svg";
+import partnerBlackIcon from "@/assets/partner-black.svg";
+import chatBlackIcon from "@/assets/chat-black.svg";
 import { useTheme } from "next-themes";
 
 const HelpSupport = () => {
@@ -93,7 +98,7 @@ const HelpSupport = () => {
                 {/* Recent Order Section */}
                 {recentOrder && (
                     <div className="mb-[24px]">
-                        <h3 className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mb-[12px] uppercase">RECENT ORDER</h3>
+                        <h3 className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}>RECENT ORDER</h3>
 
                         <div
                             onClick={() => navigate('/help/report', { state: { order: recentOrder } })}
@@ -115,7 +120,7 @@ const HelpSupport = () => {
                             {/* Status Header */}
                             <div className="absolute top-[4px] left-[20px] z-20 flex items-center gap-[6px]">
                                 <div className="w-[12px] h-[12px] flex items-center justify-center">
-                                    <img src={checkIcon} alt="" className="w-full h-full" style={{ filter: 'brightness(0) saturate(100%) invert(60%) sepia(59%) saturate(1914%) hue-rotate(91deg) brightness(95%) contrast(101%)' }} />
+                                    <img src={checkIcon} alt="" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(51%) sepia(96%) saturate(366%) hue-rotate(94deg) brightness(97%) contrast(87%)' } : { filter: 'brightness(0) saturate(100%) invert(62%) sepia(80%) saturate(415%) hue-rotate(91deg) brightness(92%) contrast(88%)' }} />
                                 </div>
                                 <span className={`text-[12px] font-bold font-satoshi ${isDarkMode ? 'text-[#1CB956]' : 'text-[#16B751]'}`}>
                                     Success
@@ -165,15 +170,31 @@ const HelpSupport = () => {
 
                 {/* Browse Categories */}
                 <div className="mb-[20px]">
-                    <h3 className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mb-[12px] uppercase">BROWSE CATEGORIES</h3>
+                    <h3 className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}>BROWSE CATEGORIES</h3>
                     <div
                         className={`w-[363px] rounded-[12px] overflow-hidden flex flex-col gap-0 transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
                     >
                         {[
-                            { icon: generalIssuesIcon, label: "General Issues", route: "/help/category/general-issues" },
-                            { icon: faqsIcon, label: "FAQs", route: "/help/category/faqs" },
-                            { icon: isDarkMode ? walletWhiteIcon : walletIcon, label: "Grid.Pe Wallet FAQs", route: "/help/category/wallet-faqs" },
-                            { icon: onboardingIcon, label: "Partner Onboarding", route: "/help/category/onboarding" },
+                            {
+                                icon: isDarkMode ? generalIssuesIcon : generalBlackIcon,
+                                label: "General Issues",
+                                route: "/help/category/general-issues"
+                            },
+                            {
+                                icon: isDarkMode ? faqsIcon : faqBlackIcon,
+                                label: "FAQs",
+                                route: "/help/category/faqs"
+                            },
+                            {
+                                icon: isDarkMode ? walletWhiteIcon : walletBlackIcon,
+                                label: "Grid.Pe Wallet FAQs",
+                                route: "/help/category/wallet-faqs"
+                            },
+                            {
+                                icon: isDarkMode ? onboardingIcon : partnerBlackIcon,
+                                label: "Partner Onboarding",
+                                route: "/help/category/onboarding"
+                            },
                         ].map((cat, idx, arr) => (
                             <React.Fragment key={cat.label}>
                                 <button
@@ -181,7 +202,7 @@ const HelpSupport = () => {
                                     className={`w-full flex items-center justify-between pl-3 pr-[14px] py-[10px] transition-colors ${isDarkMode ? 'active:bg-white/5' : 'active:bg-[#F7F8FA]'}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <img src={cat.icon} alt="" className="w-[18px] h-[18px]" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                                        <img src={cat.icon} alt="" className="w-[18px] h-[18px]" />
                                         <span className={`text-[14px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{cat.label}</span>
                                     </div>
                                     <ChevronRight className={`${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'} w-5 h-5`} />
@@ -194,13 +215,13 @@ const HelpSupport = () => {
 
                 {/* Contact Us */}
                 <div className="mb-10">
-                    <h3 className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mb-[12px] uppercase">CONTACT US</h3>
+                    <h3 className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}>CONTACT US</h3>
                     <button
                         onClick={() => navigate('/help/chat')}
                         className={`w-[363px] h-[72px] rounded-[13px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10 active:bg-white/5' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
                     >
                         <div className="absolute top-[12px] left-[12px] w-[25px] h-[25px] flex items-center justify-center">
-                            <img src={chatIcon} alt="" className="w-[18px] h-[18px]" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                            <img src={isDarkMode ? chatIcon : chatBlackIcon} alt="" className="w-[18px] h-[18px]" />
                         </div>
                         <div className="flex flex-col items-start w-full pl-[36px]">
                             <h4 className={`text-[14px] font-regular font-satoshi mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Chat with us</h4>

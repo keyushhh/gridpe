@@ -139,18 +139,22 @@ const OrderHistory = () => {
         } else if (s === 'success' || s === 'delivered') {
             return {
                 color: '#1CB956',
+                bgColor: '#1CB956',
                 bgOpacity: 0.21,
                 icon: successIcon,
                 statusIcon: checkIcon,
-                label: 'Success'
+                label: 'Success',
+                iconFilter: !isDarkMode ? 'invert(53%) sepia(76%) saturate(446%) hue-rotate(92deg) brightness(94%) contrast(92%)' : undefined
             };
         } else if (s === 'failed' || s === 'cancelled') {
             return {
                 color: '#FF1E1E',
+                bgColor: '#FF1E1E',
                 bgOpacity: 0.21,
                 icon: failedIcon,
                 statusIcon: crossIcon,
-                label: s === 'cancelled' ? 'Cancelled' : 'Failed'
+                label: s === 'cancelled' ? 'Cancelled' : 'Failed',
+                iconFilter: !isDarkMode ? 'invert(27%) sepia(91%) saturate(7483%) hue-rotate(356deg) brightness(101%) contrast(106%)' : undefined
             };
         }
         // Default fallback
@@ -264,9 +268,9 @@ const OrderHistory = () => {
     // Search Bar JSX
     const searchBar = (
         <div className="px-5 mb-[38px] relative z-10">
-            <div className={`w-full h-[48px] rounded-full flex items-center px-[10px] ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border-[#E6E8EB]'}`}>
+            <div className={`w-full h-[48px] rounded-full flex items-center px-[10px] transition-all ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB] shadow-sm'}`}>
                 <div className="w-[16px] h-[16px] ml-[6px] mr-[16px] flex items-center justify-center">
-                    <img src={searchIcon} alt="Search" className={`w-full h-full ${!isDarkMode ? 'filter brightness-0 opacity-50' : ''}`} />
+                    <img src={searchIcon} alt="Search" className="w-full h-full" style={!isDarkMode ? { filter: 'brightness(0) opacity(0.5)' } : undefined} />
                 </div>
                 <input
                     type="text"
@@ -290,16 +294,9 @@ const OrderHistory = () => {
                 backgroundRepeat: "no-repeat",
             }}
         >
-            {/* Top Purple Glowing Blob (Light Mode) */}
+            {/* Light Mode Purple Glow */}
             {!isDarkMode && (
-                <div
-                    className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
-                    style={{
-                        backgroundColor: "#5260FE",
-                        filter: "blur(60px)",
-                        opacity: 0.8,
-                    }}
-                />
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* DEV SEEDER */}
             {import.meta.env.DEV && (
@@ -342,7 +339,7 @@ const OrderHistory = () => {
             <div className="px-5 pt-12 flex items-center relative mb-[26px] z-10">
                 <button
                     onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full border ${isDarkMode ? 'border-white/20 active:bg-white/10' : 'border-[#E6E8EB] active:bg-black/5'} absolute left-5`}
+                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/5 border border-white/10 active:bg-white/10' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
                 >
                     <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
