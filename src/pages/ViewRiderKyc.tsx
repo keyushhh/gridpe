@@ -41,16 +41,9 @@ const ViewRiderKyc = () => {
                 backgroundRepeat: "no-repeat",
             }}
         >
-            {/* Light Mode Purple Glowing Blob */}
+            {/* Light Mode Purple Glow */}
             {!isDarkMode && (
-                <div
-                    className="absolute -top-[150px] left-1/2 -translate-x-1/2 w-[350px] h-[350px] rounded-full pointer-events-none"
-                    style={{
-                        background: 'radial-gradient(50% 50% at 50% 50%, rgba(82, 96, 254, 0.25) 0%, rgba(82, 96, 254, 0) 100%)',
-                        filter: 'blur(40px)',
-                        zIndex: 0
-                    }}
-                />
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
 
             {/* Header */}

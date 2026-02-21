@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import calendarBg from "@/assets/calendar-bg.png";
 import calendarSelection from "@/assets/calendar-selection.png";
 import yearDropdownBg from "@/assets/year-dropdown-bg.png";
+import calendarOuterShell from "@/assets/calendar-outer-shell.png";
+import calendarInnerShell from "@/assets/calendar-inner-shell.png";
 
 interface GlassCalendarProps {
   selected?: Date;
@@ -115,20 +117,24 @@ export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates 
       ref={calendarRef}
       className={cn(
         "w-[340px] rounded-[20px] p-3 relative overflow-hidden transition-all duration-300",
-        isDarkMode ? "backdrop-blur-[25.2px]" : "bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-[#E9EAEB]",
+        isDarkMode ? "backdrop-blur-[25.2px]" : "",
         className
       )}
-      style={isDarkMode ? {
-        backgroundImage: `url(${calendarBg})`,
+      style={{
+        backgroundImage: `url(${isDarkMode ? calendarBg : calendarOuterShell})`,
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
-      } : {}}
+      }}
     >
       {/* Inner content */}
       <div
         className="rounded-[16px] p-4 relative"
         style={{
           backgroundColor: isDarkMode ? "rgba(0, 0, 0, 0.20)" : "transparent",
+          backgroundImage: !isDarkMode ? `url(${calendarInnerShell})` : "none",
+          backgroundSize: "100% 100%",
+          backgroundRepeat: "no-repeat",
+          border: !isDarkMode ? "1px solid rgba(255, 255, 255, 0.80)" : "none",
         }}
       >
         {/* Header with Month/Year and Navigation */}

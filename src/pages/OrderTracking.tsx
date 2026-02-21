@@ -153,15 +153,19 @@ const OrderTracking = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full flex flex-col safe-area-top safe-area-bottom overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#F9F9FB]'}`}
+            className={`fixed inset-0 w-full flex flex-col safe-area-top safe-area-bottom overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
-                backgroundColor: isDarkMode ? "#0a0a12" : "#F9F9FB",
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Purple Glow */}
+            {!isDarkMode && (
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+            )}
             {/* DEV CONTROLS */}
             {import.meta.env.DEV && (
                 <div className="fixed top-24 right-4 z-[9999] flex flex-col gap-2 bg-black/90 p-2 rounded-lg border border-red-500/50 shadow-xl pointer-events-auto">

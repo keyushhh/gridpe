@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
 
 const HelpReportSuccess = () => {
     const navigate = useNavigate();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const [countdown, setCountdown] = useState(30);
 
     // Reference ID
@@ -27,17 +30,22 @@ const HelpReportSuccess = () => {
 
     return (
         <div
-            className="fixed inset-0 w-full flex flex-col bg-[#0a0a12] safe-area-top overflow-hidden"
+            className={`fixed inset-0 w-full flex flex-col safe-area-top overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
-                backgroundImage: `url(${successBg})`,
+                backgroundImage: isDarkMode ? `url(${successBg})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Success Glow */}
+            {!isDarkMode && (
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#0D992F] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+            )}
+
             {/* Header */}
             <header className="px-5 pt-8 pb-0 flex items-center justify-center relative z-10 shrink-0">
-                <h1 className="text-white text-[22px] font-medium font-satoshi">Need Help</h1>
+                <h1 className={`text-[22px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Need Help</h1>
             </header>
 
             <main className="flex-1 flex flex-col items-center px-5 relative z-10">
@@ -47,22 +55,22 @@ const HelpReportSuccess = () => {
                 </div>
 
                 {/* Sub-heading: 35px below icon */}
-                <h2 className="mt-[35px] text-white text-[18px] font-bold font-satoshi text-center tracking-tight">
+                <h2 className={`mt-[35px] text-[18px] font-bold font-satoshi text-center tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Reference ID #{referenceId}
                 </h2>
 
                 {/* Body Text 1: 39px below sub-heading */}
                 <div className="mt-[39px] w-[341px] mx-auto">
-                    <p className="text-white text-[16px] font-satoshi font-normal text-center leading-[1.4]">
+                    <p className={`text-[16px] font-satoshi font-normal text-center leading-[1.4] ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
                         We’ve received your request and our team will review it soon. You’ll get a notification in the app as soon as there’s an update.
                     </p>
                 </div>
 
                 {/* Body Text 2: 20px below Body Text 1 */}
                 <div className="mt-[20px] w-[277px] mx-auto text-center">
-                    <p className="text-white text-[16px] font-satoshi font-normal leading-[1.4]">
+                    <p className={`text-[16px] font-satoshi font-normal leading-[1.4] ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
                         You can track your request anytime in<br />
-                        <span className="font-bold">Help & Support.</span>
+                        <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support.</span>
                     </p>
                 </div>
 
@@ -70,7 +78,7 @@ const HelpReportSuccess = () => {
                 <div className="mt-[125px] w-full px-5">
                     <button
                         onClick={() => navigate('/home')}
-                        className="w-full h-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-md flex items-center justify-center text-white/80 text-[15px] font-satoshi transition-all active:scale-95"
+                        className={`w-full h-12 rounded-full backdrop-blur-md flex items-center justify-center text-[15px] font-satoshi transition-all active:scale-95 ${isDarkMode ? 'border border-white/10 bg-white/5 text-white/80' : 'bg-black text-white'}`}
                     >
                         Redirecting Back in {countdown}s...
                     </button>

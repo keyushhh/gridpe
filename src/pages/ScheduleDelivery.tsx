@@ -5,6 +5,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import GlassCalendar from "@/components/GlassCalendar";
 import timeIcon from "@/assets/time-icon.png";
 import clockBase from "@/assets/clock-base.png";
+import clockLight from "@/assets/Clock-Light.png";
 import { SlideToPay } from "@/components/SlideToPay";
 
 import { useTheme } from "next-themes";
@@ -243,10 +244,6 @@ const ScheduleDelivery = () => {
 
                 {/* Calendar */}
                 <div className="mb-5 flex justify-center relative">
-                    {/* Local Blob behind Calendar */}
-                    {!isDarkMode && (
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] bg-[#5260FE] rounded-full blur-[50px] opacity-25 pointer-events-none" />
-                    )}
                     <GlassCalendar
                         selected={selectedDate}
                         onSelect={setSelectedDate}
@@ -304,22 +301,20 @@ const ScheduleDelivery = () => {
                             {/* Clock Visual */}
                             <div
                                 ref={clockRef}
-                                className={`relative w-[120px] h-[120px] rounded-full shrink-0 cursor-pointer touch-none ${!isDarkMode ? 'border border-[#E6E8EB]' : ''}`}
-                                style={isDarkMode ? {
-                                    backgroundImage: `url(${clockBase})`,
+                                className={`relative w-[120px] h-[120px] rounded-full shrink-0 cursor-pointer touch-none`}
+                                style={{
+                                    backgroundImage: `url(${isDarkMode ? clockBase : clockLight})`,
                                     backgroundSize: 'cover'
-                                } : {
-                                    backgroundColor: "rgba(213, 217, 255, 0.21)" // #D5D9FF at 21%
                                 }}
                                 onMouseDown={handleStart}
                                 onTouchStart={handleStart}
                             >
                                 {/* Pivot */}
-                                <div className={`absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full -translate-x-1/2 -translate-y-1/2 z-20 shadow-sm ${isDarkMode ? 'bg-white' : 'bg-black'}`} />
+                                <div className={`absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full -translate-x-1/2 -translate-y-1/2 z-20 shadow-sm ${isDarkMode ? 'bg-white' : 'bg-black opacity-100'}`} />
 
                                 {/* Hour Hand */}
                                 <div
-                                    className={`absolute left-1/2 bottom-1/2 w-[2px] rounded-full origin-bottom z-10 transition-transform duration-100 ease-out ${isDarkMode ? 'bg-white' : 'bg-black'}`}
+                                    className={`absolute left-1/2 bottom-1/2 w-[2.5px] rounded-full origin-bottom z-10 transition-transform duration-100 ease-out ${isDarkMode ? 'bg-white' : 'bg-black opacity-100'}`}
                                     style={{
                                         height: '18.5px',
                                         transform: `translateX(-50%) rotate(${hourRotation}deg)`
@@ -328,7 +323,7 @@ const ScheduleDelivery = () => {
 
                                 {/* Minute Hand */}
                                 <div
-                                    className={`absolute left-1/2 bottom-1/2 w-[1px] rounded-full origin-bottom z-10 transition-transform duration-100 ease-out ${isDarkMode ? 'bg-white' : 'bg-black'}`}
+                                    className={`absolute left-1/2 bottom-1/2 w-[1.5px] rounded-full origin-bottom z-10 transition-transform duration-100 ease-out ${isDarkMode ? 'bg-white' : 'bg-black opacity-100'}`}
                                     style={{
                                         height: '34px',
                                         transform: `translateX(-50%) rotate(${minuteRotation}deg)`

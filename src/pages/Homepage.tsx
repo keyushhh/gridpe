@@ -585,7 +585,7 @@ const Homepage = () => {
               {/* Status & Map Container (Bottom Container) */}
               <div
                 className={`w-full relative flex cursor-pointer p-[14px] items-center ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}
-                onClick={() => navigate(`/order-details/${activeOrder.id}`, { state: { order: activeOrder } })}
+                onClick={() => navigate(`/order-tracking`, { state: { order: activeOrder } })}
               >
                 {/* Left Text */}
                 <div className="flex-1 flex flex-col justify-start pr-2">
