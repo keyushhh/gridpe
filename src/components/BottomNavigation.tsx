@@ -91,12 +91,14 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
           onClick={() => navigate("/wallet-add-money")}
           className="absolute top-[9px] w-[72px] h-[72px] rounded-full flex items-center justify-center transition-transform active:scale-95 z-20"
           style={{
-            backgroundImage: `url(${!isDarkMode ? fabLight : addNavIcon})`,
-            backgroundSize: '100% 100%',
-            backgroundPosition: 'center',
             boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.79), 0 3px 3px 0 rgba(0, 0, 0, 0.68), 0 7px 4px 0 rgba(0, 0, 0, 0.40), 0 12px 5px 0 rgba(0, 0, 0, 0.12), 0 19px 5px 0 rgba(0, 0, 0, 0.01)' : '0 2px 10px rgba(0,0,0,0.1)'
           }}
         >
+          <img
+            src={!isDarkMode ? fabLight : addNavIcon}
+            alt="Add Money"
+            className="w-full h-full object-contain pointer-events-none"
+          />
         </button>
       </div>
 
