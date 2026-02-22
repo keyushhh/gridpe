@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import errorBg from '../assets/error-bg.png';
-import crossFailedIcon from '../assets/cross failed.svg';
-import buttonPrimaryWide from '@/assets/button-primary-wide.png';
+import failedLightIcon from '../assets/failed-light.svg';
+import elipseRedIcon from '../assets/elipse-red.svg';
 
 const WalletTopUpFailed: React.FC = () => {
   const navigate = useNavigate();
@@ -30,108 +29,79 @@ const WalletTopUpFailed: React.FC = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans"
-      style={{
-        backgroundImage: `url(${errorBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans bg-white dark:bg-[#0F1115]">
+      {/* Red Glowing Orb at the top */}
+      <div
+        className="absolute top-[-150px] left-1/2 transform -translate-x-1/2 w-[500px] h-[400px] pointer-events-none z-0"
+        style={{
+          background: 'radial-gradient(circle, rgba(255, 59, 48, 0.12) 0%, rgba(255, 255, 255, 0) 75%)',
+          filter: 'blur(50px)',
+        }}
+      />
+
       {/* Top Content */}
       <div className="flex flex-col items-center w-full mt-10 z-10">
         {/* Heading */}
-        <h1 className="text-white text-[26px] font-medium">
+        <h1 className="text-[#1A1A1A] dark:text-white text-[26px] font-bold tracking-tight">
           Payment Failed!
         </h1>
 
         {/* Failed Icon – 12px below heading */}
         <div className="mt-[12px]">
           <img
-            src={crossFailedIcon}
+            src={failedLightIcon}
             alt="Failed"
             className="w-[62px] h-[62px] object-contain"
           />
         </div>
 
         {/* Error Text – 35px below icon */}
-        <h2 className="mt-[35px] text-white text-[18px] font-medium text-center max-w-[85%] leading-relaxed">
+        <h2 className="mt-[35px] text-black dark:text-white text-[18px] font-bold text-center max-w-[90%] leading-none">
           Something went horribly wrong... financially.
         </h2>
 
         {/* Info Card – 20px below text */}
-        {/* Info Card */}
         <div
-          className="mt-[20px] w-full rounded-[22px] px-[19px] pt-[13px] pb-[18px] relative overflow-hidden"
+          className="mt-[20px] w-full rounded-[12px] pt-[11px] pb-[18px] px-[15px] relative border border-[#E9EAEB] dark:border-[#2A2D35]"
           style={{
-            backgroundColor: "rgba(25, 25, 25, 0.31)", // #191919 @ 31%
-            backdropFilter: "blur(25px)",
-            WebkitBackdropFilter: "blur(25px)",
+            backgroundColor: "transparent",
           }}
         >
-          {/* Linear Stroke Overlay */}
-          <div
-            className="absolute inset-0 pointer-events-none rounded-[22px]"
-            style={{
-              padding: "0.63px",
-              background:
-                "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
-              WebkitMask:
-                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-              WebkitMaskComposite: "xor",
-              maskComposite: "exclude",
-            }}
-          />
-
-          <p className="relative z-10 text-white text-[16px] font-medium leading-normal mb-[12px]">
+          <p className="text-[#1A1A1A] dark:text-white text-[16px] font-medium leading-normal">
             We tried. Your bank tried. Even your card looked motivated.
           </p>
 
-          <p className="relative z-10 text-[#AFAFAF] text-[16px] font-normal leading-snug">
+          <p className="mt-[12px] text-[#4A4A4A] dark:text-[#AFAFAF] text-[16px] font-normal" style={{ lineHeight: '120%' }}>
             But something tripped in the matrix, and{" "}
-            <span className="text-white font-medium">
+            <span className="text-[#1A1A1A] dark:text-white font-medium">
               {formatCurrency(amount)}
             </span>{" "}
             didn’t make it to your wallet. Don’t worry – if any money was deducted,
             it’ll crawl back to you within 2–3 biz days. In the meantime? Deep breaths
-            an check your balance. Emotionally and otherwise.
+            and check your balance. Emotionally and otherwise.
           </p>
 
-          <div className="relative z-10 flex items-center gap-[12px] mt-[18px]">
-            <div className="w-[14px] h-[14px] rounded-full bg-[#FF3B30]" />
-            <span className="text-[#AFAFAF] text-[14px] font-medium">
-              Transaction ghosted.
+          <div className="mt-[20px] flex items-center gap-[12px]">
+            <img src={elipseRedIcon} alt="" className="w-[12px] h-[12px] object-contain" />
+            <span className="text-[#666666] dark:text-[#888888] text-[12px] font-normal">
+              Transaction Ghosted
             </span>
           </div>
         </div>
-
       </div>
 
-      {/* CTAs – 45px below container */}
-      <div className="w-full mt-[45px] flex flex-col gap-4 z-10">
+      {/* CTAs – 40px below container */}
+      <div className="w-full mt-[40px] flex flex-col gap-[12px] z-10">
         <button
           onClick={handleTryAgain}
-          className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans active:scale-95 transition-transform"
-          style={{
-            backgroundImage: `url(${buttonPrimaryWide})`,
-            backgroundSize: '100% 100%',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.8) contrast(1.2)',
-          }}
+          className="w-full h-[48px] flex items-center justify-center text-white dark:text-black bg-black dark:bg-white text-[16px] font-medium font-sans active:scale-[0.98] transition-all rounded-full"
         >
           Try Again (If you dare)
         </button>
 
         <button
           onClick={handleGoBack}
-          className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans active:scale-95 transition-transform"
-          style={{
-            backgroundImage: `url(${buttonPrimaryWide})`,
-            backgroundSize: '100% 100%',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.8) contrast(1.2)',
-          }}
+          className="w-full h-[48px] flex items-center justify-center text-black dark:text-white bg-[#EBEBEB] dark:bg-[#1E2128] text-[16px] font-medium font-sans active:scale-[0.98] transition-all rounded-full"
         >
           Go Back!
         </button>

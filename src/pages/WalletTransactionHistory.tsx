@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import searchBg from "@/assets/search-bg.png";
 import searchIcon from "@/assets/search.svg";
@@ -152,8 +153,7 @@ const WalletTransactionHistory = () => {
                 style={{
                     width: width,
                     height: '34px',
-                    backgroundColor: isActive ? 'rgba(82, 96, 254, 0.21)' : 'rgba(25, 25, 25, 0.31)',
-                    backdropFilter: isActive ? 'blur(25.02px)' : 'blur(25px)',
+                    backgroundColor: isActive ? '#5260FE' : '#000000',
                     borderRadius: '8px',
                     border: isActive ? '0.63px solid #5260FE' : '0.63px solid rgba(255, 255, 255, 0.12)',
                 }}
@@ -161,7 +161,12 @@ const WalletTransactionHistory = () => {
                 <span className="text-white text-[12px] font-medium font-sans ml-[8px] leading-[120%] truncate pr-1">
                     {selectedValue !== 'All' && selectedValue !== 'All Time' ? selectedValue : label}
                 </span>
-                <img src={caretDownIcon} alt="" className="mr-[4px] w-[12px] h-[12px] shrink-0" />
+                <img
+                    src={caretDownIcon}
+                    alt=""
+                    className="mr-[4px] w-[12px] h-[12px] shrink-0"
+                    style={{ filter: 'brightness(0) invert(1)' }}
+                />
             </div>
 
             {/* Dropdown Content */}
@@ -170,13 +175,11 @@ const WalletTransactionHistory = () => {
                     className="absolute top-full mt-[6px] left-0 z-50 flex flex-col pt-[12px] pb-[12px] pl-[8px]"
                     style={{
                         width: width,
-                        // Using auto height for flexibility if precise contentHeight is unknown/dynamic
                         height: 'auto',
-                        backgroundImage: `url(${bgImage})`,
-                        backgroundSize: '100% 100%',
-                        backgroundRepeat: 'no-repeat',
+                        backgroundColor: '#000000',
                         borderRadius: '8px',
                         backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                     }}
                 >
                     <div className="flex flex-col gap-[12px]">
@@ -184,7 +187,7 @@ const WalletTransactionHistory = () => {
                             <span
                                 key={index}
                                 onClick={(e) => { e.stopPropagation(); onSelect(item); }}
-                                className={`text-[12px] font-medium font-sans leading-[120%] cursor-pointer transition-colors ${selectedValue === item ? 'text-blue-500' : 'text-white hover:text-white/80'}`}
+                                className={`text-[12px] font-medium font-sans leading-[120%] cursor-pointer transition-colors ${selectedValue === item ? 'text-[#5260FE]' : 'text-white hover:text-white/80'}`}
                             >
                                 {item}
                             </span>
@@ -256,7 +259,6 @@ const WalletTransactionHistory = () => {
 
     const TransactionDetailsPopup = ({ tx, onClose }: { tx: WalletTransaction, onClose: () => void }) => {
         const { title } = getTransactionDisplay(tx);
-        const amountColor = tx.type === 'credit' ? '#1CB956' : '#FF1E1E';
 
         // Generate a pseudo-random 15 char ID if not present or use actual ID trimmed
         const displayId = (tx.id.replace(/-/g, '').substring(0, 15).toUpperCase()) || "TXN1234567890AB";
@@ -264,7 +266,6 @@ const WalletTransactionHistory = () => {
         const handleCopy = (e: React.MouseEvent) => {
             e.stopPropagation();
             navigator.clipboard.writeText(displayId);
-            // Optional: Show toast or feedback
         };
 
         return (
@@ -282,7 +283,7 @@ const WalletTransactionHistory = () => {
                         backgroundImage: `url(${transactionPopupBg})`,
                         backgroundSize: '100% 100%',
                         backgroundRepeat: 'no-repeat',
-                        borderRadius: '13px', // Keep for overflow control if needed
+                        borderRadius: '13px',
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >
@@ -404,30 +405,46 @@ const WalletTransactionHistory = () => {
         );
     };
 
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
+
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
+            className="min-h-screen flex flex-col relative overflow-hidden font-sans"
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Status Blob (Top Glow) */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(60px)",
+                        opacity: 0.8,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
+
             {/* Header Container */}
             <div className="shrink-0 flex items-center justify-between w-full px-5 pt-12 pb-2 z-10 relative">
                 {/* Back Button */}
                 <button
                     onClick={(e) => { e.stopPropagation(); navigate(-1); }}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10"
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-[#F5F5F5] dark:bg-white/10 backdrop-blur-md border border-[#E9EAEB] dark:border-white/10"
                     style={{ zIndex: 20 }}
                 >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <ChevronLeft className="w-6 h-6 text-black dark:text-white" />
                 </button>
 
                 {/* Title */}
-                <h1 className="text-white text-[22px] font-medium font-sans leading-[120%] text-center">
+                <h1 className="text-black dark:text-white text-[22px] font-medium leading-[120%] text-center">
                     Transaction History
                 </h1>
 
@@ -436,20 +453,21 @@ const WalletTransactionHistory = () => {
             </div>
 
             {/* Search Bar Container */}
-            <div className="w-full px-[19px] mt-[28px]">
+            <div className="w-full px-[19px] mt-[28px] z-10">
                 <div
-                    className="w-full flex items-center px-[16px]"
+                    className="w-full flex items-center px-[16px] rounded-full bg-white dark:bg-[#1A1C20] border border-[#E9EAEB] dark:border-[#2A2D35]"
                     style={{
                         height: '44px',
-                        backgroundImage: `url(${searchBg})`,
-                        backgroundSize: '100% 100%',
-                        backgroundRepeat: 'no-repeat',
-                        // Removed fixed borderRadius: '9999px' to match original image style
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Search Icon */}
-                    <img src={searchIcon} alt="Search" className="w-[24px] h-[24px] shrink-0" />
+                    <img
+                        src={searchIcon}
+                        alt="Search"
+                        className="w-[24px] h-[24px] shrink-0"
+                        style={{ filter: 'grayscale(1) brightness(0)' }}
+                    />
 
                     {/* Input */}
                     <input
@@ -457,38 +475,38 @@ const WalletTransactionHistory = () => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search by amount, date, transaction id, etc..."
-                        className="ml-[16px] w-full bg-transparent border-none outline-none text-white placeholder:text-white/60 text-[14px] font-normal font-sans leading-[140%]"
+                        className="ml-[16px] w-full bg-transparent border-none outline-none text-black dark:text-white placeholder:text-[#666666] dark:placeholder:text-white/60 text-[14px] font-normal leading-[140%]"
                     />
                 </div>
             </div>
 
             {/* Filter Row */}
             <div
-                className="w-full pl-[27px] pr-[26px] mt-[15px] overflow-x-auto no-scrollbar pb-[200px] pointer-events-none"
+                className="w-full pl-[27px] pr-[26px] mt-[15px] z-20 relative pointer-events-none"
                 ref={dropdownRef}
-                style={{ zIndex: 10, position: 'relative' }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-start min-w-max h-full pointer-events-auto items-center">
+                <div className="flex items-center gap-[12px] pointer-events-auto h-[34px]">
                     {/* Filter Icon or Reset Button */}
                     {isAnyFilterActive ? (
                         <div
                             onClick={resetFilters}
-                            className="flex items-center gap-[6px] px-[12px] h-[34px] bg-[#191919]/30 backdrop-blur-[25px] rounded-[8px] border border-white/10 cursor-pointer shrink-0"
-                            style={{
-                                backgroundColor: 'rgba(25, 25, 25, 0.31)',
-                                border: '0.63px solid rgba(255, 255, 255, 0.12)'
-                            }}
+                            className="flex items-center gap-[6px] px-[12px] h-[34px] bg-black rounded-[8px] border border-white/10 cursor-pointer shrink-0"
                         >
-                            <span className="text-white text-[12px] font-medium font-sans leading-[120%]">Reset</span>
-                            <img src={closeIcon} alt="Reset" className="w-[12px] h-[12px]" />
+                            <span className="text-white text-[12px] font-medium leading-[120%]">Reset</span>
+                            <img src={closeIcon} alt="Reset" className="w-[12px] h-[12px] brightness(100) invert(1)" />
                         </div>
                     ) : (
-                        <img src={filterIcon} alt="Filter" className="w-[24px] h-[24px]" />
+                        <img
+                            src={filterIcon}
+                            alt="Filter"
+                            className="w-[24px] h-[24px]"
+                            style={{ filter: 'grayscale(1) brightness(0)' }}
+                        />
                     )}
 
                     {/* Dropdowns */}
-                    <div className="flex items-start gap-[8px] ml-[12px]">
+                    <div className="flex items-center gap-[8px] ml-[12px]">
                         <Dropdown
                             id="date"
                             width="93px"
@@ -524,7 +542,7 @@ const WalletTransactionHistory = () => {
             </div>
 
             {/* Content area */}
-            <div className="flex-1 w-full overflow-y-auto px-5 mt-[-167px] pb-[20px]" style={{ zIndex: 0, position: 'relative' }}>
+            <div className="flex-1 w-full overflow-y-auto px-5 pb-[20px] mt-4 z-0">
                 {(() => {
                     // Group by date
                     const grouped: { [key: string]: typeof walletTransactions } = {};
@@ -541,8 +559,8 @@ const WalletTransactionHistory = () => {
 
                     if (sortedDates.length === 0) {
                         return (
-                            <div className="text-center" style={{ marginTop: '5px' }}>
-                                <span className="text-white/50 text-[14px] font-normal font-sans leading-[120%]">
+                            <div className="text-center mt-10">
+                                <span className="text-black/50 dark:text-white/50 text-[14px] font-normal leading-[120%]">
                                     No transaction history found for the selected filter!
                                 </span>
                             </div>
@@ -563,21 +581,12 @@ const WalletTransactionHistory = () => {
 
                         return (
                             <div key={dateKey} className={index === 0 ? "" : "mt-[20px]"}>
-                                <h2
-                                    className="text-white/50 text-[13px] font-medium font-sans leading-[120%] tracking-[1px]"
-                                >
+                                <h2 className="text-black/50 dark:text-white/50 text-[13px] font-medium leading-[120%] tracking-[1px]">
                                     {heading}
                                 </h2>
 
                                 <div
-                                    className="mt-[10px] flex flex-col"
-                                    style={{
-                                        backgroundColor: 'rgba(25, 25, 25, 0.31)',
-                                        border: '0.63px solid rgba(255, 255, 255, 0.12)',
-                                        borderRadius: '22px',
-                                        backdropFilter: 'blur(25.02px)',
-                                        padding: '10px 13px',
-                                    }}
+                                    className="mt-[10px] flex flex-col bg-white dark:bg-[#1A1C20] border border-[#E9EAEB] dark:border-[#2A2D35] rounded-[12px] p-[10px_13px]"
                                 >
                                     {transactions.map((tx, txIndex) => {
                                         const { title, subtitle } = getTransactionDisplay(tx);
@@ -592,24 +601,29 @@ const WalletTransactionHistory = () => {
                                             <div key={tx.id} onClick={() => setSelectedTx(tx)} className="cursor-pointer active:opacity-70 transition-opacity">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex items-start gap-[16px]">
-                                                        <img src={icon} alt="" className="w-[32px] h-[32px]" />
+                                                        <img
+                                                            src={icon}
+                                                            alt=""
+                                                            className="w-[32px] h-[32px] dark:brightness-100"
+                                                            style={{ opacity: 0.31, filter: 'grayscale(1) brightness(0.1)' }}
+                                                        />
                                                         <div className="flex flex-col gap-[2px]">
-                                                            <span className="text-white text-[12px] font-medium font-sans leading-[120%]">
+                                                            <span className="text-[#1A1A1A] dark:text-white text-[12px] font-bold leading-[120%]">
                                                                 {title}
                                                             </span>
-                                                            <span className="text-white/50 text-[12px] font-normal font-sans leading-[120%]">
+                                                            <span className="text-[#4A4A4A] dark:text-white/50 text-[12px] font-normal leading-[120%]">
                                                                 {subtitle}
                                                             </span>
                                                         </div>
                                                     </div>
                                                     <div className="text-right flex flex-col items-end gap-[2px]">
                                                         <span
-                                                            className="text-[12px] font-medium font-sans leading-[120%]"
+                                                            className="text-[12px] font-bold leading-[120%]"
                                                             style={{ color: amountColor }}
                                                         >
                                                             {tx.type === 'credit' ? '+' : '-'} ₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </span>
-                                                        <span className="text-white/50 text-[12px] font-normal font-sans leading-[120%]">
+                                                        <span className="text-[#666666] dark:text-white/50 text-[12px] font-normal leading-[120%]">
                                                             {time} | {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                                                         </span>
                                                     </div>
@@ -618,7 +632,7 @@ const WalletTransactionHistory = () => {
                                                 {/* Divider */}
                                                 {txIndex < transactions.length - 1 && (
                                                     <div
-                                                        className="h-[1px] bg-[#202020] mt-[8px] mb-[12px]"
+                                                        className="h-[1px] bg-[#E9EAEB] dark:bg-[#202020] mt-[8px] mb-[12px]"
                                                         style={{ marginLeft: '48px' }}
                                                     ></div>
                                                 )}
