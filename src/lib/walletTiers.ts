@@ -15,6 +15,11 @@ import proExpand from "@/assets/pro-expand.png";
 import eliteExpand from "@/assets/elite-expand.png";
 import supremeExpand from "@/assets/supreme-expand.png";
 
+import starterExpandLight from "@/assets/light-cards/starter-expand-light.png";
+import proExpandLight from "@/assets/light-cards/pro-expand-light.png";
+import eliteExpandLight from "@/assets/light-cards/elite-expand-light.png";
+import supremeExpandLight from "@/assets/light-cards/supreme-expand-light.png";
+
 import infoBg from "@/assets/info bg.png";
 
 // New Card Assets
@@ -23,11 +28,21 @@ import proCard from "@/assets/pro-created.png";
 import eliteCard from "@/assets/elite-created.png";
 import supremeCard from "@/assets/supreme-created.png";
 
+import starterCardLight from "@/assets/light-cards/wallet-created-starter-light.png";
+import proCardLight from "@/assets/light-cards/wallet-created-pro-light.png";
+import eliteCardLight from "@/assets/light-cards/wallet-created-elite-light.png";
+import supremeCardLight from "@/assets/light-cards/wallet-created-supreme-light.png";
+
 // Settings Card Assets
 import starterSettings from "@/assets/starter-settings.png";
 import proSettings from "@/assets/pro-settings.png";
 import eliteSettings from "@/assets/elite-settings.png";
 import supremeSettings from "@/assets/supreme-settings.png";
+
+import starterSettingsLight from "@/assets/light-cards/starter-settings-light.png";
+import proSettingsLight from "@/assets/light-cards/pro-settings-light.png";
+import eliteSettingsLight from "@/assets/light-cards/elite-settings-light.png";
+import supremeSettingsLight from "@/assets/light-cards/supreme-settings-light.png";
 
 export type { WalletTier };
 
@@ -249,9 +264,23 @@ export const tierCardMap: Record<WalletTier, string> = {
     Supreme: supremeCard,
 };
 
+export const tierCardMapLight: Record<WalletTier, string> = {
+    Starter: starterCardLight,
+    Pro: proCardLight,
+    Elite: eliteCardLight,
+    Supreme: supremeCardLight,
+};
+
 export const tierSettingsCardMap: Record<WalletTier, string> = {
     Starter: starterSettings,
     Pro: proSettings,
     Elite: eliteSettings,
     Supreme: supremeSettings,
+};
+
+export const tierSettingsCardMapLight: Record<WalletTier, string> = {
+    Starter: starterSettingsLight,
+    Pro: proSettingsLight,
+    Elite: eliteSettingsLight,
+    Supreme: supremeSettingsLight,
 };

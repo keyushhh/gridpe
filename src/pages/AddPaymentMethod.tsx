@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import chevronIcon from "@/assets/chevron.svg";
 import addIcon from "@/assets/add.svg";
 import codeIcon from "@/assets/code.svg";
 import upiIcon from "@/assets/upi.png";
 import credIcon from "@/assets/cred.png";
+import credLightIcon from "@/assets/cred-light.png";
 import gpayIcon from "@/assets/gpay.png";
 import phonepeIcon from "@/assets/phonepe.png";
 import amazonIcon from "@/assets/amazon.png";
@@ -39,7 +41,9 @@ const mockPaymentMethods: PaymentMethod[] = [
 
 const AddPaymentMethod = () => {
     const navigate = useNavigate();
+    const { theme } = useTheme();
     const location = useLocation();
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const { amount, flow, tier } = location.state || { amount: "0.00", flow: "add-money", tier: "" };
 
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -91,12 +95,13 @@ const AddPaymentMethod = () => {
 
     const handleProceed = () => {
         if (!selectedMethod) return;
+        const method = mockPaymentMethods.find(m => m.id === selectedMethod);
         if (location.state?.flow === "withdrawal") {
-            navigate("/select-payment-method", { state: { ...location.state, selectedMethod } });
+            navigate("/select-payment-method", { state: { ...location.state, selectedMethod: method } });
         } else if (location.state?.flow === "upgrade") {
-            navigate("/subscription-details", { state: { ...location.state, paymentMethod: selectedMethod }, replace: true });
+            navigate("/subscription-details", { state: { ...location.state, paymentMethod: method }, replace: true });
         } else {
-            navigate("/order-summary", { state: { ...location.state, paymentMethod: selectedMethod } });
+            navigate("/order-summary", { state: { ...location.state, paymentMethod: method } });
         }
     };
 
@@ -106,18 +111,20 @@ const AddPaymentMethod = () => {
                 className={`flex items-center h-[32px] cursor-pointer ${!isLast ? "mb-[9px]" : ""}`}
                 onClick={() => method.linked && setSelectedMethod(method.id)}
             >
-                {method.icon ? (
-                    <img src={method.icon} alt={method.name} className="w-[32px] h-[32px] object-contain" />
-                ) : method.hasInput ? (
-                    <div className="w-[32px]" />
-                ) : null}
+                {method.icon && (
+                    <img
+                        src={method.id === 'cred' && !isDarkMode ? credLightIcon : method.icon}
+                        alt={method.name}
+                        className="w-[32px] h-[32px] object-contain"
+                    />
+                )}
 
-                <div className="flex flex-col ml-[8px] flex-1 min-w-0">
-                    <span className={`text-white text-[16px] font-bold font-sans leading-none ${method.subtitle ? "mb-[4px]" : ""}`}>
+                <div className={`flex flex-col ${method.icon ? 'ml-[8px]' : ''} flex-1 min-w-0`}>
+                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans leading-none ${method.subtitle ? "mb-[4px]" : ""}`}>
                         {method.name}
                     </span>
                     {method.subtitle && (
-                        <span className="text-white/40 text-[12px] font-medium font-sans leading-none">
+                        <span className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] font-medium font-sans leading-none`}>
                             {method.subtitle}
                         </span>
                     )}
@@ -127,19 +134,15 @@ const AddPaymentMethod = () => {
                     <input
                         type="text"
                         placeholder={method.inputPlaceholder}
-                        className="ml-[5px] bg-transparent border-none outline-none text-white text-[14px] font-medium font-sans placeholder:text-[#FAFAFA]/30 flex-1"
+                        className={`ml-[5px] bg-transparent border-none outline-none text-[14px] font-medium font-sans flex-1 ${isDarkMode ? 'text-white placeholder:text-[#FAFAFA]/30' : 'text-black placeholder:text-black/30'}`}
                     />
                 )}
 
                 <div className="ml-auto pl-2">
-                    {method.linked ? (
-                        <RadioButton selected={selectedMethod === method.id} />
-                    ) : (
-                        <RadioButton selected={selectedMethod === method.id} />
-                    )}
+                    <RadioButton selected={selectedMethod === method.id} />
                 </div>
             </div>
-            {!isLast && <Divider />}
+            {!isLast && <div className={`w-[338px] h-[1px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />}
             {!isLast && <div className="h-[10px]" />}
         </React.Fragment>
     );
@@ -148,23 +151,27 @@ const AddPaymentMethod = () => {
         <div
             className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-8"
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Purple Glow (Top Center) */}
+            {!isDarkMode && (
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+            )}
             {/* Header */}
-            <div className="px-5 pt-4 flex items-center justify-between relative z-10 shrink-0">
+            <div className="px-5 pt-12 pb-2 flex items-center justify-between relative z-10 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
+                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
 
-                <h1 className="text-white text-[22px] font-medium leading-[120%] font-satoshi absolute left-1/2 -translate-x-1/2">
+                <h1 className={`text-[19px] font-medium leading-[120%] font-sans absolute left-1/2 -translate-x-1/2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {title}
                 </h1>
 
@@ -173,68 +180,81 @@ const AddPaymentMethod = () => {
 
             <div className="flex-1 flex flex-col items-center pt-[34px] px-5">
                 {/* UPI Header */}
-                <div className="w-full flex items-center mb-[12px]">
+                <div className="w-full flex items-center mb-[12px] z-10">
                     <img src={upiIcon} alt="UPI" className="w-[32px] h-[32px] object-contain" />
-                    <span className="ml-[14px] text-white text-[16px] font-bold font-sans">
+                    <span className={`ml-[14px] text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         Pay using any UPI App
                     </span>
                 </div>
 
                 {/* UPI Container */}
                 <div
-                    className="w-[363px] rounded-[22px] flex flex-col px-[10px] overflow-hidden"
+                    className="w-full rounded-[22px] flex flex-col px-[10px] overflow-hidden z-10"
                     style={{
-                        ...glassContainerStyle,
-                        height: "auto",
-                        paddingTop: "9px",
-                        paddingBottom: "15px",
+                        backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
+                        backdropFilter: isDarkMode ? "blur(20px)" : "none",
+                        WebkitBackdropFilter: isDarkMode ? "blur(20px)" : "none",
+                        border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                        boxShadow: isDarkMode ? "none" : "0px 4px 12px rgba(0,0,0,0.02)",
+                        position: "relative",
+                        paddingTop: "12px",
+                        paddingBottom: "12px",
                     }}
                 >
-                    <StrokeOverlay />
+                    {isDarkMode && <StrokeOverlay />}
                     {upiMethods.map((method, i) =>
                         renderPaymentRow(method, i === upiMethods.length - 1)
                     )}
                 </div>
 
                 {/* Cards Section */}
-                <div className="w-full mt-[36px] flex flex-col">
-                    <span className="text-white text-[16px] font-bold font-sans mb-[12px]">
+                <div className="w-full mt-[36px] flex flex-col z-10">
+                    <span className={`text-[16px] font-bold font-sans mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         Cards
                     </span>
 
                     {cardMethods.length > 0 ? (
                         <div
-                            className="w-[363px] rounded-[22px] flex flex-col px-[10px] overflow-hidden"
+                            className="w-full rounded-[22px] flex flex-col px-[10px] overflow-hidden"
                             style={{
-                                ...glassContainerStyle,
-                                height: "auto",
-                                paddingTop: "9px",
-                                paddingBottom: "15px",
+                                backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
+                                backdropFilter: isDarkMode ? "blur(20px)" : "none",
+                                WebkitBackdropFilter: isDarkMode ? "blur(20px)" : "none",
+                                border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                                boxShadow: isDarkMode ? "none" : "0px 4px 12px rgba(0,0,0,0.02)",
+                                position: "relative",
+                                paddingTop: "12px",
+                                paddingBottom: "12px",
                             }}
                         >
-                            <StrokeOverlay />
+                            {isDarkMode && <StrokeOverlay />}
                             {cardMethods.map((method, i) =>
                                 renderPaymentRow(method, i === cardMethods.length - 1)
                             )}
                         </div>
                     ) : (
                         <div
-                            className="w-[363px] h-[66px] rounded-[22px] relative flex flex-col justify-center pl-[20px] pr-[13px] overflow-hidden"
-                            style={glassContainerStyle}
+                            className="w-full h-[66px] rounded-[22px] relative flex flex-col justify-center pl-[20px] pr-[13px] overflow-hidden"
+                            style={{
+                                backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
+                                backdropFilter: isDarkMode ? "blur(20px)" : "none",
+                                WebkitBackdropFilter: isDarkMode ? "blur(20px)" : "none",
+                                border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                            }}
                         >
-                            <StrokeOverlay />
+                            {isDarkMode && <StrokeOverlay />}
                             <div className="absolute right-[20px] top-1/2 -translate-y-1/2">
-                                <img src={addIcon} alt="Add" className="w-[20px] h-[20px]" />
+                                <img src={addIcon} alt="Add" className={`w-[20px] h-[20px] ${isDarkMode ? '' : 'invert'}`} />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-white text-[16px] font-bold font-sans leading-none mb-[6px]">
+                                <span className={`text-[16px] font-bold font-sans leading-none mb-[6px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                     Add a credit or debit card
                                 </span>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-white text-[12px] font-light font-sans leading-none">
+                                    <span className={`text-[12px] font-light font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black/60'}`}>
                                         Incl.
                                     </span>
-                                    <span className="text-white text-[12px] font-bold font-sans leading-none">
+                                    <span className={`text-[12px] font-bold font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                         ₹9 Processing Fee
                                     </span>
                                 </div>
@@ -244,21 +264,25 @@ const AddPaymentMethod = () => {
                 </div>
 
                 {/* More Payment Options */}
-                <div className="w-full mt-[24px] flex flex-col">
-                    <span className="text-white text-[16px] font-bold font-sans mb-[12px]">
+                <div className="w-full mt-[24px] flex flex-col z-10">
+                    <span className={`text-[16px] font-bold font-sans mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         More Payment Options
                     </span>
 
                     <div
-                        className="w-[363px] rounded-[22px] flex flex-col px-[10px] overflow-hidden"
+                        className="w-full rounded-[22px] flex flex-col px-[10px] overflow-hidden"
                         style={{
-                            ...glassContainerStyle,
-                            height: "auto",
-                            paddingTop: "9px",
-                            paddingBottom: "15px",
+                            backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
+                            backdropFilter: isDarkMode ? "blur(20px)" : "none",
+                            WebkitBackdropFilter: isDarkMode ? "blur(20px)" : "none",
+                            border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                            boxShadow: isDarkMode ? "none" : "0px 4px 12px rgba(0,0,0,0.02)",
+                            position: "relative",
+                            paddingTop: "12px",
+                            paddingBottom: "12px",
                         }}
                     >
-                        <StrokeOverlay />
+                        {isDarkMode && <StrokeOverlay />}
                         {moreMethods.map((method, i) =>
                             renderPaymentRow(method, i === moreMethods.length - 1)
                         )}
@@ -267,7 +291,7 @@ const AddPaymentMethod = () => {
             </div>
 
             {/* Bottom CTAs */}
-            <div className="px-5 mt-[32px] mb-[42px] flex flex-col gap-[12px]">
+            <div className="px-5 mt-[32px] mb-[42px] flex flex-col gap-[12px] z-10">
                 <button
                     onClick={handleProceed}
                     disabled={!selectedMethod}
@@ -280,7 +304,7 @@ const AddPaymentMethod = () => {
                 </button>
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-full h-[48px] rounded-full bg-transparent border border-[#2C2C2C] text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center"
+                    className={`w-full h-[48px] rounded-full text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center ${isDarkMode ? 'bg-transparent border border-[#2C2C2C] text-white' : 'bg-[#F2F2F2] text-black'}`}
                 >
                     Cancel
                 </button>

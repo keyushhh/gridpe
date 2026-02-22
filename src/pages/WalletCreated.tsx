@@ -1,12 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useUser, WalletTransaction } from "@/contexts/UserContext";
-import { tierIconMap, tierCardMap } from "@/lib/walletTiers";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
-import walletCardBg from "@/assets/wallet-starter.png";
+import { tierIconMap, tierCardMap, tierCardMapLight } from "@/lib/walletTiers";
+import { useAsset } from "@/hooks/useAsset";
 import settingsIcon from "@/assets/settings.svg";
-import buttonPrimary from "@/assets/button-primary-wide.png";
 import successIcon from "@/assets/success.svg";
 import processingIcon from "@/assets/processing.svg";
 import failedIcon from "@/assets/failed.svg";
@@ -14,7 +13,11 @@ import addPaymentCta from "@/assets/add-payment-cta.png";
 
 const WalletCreated = () => {
     const navigate = useNavigate();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const { walletBalance, walletTransactions, walletTier, upgradeTimestamp } = useUser();
+
+    const walletBg = useAsset("wallet-bg");
 
     // Get the latest transaction for the card status display
     const latestTx = walletTransactions.length > 0 ? walletTransactions[0] : null;
@@ -58,11 +61,11 @@ const WalletCreated = () => {
                                 boxShadow: `0 0 0 5px ${strokeColor}`
                             }}
                         />
-                        <span className="ml-[13px] text-white text-[14px] font-medium font-sans">
+                        <span className={`ml-[13px] text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             {title}
                         </span>
                     </div>
-                    <p className="mt-[10px] text-white text-[12px] font-normal font-sans leading-snug">
+                    <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         {description}
                     </p>
                 </div>
@@ -90,11 +93,11 @@ const WalletCreated = () => {
                                 boxShadow: '0 0 0 5px rgba(92, 255, 0, 0.17)'
                             }}
                         />
-                        <span className="ml-[13px] text-white text-[14px] font-medium font-sans">
+                        <span className={`ml-[13px] text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Your wallet is upgraded to {walletTier}
                         </span>
                     </div>
-                    <p className="mt-[10px] text-white/60 text-[12px] font-normal font-sans leading-snug">
+                    <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-black/80'}`}>
                         You will be charged ₹{price} / month
                     </p>
                 </div>
@@ -104,7 +107,7 @@ const WalletCreated = () => {
         // Default Empty State (Starter Tier, 0 Balance)
         return (
             <div className="mt-[16px]">
-                <p className="text-white/90 text-[13px] font-medium font-sans leading-tight tracking-tight">
+                <p className={`text-[13px] font-medium font-sans leading-tight tracking-tight ${isDarkMode ? 'text-white/90' : 'text-black/90'}`}>
                     Uh ho! Looks like a little empty here, let’s fix that?<br />
                     Press the button below!
                 </p>
@@ -116,25 +119,29 @@ const WalletCreated = () => {
         <div
             className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${walletBg})` : "none",
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Purple Glow (Top Center) */}
+            {!isDarkMode && (
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+            )}
             {/* Header Container */}
             <div className="shrink-0 flex items-center justify-between w-full px-5 pt-12 pb-2 z-10">
                 {/* Back Button */}
                 <button
-                    onClick={() => navigate(-1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md"
+                    onClick={() => navigate('/home')}
+                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
 
                 {/* Title */}
-                <h1 className="text-white text-[20px] font-medium font-sans">
+                <h1 className={`text-[20px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Wallet
                 </h1>
 
@@ -143,7 +150,12 @@ const WalletCreated = () => {
                     onClick={() => navigate('/wallet-settings')}
                     className="w-10 h-10 flex items-center justify-center"
                 >
-                    <img src={settingsIcon} alt="Settings" className="w-6 h-6" />
+                    <img
+                        src={settingsIcon}
+                        alt="Settings"
+                        className="w-6 h-6"
+                        style={{ filter: isDarkMode ? 'none' : 'invert(1) brightness(0)' }}
+                    />
                 </button>
             </div>
 
@@ -157,34 +169,33 @@ const WalletCreated = () => {
                     <div
                         className="absolute inset-0 w-full h-full"
                         style={{
-                            backgroundImage: `url('${tierCardMap[useUser().walletTier as keyof typeof tierCardMap]}')`,
+                            backgroundImage: `url('${isDarkMode ? tierCardMap[useUser().walletTier as keyof typeof tierCardMap] : tierCardMapLight[useUser().walletTier as keyof typeof tierCardMapLight]}')`,
                             backgroundSize: '100% 100%',
                             backgroundRepeat: 'no-repeat',
-                            borderRadius: '20px'
+                            borderRadius: '20px',
+                            border: isDarkMode ? 'none' : '1px solid #E9EAEB'
                         }}
                     />
 
                     {/* Card Content */}
                     <div className="relative w-full h-full px-5 pt-6 pb-[20px] flex flex-col">
                         <div className="flex justify-between items-center">
-                            <span className="text-white text-[15px] font-medium font-sans">
-                                WALLET BALANCE
+                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-sans uppercase`}>
+                                Wallet Balance
                             </span>
                         </div>
 
                         <div className="flex items-center justify-between mt-[12px]">
-                            <span className="text-white text-[34px] font-bold font-sans">
+                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[34px] font-bold font-sans`}>
                                 ₹ {walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
 
                         <div className="mt-[8px]">
-                            <span className="text-white/80 text-[14px] font-medium font-sans">
+                            <span className={`${isDarkMode ? 'text-white/80' : 'text-black/80'} text-[14px] font-medium font-sans`}>
                                 Limit: {useUser().walletLimit.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                             </span>
                         </div>
-
-
 
                         {/* Dynamic Status Indicator */}
                         {renderStatusIndicator()}
@@ -198,15 +209,15 @@ const WalletCreated = () => {
                         style={{
                             maxWidth: '362px',
                             minHeight: '81px',
-                            backgroundColor: 'rgba(25, 25, 25, 0.31)',
+                            backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : 'rgba(82, 96, 254, 0.05)',
                             borderRadius: '13px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                            border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(82, 96, 254, 0.1)'
                         }}
                     >
-                        <h3 className="text-white text-[14px] font-medium font-sans mb-1">
+                        <h3 className={`text-[14px] font-medium font-sans mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Important:
                         </h3>
-                        <p className="text-white text-[14px] font-normal font-sans leading-snug">
+                        <p className={`text-[14px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             You need to add money to your wallet to place an order.
                         </p>
                     </div>
@@ -215,7 +226,7 @@ const WalletCreated = () => {
                 {/* Transaction History */}
                 <div className="mt-5 w-full mx-auto mb-[20px]" style={{ maxWidth: '362px' }}>
                     <div className="flex justify-between items-center mb-[12px]">
-                        <h2 className="text-white text-[16px] font-medium font-sans">
+                        <h2 className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Transaction History
                         </h2>
                         <button
@@ -226,7 +237,7 @@ const WalletCreated = () => {
                         </button>
                     </div>
                     {/* Divider */}
-                    <div className="w-full mb-[12px]" style={{ borderTop: '2px solid rgba(255, 255, 255, 0.06)' }} />
+                    <div className="w-full mb-[12px]" style={{ borderTop: isDarkMode ? '2px solid rgba(255, 255, 255, 0.06)' : '2px solid #E9EAEB' }} />
 
                     {walletTransactions.length > 0 ? (
                         <div className="w-full flex flex-col">
@@ -247,10 +258,10 @@ const WalletCreated = () => {
                                             <div className="flex items-center gap-[12px]">
                                                 <img src={icon} alt="" className="w-[26px] h-[26px]" />
                                                 <div className="flex flex-col">
-                                                    <span className="text-white text-[13px] font-normal font-sans leading-none mb-[2px]">
+                                                    <span className={`text-[13px] font-normal font-sans leading-none mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                                         {tx.description}
                                                     </span>
-                                                    <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
+                                                    <span className={`text-[12px] font-normal font-sans leading-none ${isDarkMode ? 'text-[#7E7E7E]' : 'text-[#7E7E7E]'}`}>
                                                         {new Date(tx.date).toLocaleDateString('en-IN', {
                                                             day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                                                         })}
@@ -258,7 +269,7 @@ const WalletCreated = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <span className="text-white text-[13px] font-normal font-sans">
+                                                <span className={`text-[13px] font-normal font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                                     {tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
@@ -281,7 +292,7 @@ const WalletCreated = () => {
             {/* Footer CTA */}
             <div className="shrink-0 px-5 pb-[30px] pt-4 w-full bg-transparent flex flex-col gap-[12px]">
                 <button
-                    onClick={() => navigate('/wallet-add-money', { state: { balance: walletBalance.toFixed(2) } })}
+                    onClick={() => navigate('/wallet-add-money', { state: { balance: walletBalance.toFixed(2), from: 'wallet' } })}
                     className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform"
                     style={{
                         backgroundColor: '#5260FE',
@@ -293,9 +304,9 @@ const WalletCreated = () => {
                 {walletBalance > 0 && (
                     <button
                         onClick={() => navigate('/wallet-withdraw')}
-                        className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform"
+                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${isDarkMode ? '' : 'bg-black'}`}
                         style={{
-                            backgroundImage: `url(${addPaymentCta})`,
+                            backgroundImage: isDarkMode ? `url(${addPaymentCta})` : "none",
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             backgroundRepeat: "no-repeat"

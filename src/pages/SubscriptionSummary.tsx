@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
@@ -7,6 +8,13 @@ import starterSub from "@/assets/starter-subscription.png";
 import proSub from "@/assets/pro-subscription.png";
 import eliteSub from "@/assets/elite-subscription.png";
 import supremeSub from "@/assets/supreme-subscription.png";
+
+// Light Mode Assets
+import starterSubLight from "@/assets/light-cards/subscription-starter-light.png";
+import proSubLight from "@/assets/light-cards/subscription-pro-light.png";
+import eliteSubLight from "@/assets/light-cards/subscription-elite-light.png";
+import supremeSubLight from "@/assets/light-cards/subscription-supreme-light.png";
+
 import subscriptionChip from "@/assets/subscription-chip.png";
 import autoRefreshIcon from "@/assets/auto-refresh.svg";
 
@@ -15,6 +23,13 @@ const subscriptionBanners: Record<string, string> = {
     Pro: proSub,
     Elite: eliteSub,
     Supreme: supremeSub,
+};
+
+const subscriptionBannersLight: Record<string, string> = {
+    Starter: starterSubLight,
+    Pro: proSubLight,
+    Elite: eliteSubLight,
+    Supreme: supremeSubLight,
 };
 
 const chipContent: Record<string, string> = {
@@ -36,18 +51,21 @@ import { useUser, WalletTier } from "@/contexts/UserContext";
 const SubscriptionSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const { setWalletTier, walletTier } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
 
-    const bannerImage = subscriptionBanners[tier] || starterSub;
+    const bannerImage = isDarkMode
+        ? (subscriptionBanners[tier] || starterSub)
+        : (subscriptionBannersLight[tier] || starterSubLight);
 
     return (
         <div
-            className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom"
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
@@ -57,11 +75,11 @@ const SubscriptionSummary = () => {
             <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-6 pb-0 z-10">
                 <button
                     onClick={() => navigate(-1)}
-                    className="absolute left-5 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md active:scale-95 transition-transform"
+                    className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className="text-white text-[22px] font-medium leading-[120%] font-satoshi">
+                <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium leading-[120%] font-satoshi`}>
                     Monthly Subscription
                 </h1>
             </div>
@@ -80,10 +98,10 @@ const SubscriptionSummary = () => {
                 >
                     {/* Banner Text */}
                     <div className="absolute top-[13px] left-[77px] flex flex-col">
-                        <span className="text-white text-[14px] font-medium font-satoshi">
+                        <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-satoshi`}>
                             WALLET - {tier?.toUpperCase() || "PRO"}
                         </span>
-                        <span className="text-white/70 text-[12px] italic font-satoshi mt-[8px]">
+                        <span className={`${isDarkMode ? 'text-white/70' : 'text-black/70'} text-[12px] italic font-satoshi mt-[8px]`}>
                             Billed monthly. Cancel anytime.
                         </span>
                     </div>
@@ -107,11 +125,8 @@ const SubscriptionSummary = () => {
 
                 {/* To Pay Container */}
                 <div
-                    className="w-[362px] mt-[18px] rounded-[13px] flex flex-col gap-[10px] relative"
+                    className={`w-[362px] mt-[18px] rounded-[13px] flex flex-col gap-[10px] relative border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
                     style={{
-                        backgroundColor: "rgba(25, 25, 25, 0.31)",
-                        backdropFilter: "blur(25px)",
-                        WebkitBackdropFilter: "blur(25px)",
                         padding: "14px 11px",
                     }}
                 >
@@ -130,42 +145,42 @@ const SubscriptionSummary = () => {
                     />
 
                     {/* Heading */}
-                    <h2 className="text-white text-[16px] font-bold leading-[120%] font-satoshi">
+                    <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold leading-[120%] font-satoshi`}>
                         To Pay
                     </h2>
 
                     {/* Body */}
-                    <p className="text-[#A4A4A4] text-[14px] font-light leading-[139%] font-satoshi">
+                    <p className={`${isDarkMode ? 'text-[#A4A4A4]' : 'text-black/60'} text-[14px] font-light leading-[139%] font-satoshi`}>
                         No additional taxes apply. Processing fee is inclusive of all charges.
                     </p>
 
                     {/* Divider */}
-                    <div className="w-[340px] h-[1px] bg-[#202020] mx-auto" />
+                    <div className={`w-[340px] h-[1px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />
 
                     {/* Monthly Subscription Fee Row */}
                     <div className="flex justify-between items-center mt-[2px]">
-                        <span className="text-white text-[14px] font-medium leading-[139%] font-satoshi">
+                        <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[139%] font-satoshi`}>
                             Monthly Subscription Fee
                         </span>
-                        <span className="text-white text-[14px] font-bold leading-[120%] font-satoshi">
+                        <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
                             ₹{tierPrice[tier] || 0}
                         </span>
                     </div>
 
                     {/* First payment note */}
-                    <p className="text-[#A4A4A4] text-[12px] font-normal leading-[139%] font-satoshi -mt-[2px]">
+                    <p className={`${isDarkMode ? 'text-[#A4A4A4]' : 'text-black/60'} text-[12px] font-normal leading-[139%] font-satoshi -mt-[2px]`}>
                         First payment will be charged today.
                     </p>
 
                     {/* Divider */}
-                    <div className="w-[340px] h-[1px] bg-[#202020] mx-auto -mt-[2px]" />
+                    <div className={`w-[340px] h-[1px] mx-auto -mt-[2px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />
 
                     {/* Total Payable Row */}
                     <div className="flex justify-between items-center -mt-[2px]">
-                        <span className="text-white text-[14px] font-medium leading-[139%] font-satoshi">
+                        <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[139%] font-satoshi`}>
                             Total Payable
                         </span>
-                        <span className="text-white text-[14px] font-bold leading-[120%] font-satoshi">
+                        <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
                             ₹{tierPrice[tier] || 0}
                         </span>
                     </div>
@@ -173,59 +188,55 @@ const SubscriptionSummary = () => {
 
                 {/* Second Container */}
                 <div
-                    className="w-[362px] h-[65px] mt-[14px] rounded-[13px] relative flex items-center"
+                    className={`w-[362px] min-h-[65px] mt-[14px] rounded-[13px] relative flex items-center border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
                     style={{
-                        backgroundColor: "rgba(25, 25, 25, 0.31)",
-                        backdropFilter: "blur(25px)",
-                        WebkitBackdropFilter: "blur(25px)",
                         padding: "12px 10px",
                     }}
                 >
-                    {/* Border overlay */}
-                    <div
-                        className="absolute inset-0 pointer-events-none rounded-[13px]"
-                        style={{
-                            padding: "0.63px",
-                            background:
-                                "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
-                            WebkitMask:
-                                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                            WebkitMaskComposite: "xor",
-                            maskComposite: "exclude",
-                        }}
-                    />
-                    <p className="text-white text-[14px] font-normal leading-[147%] font-satoshi">
+                    {isDarkMode && (
+                        <div
+                            className="absolute inset-0 pointer-events-none rounded-[13px]"
+                            style={{
+                                padding: "0.63px",
+                                background:
+                                    "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
+                                WebkitMask:
+                                    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                WebkitMaskComposite: "xor",
+                                maskComposite: "exclude",
+                            }}
+                        />
+                    )}
+                    <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal leading-[147%] font-satoshi`}>
                         Renews automatically every month on your billing date. Cancel anytime from Settings — no extra charges.
                     </p>
                 </div>
 
                 {/* Next Payment Date Container */}
                 <div
-                    className="w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center"
+                    className={`w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center border ${isDarkMode ? 'bg-[#5260FE]/21 backdrop-blur-25 border-white/12' : 'bg-[#5260FE]/10 border-[#5260FE]/20'}`}
                     style={{
-                        backgroundColor: "rgba(82, 96, 254, 0.21)",
-                        backdropFilter: "blur(25px)",
-                        WebkitBackdropFilter: "blur(25px)",
                         padding: "14px 11px",
                     }}
                 >
-                    {/* Border overlay */}
-                    <div
-                        className="absolute inset-0 pointer-events-none rounded-[13px]"
-                        style={{
-                            padding: "0.63px",
-                            background:
-                                "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
-                            WebkitMask:
-                                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                            WebkitMaskComposite: "xor",
-                            maskComposite: "exclude",
-                        }}
-                    />
-                    <span className="text-white text-[14px] font-medium leading-[139%] font-satoshi">
+                    {isDarkMode && (
+                        <div
+                            className="absolute inset-0 pointer-events-none rounded-[13px]"
+                            style={{
+                                padding: "0.63px",
+                                background:
+                                    "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
+                                WebkitMask:
+                                    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                WebkitMaskComposite: "xor",
+                                maskComposite: "exclude",
+                            }}
+                        />
+                    )}
+                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[139%] font-satoshi`}>
                         Next Payment Date
                     </span>
-                    <span className="text-white text-[14px] font-bold leading-[120%] font-satoshi">
+                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
                         {(() => {
                             const next = new Date();
                             next.setMonth(next.getMonth() + 1);
@@ -252,7 +263,7 @@ const SubscriptionSummary = () => {
                     const actionVerb = stateFlow === 'downgrade' ? 'downgraded' : 'upgraded';
 
                     return (
-                        <p className="w-[362px] mt-[14px] text-white text-[14px] font-normal leading-[140%] font-satoshi text-left">
+                        <p className={`w-[362px] mt-[14px] text-[14px] font-normal leading-[140%] font-satoshi text-left ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Your wallet will be {actionVerb} to {tier} Wallet. Changes will take place on your next billing date. Till then you may enjoy the benefits of {walletTier} Wallet.
                         </p>
                     );

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
+import bgLightMode from "@/assets/bg-light.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
 import backspaceIcon from "@/assets/backspace.png";
 import { Button } from "@/components/ui/button";
@@ -9,9 +11,12 @@ import { useUser } from "@/contexts/UserContext";
 
 const WalletAddMoney = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { theme } = useTheme();
+  const location = useLocation() as { state: { balance?: string; from?: string } };
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const { walletLimit } = useUser();
   const balance = location.state?.balance || "0.00";
+  const fromWallet = location.state?.from === 'wallet';
   const [amount, setAmount] = useState<string>("0.00");
 
   const handleKeyPress = (key: string) => {
@@ -53,14 +58,21 @@ const WalletAddMoney = () => {
   const KeypadButton = ({ label, onClick, icon }: { label?: string; onClick?: () => void; icon?: React.ReactNode }) => (
     <button
       onClick={onClick}
-      className="w-[113px] h-[65px] bg-[#000000] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group"
+      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group bg-black text-white shadow-sm`}
     >
       {icon ? (
         <div className="group-active:brightness-200">
-          {icon}
+          {React.isValidElement(icon) ? (
+            React.cloneElement(icon as React.ReactElement, {
+              style: { filter: 'brightness(0) saturate(100%) invert(1)' },
+              className: `${(icon as React.ReactElement).props.className || ''} group-active:filter-none`
+            })
+          ) : (
+            icon
+          )}
         </div>
       ) : (
-        <span className="text-white group-active:text-white font-bold font-sans text-[32px]">{label}</span>
+        <span className="font-bold font-sans text-[32px] group-active:text-white text-white">{label}</span>
       )}
     </button>
   );
@@ -71,25 +83,29 @@ const WalletAddMoney = () => {
     <div
       className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
       style={{
-        backgroundColor: "#0a0a12",
-        backgroundImage: `url(${bgDarkMode})`,
+        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
       }}
     >
+      {/* Light Mode Purple Glow (Top Center) */}
+      {!isDarkMode && (
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+      )}
       {/* Header - Standard Single Row */}
-      <div className="px-5 pt-4 flex items-center justify-between z-10">
+      <div className="px-5 pt-12 pb-2 flex items-center justify-between z-10">
         {/* Back Button */}
         <button
-          onClick={() => navigate("/home")}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
+          onClick={() => fromWallet ? navigate(-1) : navigate("/home")}
+          className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
         >
-          <ChevronLeft className="w-6 h-6 text-white" />
+          <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
 
         {/* Title - Centered */}
-        <h1 className="text-white text-[18px] font-medium font-sans">
+        <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
           Wallet
         </h1>
 
@@ -101,15 +117,15 @@ const WalletAddMoney = () => {
       <div className="flex-1 flex flex-col items-center pt-[60px]">
         {/* Amount Display */}
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
-          <span className="text-white text-[32px] font-black font-sans mr-1">₹</span>
-          <span className="text-white text-[32px] font-black font-sans">{amount}</span>
+          <span className={`text-[32px] font-black font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
+          <span className={`text-[32px] font-black font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
         </div>
 
         {/* Divider */}
         <div className="w-[238px] h-[1px] bg-[#373737] mt-[4.5px]" />
 
         {/* Balance Text */}
-        <p className="text-white/60 text-[12px] font-sans font-normal mt-[8px] mb-[17px]">
+        <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px] mb-[17px]`}>
           Total Available Balance ₹ {balance}
         </p>
 
@@ -137,15 +153,20 @@ const WalletAddMoney = () => {
               onClick={() => handlePillClick(val)}
               className="relative h-[30px] flex items-center justify-center px-3 py-[6px] transition-transform active:scale-95"
             >
-              <div
-                className="absolute inset-0 w-full h-full"
-                style={{
-                  backgroundImage: `url(${pillContainerBg})`,
-                  backgroundSize: "100% 100%",
-                  backgroundRepeat: "no-repeat",
-                }}
-              />
-              <span className="relative z-10 text-white text-[12px] font-medium font-sans">
+              {isDarkMode && (
+                <div
+                  className="absolute inset-0 w-full h-full"
+                  style={{
+                    backgroundImage: `url(${pillContainerBg})`,
+                    backgroundSize: "100% 100%",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                />
+              )}
+              {!isDarkMode && (
+                <div className="absolute inset-0 w-full h-full bg-black rounded-full" />
+              )}
+              <span className={`relative z-10 text-[12px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-white'}`}>
                 +₹{val}
               </span>
             </button>
@@ -161,16 +182,17 @@ const WalletAddMoney = () => {
             className="w-full h-[81px] rounded-[13px] flex flex-col justify-center"
             style={{
               padding: "9px 19px",
-              backgroundColor: "rgba(25, 25, 25, 0.31)",
+              backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
               backdropFilter: "blur(20px)",
               WebkitBackdropFilter: "blur(20px)",
-              boxShadow: "inset 0 0 0 0.63px rgba(255, 255, 255, 0.12)",
+              boxShadow: isDarkMode ? "inset 0 0 0 0.63px rgba(255, 255, 255, 0.12)" : "none",
+              border: isDarkMode ? "none" : "1px solid #E9EAEB",
             }}
           >
-            <p className="text-white text-[14px] font-medium font-sans mb-[6px] leading-none">
+            <p className={`text-[14px] font-medium font-sans mb-[6px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Note:
             </p>
-            <p className="text-white text-[14px] font-normal font-sans leading-none">
+            <p className={`text-[14px] font-normal font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Some payment methods may include a small processing fee. UPI is always free.
             </p>
           </div>
@@ -178,26 +200,27 @@ const WalletAddMoney = () => {
 
 
         {/* Keypad Container */}
-        <div className="w-full relative rounded-t-[32px] overflow-hidden">
-          {/* Gradient Border Wrapper */}
-          {/* We use a pseudo-element or absolute div for the gradient border */}
-          <div
-            className="absolute inset-0 rounded-t-[32px] pointer-events-none"
-            style={{
-              padding: '0.63px', // Border width
-              background: 'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
-              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              maskComposite: 'exclude',
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor'
-            }}
-          />
+        <div className={`w-full relative rounded-t-[32px] overflow-hidden ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
+          {/* Gradient Border Wrapper (Dark Mode Only) */}
+          {isDarkMode && (
+            <div
+              className="absolute inset-0 rounded-t-[32px] pointer-events-none"
+              style={{
+                padding: '0.63px', // Border width
+                background: 'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
+                mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                maskComposite: 'exclude',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor'
+              }}
+            />
+          )}
 
           {/* Inner Content Background */}
           <div
             className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
             style={{
-              backgroundColor: 'rgba(23, 23, 23, 0.31)', // #171717 at 31%
+              backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : '#FFFFFF',
             }}
           >
             <div className="flex flex-col gap-[10px] items-center relative z-10">
@@ -239,8 +262,8 @@ const WalletAddMoney = () => {
                     }
                   }}
                   className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${parseFloat(amount) >= 500 && parseFloat(amount) <= walletLimit
-                      ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
-                      : "bg-[#5260FE]/50 cursor-not-allowed"
+                    ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
+                    : "bg-[#5260FE]/50 cursor-not-allowed"
                     }`}
                 >
                   Add Money

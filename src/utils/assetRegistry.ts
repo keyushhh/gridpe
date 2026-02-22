@@ -1,6 +1,7 @@
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import bgLightMode from "@/assets/bg-light.png";
 import peLogo from "@/assets/pe_logo.svg";
+import walletLogo from "@/assets/wallet-logo.svg";
 import switchTabBg from "@/assets/switch tab.png";
 import selectedTabBg from "@/assets/selected tab.png";
 import buttonPrimary from "@/assets/button-primary-wide.png";
@@ -128,6 +129,10 @@ export const assets = {
     "pe-logo": {
         dark: peLogo,
         light: peLogo, // TODO: Replace with light mode asset
+    },
+    "wallet-logo": {
+        dark: walletLogo,
+        light: walletLogo,
     },
     "switch-tab-bg": {
         dark: switchTabBg,
