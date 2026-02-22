@@ -29,6 +29,8 @@ import crossIconPng from "@/assets/cross-icon.png";
 import popupBg from "@/assets/popup-bg.png";
 import buttonCloseBg from "@/assets/button-close.png";
 import popupCardIcon from "@/assets/card-ico.svg";
+import cardIcon from "@/assets/card-icon.svg";
+import deliveryTipLightBg from "@/assets/delivery-tip-light.png";
 
 interface OrderDetailsSheetProps {
     isOpen: boolean;
@@ -699,47 +701,58 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                 </div>
 
                 {/* Delivery Tip Popup - Exact Implementation from OrderCashSummary */}
-                {
-                    showDeliveryTipPopup && (
-                        <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+                {showDeliveryTipPopup && (
+                    <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+                        <div
+                            className={`relative p-0 z-10 flex flex-col items-center ${isDarkMode ? 'rounded-2xl border border-white/10' : 'rounded-[13px] shadow-xl'}`}
+                            style={{
+                                width: isDarkMode ? '320px' : '362px',
+                                height: isDarkMode ? 'auto' : '306px',
+                                backgroundImage: isDarkMode ? `url(${popupBg})` : `url(${deliveryTipLightBg})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundColor: 'transparent',
+                            }}
+                        >
+                            <img
+                                src={isDarkMode ? popupCardIcon : cardIcon}
+                                alt="Delivery Tip"
+                                className={`object-contain ${isDarkMode ? 'w-8 h-8 mb-4' : 'w-[30px] h-[30px] mt-[19px]'}`}
+                            />
+
+                            <h2 className={`font-sans ${isDarkMode ? 'text-[18px] font-medium mb-4 text-white' : 'text-[16px] font-bold mt-[15px] text-black'}`}>
+                                Delivery Tip
+                            </h2>
+
                             <div
-                                className="relative rounded-2xl p-6 max-w-[320px] w-full z-10 flex flex-col items-center text-center border border-white/10"
-                                style={{
-                                    backgroundImage: `url(${popupBg})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                }}
+                                className={`rounded-xl px-[12px] ${isDarkMode ? 'w-full py-[11px] bg-black' : 'w-[318px] h-[172px] mt-[24px] bg-white rounded-[16px] pt-[11px]'}`}
                             >
-                                <img src={popupCardIcon} alt="Delivery Tip" className="w-8 h-8 mb-4 object-contain" />
-                                <h2 className="text-white text-[18px] font-medium mb-4 font-satoshi">Delivery Tip</h2>
-                                <div className="bg-black rounded-xl w-full px-[12px] py-[11px]">
-                                    <p className="text-white text-[13px] font-normal font-satoshi leading-relaxed text-left mb-[6px]">
-                                        Our delivery partners ride through traffic, harsh weather, and long distances to bring your cash safely to your door.
-                                    </p>
-                                    <p className="text-white text-[13px] font-normal font-satoshi leading-relaxed text-left">
-                                        Tipping isn’t mandatory — but it goes directly to them and helps support their daily hustle, fuel, and hard work.
-                                        <br />
-                                        Even a small amount makes a big difference.
-                                        <br />
-                                        Every rupee = recognition. 💙
-                                    </p>
-                                </div>
+                                <p className={`font-sans leading-[140%] text-left mb-[6px] ${isDarkMode ? 'text-[13px] font-normal text-white' : 'text-[13px] font-normal text-black'}`}>
+                                    Our delivery partners ride through traffic, harsh weather, and long distances to bring your cash safely to your door.
+                                </p>
+                                <p className={`font-sans leading-[140%] text-left ${isDarkMode ? 'text-[13px] font-normal text-white' : 'text-[13px] font-normal text-black'}`}>
+                                    Tipping isn’t mandatory — but it goes directly to them and helps support their daily hustle, fuel, and hard work.
+                                    <br />
+                                    Even a small amount makes a big difference.
+                                    <br />
+                                    Every rupee = recognition. 💙
+                                </p>
                             </div>
-                            <button
-                                onClick={() => setShowDeliveryTipPopup(false)}
-                                className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2"
-                                style={{
-                                    backgroundImage: `url(${buttonCloseBg})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                }}
-                            >
-                                <X className="w-4 h-4 text-white" />
-                                <span className="text-white text-[14px] font-satoshi">Close</span>
-                            </button>
                         </div>
-                    )
-                }
+                        <button
+                            onClick={() => setShowDeliveryTipPopup(false)}
+                            className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${isDarkMode ? '' : 'bg-[#5260FE] shadow-lg'}`}
+                            style={isDarkMode ? {
+                                backgroundImage: `url(${buttonCloseBg})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                            } : {}}
+                        >
+                            <X className={`w-4 h-4 ${isDarkMode ? 'text-black' : 'text-white'}`} />
+                            <span className={`text-[14px] font-sans ${isDarkMode ? 'text-black' : 'text-white'}`}>Close</span>
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { Copy, ChevronRight } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
+import bgLight from "@/assets/bg-light.png";
 import gridpeLogo from "@/assets/gridpe-logo.svg";
 import rewardsCardBg from "@/assets/rewards-card.png";
 import rewardInfoIcon from "@/assets/reward-info.png";
@@ -9,6 +11,7 @@ import copyIcon from "@/assets/copy.svg";
 import creditedArrow from "@/assets/rewards-credited.svg";
 import debitedArrow from "@/assets/rewards-debited.svg";
 import howItWorksBg from "@/assets/rewards-howitworks.png";
+import rewardsPopup from "@/assets/rewards-popup.png";
 import detailsIcon from "@/assets/details.svg";
 import popupCloseBtnBg from "@/assets/pop-up-close-btn.png";
 import closeIcon from "@/assets/close.svg";
@@ -19,6 +22,8 @@ import { fetchPastOrders, Order } from "@/lib/orders";
 const POINTS_PER_RUPEE = 40;
 
 const Rewards = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const { profile, walletTransactions } = useUser();
     const { showToaster } = useCustomToaster();
     const [cashOrders, setCashOrders] = useState<Order[]>([]);
@@ -84,19 +89,23 @@ const Rewards = () => {
 
     return (
         <div
-            className="absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain bg-[#0a0a12] scrollbar-hide"
+            className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} scrollbar-hide`}
             style={{
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : `url(${bgLight})`,
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Purple Glow */}
+            {!isDarkMode && (
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+            )}
             <div className="flex-1 px-5 pt-12 pb-[120px]">
                 {/* Header */}
-                <div className="mb-6">
-                    <img src={gridpeLogo} alt="grid.pe" className="h-10 mb-2" />
-                    <p className="text-[12px] font-bold text-white/40 font-satoshi tracking-wider uppercase">
+                <div className="mb-6 relative z-10">
+                    <img src={gridpeLogo} alt="grid.pe" className="h-10 mb-2" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                    <p className={`text-[12px] font-bold ${isDarkMode ? 'text-white/40' : 'text-black/40'} font-satoshi tracking-wider uppercase`}>
                         REFERRALS & REWARDS
                     </p>
                 </div>
@@ -181,19 +190,19 @@ const Rewards = () => {
                 {/* How does this work? */}
                 <button
                     onClick={() => setShowHowItWorks(true)}
-                    className="flex items-center gap-1 text-[#5260FE] text-[14px] font-medium mb-[50px]"
+                    className="flex items-center gap-1 text-[#5260FE] text-[14px] font-medium mb-[50px] relative z-10"
                 >
                     How does this work?
                 </button>
 
                 {/* Transaction History */}
-                <div className="flex flex-col min-h-[300px]">
+                <div className="flex flex-col min-h-[300px] relative z-10">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-white text-[16px] font-medium">Transaction History</h3>
+                        <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Transaction History</h3>
                         <button className="text-[#5260FE] text-[14px]">View All</button>
                     </div>
 
-                    <div className="w-full h-[1px] bg-white/10 mb-[15px]" />
+                    <div className={`w-full h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} mb-[15px]`} />
 
                     {isLoading ? (
                         <div className="flex justify-center py-10">
@@ -218,7 +227,7 @@ const Rewards = () => {
                                                 />
                                             </div>
                                             <div className="flex flex-col justify-center">
-                                                <p className="text-white text-[15px] font-medium font-satoshi leading-tight">
+                                                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-satoshi leading-tight`}>
                                                     {tx.label}
                                                 </p>
                                                 <p className="text-[#7E7E7E] text-[13px] font-normal font-satoshi mt-0.5 leading-tight">
@@ -227,7 +236,7 @@ const Rewards = () => {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className={`text-[15px] font-medium font-satoshi ${tx.type === 'credit' ? 'text-white' : 'text-white'}`}>
+                                            <p className={`text-[15px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                                 {tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </p>
                                         </div>
@@ -245,7 +254,7 @@ const Rewards = () => {
                 </div>
             </div>
 
-            <BottomNavigation activeTab="rewards" />
+            {!showHowItWorks && <BottomNavigation activeTab="rewards" />}
 
             {/* How It Works Pop-up */}
             {showHowItWorks && (
@@ -260,7 +269,7 @@ const Rewards = () => {
                     <div
                         className="relative z-10 w-[362px] h-[483px] flex flex-col items-center overflow-hidden"
                         style={{
-                            backgroundImage: `url(${howItWorksBg})`,
+                            backgroundImage: isDarkMode ? `url(${howItWorksBg})` : `url(${rewardsPopup})`,
                             backgroundSize: '100% 100%',
                             backgroundRepeat: 'no-repeat',
                             borderRadius: '12px',
@@ -268,21 +277,23 @@ const Rewards = () => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Details Icon */}
-                        <img src={detailsIcon} alt="" className="w-[30px] h-[30px] mt-[22px]" />
+                        <img
+                            src={detailsIcon}
+                            alt=""
+                            className="w-[30px] h-[30px] mt-[22px]"
+                            style={!isDarkMode ? { filter: 'brightness(0)' } : {}}
+                        />
 
                         {/* Header */}
                         <h2
-                            className="mt-[12px] text-white text-[16px] font-bold leading-[120%] tracking-[-0.3px] text-center font-satoshi"
+                            className={`mt-[12px] text-[16px] font-bold leading-[120%] tracking-[-0.3px] text-center font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
                         >
                             How does this work?
                         </h2>
 
                         {/* Detail Container */}
                         <div
-                            className="mt-[26px] w-[318px] h-[343px] rounded-[16px] p-[14px_13px] flex flex-col overflow-y-auto scrollbar-hide"
-                            style={{
-                                background: '#000000E5',
-                            }}
+                            className={`mt-[26px] w-[318px] h-[343px] rounded-[16px] p-[14px_13px] flex flex-col overflow-y-auto scrollbar-hide ${isDarkMode ? 'bg-[#000000E5]' : 'bg-white'}`}
                         >
                             <ul className="space-y-[3px]">
                                 {[
@@ -295,8 +306,8 @@ const Rewards = () => {
                                     "Grid.Pe reserves the right to change stuff. Because we can."
                                 ].map((item, idx) => (
                                     <li key={idx} className="flex items-start gap-2">
-                                        <span className="text-white mt-1.5 w-1 h-1 rounded-full bg-white shrink-0" />
-                                        <span className="text-white text-[14px] font-medium font-satoshi leading-[140%] opacity-90">
+                                        <span className={`mt-1.5 w-1 h-1 rounded-full shrink-0 ${isDarkMode ? 'bg-white' : 'bg-black'}`} />
+                                        <span className={`text-[14px] font-medium font-satoshi leading-[140%] ${isDarkMode ? 'text-white opacity-90' : 'text-black opacity-100'}`}>
                                             {item}
                                         </span>
                                     </li>
@@ -308,14 +319,14 @@ const Rewards = () => {
                     {/* Close Button */}
                     <button
                         onClick={() => setShowHowItWorks(false)}
-                        className="relative z-10 mt-[19px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0"
-                        style={{
+                        className={`relative z-10 mt-[19px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 rounded-full ${!isDarkMode ? 'bg-[#5260FE]' : ''}`}
+                        style={isDarkMode ? {
                             backgroundImage: `url(${popupCloseBtnBg})`,
                             backgroundSize: '100% 100%',
                             backgroundRepeat: 'no-repeat',
-                        }}
+                        } : {}}
                     >
-                        <img src={closeIcon} alt="" className="w-6 h-6" />
+                        <img src={closeIcon} alt="" className="w-6 h-6" style={!isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}} />
                         <span
                             className="text-white text-[16px] font-medium leading-[120%] font-satoshi"
                         >
