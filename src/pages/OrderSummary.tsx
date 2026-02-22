@@ -133,7 +133,7 @@ const OrderSummary = () => {
                         To Pay
                     </span>
 
-                    <p className={`text-[14px] font-normal font-sans mt-[6px] leading-tight ${isDarkMode ? 'text-white/60' : 'text-black'}`}>
+                    <p className={`text-[14px] font-normal font-sans mt-[6px] leading-tight ${isDarkMode ? 'text-white/60' : 'text-[#000000] opacity-100'}`}>
                         No additional taxes apply. Processing fee is inclusive of all charges.
                     </p>
 
@@ -209,7 +209,7 @@ const OrderSummary = () => {
                             style={!isDarkMode ? { filter: 'invert(34%) sepia(85%) saturate(2311%) hue-rotate(222deg) brightness(101%) contrast(101%)' } : {}}
                         />
 
-                        <p className={`text-[13px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#000000]'}`}>
+                        <p className={`text-[13px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#000000] opacity-100'}`}>
                             This fee helps cover gateway and transaction costs. UPI methods are free.
                         </p>
                     </div>
