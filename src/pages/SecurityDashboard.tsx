@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -24,6 +24,8 @@ import MpinSheet from "@/components/MpinSheet";
 
 const SecurityDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const originPath = (location.state as any)?.originPath || "/settings";
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
   const { kycStatus, setKycStatus, biometricEnabled, setBiometricEnabled } = useUser();
@@ -215,7 +217,7 @@ const SecurityDashboard = () => {
         <div
           className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer rounded-t-none rounded-b-xl`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
-          onClick={() => navigate("/delete-account", { state: { originPath: "/security-dashboard" } })}
+          onClick={() => navigate("/delete-account", { state: { originPath } })}
         >
           <div className="flex items-center gap-4 w-full">
             <img src={deleteAccountIcon} alt="Delete" className={iconClass} />
@@ -271,7 +273,7 @@ const SecurityDashboard = () => {
       {/* Header - Fixed */}
       <div className="px-5 pt-12 flex items-center justify-between relative z-50 flex-none">
         <button
-          onClick={() => navigate('/settings')}
+          onClick={() => navigate(originPath)}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center backdrop-blur-md`}
         >
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />

@@ -17,13 +17,14 @@ const DeleteAccount = () => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
   const [selectedOption, setSelectedOption] = useState<OptionType>('deactivate');
+  const originPath = (location.state as any)?.originPath || "/security-dashboard";
 
   const handleGoBack = () => {
-    navigate('/security-dashboard');
+    navigate(originPath);
   };
 
   const handleProceed = () => {
-    const state = { originPath: (location.state as any)?.originPath };
+    const state = { originPath };
     if (selectedOption === 'deactivate') {
       navigate('/confirm-deactivation', { state });
     } else {

@@ -38,7 +38,7 @@ const DeleteAccountOTP = () => {
   };
 
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || "/home");
+    navigate((location.state as any)?.originPath || "/settings");
   };
 
   const handleDelete = () => {
@@ -74,10 +74,9 @@ const DeleteAccountOTP = () => {
         />
       )}
 
-      {/* Header */}
       <div className="px-5 pt-6 flex items-center relative z-50 mb-8">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/delete-account-mobile", { state: location.state })}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
         >
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
@@ -125,7 +124,7 @@ const DeleteAccountOTP = () => {
           {/* Helper Links - Below Input */}
           <div className="flex justify-between w-full max-w-[364px] mt-4 px-1">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/delete-account-mobile", { state: location.state })}
               className="text-[14px] font-sans text-[#5260FE] underline opacity-80"
             >
               Wrong number? Fix it here.

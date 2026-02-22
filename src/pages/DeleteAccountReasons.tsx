@@ -25,7 +25,7 @@ const DeleteAccountReasons = () => {
   ];
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate("/delete-account", { state: { originPath: (location.state as any)?.originPath } });
   };
 
   const handleCancel = () => {

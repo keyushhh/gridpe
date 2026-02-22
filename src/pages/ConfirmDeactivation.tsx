@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
@@ -40,6 +40,8 @@ const MaskedSlot = ({ char, hasFakeCaret, isActive, isError, isValid, isDarkMode
 
 const ConfirmDeactivation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const originPath = (location.state as any)?.originPath || "/settings";
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
   const { mpin: storedMpin, setMpin } = useUser();
@@ -68,7 +70,11 @@ const ConfirmDeactivation = () => {
   };
 
   const handleBack = () => {
-    navigate("/delete-account");
+    navigate("/delete-account", { state: { originPath } });
+  };
+
+  const handleCancel = () => {
+    navigate(originPath);
   };
 
   return (
@@ -170,7 +176,7 @@ const ConfirmDeactivation = () => {
         {/* Cancel Button */}
         <button
           className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
-          onClick={handleBack}
+          onClick={handleCancel}
         >
           {isDarkMode ? (
             <img

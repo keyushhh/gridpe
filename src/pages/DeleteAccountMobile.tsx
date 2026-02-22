@@ -44,7 +44,11 @@ const DeleteAccountMobile = () => {
   };
 
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || "/home");
+    navigate((location.state as any)?.originPath || "/settings");
+  };
+
+  const handleGoBack = () => {
+    navigate("/delete-account-reasons", { state: location.state });
   };
 
   return (
@@ -71,10 +75,9 @@ const DeleteAccountMobile = () => {
         />
       )}
 
-      {/* Header */}
       <div className="px-5 pt-6 flex items-center relative z-50 mb-8">
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleGoBack}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
         >
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />

@@ -45,7 +45,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <div className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center">
         {/* Card Background Container */}
         <div
-          className="relative w-full overflow-hidden rounded-[32px] p-8 pb-10"
+          className="relative w-full overflow-hidden rounded-[32px] pt-[28px] pb-[22px] px-[17px]"
           style={isDarkMode ? {
             backgroundImage: `url(${popupBg})`,
             backgroundSize: '100% 100%',
@@ -55,8 +55,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           }}
         >
           {/* Text Content */}
-          <div className="mb-6 space-y-2 text-left">
-            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi`}>
+          <div className="mb-8 flex flex-col items-start text-left">
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi mb-4`}>
               {title}
             </h2>
             <p className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[16px] font-medium leading-relaxed font-satoshi`}>
@@ -83,7 +83,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 <div
                   className="absolute inset-0 w-full h-full rounded-full pointer-events-none"
                   style={{
-                    backgroundColor: primaryText === 'Remove Card' || primaryText === 'Remove Account' ? '#FA1515' : '#5260FE' // #FA1515 for Remove, Blue for others
+                    backgroundColor: primaryText === 'Remove Card' || primaryText === 'Remove Account' || primaryText === 'Yes, Delete' ? '#FA1515' : '#5260FE' // #FA1515 for Remove, Blue for others
                   }}
                 />
               )}

@@ -255,7 +255,7 @@ const Settings = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate("/security-dashboard")}
+              onClick={() => navigate("/security-dashboard", { state: { originPath: "/settings" } })}
               className="px-4 h-[32px] flex items-center justify-center rounded-full text-[12px] text-white font-medium active:scale-95 transition-transform"
               style={{
                 backgroundImage: isDarkMode ? `url(${darkbgCta})` : "none",

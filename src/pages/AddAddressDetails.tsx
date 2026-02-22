@@ -29,13 +29,18 @@ interface AddressState {
     postcode: string;
     // Breakdown for editing
     houseNumber?: string;
+    apartment?: string;
     road?: string;
     area?: string;
     house?: string;
     landmark?: string;
     name?: string;
+    contact_name?: string;
     phone?: string;
+    contact_phone?: string;
     tag?: string;
+    label?: string;
+    plus_code?: string;
 }
 
 const AddAddressDetails = () => {
@@ -48,13 +53,13 @@ const AddAddressDetails = () => {
     const isEditMode = !!initialState?.id;
 
     // Form State
-    const [house, setHouse] = useState(initialState?.houseNumber || initialState?.house || "");
+    const [house, setHouse] = useState(initialState?.houseNumber || initialState?.house || initialState?.apartment || "");
     const [area, setArea] = useState(initialState?.road || initialState?.area || "");
     const [landmark, setLandmark] = useState(initialState?.landmark || "");
-    const [plusCode, setPlusCode] = useState(initialState?.plusCode || "");
-    const [name, setName] = useState(initialState?.name || "");
-    const [phone, setPhone] = useState(initialState?.phone || "");
-    const [selectedTag, setSelectedTag] = useState<string>(initialState?.tag || "Home");
+    const [plusCode, setPlusCode] = useState(initialState?.plusCode || initialState?.plus_code || "");
+    const [name, setName] = useState(initialState?.name || initialState?.contact_name || "");
+    const [phone, setPhone] = useState(initialState?.phone || initialState?.contact_phone || "");
+    const [selectedTag, setSelectedTag] = useState<string>(initialState?.tag || initialState?.label || "Home");
     const [customLabel, setCustomLabel] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -297,7 +302,7 @@ const AddAddressDetails = () => {
                             <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`} />
                         </button>
                         <h1 className={`flex-1 text-center text-[22px] font-medium font-satoshi pr-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>
-                            Add New Address
+                            {isEditMode ? "Edit Address" : "Add New Address"}
                         </h1>
                     </div>
 

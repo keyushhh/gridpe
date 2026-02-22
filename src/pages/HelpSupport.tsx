@@ -81,7 +81,7 @@ const HelpSupport = () => {
 
                 {/* Search Bar */}
                 <div
-                    className={`w-full h-[44px] flex items-center px-4 mb-[32px] overflow-hidden ${!isDarkMode ? 'bg-white border border-[#E9EAEB] rounded-[13px]' : ''}`}
+                    className={`w-full h-[44px] flex items-center px-4 mb-[32px] overflow-hidden rounded-full ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
                     style={isDarkMode ? {
                         backgroundImage: `url(${searchBg})`,
                         backgroundSize: '100% 100%',

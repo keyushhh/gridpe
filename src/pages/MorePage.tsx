@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useUser } from "@/contexts/UserContext";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useAsset } from "@/hooks/useAsset";
+import { useTheme } from "next-themes";
 import gridpeLogo from "@/assets/gridpe-logo.svg";
 
 // Assets
@@ -20,22 +21,23 @@ interface MoreItemProps {
     icon: string;
     label: string;
     onClick: () => void;
+    isDarkMode: boolean;
 }
 
-const MoreItem = ({ icon, label, onClick }: MoreItemProps) => (
+const MoreItem = ({ icon, label, onClick, isDarkMode }: MoreItemProps) => (
     <button
         onClick={onClick}
         className="flex flex-col items-center group active:scale-95 transition-transform"
     >
         <div
-            className="w-16 h-16 flex items-center justify-center relative mb-1"
-            style={{
+            className={`w-16 h-16 flex items-center justify-center relative mb-1 ${!isDarkMode ? 'bg-white/50 border border-white/33 rounded-[33px]' : ''}`}
+            style={isDarkMode ? {
                 backgroundImage: `url(${iconBg})`,
                 backgroundSize: "100% 100%",
                 backgroundRepeat: "no-repeat",
-            }}
+            } : {}}
         >
-            <img src={icon} alt={label} className="w-6 h-6 object-contain" />
+            <img src={icon} alt={label} className="w-6 h-6 object-contain" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
         </div>
         <span className="text-foreground font-medium text-[12px] leading-tight w-16 text-center font-satoshi">
             {label}
@@ -45,6 +47,8 @@ const MoreItem = ({ icon, label, onClick }: MoreItemProps) => (
 
 const MorePage = () => {
     const navigate = useNavigate();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const mainBg = useAsset("main-bg");
     const { resetForDemo } = useUser();
 
@@ -61,7 +65,7 @@ const MorePage = () => {
             items: [
                 { icon: addressIcon, label: "Saved Addresses", onClick: () => navigate("/saved-addresses") },
                 { icon: helpIcon, label: "Help & Support", onClick: () => navigate("/help") },
-                { icon: securityIcon, label: "Security Settings", onClick: () => navigate("/security-dashboard") },
+                { icon: securityIcon, label: "Security Settings", onClick: () => navigate("/security-dashboard", { state: { originPath: "/more" } }) },
                 { icon: subscriptionsIcon, label: "Subscriptions", onClick: () => navigate("/subscriptions") },
             ],
         },
@@ -83,7 +87,7 @@ const MorePage = () => {
 
     return (
         <div
-            className="absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain bg-[#0a0a12] scrollbar-hide"
+            className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} scrollbar-hide`}
             style={{
                 backgroundImage: `url(${mainBg})`,
                 backgroundSize: "cover",
@@ -94,7 +98,7 @@ const MorePage = () => {
             <div className="flex-1 px-5 pt-12 pb-[120px]">
                 {/* Header */}
                 <div className="mb-10">
-                    <img src={gridpeLogo} alt="grid.pe" className="h-10 mb-2" />
+                    <img src={gridpeLogo} alt="grid.pe" className="h-10 mb-2" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
                 </div>
 
                 {/* Categories */}
@@ -111,6 +115,7 @@ const MorePage = () => {
                                         icon={item.icon}
                                         label={item.label}
                                         onClick={item.onClick}
+                                        isDarkMode={isDarkMode}
                                     />
                                 ))}
                             </div>

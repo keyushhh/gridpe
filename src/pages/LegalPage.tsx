@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,8 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
     const [data, setData] = useState<LegalContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
 
     const isFromMore = location.state?.fromMore === true;
     const [isAccepted, setIsAccepted] = useState(false);
@@ -158,31 +161,34 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom font-satoshi"
+            className={`h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Purple Glow (Top Center) */}
+            {!isDarkMode && (
+                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+            )}
             {/* Header */}
             <div className="px-4 pt-12 relative flex items-center justify-center min-h-[64px]">
                 <button
                     onClick={() => navigate(-1)}
-                    className="absolute left-4 w-[42px] h-[42px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-transform active:scale-95"
+                    className={`absolute left-4 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-transform active:scale-95 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-foreground" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
                 </button>
-                <h1 className="text-foreground text-[18px] font-bold">
+                <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-bold`}>
                     {type === "terms" ? "Terms & Conditions" : "Privacy Policy"}
                 </h1>
             </div>
 
             {/* Hero Text */}
-            <div className="px-4 mt-8 mb-6">
-                <p className="text-muted-foreground text-[14px] leading-snug font-normal animate-fade-in" key={showAcceptedUI ? "accepted" : "initial"}>
+            <div className="px-4 mt-8 mb-6 relative z-10">
+                <p className={`text-[14px] leading-snug font-medium animate-fade-in ${isDarkMode ? 'text-muted-foreground' : 'text-black'}`} key={showAcceptedUI ? "accepted" : "initial"}>
                     {showAcceptedUI
                         ? "You’re all set — let’s make money moves."
                         : "Before we roll, take a minute to read and agree to the boring (but important) stuff."
@@ -193,10 +199,10 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             {/* Content Container */}
             <div className="px-4 flex-1 overflow-hidden flex flex-col mb-4">
                 <div
-                    className="flex-1 border border-white/10 rounded-[22px] overflow-hidden flex flex-col transition-all duration-300"
+                    className={`flex-1 overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'border border-white/10 rounded-[22px]' : 'border border-[#E9EAEB] rounded-[22px]'}`}
                     style={{
-                        backgroundImage: isTnc ? `url(${containerBg})` : 'none',
-                        backgroundColor: !isTnc ? "rgba(255, 255, 255, 0.03)" : "transparent",
+                        backgroundImage: (isTnc && isDarkMode) ? `url(${containerBg})` : 'none',
+                        backgroundColor: isDarkMode ? (isTnc ? "transparent" : "rgba(255, 255, 255, 0.03)") : "#FFFFFF",
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         maxHeight: containerHeight !== "auto" ? containerHeight : "none",
@@ -204,7 +210,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                     }}
                 >
                     <div className="px-4 pt-4 pb-4">
-                        <h2 className="text-white text-[18px] font-bold">
+                        <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold`}>
                             Grid.Pe {type === "terms" ? "Terms & Conditions" : "Privacy Policy"}
                         </h2>
                         <p className="text-[#5260FE] text-[14px] mt-1 font-normal opacity-80" style={{ fontWeight: 400 }}>
@@ -233,7 +239,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                             </div>
                         ) : (
                             <div
-                                className="legal-prose text-white/80"
+                                className={`legal-prose ${isDarkMode ? 'text-white/80' : 'text-black'}`}
                                 dangerouslySetInnerHTML={{ __html: data?.content || "" }}
                             />
                         )}
@@ -246,14 +252,14 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                 <div className="px-4 pb-8 pt-2 flex gap-4 animate-fade-in justify-center">
                     <Button
                         variant="outline"
-                        className="w-[172px] h-[48px] rounded-full bg-white/5 border-white/10 text-white text-[16px] font-medium flex items-center justify-center transition-all"
+                        className={`w-[172px] h-[48px] rounded-full border text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-[#E9EAEB] text-black'}`}
                         onClick={handleDecline}
                     >
                         Decline
                     </Button>
                     <Button
-                        variant="gradient"
-                        className="w-[172px] h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center btn-gradient transition-all"
+                        variant={isDarkMode ? "gradient" : "default"}
+                        className={`w-[172px] h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'btn-gradient' : 'bg-[#5260FE] hover:bg-[#5260FE]/90 border-none'}`}
                         onClick={handleAccept}
                     >
                         Accept
@@ -264,7 +270,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             <style dangerouslySetInnerHTML={{
                 __html: `
         .legal-prose h1, .legal-prose h2, .legal-prose h3 {
-          color: white;
+          color: ${isDarkMode ? 'white' : 'black'};
           font-weight: 700;
           margin-top: 1.25rem;
           margin-bottom: 0.5rem;
@@ -274,10 +280,11 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
           margin-top: 0;
         }
         .legal-prose p, .legal-prose li {
-          font-weight: 300; /* Satoshi Light */
+          font-weight: 400; /* Satoshi Regular */
           font-size: 12px;
           margin-bottom: 0.25rem;
           line-height: 1.6;
+          color: ${isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'black'};
         }
         .legal-prose ul {
           list-style-type: disc;
