@@ -78,6 +78,7 @@ const ManageSubscription = () => {
                         backgroundSize: "cover",
                         backgroundPosition: "top center",
                         backgroundRepeat: "no-repeat",
+                        border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                     }}
                 >
                     {/* Price Chip */}
@@ -155,7 +156,7 @@ const ManageSubscription = () => {
                 <div
                     className={`w-[326px] rounded-[12px] p-[10px] border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-[#E9EAEB]'}`}
                 >
-                    <h3 className="text-[#8F8F8F] text-[12px] font-bold font-satoshi">Note:</h3>
+                    <h3 className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[12px] font-bold font-satoshi`}>Note:</h3>
                     <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[12px] font-regular font-satoshi mt-[7px]`}>
                         Before downgrading or cancelling, make sure your wallet balance is used — once it’s gone, it’s really gone.
                     </p>
@@ -170,12 +171,12 @@ const ManageSubscription = () => {
                         Downgrade Plan
                     </button>
                     <button
-                        className="w-[362px] h-[48px] rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center overflow-hidden relative"
-                        style={{
+                        className={`w-[362px] h-[48px] rounded-full text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center overflow-hidden relative ${isDarkMode ? 'text-white' : 'text-black bg-[#EBEBEB]'}`}
+                        style={isDarkMode ? {
                             backgroundImage: `url(${addPaymentCta})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
-                        }}
+                        } : {}}
                     >
                         Cancel Subscription
                     </button>

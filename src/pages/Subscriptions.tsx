@@ -121,6 +121,7 @@ const Subscriptions = () => {
                         backgroundSize: "cover",
                         backgroundPosition: "top center",
                         backgroundRepeat: "no-repeat",
+                        border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                     }}
                 >
                     {/* Price Chip or Scheduled Chip */}
@@ -166,7 +167,7 @@ const Subscriptions = () => {
                                 {nextTier && (
                                     <button
                                         onClick={handleUpgrade}
-                                        className="w-[260px] h-[48px] mt-[17px] rounded-full bg-[#5260FE] text-white text-[16px] font-bold font-satoshi active:scale-95 transition-transform flex items-center justify-center -ml-[30px]"
+                                        className="w-[260px] h-[48px] mt-[17px] rounded-full bg-[#5260FE] text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center -ml-[30px]"
                                         style={{
                                             width: '326px',
                                             marginLeft: '-60px' // Adjusting to center properly relative to container since left is 77px
@@ -245,7 +246,7 @@ const Subscriptions = () => {
                 <div className={`${scheduledDowngrade ? 'mt-[100px]' : 'mt-[214px]'} w-full flex flex-col items-center`}>
                     {scheduledDowngrade && (
                         <div className={`w-[326px] min-h-[80px] rounded-[12px] border p-[10px] flex flex-col mb-[24px] ${isDarkMode ? 'bg-black border-white/10' : 'bg-white border-[#E9EAEB]'}`}>
-                            <span className="text-[#8F8F8F] text-[10px] font-bold font-satoshi">Note:</span>
+                            <span className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[10px] font-medium font-satoshi`}>Note:</span>
                             <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[12px] font-normal font-satoshi mt-[10px] leading-tight pr-4`}>
                                 Make sure to withdraw or use your wallet balance before the effective downgrade date. Any balance above the new tier limit will be <span className="text-[#F04248] font-bold">lost forever</span>.
                             </p>
@@ -255,7 +256,7 @@ const Subscriptions = () => {
                     <button
                         disabled={walletTier === 'Starter' || !!scheduledDowngrade}
                         onClick={() => navigate('/manage-subscription')}
-                        className={`w-[362px] h-[48px] rounded-full flex items-center justify-center text-white text-[16px] font-bold font-satoshi transition-all bg-[#5260FE] active:scale-95 disabled:opacity-50`}
+                        className={`w-[362px] h-[48px] rounded-full flex items-center justify-center text-white text-[16px] font-medium font-satoshi transition-all bg-[#5260FE] active:scale-95 disabled:opacity-50`}
                     >
                         Manage Subscription
                     </button>

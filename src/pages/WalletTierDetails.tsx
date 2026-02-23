@@ -82,6 +82,7 @@ const WalletTierDetails = () => {
                     backgroundImage: `url(${expandImage})`,
                     backgroundSize: '100% 100%',
                     backgroundRepeat: 'no-repeat',
+                    border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                 }}
             >
                 {/* Chip Badge */}
@@ -202,7 +203,7 @@ const WalletTierDetails = () => {
 
                 {/* Note Container */}
                 <div className={`w-[334px] mt-[20px] mx-auto rounded-[10px] border pt-[10px] pr-[10px] pl-[10px] pb-[20px] ${isDarkMode ? 'border-[#2C2C2C]' : 'border-[#E9EAEB]'}`}>
-                    <h3 className={`text-[12px] font-bold tracking-[-0.3px] mb-[7px] font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black/40'}`}>Note:</h3>
+                    <h3 className={`text-[12px] font-bold tracking-[-0.3px] mb-[7px] font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'}`}>Note:</h3>
                     <p className={`text-[12px] font-medium leading-[131%] font-satoshi ${isDarkMode ? 'text-[#FFFFFF]' : 'text-black'}`}>
                         {currentTier.note}
                     </p>
@@ -234,7 +235,7 @@ const WalletTierDetails = () => {
                             return (
                                 <button
                                     onClick={() => navigate(currentTier.buttonAction)}
-                                    className="w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px]"
+                                    className="w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px]"
                                 >
                                     {currentTier.buttonText}
                                 </button>
@@ -243,7 +244,7 @@ const WalletTierDetails = () => {
                         return (
                             <button
                                 disabled
-                                className="w-full h-[52px] rounded-full bg-[#2C2C2C] text-white/50 text-[16px] font-bold flex items-center justify-center mt-[20px]"
+                                className="w-full h-[52px] rounded-full bg-[#2C2C2C] text-white/50 text-[16px] font-medium flex items-center justify-center mt-[20px]"
                             >
                                 Current Plan
                             </button>
@@ -253,7 +254,7 @@ const WalletTierDetails = () => {
                     return (
                         <button
                             onClick={handleAction}
-                            className="w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px]"
+                            className="w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px]"
                         >
                             {isDowngrade ? "Downgrade Now" : "Upgrade Now"}
                         </button>

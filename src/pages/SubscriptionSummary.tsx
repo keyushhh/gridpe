@@ -57,9 +57,7 @@ const SubscriptionSummary = () => {
     const { setWalletTier, walletTier } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
 
-    const bannerImage = isDarkMode
-        ? (subscriptionBanners[tier] || starterSub)
-        : (subscriptionBannersLight[tier] || starterSubLight);
+    const bannerImage = isDarkMode ? (subscriptionBanners[tier] || starterSub) : (subscriptionBannersLight[tier] || starterSubLight);
 
     return (
         <div
@@ -89,12 +87,13 @@ const SubscriptionSummary = () => {
             <div className="flex-1 flex flex-col items-center pt-[36px] px-5">
                 {/* Subscription Banner */}
                 <div
-                    className={`w-[360px] h-[70px] rounded-[20px] relative ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+                    className={`w-full max-w-[362px] h-[70px] rounded-[20px] relative ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                     style={{
                         backgroundImage: `url(${bannerImage})`,
-                        backgroundSize: "cover",
+                        backgroundSize: isDarkMode ? "100% 100%" : "contain",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
+                        border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                     }}
                 >
                     {/* Banner Text */}
@@ -131,7 +130,7 @@ const SubscriptionSummary = () => {
 
                 {/* To Pay Container */}
                 <div
-                    className={`w-[362px] mt-[18px] rounded-[13px] flex flex-col gap-[10px] relative border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
+                    className={`w-full max-w-[362px] mt-[18px] rounded-[13px] flex flex-col gap-[10px] relative border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
                     style={{
                         padding: "14px 11px",
                     }}
@@ -196,7 +195,7 @@ const SubscriptionSummary = () => {
 
                 {/* Second Container */}
                 <div
-                    className={`w-[362px] min-h-[65px] mt-[14px] rounded-[13px] relative flex items-center border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
+                    className={`w-full max-w-[362px] min-h-[65px] mt-[14px] rounded-[13px] relative flex items-center border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
                     style={{
                         padding: "12px 10px",
                     }}
@@ -222,7 +221,7 @@ const SubscriptionSummary = () => {
 
                 {/* Next Payment Date Container */}
                 <div
-                    className={`w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center border ${isDarkMode ? 'bg-[#5260FE]/21 backdrop-blur-25 border-white/12' : 'bg-[#E2E4FF] border-[#5260FE]'}`}
+                    className={`w-full max-w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center border ${isDarkMode ? 'bg-[#5260FE]/21 backdrop-blur-25 border-white/12' : 'bg-[#E2E4FF] border-[#5260FE]'}`}
                     style={{
                         padding: "14px 11px",
                     }}
@@ -271,7 +270,7 @@ const SubscriptionSummary = () => {
                     const actionVerb = stateFlow === 'downgrade' ? 'downgraded' : 'upgraded';
 
                     return (
-                        <p className={`w-[362px] mt-[14px] text-[14px] font-normal leading-[140%] font-satoshi text-left ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                        <p className={`w-full max-w-[362px] mt-[14px] text-[14px] font-normal leading-[140%] font-satoshi text-left ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Your wallet will be {actionVerb} to {tier} Wallet. Changes will take place on your next billing date. Till then you may enjoy the benefits of {walletTier} Wallet.
                         </p>
                     );
