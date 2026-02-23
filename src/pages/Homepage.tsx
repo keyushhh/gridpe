@@ -33,6 +33,7 @@ import deliveryRiderIcon from "@/assets/delivery-rider.svg";
 import successIcon from "@/assets/success.svg";
 import failedIcon from "@/assets/failed.svg";
 import processingIcon from "@/assets/processing.svg";
+import { CartesianGrid } from 'recharts';
 import BottomNavigation from "@/components/BottomNavigation";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import OrderDetailsSheet from "@/components/OrderDetailsSheet";
@@ -647,30 +648,29 @@ const Homepage = () => {
           ) : (
             <div className="mx-5 mt-6">
               <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex">
+                <div className="flex gap-3">
                   {/* Banner 1: Refer & Earn */}
                   <div className="flex-[0_0_100%] min-w-0 pr-0">
-                    <div className="rounded-[16px] overflow-hidden flex bg-black dark:bg-transparent relative" style={{
-                      backgroundImage: bannerBg ? `url(${bannerBg})` : 'none',
+                    <div className="rounded-[16px] overflow-hidden flex bg-white dark:bg-black border-[#E9EAEB] dark:border-transparent border relative" style={{
+                      backgroundImage: (isDarkMode && bannerBg) ? `url(${bannerBg})` : 'none',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       height: '104px',
-                      width: '362px',
-                      borderRadius: '16px'
+                      width: '362px'
                     }}>
                       <div className="flex-1 flex flex-col justify-start relative z-10 pt-[14px] pl-[14px]">
                         <div className="mb-[4px]">
                           <img src={iconGift} alt="Gift" className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="text-white text-[16px] font-bold font-satoshi mb-[7px] leading-none">Refer & Earn!</h3>
-                          <p className="text-white/80 dark:text-[#A1A1AA] text-[12px] font-normal font-satoshi leading-none">Earn ₹50 on each referral</p>
+                          <h3 className="text-black dark:text-white text-[16px] font-bold font-satoshi mb-[7px] leading-none">Refer & Earn!</h3>
+                          <p className="text-black/80 dark:text-[#A1A1AA] text-[12px] font-normal font-satoshi leading-none">Earn ₹50 on each referral</p>
                         </div>
                       </div>
                       <img
                         src={bannerImage}
                         alt="Referral"
-                        className="w-[188px] h-full object-cover rounded-r-2xl rounded-l-none shrink-0"
+                        className="w-[188px] h-full object-cover rounded-r-[16px] rounded-l-none shrink-0"
                       />
                     </div>
                   </div>
@@ -688,81 +688,93 @@ const Homepage = () => {
                     }}
                   >
                     <div
-                      className="shrink-0 w-[362px] h-[104px] rounded-[16px] p-5 flex relative overflow-hidden bg-black dark:bg-transparent"
+                      className="shrink-0 w-[362px] h-[104px] rounded-[16px] flex relative overflow-hidden bg-white dark:bg-black border-[#E9EAEB] dark:border-transparent border"
                       style={{
-                        backgroundImage: bannerBg ? `url(${bannerBg})` : 'none',
+                        backgroundImage: (isDarkMode && bannerBg) ? `url(${bannerBg})` : 'none',
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }}
                     >
                       {/* Left Section */}
-                      <div className="flex-1 flex flex-col justify-between relative z-10">
+                      <div className="flex-1 flex flex-col justify-between relative z-10 p-5">
                         <div className="flex items-center gap-2">
                           <img src={currencyIcon} alt="Currency" className="w-6 h-6" />
-                          <span className="text-white font-regular text-[10px] font-satoshi opacity-80">
+                          <span className="text-black dark:text-white font-regular text-[10px] font-satoshi whitespace-nowrap dark:opacity-80">
                             {lastUpdated}
                           </span>
                         </div>
                         <div className="mb-0">
-                          <h3 className="text-white text-[16px] font-bold font-satoshi leading-tight">
+                          <h3 className="text-black dark:text-white text-[16px] font-bold font-satoshi leading-tight">
                             1 USD = {fxRate.toFixed(2)} INR
                           </h3>
                         </div>
-                        <p className="text-white/60 text-[10px] font-satoshi font-normal">
+                        <p className="text-black/60 dark:text-white/60 text-[10px] font-satoshi font-normal">
                           Tap to convert & withdraw
                         </p>
                       </div>
 
                       {/* Right Section: Mini Chart */}
-                      <div className="w-[140px] h-full relative p-2 pt-4">
+                      {/* Right Section: Mini Chart */}
+                      <div className="w-[160px] h-full relative p-0 overflow-hidden">
                         {fxHistory.length > 0 && (
-                          <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={fxHistory}>
-                              <defs>
-                                <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#16B751" stopOpacity={0.3} />
-                                  <stop offset="95%" stopColor="#16B751" stopOpacity={0} />
-                                </linearGradient>
-                              </defs>
-                              <Area
-                                type="monotone"
-                                dataKey="rate"
-                                stroke="#16B751"
-                                strokeWidth={1.5}
-                                fillOpacity={1}
-                                fill="url(#colorRate)"
-                                isAnimationActive={true}
-                                animationDuration={1500}
-                              />
-                              <YAxis hide domain={['dataMin - 0.2', 'dataMax + 0.2']} />
-                              <XAxis
-                                dataKey="date"
-                                hide
-                              />
-                            </AreaChart>
-                          </ResponsiveContainer>
+                          <div className="absolute left-[30px] right-4 top-[18px] h-[64px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={fxHistory} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                                <defs>
+                                  <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#16B751" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#16B751" stopOpacity={0} />
+                                  </linearGradient>
+                                </defs>
+                                <Area
+                                  type="monotone"
+                                  dataKey="rate"
+                                  stroke="#16B751"
+                                  strokeWidth={1.5}
+                                  fillOpacity={1}
+                                  fill="url(#colorRate)"
+                                  isAnimationActive={true}
+                                  animationDuration={1500}
+                                />
+                                <XAxis dataKey="date" hide />
+                                <YAxis hide domain={['dataMin - 0.1', 'dataMax + 0.1']} />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
                         )}
 
+                        {/* Grid Lines & Price Labels */}
+                        <div className="absolute top-[16px] left-2 right-4 h-[64px] pointer-events-none">
+                          {[0.4, 0.2, 0, -0.2, -0.4].map((offset, i) => (
+                            <div key={i} className="absolute w-full flex items-center" style={{ top: `${i * 16 - 8}px`, height: '16px' }}>
+                              <span className="text-[5px] text-black/50 dark:text-white/40 font-satoshi font-medium tabular-nums w-[22px] leading-none">
+                                {(fxRate + offset).toFixed(1)}
+                              </span>
+                              <div className="flex-1 h-[0.1px] bg-black/10 dark:bg-white/10 ml-1" />
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Ticks & Dates */}
+                        <div className="absolute top-[16px] left-[35px] right-4 h-[64px] pointer-events-none">
+                          {/* X-Axis Ticks (Bottom Line) */}
+                          <div className="absolute left-[25%] top-[64px] w-[0.2px] h-[3px] bg-black/20 dark:bg-white/20" />
+                          <div className="absolute left-[75%] top-[64px] w-[0.2px] h-[3px] bg-black/20 dark:bg-white/20" />
+
+                          {/* Dates */}
+                          <div className="absolute top-[66px] left-0 right-0 h-[10px] pointer-events-none">
+                            <span className="absolute left-[25%] -translate-x-1/2 text-[5px] text-black/50 dark:text-white/30 font-satoshi font-medium uppercase min-w-[40px] text-center">
+                              {fxHistory.length > 5 ? fxHistory[Math.floor(fxHistory.length * 0.2)].date : '28 Jul'}
+                            </span>
+                            <span className="absolute left-[75%] -translate-x-1/2 text-[5px] text-black/50 dark:text-white/30 font-satoshi font-medium uppercase min-w-[40px] text-center">
+                              {fxHistory.length > 0 ? fxHistory[fxHistory.length - 1].date : '8 Aug'}
+                            </span>
+                          </div>
+                        </div>
+
                         {/* Last point marker & line */}
-                        <div className="absolute top-[35%] right-[12px] w-[6px] h-[6px] rounded-full bg-[#16B751] shadow-[0_0_8px_#16B751]" />
-                        <div className="absolute top-[35%] bottom-[12px] right-[14.5px] w-[1px] bg-[#16B751]/30" />
-
-                        {/* X-Axis subtle labels overlay */}
-                        <div className="absolute bottom-1 left-4 right-4 flex justify-between">
-                          <span className="text-[7px] text-white/30 font-satoshi">
-                            {fxHistory.length > 5 ? fxHistory[Math.floor(fxHistory.length * 0.2)].date : '26 Jan'}
-                          </span>
-                          <span className="text-[7px] text-white/30 font-satoshi">
-                            {fxHistory.length > 0 ? fxHistory[fxHistory.length - 1].date : '6 Feb'}
-                          </span>
-                        </div>
-
-                        {/* Y-Axis subtle markers (Simulated based on current rate) */}
-                        <div className="absolute top-4 left-0 flex flex-col gap-[10px]">
-                          <span className="text-[7px] text-white/20">{(fxRate + 0.5).toFixed(1)}</span>
-                          <span className="text-[7px] text-white/20">{(fxRate).toFixed(1)}</span>
-                          <span className="text-[7px] text-white/20">{(fxRate - 0.5).toFixed(1)}</span>
-                        </div>
+                        <div className="absolute top-[35%] right-[18px] w-[8px] h-[8px] rounded-full bg-[#16B751]" style={{ boxShadow: '0 0 12px #16B751' }} />
+                        <div className="absolute top-[16px] bottom-[26px] right-[21.5px] w-[1px] bg-[#16B751]/40" />
                       </div>
                     </div>
                   </div>
