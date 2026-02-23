@@ -86,6 +86,7 @@ import FxSuccess from "./pages/FxSuccess";
 import FxIntro from "./pages/FxIntro";
 import FxPassportGate from "./pages/FxPassportGate";
 import FxPassportKYC from "./pages/FxPassportKYC";
+import FxKYCSuccess from "./pages/FxKYCSuccess";
 import LiveRates from "@/pages/LiveRates";
 import Subscriptions from "@/pages/Subscriptions";
 import ManageSubscription from "@/pages/ManageSubscription";
@@ -240,6 +241,7 @@ const App = () => {
                 <Route path="/fx-intro" element={<FxIntro />} />
                 <Route path="/fx-passport-gate" element={<FxPassportGate />} />
                 <Route path="/fx-passport-kyc" element={<FxPassportKYC />} />
+                <Route path="/fx-kyc-success" element={<FxKYCSuccess />} />
                 <Route path="/live-rates" element={<LiveRates />} />
                 <Route path="/subscriptions" element={<Subscriptions />} />
                 <Route path="/manage-subscription" element={<ManageSubscription />} />

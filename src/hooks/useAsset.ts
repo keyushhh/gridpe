@@ -7,11 +7,8 @@ import { assets, AssetName } from "@/utils/assetRegistry";
  * @returns The URL of the asset for the current theme.
  */
 export const useAsset = (assetName: AssetName): string => {
-    const { theme } = useTheme();
-
-    // Default to dark if theme is undefined or not 'light'
-    // You can adjust this logic based on your default theme preference
-    const isLight = theme === 'light';
+    const { resolvedTheme } = useTheme();
+    const isLight = resolvedTheme === 'light';
 
     const assetPair = assets[assetName];
 

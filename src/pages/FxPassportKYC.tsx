@@ -115,7 +115,7 @@ const FxPassportKYC = () => {
                             <button
                                 disabled={!files.front || !files.back}
                                 onClick={handleSubmit}
-                                className={`w-full h-[54px] rounded-full text-white text-[16px] font-bold transition-all shadow-xl ${files.front && files.back ? 'bg-[#5260FE] shadow-[#5260FE]/20 active:scale-95' : 'bg-white/10 text-white/20'
+                                className={`w-[362px] h-[54px] rounded-full text-white text-[16px] font-medium transition-all shadow-xl ${files.front && files.back ? 'bg-[#5260FE] shadow-[#5260FE]/20 active:scale-95' : 'bg-white/10 text-white/20'
                                     }`}
                             >
                                 Submit Verification
@@ -155,7 +155,7 @@ const FxPassportKYC = () => {
                         <div className="mt-12 w-full">
                             <button
                                 onClick={() => navigate('/fx-exchange')}
-                                className="w-full h-[54px] bg-[#5260FE] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
+                                className="w-[362px] h-[54px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
                             >
                                 Open FX Exchange
                             </button>

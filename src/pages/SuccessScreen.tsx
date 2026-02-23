@@ -94,7 +94,7 @@ const SuccessScreen = () => {
       <div className="mt-[210px] flex flex-col items-center">
         <button
           onClick={() => navigate(isFxFlow ? "/fx-exchange" : "/home")}
-          className={`flex items-center justify-center text-[14px] font-semibold transition-transform active:scale-95 rounded-full font-sans`}
+          className={`flex items-center justify-center text-[16px] font-medium transition-transform active:scale-95 rounded-full font-sans`}
           style={{
             backgroundImage: isDarkMode ? `url(${buttonPrimaryWide})` : 'none',
             backgroundColor: isDarkMode ? 'transparent' : '#000000',

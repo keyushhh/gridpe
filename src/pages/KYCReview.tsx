@@ -64,7 +64,11 @@ const KYCReview = () => {
       selfie,
       addressProof
     });
-    navigate("/kyc-success", { state: { flow }, replace: true });
+    if (flow === "fx") {
+      navigate("/fx-kyc-success", { replace: true });
+    } else {
+      navigate("/kyc-success", { state: { flow }, replace: true });
+    }
   };
 
   return (
