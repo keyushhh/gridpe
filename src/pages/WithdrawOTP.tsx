@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import upiIcon from "@/assets/upi.png";
 import credIcon from "@/assets/cred.png";
@@ -19,10 +20,13 @@ const WithdrawOTP = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { phoneNumber } = useUser();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
+
     const [otp, setOtp] = useState("");
     const { showToaster } = useCustomToaster();
     const [isVerified, setIsVerified] = useState(false);
-    const { selectedMethod, amount } = location.state || {};
+    const { selectedMethod, amount, upiId, paymentMethod: stateMethod } = location.state || {};
 
     const isComplete = otp.length === 6;
 
@@ -50,7 +54,14 @@ const WithdrawOTP = () => {
         { id: "netbanking", name: "HDFC Netbanking", icon: hdfcLogo, subtitle: "Savings account | 5233" },
     ];
 
-    const method = allMethods.find(m => m.id === selectedMethod) || allMethods[4]; // Default to HDFC card if not found
+    // Priority: 1. stateMethod (passed from prev screen), 2. allMethods lookup, 3. fallback
+    const baseMethod = stateMethod || allMethods.find(m => m.id === selectedMethod) || allMethods[4];
+
+    // Create a copy to override name if it's a UPI ID
+    const method = { ...baseMethod };
+    if (method.id === "upi-id" && upiId) {
+        method.name = upiId;
+    }
 
     const handleVerify = () => {
         if (isVerified) {
@@ -74,31 +85,45 @@ const WithdrawOTP = () => {
 
     return (
         <div
-            className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-10"
-            style={{
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-10 ${isDarkMode ? '' : 'bg-white'}`}
+            style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
-            }}
+            } : {}}
         >
+            {/* Light Mode Status Blob (Top Glow) */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(60px)",
+                        opacity: 0.8,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
+
             {/* Header */}
             <div className="px-5 pt-12 flex items-center justify-between relative z-10 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
+                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-[#F5F5F5] border border-[#E9EAEB]'
+                        }`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className="text-white text-[22px] font-medium leading-[120%] font-satoshi absolute left-1/2 -translate-x-1/2">
+                <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium leading-[120%] font-satoshi absolute left-1/2 -translate-x-1/2`}>
                     Withdraw
                 </h1>
             </div>
 
-            <div className="flex-1 flex flex-col px-5 pt-[34px]">
+            <div className="flex-1 flex flex-col px-5 pt-[34px] z-10">
                 {/* Sub-text - 34px below header */}
-                <p className="text-white text-[16px] font-bold font-satoshi leading-tight mb-[25px]">
+                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-tight mb-[25px]`}>
                     An OTP has been sent to your registered mobile number, linked with the mode of payment you have selected. Please enter the OTP to proceed with the withdrawal process.
                 </p>
 
@@ -110,24 +135,29 @@ const WithdrawOTP = () => {
                                 <InputOTPSlot
                                     key={index}
                                     index={index}
-                                    className="w-[52px] h-[68px] rounded-[7px] border-none text-white text-[24px] font-bold relative overflow-hidden"
+                                    className={`w-[52px] h-[68px] rounded-[7px] border-none ${isDarkMode ? 'text-white' : 'text-black'} text-[24px] font-bold relative overflow-hidden`}
                                     style={{
-                                        backgroundColor: "rgba(25, 25, 25, 0.31)",
-                                        backdropFilter: "blur(23.51px)",
-                                        WebkitBackdropFilter: "blur(23.51px)",
+                                        backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#F2F2F2",
+                                        backdropFilter: isDarkMode ? "blur(23.51px)" : "none",
+                                        WebkitBackdropFilter: isDarkMode ? "blur(23.51px)" : "none",
                                     }}
                                 >
                                     {/* Gradient Border Overlay - 0.59px */}
-                                    <div
-                                        className="absolute inset-0 pointer-events-none rounded-[7px]"
-                                        style={{
-                                            padding: "0.59px",
-                                            background: "linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))",
-                                            WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                                            WebkitMaskComposite: "xor",
-                                            maskComposite: "exclude",
-                                        }}
-                                    />
+                                    {isDarkMode && (
+                                        <div
+                                            className="absolute inset-0 pointer-events-none rounded-[7px]"
+                                            style={{
+                                                padding: "0.59px",
+                                                background: "linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))",
+                                                WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                                WebkitMaskComposite: "xor",
+                                                maskComposite: "exclude",
+                                            }}
+                                        />
+                                    )}
+                                    {!isDarkMode && (
+                                        <div className="absolute inset-0 border border-[#E9EAEB] rounded-[7px] pointer-events-none" />
+                                    )}
                                 </InputOTPSlot>
                             ))}
                         </InputOTPGroup>
@@ -137,8 +167,12 @@ const WithdrawOTP = () => {
                 {/* Awaiting Row - 12px below input */}
                 <div className="flex items-center justify-between w-full mt-3">
                     <div className="flex items-center gap-3">
-                        <img src={isVerified ? verifiedCircleIcon : awaitingIcon} alt="Status" className="w-[20px] h-[20px]" />
-                        <span className="text-white text-[12px] font-normal font-satoshi">
+                        <img
+                            src={isVerified ? verifiedCircleIcon : awaitingIcon}
+                            alt="Status"
+                            className={`w-[20px] h-[20px] ${isDarkMode ? '' : (isVerified ? '' : 'brightness-0 opacity-40')}`}
+                        />
+                        <span className={`${isDarkMode ? 'text-white' : 'text-black/60'} text-[12px] font-normal font-satoshi`}>
                             {isVerified ? "OTP Verified" : "Awaiting OTP verification"}
                         </span>
                     </div>
@@ -151,40 +185,42 @@ const WithdrawOTP = () => {
 
                 {/* Info Text - 176px below awaiting row */}
                 <div className="mt-[176px]">
-                    <p className="text-white text-[16px] font-bold font-satoshi leading-tight mb-[12px]">
+                    <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-tight mb-[12px]`}>
                         Your amount will be credited in this selected mode of payment.
                     </p>
 
                     {/* Payment Container */}
                     <div
-                        className="w-[363px] h-[66px] rounded-[22px] flex items-center px-[10px] relative overflow-hidden"
+                        className={`w-[363px] h-[66px] rounded-[22px] flex items-center px-[10px] relative overflow-hidden ${isDarkMode ? '' : 'border border-[#E9EAEB]'}`}
                         style={{
-                            backgroundColor: "rgba(25, 25, 25, 0.31)",
-                            backdropFilter: "blur(25.02px)",
-                            WebkitBackdropFilter: "blur(25.02px)",
+                            backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "transparent",
+                            backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
+                            WebkitBackdropFilter: isDarkMode ? "blur(25.02px)" : "none",
                         }}
                     >
                         {/* Gradient Border Overlay - 0.63px */}
-                        <div
-                            className="absolute inset-0 pointer-events-none rounded-[22px]"
-                            style={{
-                                padding: "0.63px",
-                                background: "linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.20))",
-                                WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                                WebkitMaskComposite: "xor",
-                                maskComposite: "exclude",
-                            }}
-                        />
+                        {isDarkMode && (
+                            <div
+                                className="absolute inset-0 pointer-events-none rounded-[22px]"
+                                style={{
+                                    padding: "0.63px",
+                                    background: "linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.20))",
+                                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                    WebkitMaskComposite: "xor",
+                                    maskComposite: "exclude",
+                                }}
+                            />
+                        )}
 
                         {method.icon && (
                             <img src={method.icon} alt={method.name} className="w-[32px] h-[32px] object-contain shrink-0" />
                         )}
                         <div className={`flex flex-col flex-1 ${(method.icon || method.id === 'upi-id') ? 'ml-[12px]' : ''}`}>
-                            <span className="text-white text-[16px] font-bold font-sans">
+                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans`}>
                                 {method.name}
                             </span>
                             {method.subtitle && (
-                                <span className="text-white/40 text-[12px] font-medium font-sans">
+                                <span className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] font-medium font-sans`}>
                                     {method.subtitle}
                                 </span>
                             )}
@@ -194,7 +230,7 @@ const WithdrawOTP = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-5 pb-10 flex flex-col gap-3">
+            <div className="px-5 pb-10 flex flex-col gap-3 z-10">
                 <button
                     onClick={handleVerify}
                     disabled={!isComplete}
@@ -208,13 +244,13 @@ const WithdrawOTP = () => {
                 </button>
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center"
-                    style={{
+                    className={`w-full h-[48px] rounded-full ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${isDarkMode ? '' : 'bg-[#F2F2F2] border border-[#E9EAEB]'}`}
+                    style={isDarkMode ? {
                         backgroundImage: `url(${cancelCta})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         backgroundRepeat: "no-repeat"
-                    }}
+                    } : {}}
                 >
                     Cancel
                 </button>

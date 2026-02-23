@@ -47,6 +47,7 @@ const AddPaymentMethod = () => {
     const { amount, flow, tier } = location.state || { amount: "0.00", flow: "add-money", tier: "" };
 
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+    const [upiId, setUpiId] = useState<string>("");
 
     const hasLinkedMethods = mockPaymentMethods.some((m) => m.linked);
     const title = flow === "withdrawal" ? "Add Payment Method" : (hasLinkedMethods ? "Select Payment" : "Add Payment");
@@ -96,12 +97,19 @@ const AddPaymentMethod = () => {
     const handleProceed = () => {
         if (!selectedMethod) return;
         const method = mockPaymentMethods.find(m => m.id === selectedMethod);
+        const navState = {
+            ...location.state,
+            amount,
+            paymentMethod: method,
+            upiId: selectedMethod === 'upi-id' ? upiId : undefined
+        };
+
         if (location.state?.flow === "withdrawal") {
-            navigate("/select-payment-method", { state: { ...location.state, selectedMethod: method } });
+            navigate("/select-payment-method", { state: navState });
         } else if (location.state?.flow === "upgrade") {
-            navigate("/subscription-details", { state: { ...location.state, paymentMethod: method }, replace: true });
+            navigate("/subscription-details", { state: navState, replace: true });
         } else {
-            navigate("/order-summary", { state: { ...location.state, paymentMethod: method } });
+            navigate("/order-summary", { state: navState });
         }
     };
 
@@ -119,24 +127,30 @@ const AddPaymentMethod = () => {
                     />
                 )}
 
-                <div className={`flex flex-col ${method.icon ? 'ml-[8px]' : ''} flex-1 min-w-0`}>
-                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans leading-none ${method.subtitle ? "mb-[4px]" : ""}`}>
+                <div className={`flex flex-row items-center flex-1 ${method.icon ? 'ml-[8px]' : ''} min-w-0`}>
+                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans leading-none shrink-0`}>
                         {method.name}
                     </span>
-                    {method.subtitle && (
-                        <span className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] font-medium font-sans leading-none`}>
-                            {method.subtitle}
-                        </span>
+                    {method.hasInput ? (
+                        <input
+                            type="text"
+                            value={upiId}
+                            onChange={(e) => setUpiId(e.target.value)}
+                            placeholder={method.inputPlaceholder}
+                            className={`ml-[36px] bg-transparent border-none outline-none text-[14px] font-medium font-sans flex-1 ${isDarkMode ? 'text-white placeholder:text-[#FAFAFA]/30' : 'text-black placeholder:text-black/30'}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedMethod(method.id);
+                            }}
+                        />
+                    ) : (
+                        method.subtitle && (
+                            <span className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] font-medium font-sans leading-none ml-[8px]`}>
+                                {method.subtitle}
+                            </span>
+                        )
                     )}
                 </div>
-
-                {method.hasInput && (
-                    <input
-                        type="text"
-                        placeholder={method.inputPlaceholder}
-                        className={`ml-[5px] bg-transparent border-none outline-none text-[14px] font-medium font-sans flex-1 ${isDarkMode ? 'text-white placeholder:text-[#FAFAFA]/30' : 'text-black placeholder:text-black/30'}`}
-                    />
-                )}
 
                 <div className="ml-auto pl-2">
                     <RadioButton selected={selectedMethod === method.id} />

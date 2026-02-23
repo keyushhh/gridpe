@@ -10,7 +10,7 @@ import { SlideToPay } from "@/components/SlideToPay";
 const OrderSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { amount, retry, paymentMethod } = location.state || { amount: "0.00", retry: false, paymentMethod: null };
+    const { amount, retry, paymentMethod, upiId } = location.state || { amount: "0.00", retry: false, paymentMethod: null };
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
@@ -118,7 +118,7 @@ const OrderSummary = () => {
                         />
                     )}
                     <span className={`ml-[20px] text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                        {paymentMethod?.name || "Selected Payment Method"}
+                        {paymentMethod?.id === "upi-id" && upiId ? upiId : (paymentMethod?.name || "Selected Payment Method")}
                     </span>
                 </div>
 
