@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -18,8 +19,7 @@ import failedIcon from "@/assets/failed.svg";
 import closeIcon from "@/assets/close.svg";
 import detailsIcon from "@/assets/details.svg";
 import copyIcon from "@/assets/copy.svg";
-import transactionPopupBg from "@/assets/transaction-popup.png";
-import popupCloseBtnBg from "@/assets/pop-up-close-btn.png";
+import transactionDetailsLightBg from "@/assets/transaction-details-light.png";
 import { useUser, WalletTransaction } from "@/contexts/UserContext";
 
 const WalletTransactionHistory = () => {
@@ -38,7 +38,12 @@ const WalletTransactionHistory = () => {
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            const target = event.target as HTMLElement;
+            // Check if clicking inside the trigger row or inside a portal-rendered dropdown
+            const isClickInsideTrigger = dropdownRef.current && dropdownRef.current.contains(target);
+            const isClickInsidePortal = target.closest('[data-dropdown-portal="true"]');
+
+            if (!isClickInsideTrigger && !isClickInsidePortal) {
                 setActiveDropdown(null);
             }
         };
@@ -145,58 +150,78 @@ const WalletTransactionHistory = () => {
         items: string[],
         onSelect: (item: string) => void,
         isActive?: boolean
-    }) => (
-        <div className="relative">
-            <div
-                onClick={() => toggleDropdown(id)}
-                className="flex items-center justify-between shrink-0 relative cursor-pointer"
-                style={{
-                    width: width,
-                    height: '34px',
-                    backgroundColor: isActive ? '#5260FE' : '#000000',
-                    borderRadius: '8px',
-                    border: isActive ? '0.63px solid #5260FE' : '0.63px solid rgba(255, 255, 255, 0.12)',
-                }}
-            >
-                <span className="text-white text-[12px] font-medium font-sans ml-[8px] leading-[120%] truncate pr-1">
-                    {selectedValue !== 'All' && selectedValue !== 'All Time' ? selectedValue : label}
-                </span>
-                <img
-                    src={caretDownIcon}
-                    alt=""
-                    className="mr-[4px] w-[12px] h-[12px] shrink-0"
-                    style={{ filter: 'brightness(0) invert(1)' }}
-                />
-            </div>
+    }) => {
+        const triggerRef = useRef<HTMLDivElement>(null);
+        const [coords, setCoords] = useState({ top: 0, left: 0 });
 
-            {/* Dropdown Content */}
-            {activeDropdown === id && (
+        React.useLayoutEffect(() => {
+            if (activeDropdown === id && triggerRef.current) {
+                const rect = triggerRef.current.getBoundingClientRect();
+                setCoords({ top: rect.bottom, left: rect.left });
+            }
+        }, [activeDropdown, id]);
+
+        return (
+            <div className="relative" ref={triggerRef}>
                 <div
-                    className="absolute top-full mt-[6px] left-0 z-50 flex flex-col pt-[12px] pb-[12px] pl-[8px]"
+                    onClick={() => toggleDropdown(id)}
+                    className="flex items-center justify-between shrink-0 relative cursor-pointer"
                     style={{
                         width: width,
-                        height: 'auto',
-                        backgroundColor: '#000000',
+                        height: '34px',
+                        backgroundColor: isActive ? '#5260FE' : (isDarkMode ? 'transparent' : '#000000'),
+                        backgroundImage: (!isActive && isDarkMode) ? `url(${bgImage})` : 'none',
+                        backgroundSize: 'cover',
                         borderRadius: '8px',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        border: isActive ? '0.63px solid #5260FE' : '0.63px solid rgba(255, 255, 255, 0.12)',
                     }}
                 >
-                    <div className="flex flex-col gap-[12px]">
-                        {items.map((item, index) => (
-                            <span
-                                key={index}
-                                onClick={(e) => { e.stopPropagation(); onSelect(item); }}
-                                className={`text-[12px] font-medium font-sans leading-[120%] cursor-pointer transition-colors ${selectedValue === item ? 'text-[#5260FE]' : 'text-white hover:text-white/80'}`}
-                            >
-                                {item}
-                            </span>
-                        ))}
-                    </div>
+                    <span className="text-white text-[12px] font-medium font-sans ml-[8px] leading-[120%] truncate pr-1">
+                        {selectedValue !== 'All' && selectedValue !== 'All Time' ? selectedValue : label}
+                    </span>
+                    <img
+                        src={caretDownIcon}
+                        alt=""
+                        className="mr-[4px] w-[12px] h-[12px] shrink-0"
+                        style={{ filter: 'brightness(0) invert(1)' }}
+                    />
                 </div>
-            )}
-        </div>
-    );
+
+                {/* Dropdown Content with Portal */}
+                {activeDropdown === id && createPortal(
+                    <div
+                        data-dropdown-portal="true"
+                        onClick={(e) => e.stopPropagation()}
+                        className="fixed z-[999] flex flex-col pt-[12px] pb-[12px] pl-[8px]"
+                        style={{
+                            top: coords.top + 6,
+                            left: coords.left,
+                            width: width,
+                            height: 'auto',
+                            backgroundColor: '#000000',
+                            borderRadius: '8px',
+                            backdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                        }}
+                    >
+                        <div className="flex flex-col gap-[12px]">
+                            {items.map((item, index) => (
+                                <span
+                                    key={index}
+                                    onClick={(e) => { e.stopPropagation(); onSelect(item); }}
+                                    className={`text-[12px] font-medium font-sans leading-[120%] cursor-pointer transition-colors ${selectedValue === item ? 'text-[#5260FE]' : 'text-white hover:text-white/80'}`}
+                                >
+                                    {item}
+                                </span>
+                            ))}
+                        </div>
+                    </div>,
+                    document.body
+                )}
+            </div>
+        );
+    };
 
     const dateItems = isNewUser()
         ? ["All Time", "Today", "Past 7 Days"]
@@ -280,7 +305,7 @@ const WalletTransactionHistory = () => {
                 <div
                     className="relative z-10 w-[362px] h-[436px] flex flex-col items-center"
                     style={{
-                        backgroundImage: `url(${transactionPopupBg})`,
+                        backgroundImage: `url(${transactionDetailsLightBg})`,
                         backgroundSize: '100% 100%',
                         backgroundRepeat: 'no-repeat',
                         borderRadius: '13px',
@@ -288,11 +313,11 @@ const WalletTransactionHistory = () => {
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Details Icon */}
-                    <img src={detailsIcon} alt="" className="w-[30px] h-[30px] mt-[22px]" />
+                    <img src={detailsIcon} alt="" className="w-[30px] h-[30px] mt-[22px] brightness-0" />
 
                     {/* Header */}
                     <h2
-                        className="mt-[12px] text-white text-[16px] font-bold leading-[120%] tracking-[-0.3px] text-center"
+                        className="mt-[12px] text-black text-[16px] font-bold leading-[120%] tracking-[-0.3px] text-center"
                         style={{ fontFamily: "'Satoshi', sans-serif" }}
                     >
                         Transaction Details
@@ -300,23 +325,24 @@ const WalletTransactionHistory = () => {
 
                     {/* Transaction ID Pill */}
                     <div
-                        className="mt-[19px] w-[213px] h-[40px] flex items-center justify-center bg-[#191919]/50 rounded-full border border-white/10"
+                        className="mt-[19px] w-[213px] h-[40px] flex items-center justify-center bg-[#F5F5F5] rounded-full border border-black/5"
                         onClick={handleCopy}
                     >
                         <span
-                            className="text-white text-[17px] font-bold leading-[120%] tracking-[-0.3px]"
+                            className="text-black text-[17px] font-bold leading-[120%] tracking-[-0.3px]"
                             style={{ fontFamily: "'Satoshi', sans-serif" }}
                         >
                             {displayId}
                         </span>
-                        <img src={copyIcon} alt="Copy" className="w-[14px] h-[14px] ml-[8px] cursor-pointer" />
+                        <img src={copyIcon} alt="Copy" className="w-[14px] h-[14px] ml-[8px] cursor-pointer brightness-0" />
                     </div>
 
                     {/* Detail Container */}
                     <div
                         className="mt-[9px] w-[318px] h-[174px] rounded-[16px] p-[11px_15px] flex flex-col justify-between"
                         style={{
-                            background: '#000000E5',
+                            background: '#FFFFFF',
+                            border: '1px solid #F0F0F0'
                         }}
                     >
                         {(() => {
@@ -356,8 +382,8 @@ const WalletTransactionHistory = () => {
 
                             return rowData.map((row, i) => (
                                 <div key={i} className="flex justify-between items-center" style={{ fontFamily: "'Satoshi', sans-serif", fontSize: '12px', fontWeight: 500, letterSpacing: '-0.3px', lineHeight: '120%' }}>
-                                    <span style={{ color: '#FFFFFF', opacity: 0.5 }}>{row.label}</span>
-                                    <span style={{ color: '#FFFFFF', opacity: 1 }}>{row.value}</span>
+                                    <span style={{ color: '#000000', opacity: 0.8 }}>{row.label}</span>
+                                    <span style={{ color: '#000000', opacity: 1 }}>{row.value}</span>
                                 </div>
                             ));
                         })()}
@@ -365,10 +391,10 @@ const WalletTransactionHistory = () => {
 
                     {/* CTA */}
                     <button
-                        className="mt-[10px] w-[318px] h-[44px] flex items-center justify-center rounded-full text-white text-[14px] font-bold active:scale-95 transition-transform"
+                        className="mt-[10px] w-[318px] h-[44px] flex items-center justify-center rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform"
                         style={{
                             backgroundColor: "#171717",
-                            border: "1px solid rgba(255,255,255,0.1)"
+                            fontFamily: "'Satoshi', sans-serif"
                         }}
                     >
                         Download Receipt
@@ -376,7 +402,7 @@ const WalletTransactionHistory = () => {
 
                     {/* Help Link */}
                     <p
-                        className="mt-[17px] text-white text-[12px] font-medium text-center"
+                        className="mt-[17px] text-black text-[12px] font-medium text-center"
                         style={{ fontFamily: "'Satoshi', sans-serif" }}
                     >
                         Need help with this transaction? <span className="underline text-[#148DFF] cursor-pointer">Click here.</span>
@@ -388,9 +414,9 @@ const WalletTransactionHistory = () => {
                     onClick={onClose}
                     className="relative z-10 mt-[19px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0"
                     style={{
-                        backgroundImage: `url(${popupCloseBtnBg})`,
-                        backgroundSize: '100% 100%',
-                        backgroundRepeat: 'no-repeat',
+                        backgroundColor: '#5260FE',
+                        borderRadius: '9999px',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
                     }}
                 >
                     <img src={closeIcon} alt="" className="w-6 h-6" />
@@ -404,6 +430,7 @@ const WalletTransactionHistory = () => {
             </div>
         );
     };
+
 
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
@@ -466,7 +493,7 @@ const WalletTransactionHistory = () => {
                         src={searchIcon}
                         alt="Search"
                         className="w-[24px] h-[24px] shrink-0"
-                        style={{ filter: 'grayscale(1) brightness(0)' }}
+                        style={{ filter: isDarkMode ? 'brightness(0) invert(1)' : 'grayscale(1) brightness(0)' }}
                     />
 
                     {/* Input */}
@@ -482,31 +509,33 @@ const WalletTransactionHistory = () => {
 
             {/* Filter Row */}
             <div
-                className="w-full pl-[27px] pr-[26px] mt-[15px] z-20 relative pointer-events-none"
+                className="w-full mt-[15px] z-20 relative px-[27px]"
                 ref={dropdownRef}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center gap-[12px] pointer-events-auto h-[34px]">
+                <div className="flex items-start gap-[12px] overflow-x-auto overflow-y-visible scrollbar-hide py-[5px]">
                     {/* Filter Icon or Reset Button */}
-                    {isAnyFilterActive ? (
-                        <div
-                            onClick={resetFilters}
-                            className="flex items-center gap-[6px] px-[12px] h-[34px] bg-black rounded-[8px] border border-white/10 cursor-pointer shrink-0"
-                        >
-                            <span className="text-white text-[12px] font-medium leading-[120%]">Reset</span>
-                            <img src={closeIcon} alt="Reset" className="w-[12px] h-[12px] brightness(100) invert(1)" />
-                        </div>
-                    ) : (
-                        <img
-                            src={filterIcon}
-                            alt="Filter"
-                            className="w-[24px] h-[24px]"
-                            style={{ filter: 'grayscale(1) brightness(0)' }}
-                        />
-                    )}
+                    <div className="shrink-0 pt-[5px]">
+                        {isAnyFilterActive ? (
+                            <div
+                                onClick={resetFilters}
+                                className="flex items-center gap-[6px] px-[12px] h-[34px] bg-black rounded-[8px] border border-white/10 cursor-pointer"
+                            >
+                                <span className="text-white text-[12px] font-medium leading-[120%]">Reset</span>
+                                <img src={closeIcon} alt="Reset" className="w-[12px] h-[12px]" style={{ filter: 'brightness(0) invert(1)' }} />
+                            </div>
+                        ) : (
+                            <img
+                                src={filterIcon}
+                                alt="Filter"
+                                className="w-[24px] h-[24px]"
+                                style={{ filter: isDarkMode ? 'brightness(0) invert(1)' : 'grayscale(1) brightness(0)' }}
+                            />
+                        )}
+                    </div>
 
                     {/* Dropdowns */}
-                    <div className="flex items-center gap-[8px] ml-[12px]">
+                    <div className="flex items-center gap-[8px] pt-[5px]">
                         <Dropdown
                             id="date"
                             width="93px"
@@ -604,8 +633,8 @@ const WalletTransactionHistory = () => {
                                                         <img
                                                             src={icon}
                                                             alt=""
-                                                            className="w-[32px] h-[32px] dark:brightness-100"
-                                                            style={{ opacity: 0.31, filter: 'grayscale(1) brightness(0.1)' }}
+                                                            className="w-[32px] h-[32px]"
+                                                            style={isDarkMode ? {} : { opacity: 0.31, filter: 'grayscale(1) brightness(0.1)' }}
                                                         />
                                                         <div className="flex flex-col gap-[2px]">
                                                             <span className="text-[#1A1A1A] dark:text-white text-[12px] font-bold leading-[120%]">

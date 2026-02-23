@@ -9,6 +9,10 @@ import proChip from "@/assets/pro chip.png";
 import eliteChip from "@/assets/elite chip.png";
 import supremeChip from "@/assets/supreme chip.png";
 
+// Dark carousel card overrides (Starter-specific)
+import starterSelectedDark from "@/assets/starter-selected-dark.png";
+import starterNonselectedDark from "@/assets/starter-nonselected-dark.png";
+
 // New assets
 import starterExpand from "@/assets/starter-expand.png";
 import proExpand from "@/assets/pro-expand.png";
@@ -43,6 +47,17 @@ import starterSettingsLight from "@/assets/light-cards/starter-settings-light.pn
 import proSettingsLight from "@/assets/light-cards/pro-settings-light.png";
 import eliteSettingsLight from "@/assets/light-cards/elite-settings-light.png";
 import supremeSettingsLight from "@/assets/light-cards/supreme-settings-light.png";
+
+// Carousel Card Assets (Light)
+import starterSelectedLight from "@/assets/light-cards/starter-selected-light.png";
+import proSelectedLight from "@/assets/light-cards/pro-selected-light.png";
+import eliteSelectedLight from "@/assets/light-cards/elite-selected-light.png";
+import supremeSelectedLight from "@/assets/light-cards/supreme-selected-light.png";
+
+import starterNonselectedLight from "@/assets/light-cards/starter-nonselected-light.png";
+import proNonselectedLight from "@/assets/light-cards/pro-nonselected-light.png";
+import eliteNonselectedLight from "@/assets/light-cards/elite-nonselected-light.png";
+import supremeNonselectedLight from "@/assets/light-cards/supreme-nonselected-light.png";
 
 export type { WalletTier };
 
@@ -284,3 +299,33 @@ export const tierSettingsCardMapLight: Record<WalletTier, string> = {
     Elite: eliteSettingsLight,
     Supreme: supremeSettingsLight,
 };
+
+export const tierCarouselActiveMap: Record<WalletTier, string> = {
+    Starter: starterSelectedLight,
+    Pro: proSelectedLight,
+    Elite: eliteSelectedLight,
+    Supreme: supremeSelectedLight,
+};
+
+export const tierCarouselInactiveMap: Record<WalletTier, string> = {
+    Starter: starterNonselectedLight,
+    Pro: proNonselectedLight,
+    Elite: eliteNonselectedLight,
+    Supreme: supremeNonselectedLight,
+};
+
+export const tierChipColorMap: Record<WalletTier, string> = {
+    Starter: '#000000',
+    Pro: '#2F82FF',
+    Elite: '#B158E7',
+    Supreme: '#FF6A8E',
+};
+
+export const tierExpandCardMapLight: Record<WalletTier, string> = {
+    Starter: starterExpandLight,
+    Pro: proExpandLight,
+    Elite: eliteExpandLight,
+    Supreme: supremeExpandLight,
+};
+
+export { starterSelectedDark, starterNonselectedDark };

@@ -2,7 +2,8 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import { tiers } from "@/lib/walletTiers";
+import { useTheme } from "next-themes";
+import { tiers, tierChipColorMap, tierExpandCardMapLight } from "@/lib/walletTiers";
 import infoBg from "@/assets/info bg.png";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
@@ -10,32 +11,66 @@ const WalletTierDetails = () => {
     const { tierId } = useParams<{ tierId: string }>();
     const navigate = useNavigate();
     const { walletTier, setWalletTier } = useUser();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const currentTier = tiers.find(t => t.name.toLowerCase() === tierId?.toLowerCase());
 
     if (!currentTier) return null;
 
+    // Choose expand card image based on theme
+    const expandImage = isDarkMode
+        ? currentTier.headerImage
+        : tierExpandCardMapLight[currentTier.name];
+
+    // Choose chip style based on theme
+    const chipStyle = isDarkMode
+        ? {
+            backgroundImage: `url(${currentTier.chip})`,
+            backgroundSize: "100% 100%" as const,
+            backgroundRepeat: "no-repeat" as const,
+        }
+        : {
+            backgroundColor: tierChipColorMap[currentTier.name],
+            borderRadius: '12px',
+        };
+
     return (
         <div
-            className="h-full w-full text-white flex flex-col relative overflow-y-auto no-scrollbar font-satoshi safe-area-top safe-area-bottom"
+            className="h-full w-full flex flex-col relative overflow-y-auto no-scrollbar font-satoshi safe-area-top safe-area-bottom"
             style={{
                 fontFamily: "'Satoshi', sans-serif",
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Status Blob (Top Glow) */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(60px)",
+                        opacity: 0.8,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
 
             {/* Header Section */}
             <div className="relative flex items-center justify-center px-5 pt-12 pb-2 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
-                    className="absolute left-5 top-12 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md active:scale-95 transition-transform z-10"
+                    className={`absolute left-5 top-12 w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md active:scale-95 transition-transform z-10 ${isDarkMode
+                        ? 'bg-white/10'
+                        : 'bg-[#F5F5F5] border border-[#E9EAEB]'
+                        }`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className="text-white text-[22px] font-medium text-center">
+                <h1 className={`text-[22px] font-medium text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Wallet Settings
                 </h1>
             </div>
@@ -44,7 +79,7 @@ const WalletTierDetails = () => {
             <div
                 className="relative w-[362px] mx-auto flex flex-col mt-[28px] px-[14px] pt-[14px] pb-6 rounded-[20px]"
                 style={{
-                    backgroundImage: `url(${currentTier.headerImage})`,
+                    backgroundImage: `url(${expandImage})`,
                     backgroundSize: '100% 100%',
                     backgroundRepeat: 'no-repeat',
                 }}
@@ -57,9 +92,7 @@ const WalletTierDetails = () => {
                         right: "12px",
                         width: "88px",
                         height: "24px",
-                        backgroundImage: `url(${currentTier.chip})`,
-                        backgroundSize: "100% 100%",
-                        backgroundRepeat: "no-repeat",
+                        ...chipStyle,
                     }}
                 >
                     {currentTier.badge}
@@ -67,15 +100,15 @@ const WalletTierDetails = () => {
 
                 {/* Wallet Limit Header */}
                 <div className="flex flex-col items-start pl-[63px]">
-                    <span className="text-white text-[15px] font-medium tracking-normal">
+                    <span className={`text-[15px] font-medium tracking-normal ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         {currentTier.name.toUpperCase()}
                     </span>
 
                     <div className="flex items-end gap-2 mt-1">
-                        <span className="text-white text-[34px] font-bold leading-none">
+                        <span className={`text-[34px] font-bold leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             {currentTier.walletLimit}
                         </span>
-                        <span className="text-white/70 text-[16px] font-medium mb-[2px]">
+                        <span className={`text-[16px] font-medium mb-[2px] ${isDarkMode ? 'text-white/70' : 'text-black/50'}`}>
                             / wallet limit
                         </span>
                     </div>
@@ -83,48 +116,52 @@ const WalletTierDetails = () => {
 
                 {/* Info Container */}
                 <div
-                    className="w-[334px] mt-[16px] rounded-[13px] p-[10px] overflow-y-auto no-scrollbar"
+                    className={`w-[334px] mt-[16px] rounded-[13px] p-[10px] overflow-y-auto no-scrollbar ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                     style={{
                         height: currentTier.infoHeight,
-                        backgroundImage: `url(${infoBg})`,
-                        backgroundSize: '100% 100%',
-                        backgroundRepeat: 'no-repeat',
                         paddingBottom: currentTier.name === 'Pro' ? '20px' : '10px',
+                        ...(isDarkMode
+                            ? {
+                                backgroundImage: `url(${infoBg})`,
+                                backgroundSize: '100% 100%',
+                                backgroundRepeat: 'no-repeat',
+                            }
+                            : {
+                                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                            }
+                        ),
                     }}
                 >
                     {/* Info List */}
                     <div className="flex flex-col gap-[10px]">
                         {/* Verification */}
                         <div>
-                            <p className="text-[#8F8F8F] text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi">Verification</p>
-                            <p className="text-white text-[12px] font-medium tracking-[0px] font-satoshi">{currentTier.detailedVerification}</p>
+                            <p className={`text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black/40'}`}>Verification</p>
+                            <p className={`text-[12px] font-medium tracking-[0px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{currentTier.detailedVerification}</p>
                         </div>
 
                         {/* Wallet Limit & Daily Top Up Row */}
                         <div className="flex items-start">
-                            {/* Wallet Limit */}
                             <div className="w-auto">
-                                <p className="text-[#8F8F8F] text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi">Wallet limit</p>
-                                <p className="text-white text-[12px] font-medium tracking-[0px] font-satoshi">{currentTier.walletLimit}</p>
+                                <p className={`text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black/40'}`}>Wallet limit</p>
+                                <p className={`text-[12px] font-medium tracking-[0px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{currentTier.walletLimit}</p>
                             </div>
-
-                            {/* Daily Top Up Limit - 100px gap */}
                             <div className="ml-[100px]">
-                                <p className="text-[#8F8F8F] text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi">Daily top up limit</p>
-                                <p className="text-white text-[12px] font-medium tracking-[0px] font-satoshi">{currentTier.dailyTopUpLimit}</p>
+                                <p className={`text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black/40'}`}>Daily top up limit</p>
+                                <p className={`text-[12px] font-medium tracking-[0px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{currentTier.dailyTopUpLimit}</p>
                             </div>
                         </div>
 
                         {/* Withdrawals */}
                         <div>
-                            <p className="text-[#8F8F8F] text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi">Withdrawals</p>
-                            <p className="text-white text-[12px] font-medium tracking-[0px] font-satoshi">{currentTier.withdrawals}</p>
+                            <p className={`text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black/40'}`}>Withdrawals</p>
+                            <p className={`text-[12px] font-medium tracking-[0px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{currentTier.withdrawals}</p>
                         </div>
 
                         {/* Limitations */}
                         <div>
-                            <p className="text-[#8F8F8F] text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi">Limitations</p>
-                            <ul className="list-disc pl-4 text-white text-[12px] font-medium tracking-[0px] font-satoshi">
+                            <p className={`text-[12px] font-medium tracking-[-0.3px] mb-0 font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black/40'}`}>Limitations</p>
+                            <ul className={`list-disc pl-4 text-[12px] font-medium tracking-[0px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 {currentTier.detailedLimitations.split(/\d\.\s/).filter(Boolean).map((limitation, index) => (
                                     <li key={index} className="leading-snug">{limitation.trim()}</li>
                                 ))}
@@ -135,8 +172,8 @@ const WalletTierDetails = () => {
 
                 {/* Why you're on STARTER? */}
                 <div className="mt-[10px]">
-                    <h3 className="text-white text-[16px] font-medium tracking-[-0.3px] mb-[6px] font-satoshi">{currentTier.whyTitle}</h3>
-                    <ul className="list-disc pl-4 text-[#A4A4A4] text-[14px] font-light tracking-[-0.3px] font-satoshi leading-[152%]">
+                    <h3 className={`text-[16px] font-medium tracking-[-0.3px] mb-[6px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{currentTier.whyTitle}</h3>
+                    <ul className={`list-disc pl-4 text-[14px] tracking-[-0.3px] font-satoshi leading-[152%] ${isDarkMode ? 'font-light text-[#A4A4A4]' : 'font-normal text-black/80'}`}>
                         {currentTier.whyContent.map((point, index) => (
                             <li key={index}>{point}</li>
                         ))}
@@ -146,8 +183,8 @@ const WalletTierDetails = () => {
                 {/* Craving more power? */}
                 {currentTier.powerTitle && (
                     <div className="mt-[10px]">
-                        <h3 className="text-white text-[16px] font-medium tracking-[-0.3px] mb-[6px] font-satoshi">{currentTier.powerTitle}</h3>
-                        <p className="text-[#A4A4A4] text-[14px] font-light tracking-[-0.3px] font-satoshi leading-[152%] whitespace-pre-line">
+                        <h3 className={`text-[16px] font-medium tracking-[-0.3px] mb-[6px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{currentTier.powerTitle}</h3>
+                        <p className={`text-[14px] tracking-[-0.3px] font-satoshi leading-[152%] whitespace-pre-line ${isDarkMode ? 'font-light text-[#A4A4A4]' : 'font-normal text-black/80'}`}>
                             {currentTier.powerContent}
                         </p>
                     </div>
@@ -156,22 +193,21 @@ const WalletTierDetails = () => {
                 {/* Downgrade Options */}
                 {currentTier.downgradeTitle && (
                     <div className="mt-[10px]">
-                        <h3 className="text-white text-[16px] font-medium tracking-[-0.3px] mb-[6px] font-satoshi">{currentTier.downgradeTitle}</h3>
-                        <p className="text-[#A4A4A4] text-[14px] font-light tracking-[-0.3px] font-satoshi leading-[152%] whitespace-pre-line">
+                        <h3 className={`text-[16px] font-medium tracking-[-0.3px] mb-[6px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>{currentTier.downgradeTitle}</h3>
+                        <p className={`text-[14px] tracking-[-0.3px] font-satoshi leading-[152%] whitespace-pre-line ${isDarkMode ? 'font-light text-[#A4A4A4]' : 'font-normal text-black/80'}`}>
                             {currentTier.downgradeContent}
                         </p>
                     </div>
                 )}
 
                 {/* Note Container */}
-                <div className="w-[334px] mt-[20px] mx-auto rounded-[10px] border border-[#2C2C2C] pt-[10px] pr-[10px] pl-[10px] pb-[20px]">
-                    <h3 className="text-[#8F8F8F] text-[12px] font-bold tracking-[-0.3px] mb-[7px] font-satoshi">Note:</h3>
-                    <p className="text-[#FFFFFF] text-[12px] font-medium leading-[131%] font-satoshi">
+                <div className={`w-[334px] mt-[20px] mx-auto rounded-[10px] border pt-[10px] pr-[10px] pl-[10px] pb-[20px] ${isDarkMode ? 'border-[#2C2C2C]' : 'border-[#E9EAEB]'}`}>
+                    <h3 className={`text-[12px] font-bold tracking-[-0.3px] mb-[7px] font-satoshi ${isDarkMode ? 'text-[#8F8F8F]' : 'text-black/40'}`}>Note:</h3>
+                    <p className={`text-[12px] font-medium leading-[131%] font-satoshi ${isDarkMode ? 'text-[#FFFFFF]' : 'text-black'}`}>
                         {currentTier.note}
                     </p>
                 </div>
 
-                {/* CTA Button */}
                 {/* CTA Button */}
                 {(() => {
                     const currentTierIndex = tiers.findIndex(t => t.name === walletTier);
@@ -194,11 +230,6 @@ const WalletTierDetails = () => {
                     };
 
                     if (isCurrent) {
-                        // User said "if he's already on starter, and clicks on starter, the current [compare plans] is fine."
-                        // But for other tiers, if they are on it, disabled or "Current Plan"?
-                        // Design implies we might just show "Current Plan" or keep default button if it's "Compare Plans" for starter.
-                        // Let's stick to default button text/action for Starter (which is Compare Plans / settings)
-                        // For others, maybe "Current Plan" disabled?
                         if (currentTier.name === 'Starter') {
                             return (
                                 <button

@@ -2,15 +2,18 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
+import { useTheme } from "next-themes";
 
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import tierCardActive from "@/assets/selected wallet.png";
 import tierCardInactive from "@/assets/non selected card.png";
-import { tiers, tierIconMap, tierSettingsCardMap } from "@/lib/walletTiers";
+import { tiers, tierIconMap, tierSettingsCardMap, tierSettingsCardMapLight, tierCarouselActiveMap, tierCarouselInactiveMap, tierChipColorMap, starterSelectedDark, starterNonselectedDark } from "@/lib/walletTiers";
 
 const WalletSettings = () => {
     const navigate = useNavigate();
     const { walletTier, resetForDemo } = useUser();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark' || theme === 'system';
 
     const currentTier =
         tiers.find((tier) => tier.name === walletTier) || tiers[0];
@@ -30,22 +33,38 @@ const WalletSettings = () => {
             className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
             style={{
                 fontFamily: "'Satoshi', sans-serif",
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Status Blob (Top Glow) */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(60px)",
+                        opacity: 0.8,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
+
             {/* Header */}
             <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-12 pb-0 z-10">
                 <button
                     onClick={() => navigate(-1)}
-                    className="absolute left-5 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md active:scale-95 transition-transform"
+                    className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md active:scale-95 transition-transform ${isDarkMode
+                        ? 'bg-white/10'
+                        : 'bg-[#F5F5F5] border border-[#E9EAEB]'
+                        }`}
                 >
-                    <ChevronLeft className="w-6 h-6 text-white" />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className="text-white text-[22px] font-medium tracking-normal text-center">
+                <h1 className={`text-[22px] font-medium tracking-normal text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Wallet Settings
                 </h1>
             </div>
@@ -56,9 +75,9 @@ const WalletSettings = () => {
                 {/* -------- TOP TIER SUMMARY CARD -------- */}
                 <div className="px-5 mb-[20px] mt-[28px]">
                     <div
-                        className="relative w-full rounded-[28px] overflow-hidden"
+                        className={`relative w-full rounded-[28px] overflow-hidden ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                         style={{
-                            backgroundImage: `url(${tierSettingsCardMap[currentTier.name]})`,
+                            backgroundImage: `url(${isDarkMode ? tierSettingsCardMap[currentTier.name] : tierSettingsCardMapLight[currentTier.name]})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             backgroundRepeat: "no-repeat",
@@ -67,15 +86,15 @@ const WalletSettings = () => {
                         <div className="relative z-10 flex flex-col h-full">
                             <div className="flex items-center pl-[77px] pt-[14px]">
                                 <div className="flex flex-col items-start">
-                                    <span className="text-white text-[15px] font-medium tracking-normal">
+                                    <span className={`text-[15px] font-medium tracking-normal ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                         {currentTier.name.toUpperCase()}
                                     </span>
 
                                     <div className="flex items-end gap-2 mt-1">
-                                        <span className="text-white text-[34px] font-bold leading-none">
+                                        <span className={`text-[34px] font-bold leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                             {currentTier.walletLimit}
                                         </span>
-                                        <span className="text-white/70 text-[16px] font-medium mb-[2px]">
+                                        <span className={`text-[16px] font-medium mb-[2px] ${isDarkMode ? 'text-white/70' : 'text-black/50'}`}>
                                             / wallet limit
                                         </span>
                                     </div>
@@ -101,6 +120,30 @@ const WalletSettings = () => {
                         {tiers.map((tier) => {
                             const isActive = walletTier === tier.name;
 
+                            // Choose card background based on theme
+                            let cardBg: string;
+                            if (isDarkMode) {
+                                if (tier.name === 'Starter') {
+                                    cardBg = isActive ? starterSelectedDark : starterNonselectedDark;
+                                } else {
+                                    cardBg = isActive ? tierCardActive : tierCardInactive;
+                                }
+                            } else {
+                                cardBg = isActive ? tierCarouselActiveMap[tier.name] : tierCarouselInactiveMap[tier.name];
+                            }
+
+                            // Choose chip style based on theme
+                            const chipStyle = isDarkMode
+                                ? {
+                                    backgroundImage: `url(${tier.chip})`,
+                                    backgroundSize: "100% 100%",
+                                    backgroundRepeat: "no-repeat",
+                                }
+                                : {
+                                    backgroundColor: tierChipColorMap[tier.name],
+                                    borderRadius: '12px',
+                                };
+
                             return (
                                 <div
                                     key={tier.name}
@@ -112,25 +155,15 @@ const WalletSettings = () => {
                                     <div
                                         className="absolute inset-0 rounded-[13px] overflow-hidden"
                                         style={{
-                                            backgroundImage: `url(${isActive ? tierCardActive : tierCardInactive
-                                                })`,
+                                            backgroundImage: `url(${cardBg})`,
                                             backgroundSize: "100% 100%",
                                             backgroundRepeat: "no-repeat",
                                         }}
                                     />
 
                                     {/* Content */}
-                                    <div className="relative z-10 flex flex-col h-full text-white">
+                                    <div className="relative z-10 flex flex-col h-full">
                                         <div className="flex justify-between items-start">
-                                            {/* Diamond icon (top-left) - Hide for Starter */}
-                                            {tier.name !== 'Starter' && (
-                                                <img
-                                                    src={tier.diamond}
-                                                    alt={tier.name}
-                                                    className="absolute top-0 left-0 w-[65px] h-[55px] object-contain z-20"
-                                                />
-                                            )}
-
                                             {/* Chip badge with text (top-right) */}
                                             <div
                                                 className="absolute flex items-center justify-center rounded-full text-[10px] font-medium text-white z-20"
@@ -139,9 +172,7 @@ const WalletSettings = () => {
                                                     right: "13px",
                                                     width: "88px",
                                                     height: "24px",
-                                                    backgroundImage: `url(${tier.chip})`,
-                                                    backgroundSize: "100% 100%",
-                                                    backgroundRepeat: "no-repeat",
+                                                    ...chipStyle,
                                                 }}
                                             >
                                                 {tier.badge}
@@ -149,7 +180,7 @@ const WalletSettings = () => {
                                         </div>
 
                                         <h3
-                                            className="text-[15px] font-bold leading-none absolute z-10"
+                                            className={`text-[15px] font-bold leading-none absolute z-10 ${isDarkMode ? 'text-white' : 'text-black'}`}
                                             style={{ top: "51px", left: "13px" }}
                                         >
                                             {tier.name.toUpperCase()} WALLET
@@ -160,39 +191,39 @@ const WalletSettings = () => {
                                             style={{ top: "83px" }}
                                         >
                                             <div>
-                                                <p className="text-white/50 text-[12px] font-medium mb-0">
+                                                <p className={`text-[12px] font-medium mb-0 ${isDarkMode ? 'text-white/50' : 'text-black/40'}`}>
                                                     Verification
                                                 </p>
-                                                <p className="text-[12px] font-medium whitespace-nowrap overflow-hidden text-ellipsis">{tier.verification}</p>
+                                                <p className={`text-[12px] font-medium whitespace-nowrap overflow-hidden text-ellipsis ${isDarkMode ? 'text-white' : 'text-black'}`}>{tier.verification}</p>
                                             </div>
 
                                             <div className="flex items-start gap-4">
                                                 <div>
-                                                    <p className="text-white/50 text-[12px] font-medium mb-0">
+                                                    <p className={`text-[12px] font-medium mb-0 ${isDarkMode ? 'text-white/50' : 'text-black/40'}`}>
                                                         Wallet limit
                                                     </p>
-                                                    <p className="text-[12px] font-medium">{tier.walletLimit}</p>
+                                                    <p className={`text-[12px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>{tier.walletLimit}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-white/50 text-[12px] font-medium mb-0">
+                                                    <p className={`text-[12px] font-medium mb-0 ${isDarkMode ? 'text-white/50' : 'text-black/40'}`}>
                                                         Daily top up
                                                     </p>
-                                                    <p className="text-[12px] font-medium">{tier.dailyTopUpLimit}</p>
+                                                    <p className={`text-[12px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>{tier.dailyTopUpLimit}</p>
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <p className="text-white/50 text-[12px] font-medium mb-0">
+                                                <p className={`text-[12px] font-medium mb-0 ${isDarkMode ? 'text-white/50' : 'text-black/40'}`}>
                                                     Withdraw limit
                                                 </p>
-                                                <p className="text-[12px] font-medium">{tier.withdrawLimit}</p>
+                                                <p className={`text-[12px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>{tier.withdrawLimit}</p>
                                             </div>
 
                                             <div>
-                                                <p className="text-white/50 text-[12px] font-medium mb-0">
+                                                <p className={`text-[12px] font-medium mb-0 ${isDarkMode ? 'text-white/50' : 'text-black/40'}`}>
                                                     Limitations
                                                 </p>
-                                                <p className="text-[12px] font-medium leading-snug">
+                                                <p className={`text-[12px] font-medium leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                                     {tier.limitations}
                                                 </p>
                                             </div>
@@ -207,30 +238,30 @@ const WalletSettings = () => {
                 {/* -------- INFO SECTIONS -------- */}
                 <div className="px-5 pb-5 flex flex-col gap-4">
                     <div>
-                        <h3 className="text-white text-[16px] font-medium mb-[6px]">
+                        <h3 className={`text-[16px] font-medium mb-[6px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             How to Upgrade?
                         </h3>
                         <ul className="flex flex-col gap-[2px] list-disc pl-6">
-                            <li className="text-white text-[16px] font-light leading-[1.4] tracking-[-0.3px]">
+                            <li className={`text-[16px] font-light leading-[1.4] tracking-[-0.3px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 Complete full KYC verification
                             </li>
-                            <li className="text-white text-[16px] font-light leading-[1.4] tracking-[-0.3px]">
+                            <li className={`text-[16px] font-light leading-[1.4] tracking-[-0.3px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 Submit PAN (mandatory)
                             </li>
-                            <li className="text-white text-[16px] font-light leading-[1.4] tracking-[-0.3px]">
+                            <li className={`text-[16px] font-light leading-[1.4] tracking-[-0.3px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 Actively use your wallet for faster upgrades
                             </li>
-                            <li className="text-white text-[16px] font-light leading-[1.4] tracking-[-0.3px]">
+                            <li className={`text-[16px] font-light leading-[1.4] tracking-[-0.3px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 Need higher business limits? Submit GST details
                             </li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 className="text-white text-[16px] font-medium mb-[6px]">
+                        <h3 className={`text-[16px] font-medium mb-[6px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Why Limits?
                         </h3>
-                        <p className="text-white text-[16px] font-light leading-[1.4] tracking-[-0.3px] mb-4">
+                        <p className={`text-[16px] font-light leading-[1.4] tracking-[-0.3px] mb-4 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Wallets in India are governed by RBI-regulated limits to ensure fund
                             security and prevent misuse.
                             Your tier helps us serve you better, safely, and responsibly.
@@ -244,11 +275,14 @@ const WalletSettings = () => {
                                 resetForDemo();
                                 navigate('/');
                             }}
-                            className="w-full h-[48px] flex items-center justify-center rounded-full text-white/40 text-[14px] font-medium border border-white/10 active:scale-95 transition-transform"
+                            className={`w-full h-[48px] flex items-center justify-center rounded-full text-[14px] font-medium border active:scale-95 transition-transform ${isDarkMode
+                                ? 'text-white/40 border-white/10'
+                                : 'text-black/40 border-black/10'
+                                }`}
                         >
                             Reset Account (Demo Only)
                         </button>
-                        <p className="text-white/20 text-[10px] text-center mt-2">
+                        <p className={`text-[10px] text-center mt-2 ${isDarkMode ? 'text-white/20' : 'text-black/20'}`}>
                             This will clear all transactions, balance, and KYC status.
                         </p>
                     </div>

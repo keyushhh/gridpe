@@ -161,6 +161,15 @@
   .social-button:active {
     transform: scale(0.95);
   }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Safe area padding for mobile */

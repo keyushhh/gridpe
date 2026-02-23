@@ -10,13 +10,14 @@ import eliteSub from "@/assets/elite-subscription.png";
 import supremeSub from "@/assets/supreme-subscription.png";
 
 // Light Mode Assets
-import starterSubLight from "@/assets/light-cards/subscription-starter-light.png";
-import proSubLight from "@/assets/light-cards/subscription-pro-light.png";
-import eliteSubLight from "@/assets/light-cards/subscription-elite-light.png";
-import supremeSubLight from "@/assets/light-cards/subscription-supreme-light.png";
+import starterSubLight from "@/assets/light-cards/starter-subscription-light.png";
+import proSubLight from "@/assets/light-cards/pro-subscription-light.png";
+import eliteSubLight from "@/assets/light-cards/elite-subscription-light.png";
+import supremeSubLight from "@/assets/light-cards/supreme-subscription-light.png";
 
 import subscriptionChip from "@/assets/subscription-chip.png";
 import autoRefreshIcon from "@/assets/auto-refresh.svg";
+import { tierChipColorMap } from "@/lib/walletTiers";
 
 const subscriptionBanners: Record<string, string> = {
     Starter: starterSub,
@@ -88,10 +89,10 @@ const SubscriptionSummary = () => {
             <div className="flex-1 flex flex-col items-center pt-[36px] px-5">
                 {/* Subscription Banner */}
                 <div
-                    className="w-[360px] h-[70px] rounded-[20px] relative"
+                    className={`w-[360px] h-[70px] rounded-[20px] relative ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                     style={{
                         backgroundImage: `url(${bannerImage})`,
-                        backgroundSize: "100% 100%",
+                        backgroundSize: "cover",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                     }}
@@ -108,11 +109,16 @@ const SubscriptionSummary = () => {
                     {/* Chip */}
                     <div
                         className="absolute top-[13px] right-[13px] w-[77px] h-[23px] rounded-full flex items-center justify-center gap-[4px]"
-                        style={{
-                            backgroundImage: `url(${subscriptionChip})`,
-                            backgroundSize: "100% 100%",
-                            backgroundRepeat: "no-repeat",
-                        }}
+                        style={isDarkMode
+                            ? {
+                                backgroundImage: `url(${subscriptionChip})`,
+                                backgroundSize: "100% 100%",
+                                backgroundRepeat: "no-repeat",
+                            }
+                            : {
+                                backgroundColor: tierChipColorMap[tier as WalletTier] || '#000000',
+                            }
+                        }
                     >
                         <span className="text-white text-[10px] font-medium leading-[140%] tracking-[-0.3px] font-satoshi">
                             {chipContent[tier] || "FREE"}
@@ -131,18 +137,20 @@ const SubscriptionSummary = () => {
                     }}
                 >
                     {/* Border overlay */}
-                    <div
-                        className="absolute inset-0 pointer-events-none rounded-[13px]"
-                        style={{
-                            padding: "0.63px",
-                            background:
-                                "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
-                            WebkitMask:
-                                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                            WebkitMaskComposite: "xor",
-                            maskComposite: "exclude",
-                        }}
-                    />
+                    {isDarkMode && (
+                        <div
+                            className="absolute inset-0 pointer-events-none rounded-[13px]"
+                            style={{
+                                padding: "0.63px",
+                                background:
+                                    "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
+                                WebkitMask:
+                                    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                WebkitMaskComposite: "xor",
+                                maskComposite: "exclude",
+                            }}
+                        />
+                    )}
 
                     {/* Heading */}
                     <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold leading-[120%] font-satoshi`}>
@@ -150,7 +158,7 @@ const SubscriptionSummary = () => {
                     </h2>
 
                     {/* Body */}
-                    <p className={`${isDarkMode ? 'text-[#A4A4A4]' : 'text-black/60'} text-[14px] font-light leading-[139%] font-satoshi`}>
+                    <p className={`${isDarkMode ? 'text-[#A4A4A4] font-light' : 'text-black/80 font-normal'} text-[14px] leading-[139%] font-satoshi`}>
                         No additional taxes apply. Processing fee is inclusive of all charges.
                     </p>
 
@@ -168,7 +176,7 @@ const SubscriptionSummary = () => {
                     </div>
 
                     {/* First payment note */}
-                    <p className={`${isDarkMode ? 'text-[#A4A4A4]' : 'text-black/60'} text-[12px] font-normal leading-[139%] font-satoshi -mt-[2px]`}>
+                    <p className={`${isDarkMode ? 'text-[#A4A4A4] font-normal' : 'text-black/80 font-normal'} text-[12px] leading-[139%] font-satoshi -mt-[2px]`}>
                         First payment will be charged today.
                     </p>
 
@@ -214,7 +222,7 @@ const SubscriptionSummary = () => {
 
                 {/* Next Payment Date Container */}
                 <div
-                    className={`w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center border ${isDarkMode ? 'bg-[#5260FE]/21 backdrop-blur-25 border-white/12' : 'bg-[#5260FE]/10 border-[#5260FE]/20'}`}
+                    className={`w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center border ${isDarkMode ? 'bg-[#5260FE]/21 backdrop-blur-25 border-white/12' : 'bg-[#E2E4FF] border-[#5260FE]'}`}
                     style={{
                         padding: "14px 11px",
                     }}
