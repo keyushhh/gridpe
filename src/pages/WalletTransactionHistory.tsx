@@ -22,6 +22,13 @@ import copyIcon from "@/assets/copy.svg";
 import transactionDetailsLightBg from "@/assets/transaction-details-light.png";
 import { useUser, WalletTransaction } from "@/contexts/UserContext";
 
+const currencySymbols: Record<string, string> = {
+    AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
+    GBP: '£', HKD: '$', HUF: 'Ft', IDR: 'Rp', ILS: '₪', INR: '₹', ISK: 'kr', JPY: '¥',
+    KRW: '₩', MXN: '$', MYR: 'RM', NOK: 'kr', NZD: '$', PHP: '₱', PLN: 'zł', RON: 'lei',
+    SEK: 'kr', SGD: '$', THB: '฿', TRY: '₺', USD: '$', ZAR: 'R'
+};
+
 const WalletTransactionHistory = () => {
     const navigate = useNavigate();
     const { walletTransactions, profile } = useUser();
@@ -250,7 +257,10 @@ const WalletTransactionHistory = () => {
 
         // Fallback to pattern matching (for older or non-topup transactions)
         const desc = tx.description.toLowerCase();
-        if (desc.includes("cash order")) {
+        if (tx.metadata?.isFx) {
+            title = tx.type === 'credit' ? "Amount Credited" : "Amount Debited";
+            subtitle = "FX Exchange";
+        } else if (desc.includes("cash order")) {
             title = "Amount Debited";
             subtitle = "Cash Order";
         } else if (desc.includes("withdrawal")) {
@@ -374,6 +384,10 @@ const WalletTransactionHistory = () => {
                             const rowData = [
                                 { label: "Transaction Type", value: title },
                                 { label: "Transaction Purpose", value: subtitle === "Wallet Top Up" ? "Wallet Top Up" : subtitle },
+                                ...(tx.metadata?.isFx ? [
+                                    { label: "Converted Amount", value: `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                                    { label: "Exchange Rate", value: `1 ${tx.metadata.fromCurrency} = ${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.fxRate || 0).toFixed(2)}` }
+                                ] : []),
                                 { label: "Time", value: new Date(tx.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) },
                                 { label: "Date", value: new Date(tx.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
                                 { label: "Payment Mode", value: getPaymentMode() },
@@ -650,7 +664,10 @@ const WalletTransactionHistory = () => {
                                                             className="text-[12px] font-bold leading-[120%]"
                                                             style={{ color: amountColor }}
                                                         >
-                                                            {tx.type === 'credit' ? '+' : '-'} ₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            {tx.type === 'credit' ? '+' : '-'} {tx.metadata?.isFx
+                                                                ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                                : `₹${tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                            }
                                                         </span>
                                                         <span className="text-[#666666] dark:text-white/50 text-[12px] font-normal leading-[120%]">
                                                             {time} | {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}

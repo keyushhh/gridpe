@@ -32,6 +32,13 @@ import popupCardIcon from "@/assets/card-ico.svg";
 import cardIcon from "@/assets/card-icon.svg";
 import deliveryTipLightBg from "@/assets/delivery-tip-light.png";
 
+const currencySymbols: Record<string, string> = {
+    AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
+    GBP: '£', HKD: '$', HUF: 'Ft', IDR: 'Rp', ILS: '₪', INR: '₹', ISK: 'kr', JPY: '¥',
+    KRW: '₩', MXN: '$', MYR: 'RM', NOK: 'kr', NZD: '$', PHP: '₱', PLN: 'zł', RON: 'lei',
+    SEK: 'kr', SGD: '$', THB: '฿', TRY: '₺', USD: '$', ZAR: 'R'
+};
+
 interface OrderDetailsSheetProps {
     isOpen: boolean;
     onClose: () => void;
@@ -254,7 +261,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
                             <div className="absolute top-[17px] left-[65px] flex flex-col">
                                 <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"}
+                                    {order.metadata?.isFx ? "FX Exchange" : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
                                 </span>
                                 <span className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-black/50'}`}>
                                     {formatOrderDate(order.created_at)}
@@ -262,7 +269,10 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                             </div>
 
                             <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                {order.metadata?.isFx
+                                    ? `${currencySymbols[order.metadata.toCurrency as string] || ''}${Number(order.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                    : `₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                                }
                             </span>
 
                             <div className="absolute left-[12px] h-[1px]" style={{ top: '65px', width: '338px', backgroundColor: isDarkMode ? '#363636' : '#E6E8EB' }} />

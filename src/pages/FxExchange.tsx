@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import chartLineIcon from "@/assets/chart-line.svg";
 import arrowSwapIcon from "@/assets/Arrow/Arrow_Down_Up.svg";
+import arrowSwapIconLight from "@/assets/Arrow_Down_Up-light.svg";
 import currencyIcon from "@/assets/currency.svg";
 import diamondIcon from "@/assets/diamond.png";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -13,7 +14,13 @@ import walletStarterBg from "@/assets/fx-wallet-starter.png";
 import walletProBg from "@/assets/fx-wallet-pro.png";
 import walletEliteBg from "@/assets/fx-wallet-elite.png";
 import walletSupremeBg from "@/assets/fx-wallet-supreme.png";
+import walletStarterBgLight from "@/assets/light-cards/fx-wallet-starter-light.png";
+import walletProBgLight from "@/assets/light-cards/fx-wallet-pro-light.png";
+import walletEliteBgLight from "@/assets/light-cards/fx-wallet-elite-light.png";
+import walletSupremeBgLight from "@/assets/light-cards/fx-wallet-supreme-light.png";
 import { useUser } from "@/contexts/UserContext";
+import { useTheme } from "next-themes";
+import bgLight from "@/assets/bg-light.png";
 
 const currencyToCountry: Record<string, string> = {
     AUD: 'au', BRL: 'br', CAD: 'ca', CHF: 'ch', CNY: 'cn', CZK: 'cz', DKK: 'dk', EUR: 'eu',
@@ -40,6 +47,8 @@ interface CurrencyModalProps {
 
 const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }: CurrencyModalProps) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme === "dark";
 
     if (!isOpen) return null;
 
@@ -51,30 +60,31 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
     return (
         <div className="fixed inset-0 z-[100] flex items-end justify-center">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full max-w-md bg-[#0A0A0A] rounded-t-[32px] overflow-hidden border-t border-white/10 flex flex-col max-h-[85vh]">
+            <div className={`relative w-full max-w-md ${isDarkMode ? "bg-[#0A0A0A]" : "bg-white"} rounded-t-[32px] overflow-hidden border-t ${isDarkMode ? "border-white/10" : "border-black/5"} flex flex-col max-h-[85vh]`}>
                 {/* Fixed Header */}
                 <div className="p-6 pb-4">
-                    <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6" />
-                    <h3 className="text-[20px] font-bold mb-4 px-2">Select Currency</h3>
+                    <div className={`w-12 h-1 ${isDarkMode ? "bg-white/20" : "bg-black/10"} rounded-full mx-auto mb-6`} />
+                    <h3 className={`text-[20px] font-bold mb-4 px-2 ${isDarkMode ? "text-white" : "text-black"}`}>Select Currency</h3>
 
                     {/* Search Bar */}
                     <div
-                        className="relative h-[44px] w-full mb-2 rounded-full overflow-hidden border border-white/10"
+                        className={`relative h-[44px] w-full mb-2 rounded-full overflow-hidden border ${isDarkMode ? "border-white/10" : "border-black/5"}`}
                         style={{
-                            backgroundImage: `url(${searchBg})`,
+                            backgroundImage: isDarkMode ? `url(${searchBg})` : 'none',
+                            backgroundColor: isDarkMode ? 'transparent' : '#F5F5F7',
                             backgroundSize: 'cover',
                             backgroundPosition: 'center'
                         }}
                     >
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 opacity-40">
-                            <img src={searchIcon} alt="search" className="w-full h-full" />
+                            <img src={searchIcon} alt="search" className={`w-full h-full ${!isDarkMode ? "invert" : ""}`} />
                         </div>
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={type === 'from' ? "Which currency do you want to convert?" : "Which currency do you want to convert to?"}
-                            className="w-full h-full bg-transparent pl-12 pr-4 text-[14px] text-white placeholder:text-white/20 outline-none transition-colors"
+                            className={`w-full h-full bg-transparent pl-12 pr-4 text-[14px] ${isDarkMode ? "text-white placeholder:text-white/20" : "text-black placeholder:text-black/30"} outline-none transition-colors`}
                         />
                     </div>
                 </div>
@@ -86,10 +96,12 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
                             <button
                                 key={code}
                                 onClick={() => { onSelect(code); onClose(); setSearchQuery(''); }}
-                                className={`flex items-center justify-between p-4 rounded-2xl transition-all ${current === code ? 'bg-[#5260FE]/10 border border-[#5260FE]' : 'bg-white/5 border border-white/5'}`}
+                                className={`flex items-center justify-between p-4 rounded-2xl transition-all ${current === code
+                                    ? (isDarkMode ? 'bg-[#5260FE]/10 border border-[#5260FE]' : 'bg-[#5260FE]/5 border border-[#5260FE]')
+                                    : (isDarkMode ? 'bg-white/5 border border-white/5' : 'bg-[#F2F2F7] border border-transparent')}`}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/20">
+                                    <div className={`w-8 h-8 rounded-full overflow-hidden ring-1 ${isDarkMode ? "ring-white/20" : "ring-black/5"}`}>
                                         <img
                                             src={`https://flagcdn.com/w160/${currencyToCountry[code] || 'un'}.png`}
                                             alt={code}
@@ -97,17 +109,17 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
                                         />
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-bold text-[16px] leading-tight">{code}</div>
-                                        <div className="text-[12px] text-white/40">{name}</div>
+                                        <div className={`font-bold text-[16px] leading-tight ${isDarkMode ? "text-white" : "text-black"}`}>{code}</div>
+                                        <div className={`text-[12px] ${isDarkMode ? "text-white/40" : "text-black/40"}`}>{name}</div>
                                     </div>
                                 </div>
-                                <div className="text-[16px] font-bold text-white/80 pr-2">
+                                <div className={`text-[16px] font-bold ${isDarkMode ? "text-white/80" : "text-black/80"} pr-2`}>
                                     {currencySymbols[code] || ''}
                                 </div>
                             </button>
                         ))}
                         {filteredCurrencies.length === 0 && (
-                            <div className="py-12 text-center text-white/20">
+                            <div className={`py-12 text-center ${isDarkMode ? "text-white/20" : "text-black/20"}`}>
                                 No currencies found for "{searchQuery}"
                             </div>
                         )}
@@ -131,6 +143,8 @@ const FxExchange = () => {
     const [isSelectingFrom, setIsSelectingFrom] = useState(false);
     const [isSelectingTo, setIsSelectingTo] = useState(false);
     const [timer, setTimer] = useState(600); // 10 minutes in seconds
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme === "dark";
 
     // Fetch Currencies and Live Rate
     useEffect(() => {
@@ -186,30 +200,49 @@ const FxExchange = () => {
         Elite: walletEliteBg,
         Supreme: walletSupremeBg
     };
+
+    const tierBackgroundsLight = {
+        Starter: walletStarterBgLight,
+        Pro: walletProBgLight,
+        Elite: walletEliteBgLight,
+        Supreme: walletSupremeBgLight
+    };
     return (
         <div
-            className="h-screen text-white font-satoshi flex flex-col relative overflow-y-auto scroll-smooth"
+            className={`h-screen ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi flex flex-col relative overflow-y-auto scroll-smooth no-scrollbar`}
             style={{
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : `none`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundColor: '#0A0A0A'
+                backgroundColor: isDarkMode ? '#0A0A0A' : '#FFFFFF'
             }}
         >
+            {/* Light Mode Purple Glow Orb */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-20px] left-1/2 -translate-x-1/2 w-[200px] h-[50px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(70px)",
+                        opacity: 0.6,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
             {/* Header */}
             <div className="px-5 pt-12 pb-6 flex items-center justify-between">
                 <button
                     onClick={() => navigate('/home')}
-                    className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 active:scale-90 transition-transform"
+                    className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
                 >
-                    <ChevronLeft className="w-5 h-5 text-white" />
+                    <ChevronLeft className={`w-5 h-5 ${isDarkMode ? "text-white" : "text-black"}`} />
                 </button>
                 <h1 className="text-[18px] font-bold">FX Exchange</h1>
                 <button
                     onClick={() => navigate('/live-rates', { state: { from: currentFrom, to: currentTo } })}
-                    className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 active:scale-90 transition-transform"
+                    className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-[#E6E8EB] bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
                 >
-                    <img src={chartLineIcon} alt="Chart" className="w-5 h-5" />
+                    <img src={chartLineIcon} alt="Chart" className={`w-5 h-5 ${!isDarkMode ? "invert" : ""}`} />
                 </button>
             </div>
 
@@ -218,30 +251,30 @@ const FxExchange = () => {
                 <div className="relative flex flex-col gap-2">
                     {/* From Card */}
                     <div
-                        className="bg-[#191919]/[0.31] rounded-[20px] p-6 border border-white/5 relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]"
+                        className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
                     >
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-white/40 text-[14px] font-medium">Convert</span>
+                            <span className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium`}>Convert</span>
                             <button
                                 onClick={() => setIsSelectingFrom(true)}
-                                className="absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 bg-[#1A1A1A] rounded-full border border-white/10 active:scale-95 transition-transform overflow-hidden"
+                                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? "bg-[#1A1A1A] border-white/10" : "bg-white border-[#E6E8EB]"} rounded-full border active:scale-95 transition-transform overflow-hidden`}
                             >
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ring-white ring-inset flex-shrink-0">
+                                    <div className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? "ring-white" : "ring-black/20"} ring-inset flex-shrink-0`}>
                                         <img src={`https://flagcdn.com/w160/${currencyToCountry[currentFrom] || 'un'}.png`} alt={currentFrom} className="w-full h-full object-cover scale-150" />
                                     </div>
-                                    <span className="text-[12px] font-medium font-satoshi uppercase">{currentFrom}</span>
+                                    <span className={`text-[12px] font-medium font-satoshi uppercase ${isDarkMode ? "text-white" : "text-black"}`}>{currentFrom}</span>
                                 </div>
-                                <ChevronDown className="w-3 h-3 text-white/60" />
+                                <ChevronDown className={`w-3 h-3 ${isDarkMode ? "text-white/60" : "text-black/60"}`} />
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[32px] font-medium text-white">{currentFrom === 'USD' ? '$' : currentFrom === 'EUR' ? '€' : currentFrom === 'GBP' ? '£' : ''}</span>
+                            <span className={`text-[32px] font-medium ${isDarkMode ? "text-white" : "text-black"}`}>{currentFrom === 'USD' ? '$' : currentFrom === 'EUR' ? '€' : currentFrom === 'GBP' ? '£' : ''}</span>
                             <input
                                 type="number"
                                 value={amount}
                                 onChange={(e) => setAmount(Number(e.target.value))}
-                                className="bg-transparent text-[40px] font-bold w-full outline-none focus:ring-0 placeholder:text-white/20"
+                                className={`bg-transparent text-[40px] font-bold w-full outline-none focus:ring-0 ${isDarkMode ? "text-white placeholder:text-white/20" : "text-black placeholder:text-black/20"}`}
                                 placeholder="0"
                             />
                         </div>
@@ -251,34 +284,34 @@ const FxExchange = () => {
                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                         <button
                             onClick={() => setIsSwapped(!isSwapped)}
-                            className="active:scale-90 transition-all"
+                            className="active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0"
                         >
-                            <img src={arrowSwapIcon} alt="Swap" className="w-10 h-10" />
+                            <img src={isDarkMode ? arrowSwapIcon : arrowSwapIconLight} alt="Swap" className="w-10 h-10 border-none outline-none shadow-none" />
                         </button>
                     </div>
 
                     {/* To Card */}
                     <div
-                        className="bg-[#191919]/[0.31] rounded-[20px] p-6 border border-white/5 relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]"
+                        className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
                     >
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-white/40 text-[14px] font-medium">To</span>
+                            <span className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium`}>To</span>
                             <button
                                 onClick={() => setIsSelectingTo(true)}
-                                className="absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 bg-[#1A1A1A] rounded-full border border-white/10 active:scale-95 transition-transform overflow-hidden"
+                                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? "bg-[#1A1A1A] border-white/10" : "bg-white border-[#E6E8EB]"} rounded-full border active:scale-95 transition-transform overflow-hidden`}
                             >
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ring-white ring-inset flex-shrink-0">
+                                    <div className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? "ring-white" : "ring-black/20"} ring-inset flex-shrink-0`}>
                                         <img src={`https://flagcdn.com/w160/${currencyToCountry[currentTo] || 'un'}.png`} alt={currentTo} className="w-full h-full object-cover scale-150" />
                                     </div>
-                                    <span className="text-[12px] font-medium font-satoshi uppercase">{currentTo}</span>
+                                    <span className={`text-[12px] font-medium font-satoshi uppercase ${isDarkMode ? "text-white" : "text-black"}`}>{currentTo}</span>
                                 </div>
-                                <ChevronDown className="w-3 h-3 text-white/60" />
+                                <ChevronDown className={`w-3 h-3 ${isDarkMode ? "text-white/60" : "text-black/60"}`} />
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[32px] font-medium text-white">{currentTo === 'INR' ? '₹' : currentTo === 'EUR' ? '€' : currentTo === 'GBP' ? '£' : ''}</span>
-                            <span className="text-[40px] font-bold truncate">
+                            <span className={`text-[32px] font-medium ${isDarkMode ? "text-white" : "text-black"}`}>{currentTo === 'INR' ? '₹' : currentTo === 'EUR' ? '€' : currentTo === 'GBP' ? '£' : ''}</span>
+                            <span className={`text-[40px] font-bold truncate ${isDarkMode ? "text-white" : "text-black"}`}>
                                 {convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </span>
                         </div>
@@ -286,12 +319,12 @@ const FxExchange = () => {
                 </div>
 
                 {/* Price Breakdown */}
-                <div className={`mt-[18px] bg-[#191919]/[0.31] border border-white/5 backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'h-[270px] rounded-[13px]' : 'h-[64px] rounded-[8px]'}`}>
+                <div className={`mt-[18px] ${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} border backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'h-[270px] rounded-[13px]' : 'h-[64px] rounded-[8px]'}`}>
                     {/* Header Section */}
                     <div className={`pt-[14px] px-[12px] flex justify-between items-start ${!isBreakdownOpen ? 'pb-[12px]' : ''}`}>
                         <div className="text-left">
-                            <h4 className="text-[15px] font-medium font-satoshi leading-tight">Price Breakdown</h4>
-                            <p className="text-[13px] text-white font-satoshi mt-[6px]">Incl. all taxes & charges</p>
+                            <h4 className={`text-[15px] font-medium font-satoshi leading-tight ${isDarkMode ? "text-white" : "text-black"}`}>Price Breakdown</h4>
+                            <p className={`text-[13px] font-satoshi mt-[6px] ${isDarkMode ? "text-white" : "text-black font-medium"}`}>Incl. all taxes & charges</p>
                         </div>
                         <button
                             onClick={() => setIsBreakdownOpen(!isBreakdownOpen)}
@@ -300,61 +333,61 @@ const FxExchange = () => {
                             <img
                                 src={chevronSmall}
                                 alt="Toggle"
-                                className={`w-6 h-6 transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : 'rotate-0'}`}
+                                className={`w-6 h-6 transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : 'rotate-0'} ${!isDarkMode ? "invert" : ""}`}
                             />
                         </button>
                     </div>
 
                     <div className={`px-[12px] flex flex-col items-center transition-opacity duration-300 ${isBreakdownOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                         {/* First Divider */}
-                        <div className="h-[1px] bg-[#202020] w-[338px] mt-[10px]" />
+                        <div className={`h-[1px] ${isDarkMode ? "bg-[#202020]" : "bg-[#E6E8EB]"} w-[338px] mt-[10px]`} />
 
-                        <div className="w-full mt-[10px] flex flex-col gap-0">
+                        <div className="w-full mt-[10px] flex flex-col gap-0 text-[13px] font-satoshi">
                             {/* Base Rate */}
                             <div className="flex justify-between items-center h-[18px]">
-                                <span className="text-[13px] font-regular font-satoshi text-white">Base Rate</span>
-                                <span className="text-[13px] font-bold font-satoshi">1 {currentFrom} = {currencySymbols[currentTo] || ''}{fxRate.toFixed(2)}</span>
+                                <span className={`${isDarkMode ? "text-white" : "text-black"}`}>Base Rate</span>
+                                <span className={`font-bold ${isDarkMode ? "text-white" : "text-black"}`}>1 {currentFrom} = {currencySymbols[currentTo] || ''}{fxRate.toFixed(2)}</span>
                             </div>
 
                             {/* Amount Entered */}
                             <div className="flex justify-between items-center h-[18px] mt-[8px]">
-                                <span className="text-[13px] font-regular font-satoshi text-white">
+                                <span className={`${isDarkMode ? "text-white" : "text-black"}`}>
                                     Amount Entered: {currencySymbols[currentFrom] || ''}{amount}
                                 </span>
-                                <span className="text-[13px] font-bold font-satoshi">
+                                <span className={`font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
                                     {currencySymbols[currentTo] || ''}{convertedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                             </div>
 
                             {/* Markup/Spread */}
                             <div className="flex justify-between items-center h-[18px] mt-[8px]">
-                                <span className="text-[13px] font-regular font-satoshi text-white">Markup/Spread (0.60%)</span>
-                                <span className="text-[13px] font-bold font-satoshi">
+                                <span className={`${isDarkMode ? "text-white" : "text-black"}`}>Markup/Spread (0.60%)</span>
+                                <span className={`font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
                                     - {currencySymbols[currentTo] || ''}{markupAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                             </div>
 
                             {/* Explanation Title */}
-                            <p className="text-[13px] font-regular font-satoshi text-white/50 leading-tight mt-[12px]">
+                            <p className={`text-[13px] font-regular leading-tight mt-[12px] ${isDarkMode ? "text-white/50" : "text-black"}`}>
                                 Markup/Spread (0.60%) – This is Grid.Pe's margin on conversion, lower than airport kiosks.
                             </p>
 
                             {/* Flat Fee */}
                             <div className="flex justify-between items-center h-[18px] mt-[8px]">
-                                <span className="text-[13px] font-regular font-satoshi text-white">Flat Fee</span>
-                                <span className="text-[13px] font-bold font-satoshi">
+                                <span className={`${isDarkMode ? "text-white" : "text-black"}`}>Flat Fee</span>
+                                <span className={`font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
                                     - {currencySymbols[currentTo] || ''}{flatFee}
                                 </span>
                             </div>
                         </div>
 
                         {/* Second Divider */}
-                        <div className="h-[1px] bg-[#202020] w-[338px] mt-[8px]" />
+                        <div className={`h-[1px] ${isDarkMode ? "bg-[#202020]" : "bg-[#E6E8EB]"} w-[338px] mt-[8px]`} />
 
                         {/* Final Amount */}
                         <div className="w-full mt-[8px] flex justify-between items-center h-[20px]">
-                            <span className="text-[15px] font-medium font-satoshi text-white">Final Amount You'll Receive</span>
-                            <span className="text-[13px] font-bold font-satoshi">
+                            <span className={`text-[15px] font-medium font-satoshi ${isDarkMode ? "text-white" : "text-black"}`}>Final Amount You'll Receive</span>
+                            <span className={`text-[13px] font-bold font-satoshi ${isDarkMode ? "text-white" : "text-black"}`}>
                                 {currencySymbols[currentTo] || ''}{finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
@@ -363,22 +396,22 @@ const FxExchange = () => {
 
                 {/* Wallet Section */}
                 <div
-                    className="mt-4 h-[101px] rounded-[20px] relative overflow-hidden"
+                    className={`${!isDarkMode ? "border border-[#E6E8EB]" : ""} mt-4 h-[101px] rounded-[20px] relative overflow-hidden`}
                     style={{
-                        backgroundImage: `url(${tierBackgrounds[walletTier] || walletStarterBg})`,
+                        backgroundImage: `url(${isDarkMode ? (tierBackgrounds[walletTier] || walletStarterBg) : (tierBackgroundsLight[walletTier] || walletStarterBgLight)})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center'
                     }}
                 >
-                    <span className="absolute top-[16px] left-[56px] text-[14px] font-bold font-satoshi text-white">
+                    <span className={`absolute top-[16px] left-[56px] text-[14px] font-bold font-satoshi ${isDarkMode ? "text-white" : "text-black"}`}>
                         Wallet Balance
                     </span>
 
-                    <span className="absolute top-[13px] right-[22px] text-[20px] font-bold font-satoshi text-white">
+                    <span className={`absolute top-[13px] right-[22px] text-[20px] font-bold font-satoshi ${isDarkMode ? "text-white" : "text-black"}`}>
                         ₹{walletBalance.toLocaleString('en-IN')}
                     </span>
 
-                    <p className="absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi text-white w-[85%] leading-tight">
+                    <p className={`absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi w-[85%] leading-tight ${isDarkMode ? "text-white" : "text-black"}`}>
                         {isWalletLimitReached
                             ? "Wallet limit reached. Please upgrade your wallet to continue with cash/FX orders."
                             : hasInsufficientFunds
@@ -390,11 +423,11 @@ const FxExchange = () => {
 
             {/* Footer / CTA */}
             <div className="px-5 pb-[60px] mt-[24px] flex flex-col items-center gap-[18px]">
-                <p className="text-[12px] text-white/60">
+                <p className={`text-[12px] ${isDarkMode ? "text-white/60" : "text-black"}`}>
                     (Rate locked for <span className="text-[#5260FE] font-bold">{formatTime(timer)}</span>)
                 </p>
                 <button
-                    className="w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-bold active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? "shadow-[#5260FE]/20 text-white" : "shadow-[#5260FE]/30 text-white"} disabled:opacity-50 disabled:cursor-not-allowed`}
                     disabled={isWalletLimitReached}
                     onClick={() => {
                         if (hasInsufficientFunds) {

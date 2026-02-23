@@ -48,6 +48,13 @@ import friendsIcon from "@/assets/Friends Family.svg";
 import otherIcon from "@/assets/Other.svg";
 import walletDarkIcon from "@/assets/wallet-dark.svg";
 
+const currencySymbols: Record<string, string> = {
+  AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
+  GBP: '£', HKD: '$', HUF: 'Ft', IDR: 'Rp', ILS: '₪', INR: '₹', ISK: 'kr', JPY: '¥',
+  KRW: '₩', MXN: '$', MYR: 'RM', NOK: 'kr', NZD: '$', PHP: '₱', PLN: 'zł', RON: 'lei',
+  SEK: 'kr', SGD: '$', THB: '฿', TRY: '₺', USD: '$', ZAR: 'R'
+};
+
 interface SavedAddress {
   tag: string;
   house: string;
@@ -867,7 +874,7 @@ const Homepage = () => {
                           <img src={getStatusIcon(tx.status)} alt="Status" className="w-[26px] h-[26px]" />
                           <div className="ml-[7px] flex flex-col">
                             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}>
-                              {tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"}
+                              {tx.metadata?.isFx ? "FX Exchange" : (tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order")}
                             </span>
                             <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
                               {new Date(tx.created_at).toLocaleDateString('en-IN', {
@@ -880,7 +887,10 @@ const Homepage = () => {
                         {/* Price Column */}
                         <div className="text-right">
                           <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}>
-                            ₹{(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {tx.metadata?.isFx
+                              ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                              : `₹${(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                            }
                           </span>
                         </div>
 

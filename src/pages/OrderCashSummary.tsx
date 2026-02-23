@@ -26,6 +26,7 @@ import { createOrder } from "@/lib/orders";
 import { createAddress } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { useUser } from "@/contexts/UserContext";
 
 interface SavedAddress {
     id?: string;
@@ -45,6 +46,7 @@ const OrderCashSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { showToaster } = useCustomToaster();
+    const { walletBalance } = useUser();
     const { amount } = location.state || { amount: "0.00" };
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
@@ -162,6 +164,11 @@ const OrderCashSummary = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 showToaster("You must be logged in to place an order.", 'error');
+                return;
+            }
+
+            if (totalAmount > walletBalance) {
+                showToaster("Insufficient funds in wallet.", 'error');
                 return;
             }
 
@@ -763,10 +770,10 @@ const OrderCashSummary = () => {
                 <p className={`text-[18px] font-bold font-sans mb-[16px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Amount will be held from wallet
                 </p>
-                <p className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                    You won’t be charged unless the delivery is completed.
+                <p className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}>
+                    {totalAmount > walletBalance ? "Insufficient funds in wallet" : "You won’t be charged unless the delivery is completed."}
                 </p>
-                <SlideToPay onComplete={handlePay} disabled={!savedAddress} />
+                <SlideToPay onComplete={handlePay} disabled={!savedAddress || totalAmount > walletBalance} />
             </div>
 
             {/* Delivery Tip Popup */}

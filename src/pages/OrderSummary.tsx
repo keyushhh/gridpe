@@ -6,6 +6,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import infoIcon from "@/assets/infopurple.svg";
 import credLightIcon from "@/assets/cred-light.png";
 import { SlideToPay } from "@/components/SlideToPay";
+import upiIcon from "@/assets/upi.png";
 
 const OrderSummary = () => {
     const navigate = useNavigate();
@@ -110,13 +111,19 @@ const OrderSummary = () => {
                 >
                     {isDarkMode && <StrokeOverlay22 />}
 
-                    {paymentMethod?.icon && (
+                    {paymentMethod?.icon ? (
                         <img
                             src={paymentMethod.id === 'cred' && !isDarkMode ? credLightIcon : paymentMethod.icon}
                             alt={paymentMethod.name}
                             className="w-[32px] h-[32px] object-contain"
                         />
-                    )}
+                    ) : paymentMethod?.id === 'upi-id' ? (
+                        <img
+                            src={upiIcon}
+                            alt="UPI"
+                            className="w-[32px] h-[32px] object-contain"
+                        />
+                    ) : null}
                     <span className={`ml-[20px] text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         {paymentMethod?.id === "upi-id" && upiId ? upiId : (paymentMethod?.name || "Selected Payment Method")}
                     </span>
@@ -222,9 +229,9 @@ const OrderSummary = () => {
                     onComplete={() => {
                         if (retry) {
                             // Pass the original entered amount for wallet credit
-                            navigate('/wallet-topup-success', { state: { totalAmount: totalPayable, creditAmount: parsedAmount, paymentMethod } });
+                            navigate('/wallet-topup-success', { state: { totalAmount: totalPayable, creditAmount: parsedAmount, paymentMethod, upiId } });
                         } else {
-                            navigate('/wallet-topup-failed', { state: { amount } });
+                            navigate('/wallet-topup-failed', { state: { amount, paymentMethod, upiId } });
                         }
                     }}
                     label="Confirm and Place Order"

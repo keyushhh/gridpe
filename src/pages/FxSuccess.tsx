@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useTheme } from "next-themes";
+import bgLight from "@/assets/bg-light.png";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from "open-location-code";
@@ -9,25 +11,43 @@ import errorBg from "@/assets/error-bg.png";
 import popBgDefault from "@/assets/pop-bg-default.png";
 import popBgExpanded from "@/assets/pop-bg-expanded.png";
 import checkIcon from "@/assets/check-icon.png";
+import checkIconLight from "@/assets/check-icon-light.svg";
 import crossIcon from "@/assets/cross-icon.png";
+import failedIconLight from "@/assets/failed-light.svg";
+import cancelIconLight from "@/assets/failed-light.svg"; // Fallback if cancelIconLight doesn't exist
+import cancelIcon from "@/assets/cancel-ico.svg";
 import hamburgerMenu from "@/assets/hamburger-menu.svg";
 import currentLocationIcon from "@/assets/current-location.svg";
 import deliveryRiderIcon from "@/assets/delivery-rider.svg";
 import buttonPrimary from "@/assets/button-primary-wide.png";
 import infoIcon from "@/assets/delivery-tip-info.svg";
 import closeIcon from "@/assets/cross-icon.svg";
-import cancelIcon from "@/assets/cancel-ico.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
 import { Order, dev_updateOrderStatus } from "@/lib/orders";
+import { useUser } from "@/contexts/UserContext";
+
+const currencySymbols: Record<string, string> = {
+    AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
+    GBP: '£', HKD: '$', HUF: 'Ft', IDR: 'Rp', ILS: '₪', INR: '₹', ISK: 'kr', JPY: '¥',
+    KRW: '₩', MXN: '$', MYR: 'RM', NOK: 'kr', NZD: '$', PHP: '₱', PLN: 'zł', RON: 'lei',
+    SEK: 'kr', SGD: '$', THB: '฿', TRY: '₺', USD: '$', ZAR: 'R'
+};
 
 const FxSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { orderId } = useParams<{ orderId: string }>();
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme === "dark";
+    const { addWalletBalance, addTransaction } = useUser();
+    const hasDebited = useRef(false);
 
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
+    const isFx = location.state?.isFx || false;
+    const toCurrency = location.state?.order?.metadata?.toCurrency || 'INR';
+    const currencySymbol = isFx ? (currencySymbols[toCurrency] || '₹') : '₹';
 
     // Map State
     const [viewState, setViewState] = useState({
@@ -125,12 +145,34 @@ const FxSuccess = () => {
         }
     }, [timer, order?.status]);
 
+    // Wallet debit when FX order is delivered/success
     useEffect(() => {
-        if (order?.addresses?.plus_code) {
+        if (!order || hasDebited.current) return;
+        if (order.status === 'success' || order.status === 'delivered') {
+            hasDebited.current = true;
+            addWalletBalance(-order.amount);
+            addTransaction({
+                id: `txn-${order.id}`,
+                type: 'debit',
+                amount: order.amount,
+                status: 'success',
+                date: new Date().toISOString(),
+                description: 'Debited for cash order',
+                metadata: {
+                    ...(order.metadata || {}),
+                    isFx: true,
+                },
+            });
+        }
+    }, [order?.status]);
+
+    useEffect(() => {
+        const addr = order?.addresses || location.state?.savedAddress;
+        if (addr?.plus_code) {
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const olc = new OpenLocationCode() as any;
-                const decoded = olc.decode(order.addresses.plus_code);
+                const decoded = olc.decode(addr.plus_code);
                 setViewState({
                     latitude: decoded.latitudeCenter,
                     longitude: decoded.longitudeCenter,
@@ -139,14 +181,14 @@ const FxSuccess = () => {
             } catch (e) {
                 console.error("Failed to decode Plus Code", e);
             }
-        } else if (order?.addresses?.latitude && order?.addresses?.longitude) {
+        } else if (addr?.latitude && addr?.longitude) {
             setViewState({
-                latitude: order.addresses.latitude,
-                longitude: order.addresses.longitude,
+                latitude: addr.latitude,
+                longitude: addr.longitude,
                 zoom: 14
             });
         }
-    }, [order]);
+    }, [order, location.state?.savedAddress]);
 
     const handleCancelOrder = async () => {
         if (!order) return;
@@ -172,8 +214,14 @@ const FxSuccess = () => {
     };
 
     const getAddressDisplay = () => {
-        if (!order?.addresses) return "Unknown Location";
-        const parts = [order.addresses.apartment, order.addresses.area];
+        const addr = order?.addresses || location.state?.savedAddress;
+        if (!addr) return "Unknown Location";
+
+        // Handle both Address (apartment) and SavedAddress (house) interfaces
+        const house = addr.apartment || addr.house;
+        const area = addr.area;
+
+        const parts = [house, area];
         const fullString = parts.filter(Boolean).join(", ");
         return fullString.length > 20 ? fullString.substring(0, 20) + "..." : fullString;
     };
@@ -201,26 +249,28 @@ const FxSuccess = () => {
     };
 
     if (loading || !order) {
-        return <div className="h-full w-full bg-black flex items-center justify-center text-white">Loading...</div>;
+        return <div className={`h-screen w-full flex items-center justify-center font-sans ${isDarkMode ? "bg-[#0a0a12] text-white" : "bg-[#F5F5F7] text-black"}`}>Loading...</div>;
     }
 
     const getStatusConfig = (currentOrder: Order) => {
         let config = {
             bgImage: successBg,
-            mainIcon: checkIcon,
+            mainIcon: isDarkMode ? checkIcon : checkIconLight,
             headerTitle: "Order Successful",
             statusTitle: "We’ll notify you once your FX cash is ready for delivery.",
-            statusAmount: currentOrder.amount,
+            statusAmount: isFx ? (location.state?.receiveAmount || currentOrder.metadata?.receiveAmount || currentOrder.amount) : currentOrder.amount,
             showMap: true,
             deliveryText: "We’re assigning a delivery\npartner soon!",
             deliverySubText: "Assigning a delivery partner in the next 2 minutes.",
             transactionNote: "No charges yet — your wallet will only be debited after you confirm the delivery.",
-            canCancel: true
+            canCancel: true,
+            themeBg: isDarkMode ? "transparent" : "#F5F5F7"
         };
 
         if (currentOrder.status === 'success' || currentOrder.status === 'delivered') {
             config = {
                 ...config,
+                mainIcon: isDarkMode ? checkIcon : checkIconLight,
                 headerTitle: "Order Delivered",
                 statusTitle: "Order delivered successfully!",
                 deliveryText: "Order Delivered",
@@ -232,7 +282,7 @@ const FxSuccess = () => {
             config = {
                 ...config,
                 bgImage: errorBg,
-                mainIcon: crossIcon,
+                mainIcon: isDarkMode ? crossIcon : failedIconLight,
                 headerTitle: "Order Failed",
                 statusTitle: "Order could not be processed",
                 showMap: false,
@@ -246,7 +296,7 @@ const FxSuccess = () => {
             config = {
                 ...config,
                 bgImage: errorBg,
-                mainIcon: cancelIcon,
+                mainIcon: isDarkMode ? cancelIcon : cancelIconLight,
                 headerTitle: "Order Cancelled",
                 statusTitle: "Order Cancelled",
                 showMap: false,
@@ -265,22 +315,31 @@ const FxSuccess = () => {
 
     return (
         <div
-            className="min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-bottom animate-in fade-in duration-500 relative"
+            className={`min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-bottom animate-in fade-in duration-500 relative ${isDarkMode ? 'text-white' : 'text-black'}`}
             style={{
-                backgroundColor: "#0a0a12",
-                backgroundImage: `url(${statusConfig.bgImage})`,
+                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+                backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : `none`,
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
         >
+            {/* Light Mode Purple Glow Orb */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0"
+                    style={{
+                        backgroundColor: order?.status === 'success' || order?.status === 'delivered' || order?.status === 'processing' ? "#0D992F" : "#FF3B30",
+                    }}
+                />
+            )}
             {/* Header */}
             <div
                 className="px-5 flex items-center justify-between z-10 mb-[21px] relative"
                 style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
             >
                 <div className="w-6" />
-                <h1 className="text-white text-[24px] font-medium font-sans">
+                <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {statusConfig.headerTitle}
                 </h1>
                 <button
@@ -288,26 +347,25 @@ const FxSuccess = () => {
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     className="w-6 h-6 flex items-center justify-center"
                 >
-                    <img src={hamburgerMenu} alt="Menu" className="w-full h-full" />
+                    <img src={hamburgerMenu} alt="Menu" className={`w-full h-full ${!isDarkMode ? 'brightness-0' : ''}`} />
                 </button>
 
                 {isMenuOpen && (
                     <div
                         ref={menuRef}
-                        className="absolute top-[50px] right-[20px] rounded-[12px] flex flex-col items-start overflow-hidden z-50 border border-white/20"
+                        className={`absolute top-[50px] right-[20px] rounded-[12px] flex flex-col items-start overflow-hidden z-50 border ${isDarkMode ? 'border-white/20 bg-black/60 shadow-none' : 'border-black/5 bg-white shadow-lg'}`}
                         style={{
                             width: "145px",
-                            backgroundColor: "rgba(0, 0, 0, 0.6)",
                             backdropFilter: "blur(12px)",
                             WebkitBackdropFilter: "blur(12px)",
                         }}
                     >
-                        <button className="w-full text-left px-[12px] py-[8px] text-white text-[12px] font-medium font-sans hover:bg-white/10 transition-colors">
+                        <button className={`w-full text-left px-[12px] py-[8px] text-[12px] font-medium font-sans transition-colors ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-black hover:bg-black/5'}`}>
                             Need Help?
                         </button>
                         {statusConfig.canCancel && (
                             <div
-                                className="w-full px-[12px] py-[8px] flex items-start justify-between cursor-pointer hover:bg-white/10 transition-colors"
+                                className={`w-full px-[12px] py-[8px] flex items-start justify-between cursor-pointer transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
                                 onClick={() => {
                                     if (timer > 0) {
                                         setShowCancelPopup(true);
@@ -315,7 +373,7 @@ const FxSuccess = () => {
                                     }
                                 }}
                             >
-                                <span className={`text-[12px] font-medium font-sans ${timer === 0 ? 'text-[#878787]' : 'text-white'}`}>
+                                <span className={`text-[12px] font-medium font-sans ${timer === 0 ? (isDarkMode ? 'text-white/40' : 'text-black/40') : (isDarkMode ? 'text-white' : 'text-black')}`}>
                                     {timer > 0 ? `Cancel Order (${timer}s)` : 'Cancel Order (unavailable)'}
                                 </span>
                             </div>
@@ -331,41 +389,43 @@ const FxSuccess = () => {
                 </div>
 
                 {/* Sub-text: 22px below icon, Satoshi Bold 18px */}
-                <h2 className="text-white text-[18px] font-bold font-sans mt-[22px] text-center leading-tight">
+                <h2 className={`text-[18px] font-bold font-sans mt-[22px] text-center leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {statusConfig.statusTitle}
                 </h2>
 
                 {/* Amount: 13px below sub-text, Satoshi Medium 25px */}
-                <p className="text-white text-[25px] font-medium font-sans mt-[13px] mb-[39px]">
-                    ₹{(statusConfig.statusAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <p className={`text-[25px] font-medium font-sans mt-[13px] mb-[39px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    {currencySymbol}{(statusConfig.statusAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
 
                 {/* Delivery Container */}
                 <div className="w-full mb-[16px] flex flex-col">
                     <div
-                        className="w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px]"
-                        style={{ backgroundColor: "#000000" }}
+                        className={`w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px] ${isDarkMode ? "bg-black" : "bg-black border-x border-t border-[#E6E8EB]"}`}
+                        style={{
+                            backgroundColor: "#000000",
+                        }}
                     >
-                        <span className="text-white text-[12px] font-medium font-sans whitespace-nowrap mr-2">
-                            Delivering to - {order.addresses?.label || "Home"}
+                        <span className={`text-[12px] font-medium font-sans whitespace-nowrap mr-2 text-white`}>
+                            Delivering to - {order.addresses?.label || location.state?.savedAddress?.tag || "Home"}
                         </span>
-                        <span className="text-white text-[12px] font-medium font-sans text-right leading-tight">
+                        <span className={`text-[12px] font-medium font-sans text-right leading-tight text-white`}>
                             {getAddressDisplay()}
                         </span>
                     </div>
 
                     <div
-                        className="w-full rounded-b-[14px] flex"
+                        className={`w-full rounded-b-[14px] flex ${isDarkMode ? "bg-white/[0.04]" : "bg-white border border-[#E6E8EB] shadow-sm"}`}
                         style={{
-                            backgroundColor: "rgba(25, 25, 25, 0.34)",
                             padding: "12px",
+                            borderTop: isDarkMode ? "none" : "none", // Prevent double border
                         }}
                     >
                         <div className="flex-1 flex flex-col justify-start pr-2">
-                            <p className="text-white text-[14px] font-medium font-sans leading-snug mb-[12px] whitespace-pre-line">
+                            <p className={`text-[14px] font-medium font-sans leading-snug mb-[12px] whitespace-pre-line ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 {statusConfig.deliveryText}
                             </p>
-                            <p className="text-white text-[12px] font-light font-sans leading-snug mb-[4px]">
+                            <p className={`text-[12px] font-light font-sans leading-snug mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                 {statusConfig.deliverySubText}
                             </p>
                         </div>
@@ -378,7 +438,7 @@ const FxSuccess = () => {
                                 <Map
                                     {...viewState}
                                     style={{ width: "100%", height: "100%" }}
-                                    mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+                                    mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
                                     attributionControl={false}
                                     interactive={false}
                                 >
@@ -399,24 +459,23 @@ const FxSuccess = () => {
                     </div>
                 </div>
 
-                {/* Transaction Details */}
                 <div
-                    className="w-full rounded-[13px] p-[12px] mb-[29px]"
-                    style={{ height: "239px", backgroundColor: "rgba(25, 25, 25, 0.34)" }}
+                    className={`w-full rounded-[13px] p-[12px] mb-[29px] ${isDarkMode ? "bg-white/[0.04]" : "bg-white border border-[#E6E8EB] shadow-sm"}`}
+                    style={{ height: "auto" }}
                 >
-                    <h3 className="text-white text-[16px] font-medium font-sans">
+                    <h3 className={`text-[16px] font-medium font-sans ${isDarkMode ? "text-white" : "text-black"}`}>
                         Transaction Details
                     </h3>
-                    <div className="w-full h-[1px] bg-[#202020] mt-[10px] mb-[10px]" />
+                    <div className={`w-full h-[1px] mt-[10px] mb-[10px] ${isDarkMode ? "bg-[#202020]" : "bg-[#E6E8EB]"}`} />
 
                     <div className="flex justify-between items-center mb-[8px]">
-                        <span className="text-white text-[13px] font-normal font-sans">Transaction Number</span>
-                        <span className="text-white text-[13px] font-bold font-sans">{order.id.slice(0, 8).toUpperCase()}...</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Transaction Number</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{order.id.slice(0, 8).toUpperCase()}...</span>
                     </div>
 
                     <div className="flex justify-between items-center mb-[8px]">
-                        <span className="text-white text-[13px] font-normal font-sans">Date & Time</span>
-                        <span className="text-white text-[13px] font-bold font-sans">
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Date & Time</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>
                             {new Date(order.created_at).toLocaleString('en-IN', {
                                 day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
                             })}
@@ -424,16 +483,16 @@ const FxSuccess = () => {
                     </div>
 
                     <div className="flex justify-between items-center mb-[12px]">
-                        <span className="text-white text-[13px] font-normal font-sans">Payment Mode</span>
-                        <span className="text-white text-[13px] font-bold font-sans">grid.pe Wallet</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Payment Mode</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>grid.pe Wallet</span>
                     </div>
 
-                    <p className="text-white/50 text-[13px] font-normal font-sans mb-[14px] leading-snug">
+                    <p className={`text-[13px] font-normal font-sans mb-[14px] leading-snug ${isDarkMode ? "text-white/50" : "text-black"}`}>
                         {statusConfig.transactionNote}
                     </p>
 
                     {statusConfig.canCancel && (
-                        <p className="text-white text-[13px] font-normal font-sans leading-snug">
+                        <p className={`text-[13px] font-normal font-sans leading-snug ${isDarkMode ? "text-white" : "text-black"}`}>
                             If you need to cancel, you can do so within 30 seconds or before a delivery partner is assigned, whichever is earlier.
                         </p>
                     )}
@@ -442,9 +501,9 @@ const FxSuccess = () => {
                 <div className="w-full pb-6">
                     <button
                         onClick={() => navigate("/home")}
-                        className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans"
+                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : ''}`}
                         style={{
-                            backgroundImage: `url(${buttonPrimary})`,
+                            backgroundImage: isDarkMode ? `url(${buttonPrimary})` : 'none',
                             backgroundSize: "100% 100%",
                             backgroundRepeat: "no-repeat",
                         }}
@@ -457,19 +516,20 @@ const FxSuccess = () => {
             {showCancelPopup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-5">
                     <div
-                        className="relative rounded-[13px] p-[22px] w-full max-w-[353px] flex flex-col items-center border border-white/10"
+                        className={`relative rounded-[13px] p-[22px] w-full max-w-[353px] flex flex-col items-center border ${isDarkMode ? 'border-white/10' : 'border-black/5 shadow-2xl'}`}
                         style={{
                             backgroundImage: `url(${cancelReason === 5 ? popBgExpanded : popBgDefault})`,
                             backgroundSize: '100% 100%',
+                            backgroundColor: isDarkMode ? 'transparent' : 'white'
                         }}
                     >
                         <div className="w-[32px] h-[32px] mb-[16px]">
                             <img src={cancelIcon} alt="Cancel" className="w-full h-full" />
                         </div>
-                        <h2 className="text-white text-[18px] font-bold font-sans mb-[8px] text-center">
+                        <h2 className={`text-[18px] font-bold font-sans mb-[8px] text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Cancel Order?
                         </h2>
-                        <p className="text-white text-[13px] font-medium font-sans text-center leading-[1.4] mb-[24px] px-[13px]">
+                        <p className={`text-[13px] font-medium font-sans text-center leading-[1.4] mb-[24px] px-[13px] ${isDarkMode ? 'text-white' : 'text-black/60'}`}>
                             We’re not mad. Just disappointed. Help us understand why you’re cancelling.
                         </p>
                         <div className="w-full flex gap-[12px] justify-center">

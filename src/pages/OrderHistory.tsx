@@ -15,6 +15,13 @@ import { fetchActiveOrders, fetchPastOrders, Order, cancelOrder, dev_seedMockOrd
 import OrderDetailsSheet from "@/components/OrderDetailsSheet";
 import { toast } from "@/components/ui/use-toast";
 
+const currencySymbols: Record<string, string> = {
+    AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
+    GBP: '£', HKD: '$', HUF: 'Ft', IDR: 'Rp', ILS: '₪', INR: '₹', ISK: 'kr', JPY: '¥',
+    KRW: '₩', MXN: '$', MYR: 'RM', NOK: 'kr', NZD: '$', PHP: '₱', PLN: 'zł', RON: 'lei',
+    SEK: 'kr', SGD: '$', THB: '฿', TRY: '₺', USD: '$', ZAR: 'R'
+};
+
 const OrderHistory = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -241,7 +248,7 @@ const OrderHistory = () => {
                             <img src={config.icon} alt={config.label} className="w-[35px] h-[35px]" />
                             <div className="flex flex-col">
                                 <span className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"}
+                                    {order.metadata?.isFx ? "FX Exchange" : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
                                 </span>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black/50'}`}>
@@ -256,7 +263,10 @@ const OrderHistory = () => {
 
                         <div className="h-[35px] flex items-center">
                             <span className={`text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                {order.metadata?.isFx
+                                    ? `${currencySymbols[order.metadata.toCurrency as string] || ''}${Number(order.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                    : `₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                                }
                             </span>
                         </div>
                     </div>

@@ -21,7 +21,14 @@ const WalletTopUpFailed: React.FC = () => {
     }).format(val);
 
   const handleTryAgain = () => {
-    navigate('/order-summary', { state: { amount, retry: true } });
+    navigate('/order-summary', {
+      state: {
+        amount,
+        retry: true,
+        paymentMethod: location.state?.paymentMethod || null,
+        upiId: location.state?.upiId || undefined,
+      }
+    });
   };
 
   const handleGoBack = () => {

@@ -23,6 +23,7 @@ import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
 import { Order, dev_updateOrderStatus } from "@/lib/orders";
 import { useTheme } from "next-themes";
+import { useUser } from "@/contexts/UserContext";
 
 const OrderDetails = () => {
     const navigate = useNavigate();
@@ -30,6 +31,8 @@ const OrderDetails = () => {
     const { orderId } = useParams<{ orderId: string }>();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
+    const { addWalletBalance, addTransaction } = useUser();
+    const hasDebited = useRef(false);
 
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
@@ -151,6 +154,24 @@ const OrderDetails = () => {
         }
     }, [redirectTimer, order?.status, navigate]);
 
+    // Wallet debit when order is delivered/success
+    useEffect(() => {
+        if (!order || hasDebited.current) return;
+        if (order.status === 'success' || order.status === 'delivered') {
+            hasDebited.current = true;
+            addWalletBalance(-order.amount);
+            addTransaction({
+                id: `txn-${order.id}`,
+                type: 'debit',
+                amount: order.amount,
+                status: 'success',
+                date: new Date().toISOString(),
+                description: 'Debited for cash order',
+                metadata: order.metadata || {},
+            });
+        }
+    }, [order?.status]);
+
     // Click outside to close menu
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -174,11 +195,12 @@ const OrderDetails = () => {
 
     // Decode Plus Code or use default
     useEffect(() => {
-        if (order?.addresses?.plus_code) {
+        const addr = order?.addresses || location.state?.savedAddress;
+        if (addr?.plus_code) {
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const olc = new OpenLocationCode() as any;
-                const decoded = olc.decode(order.addresses.plus_code);
+                const decoded = olc.decode(addr.plus_code);
                 setViewState({
                     latitude: decoded.latitudeCenter,
                     longitude: decoded.longitudeCenter,
@@ -187,14 +209,14 @@ const OrderDetails = () => {
             } catch (e) {
                 console.error("Failed to decode Plus Code", e);
             }
-        } else if (order?.addresses?.latitude && order?.addresses?.longitude) {
+        } else if (addr?.latitude && addr?.longitude) {
             setViewState({
-                latitude: order.addresses.latitude,
-                longitude: order.addresses.longitude,
+                latitude: addr.latitude,
+                longitude: addr.longitude,
                 zoom: 14
             });
         }
-    }, [order]);
+    }, [order, location.state?.savedAddress]);
 
     const handleCancelOrder = async () => {
         if (!order) return;
@@ -237,8 +259,14 @@ const OrderDetails = () => {
     };
 
     const getAddressDisplay = () => {
-        if (!order?.addresses) return "Unknown Location";
-        const parts = [order.addresses.apartment, order.addresses.area];
+        const addr = order?.addresses || location.state?.savedAddress;
+        if (!addr) return "Unknown Location";
+
+        // Handle both Address (apartment) and SavedAddress (house) interfaces
+        const house = addr.apartment || addr.house;
+        const area = addr.area;
+
+        const parts = [house, area];
         const fullString = parts.filter(Boolean).join(", ");
         return fullString.length > 20 ? fullString.substring(0, 20) + "..." : fullString;
     };
@@ -492,7 +520,7 @@ const OrderDetails = () => {
                         }}
                     >
                         <span className={`text-[12px] font-medium font-sans whitespace-nowrap mr-2 text-white`}>
-                            Delivering to - {order.addresses?.label || "Home"}
+                            Delivering to - {order.addresses?.label || location.state?.savedAddress?.tag || "Home"}
                         </span>
                         <span className={`text-[12px] font-medium font-sans text-right leading-tight text-white`}>
                             {getAddressDisplay()}

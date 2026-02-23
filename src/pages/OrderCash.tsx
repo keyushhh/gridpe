@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 const OrderCash = () => {
   const navigate = useNavigate();
-  const { isWalletLimitReached } = useUser();
+  const { walletBalance, isWalletLimitReached } = useUser();
   const [amount, setAmount] = useState<string>("0.00");
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
@@ -119,8 +119,8 @@ const OrderCash = () => {
         <div className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-[#E6E8EB]'}`} />
 
         {/* Balance Text */}
-        <p className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
-          Total Available Balance ₹ 13,00,058.00
+        <p className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] ${parseFloat(amount) > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+          Total Available Balance ₹ {walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
 
         {parseFloat(amount) > 0 && parseFloat(amount) < 500 && (
@@ -240,10 +240,10 @@ const OrderCash = () => {
               <div className="w-full mt-[32px]">
                 <Button
                   onClick={() => navigate("/order-cash-summary", { state: { amount } })}
-                  disabled={parseFloat(amount) < 500 || isWalletLimitReached}
+                  disabled={parseFloat(amount) < 500 || parseFloat(amount) > walletBalance || isWalletLimitReached}
                   className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isWalletLimitReached ? "Wallet Locked" : "Place Order"}
+                  {isWalletLimitReached ? "Wallet Locked" : parseFloat(amount) > walletBalance ? "Insufficient Balance" : "Place Order"}
                 </Button>
               </div>
             </div>

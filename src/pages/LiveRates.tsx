@@ -4,7 +4,9 @@ import { ChevronLeft, ChevronDown } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, Area, AreaChart, CartesianGrid } from "recharts";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import ArrowDownUp from "@/assets/Arrow/Arrow_Down_Up.svg";
+import ArrowDownUpLight from "@/assets/Arrow_Down_Up-light.svg";
 import activeRangeBg from "@/assets/active-range.png";
+import { useTheme } from "next-themes";
 
 const currencyToCountry: Record<string, string> = {
     USD: 'us', INR: 'in', EUR: 'eu', GBP: 'gb', JPY: 'jp', AUD: 'au', CAD: 'ca', CHF: 'ch', CNY: 'cn', AED: 'ae', SAR: 'sa'
@@ -19,6 +21,8 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
     current: string; currencies: Record<string, string>; type: 'from' | 'to'
 }) => {
     const [searchQuery, setSearchQuery] = useState("");
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme === "dark";
     if (!isOpen) return null;
 
     const filteredCurrencies = Object.entries(currencies).filter(([code, name]) =>
@@ -29,25 +33,25 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
     return (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full max-w-lg bg-[#0A0A0A] rounded-t-[32px] sm:rounded-[32px] border border-white/10 flex flex-col h-[80vh] overflow-hidden">
+            <div className={`relative w-full max-w-lg ${isDarkMode ? "bg-[#0A0A0A] border-white/10" : "bg-white border-[#E6E8EB]"} rounded-t-[32px] sm:rounded-[32px] border flex flex-col h-[80vh] overflow-hidden`}>
                 <div className="p-6 pb-2">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-[20px] font-bold">Select Currency ({type === 'from' ? 'Sell' : 'Buy'})</h2>
-                        <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                            <ChevronDown className="w-5 h-5" />
+                        <h2 className={`text-[20px] font-bold ${isDarkMode ? "text-white" : "text-black"}`}>Select Currency ({type === 'from' ? 'Sell' : 'Buy'})</h2>
+                        <button onClick={onClose} className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+                            <ChevronDown className={`w-5 h-5 ${isDarkMode ? "text-white" : "text-black"}`} />
                         </button>
                     </div>
 
                     <div
-                        className="relative h-[44px] w-full mb-2 rounded-full overflow-hidden border border-white/10"
-                        style={{ backgroundImage: `url('/src/assets/search-bg.png')`, backgroundSize: 'cover' }}
+                        className={`relative h-[44px] w-full mb-2 rounded-full overflow-hidden border ${isDarkMode ? "border-white/10" : "border-[#E6E8EB]"}`}
+                        style={{ backgroundImage: isDarkMode ? `url('/src/assets/search-bg.png')` : 'none', backgroundSize: 'cover', backgroundColor: isDarkMode ? 'transparent' : '#F2F2F7' }}
                     >
                         <input
                             type="text"
                             placeholder={`Search ${type === 'from' ? 'base' : 'target'} currency`}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-full bg-transparent px-5 outline-none text-[14px] placeholder:text-white/40"
+                            className={`w-full h-full bg-transparent px-5 outline-none text-[14px] ${isDarkMode ? "text-white placeholder:text-white/40" : "text-black placeholder:text-black/40"}`}
                         />
                     </div>
                 </div>
@@ -58,15 +62,15 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
                             <button
                                 key={code}
                                 onClick={() => { onSelect(code); onClose(); }}
-                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-colors ${current === code ? 'bg-[#5260FE]/20 border border-[#5260FE]/50' : 'hover:bg-white/5 border border-transparent'}`}
+                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-colors ${current === code ? (isDarkMode ? 'bg-[#5260FE]/20 border border-[#5260FE]/50' : 'bg-[#5260FE]/10 border border-[#5260FE]/30') : (isDarkMode ? 'hover:bg-white/5 border border-transparent' : 'hover:bg-black/5 border border-transparent')}`}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-full overflow-hidden ring-1 ring-white/10">
                                         <img src={`https://flagcdn.com/w160/${currencyToCountry[code] || 'un'}.png`} alt={code} className="w-full h-full object-cover scale-150" />
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-bold text-[16px]">{code}</div>
-                                        <div className="text-[12px] text-white/40">{name}</div>
+                                        <div className={`font-bold text-[16px] ${isDarkMode ? "text-white" : "text-black"}`}>{code}</div>
+                                        <div className={`text-[12px] ${isDarkMode ? "text-white/40" : "text-black/40"}`}>{name}</div>
                                     </div>
                                 </div>
                                 <span className={`text-[16px] font-bold ${current === code ? 'text-[#5260FE]' : 'text-white/40'}`}>
@@ -84,6 +88,8 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
 const LiveRates = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme === "dark";
     const initialFrom = location.state?.from || 'USD';
     const initialTo = location.state?.to || 'INR';
 
@@ -171,21 +177,33 @@ const LiveRates = () => {
 
     return (
         <div
-            className="h-screen text-white font-satoshi flex flex-col relative overflow-y-auto scroll-smooth"
+            className={`h-screen ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi flex flex-col relative overflow-y-auto scroll-smooth no-scrollbar`}
             style={{
-                backgroundImage: `url(${bgDarkMode})`,
+                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : `none`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundColor: '#0A0A0A'
+                backgroundColor: isDarkMode ? '#0A0A0A' : '#FFFFFF'
             }}
         >
+            {/* Light Mode Purple Glow Orb */}
+            {!isDarkMode && (
+                <div
+                    className="absolute top-[-20px] left-1/2 -translate-x-1/2 w-[200px] h-[50px] rounded-full pointer-events-none z-0"
+                    style={{
+                        backgroundColor: "#5260FE",
+                        filter: "blur(70px)",
+                        opacity: 0.6,
+                        mixBlendMode: "normal"
+                    }}
+                />
+            )}
             {/* Header */}
             <div className="px-5 pt-12 pb-2 flex items-center justify-between">
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 active:scale-90 transition-transform"
+                    className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
                 >
-                    <ChevronLeft className="w-5 h-5 text-white" />
+                    <ChevronLeft className={`w-5 h-5 ${isDarkMode ? "text-white" : "text-black"}`} />
                 </button>
                 <h1 className="text-[18px] font-bold">Live Rates</h1>
                 <div className="w-10" />
@@ -193,34 +211,34 @@ const LiveRates = () => {
 
             {/* Timestamp */}
             <div className="text-center mb-8">
-                <p className="text-[#A0A0A0] text-[14px]">{timestamp || "18 Aug, 10:40 am UTC"}</p>
+                <p className={`${isDarkMode ? "text-[#A0A0A0]" : "text-black/50 text-medium"} text-[14px]`}>{timestamp || "18 Aug, 10:40 am UTC"}</p>
             </div>
 
             <div className="px-5">
                 {/* Conversion Cards Container */}
                 <div className="relative flex flex-col gap-2">
                     {/* From Card */}
-                    <div className="bg-[#191919]/[0.31] rounded-[20px] p-6 border border-white/5 relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]">
+                    <div className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB]"} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}>
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-white/40 text-[14px] font-medium">Convert</span>
+                            <span className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium`}>Convert</span>
                             <button
                                 onClick={() => setIsSelectingFrom(true)}
-                                className="w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 bg-[#1A1A1A] rounded-full border border-white/10 active:scale-95 transition-transform"
+                                className={`w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? "bg-[#1A1A1A] border-white/10" : "bg-white border-[#E6E8EB]"} rounded-full border active:scale-95 transition-transform`}
                             >
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ring-white">
+                                    <div className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? "ring-white" : "ring-black/20"}`}>
                                         <img src={`https://flagcdn.com/w160/${currencyToCountry[currentFrom]}.png`} alt={currentFrom} className="w-full h-full object-cover scale-150" />
                                     </div>
-                                    <span className="text-[12px] font-medium uppercase">{currentFrom}</span>
+                                    <span className={`text-[12px] font-medium uppercase ${isDarkMode ? "text-white" : "text-black"}`}>{currentFrom}</span>
                                 </div>
-                                <ChevronDown className="w-3 h-3 text-white/60" />
+                                <ChevronDown className={`w-3 h-3 ${isDarkMode ? "text-white/60" : "text-black/60"}`} />
                             </button>
                         </div>
                         <div className="flex items-center gap-2 leading-tight">
-                            <span className="text-[32px] font-medium text-white">
+                            <span className={`text-[32px] font-medium ${isDarkMode ? "text-white" : "text-black"}`}>
                                 {currencySymbols[currentFrom] || ''}
                             </span>
-                            <span className="text-[40px] font-bold text-white">100</span>
+                            <span className={`text-[40px] font-bold ${isDarkMode ? "text-white" : "text-black"}`}>100</span>
                         </div>
                     </div>
 
@@ -228,34 +246,34 @@ const LiveRates = () => {
                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                         <button
                             onClick={() => setIsSwapped(!isSwapped)}
-                            className="active:scale-90 transition-all"
+                            className="active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0"
                         >
-                            <img src={ArrowDownUp} alt="Swap" className="w-10 h-10" />
+                            <img src={isDarkMode ? ArrowDownUp : ArrowDownUpLight} alt="Swap" className="w-10 h-10 border-none outline-none shadow-none" />
                         </button>
                     </div>
 
                     {/* To Card */}
-                    <div className="bg-[#191919]/[0.31] rounded-[20px] p-6 border border-white/5 relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]">
+                    <div className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB]"} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}>
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-white/40 text-[14px] font-medium">To</span>
+                            <span className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium`}>To</span>
                             <button
                                 onClick={() => setIsSelectingTo(true)}
-                                className="w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 bg-[#1A1A1A] rounded-full border border-white/10 active:scale-95 transition-transform"
+                                className={`w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? "bg-[#1A1A1A] border-white/10" : "bg-white border-[#E6E8EB]"} rounded-full border active:scale-95 transition-transform`}
                             >
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ring-white">
+                                    <div className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? "ring-white" : "ring-black/20"}`}>
                                         <img src={`https://flagcdn.com/w160/${currencyToCountry[currentTo]}.png`} alt={currentTo} className="w-full h-full object-cover scale-150" />
                                     </div>
-                                    <span className="text-[12px] font-medium uppercase">{currentTo}</span>
+                                    <span className={`text-[12px] font-medium uppercase ${isDarkMode ? "text-white" : "text-black"}`}>{currentTo}</span>
                                 </div>
-                                <ChevronDown className="w-3 h-3 text-white/60" />
+                                <ChevronDown className={`w-3 h-3 ${isDarkMode ? "text-white/60" : "text-black/60"}`} />
                             </button>
                         </div>
                         <div className="flex items-center gap-2 leading-tight">
-                            <span className="text-[32px] font-medium text-white">
+                            <span className={`text-[32px] font-medium ${isDarkMode ? "text-white" : "text-black"}`}>
                                 {currencySymbols[currentTo] || ''}
                             </span>
-                            <span className="text-[40px] font-bold text-white">
+                            <span className={`text-[40px] font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
                                 {(100 * fxRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
@@ -263,19 +281,14 @@ const LiveRates = () => {
                 </div>
 
                 {/* Graph Container */}
-                <div className="mt-[18px] bg-[#191919]/[0.31] rounded-[13px] border border-white/5 pt-[17px] backdrop-blur-[25px] h-[277px] flex flex-col relative overflow-hidden">
+                <div className={`mt-[18px] ${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB]"} rounded-[13px] border pt-[17px] backdrop-blur-[25px] h-[277px] flex flex-col relative overflow-hidden`}>
                     {/* Range Selector */}
                     <div className="flex justify-between items-center mb-6 relative ml-[14px] mr-[13px]">
                         {ranges.map((range) => (
                             <button
                                 key={range}
                                 onClick={() => setActiveRange(range)}
-                                className={`text-[13px] font-medium w-[37px] h-[37px] flex items-center justify-center rounded-full transition-all relative z-10 ${activeRange === range ? 'text-white' : 'text-white/40'}`}
-                                style={activeRange === range ? {
-                                    backgroundImage: `url(${activeRangeBg})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center'
-                                } : {}}
+                                className={`text-[13px] font-medium w-[37px] h-[37px] flex items-center justify-center rounded-full transition-all relative z-10 ${activeRange === range ? 'text-white bg-[#5260FE]' : (isDarkMode ? 'text-white/40' : 'text-black/40')}`}
                             >
                                 <span className="relative z-20">{range}</span>
                             </button>
@@ -292,12 +305,12 @@ const LiveRates = () => {
                                         <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                <CartesianGrid vertical={false} stroke={isDarkMode ? "rgba(255,255,255,0.05)" : "#E6E8EB"} />
                                 <XAxis
                                     dataKey="date"
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500 }}
+                                    tick={{ fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 500 }}
                                     dy={15}
                                     ticks={history.length > 2 ? [history[Math.floor(history.length * 0.25)].date, history[history.length - 1].date] : []}
                                     tickFormatter={(val) => {
@@ -310,14 +323,14 @@ const LiveRates = () => {
                                     domain={['dataMin', 'dataMax']}
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 500 }}
+                                    tick={{ fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 500 }}
                                     width={30}
                                     dx={0}
                                     ticks={getYTickValues()}
                                     tickFormatter={(val) => val.toFixed(1)}
                                 />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: '#1A1A1A', border: 'none', borderRadius: '8px', fontSize: '12px' }}
+                                    contentStyle={{ backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF', border: isDarkMode ? 'none' : '1px solid #E6E8EB', borderRadius: '8px', fontSize: '12px' }}
                                     itemStyle={{ color: '#22C55E' }}
                                     labelClassName="hidden"
                                 />
@@ -341,7 +354,7 @@ const LiveRates = () => {
                 <div className="mt-12 mb-10">
                     <button
                         onClick={() => navigate('/fx-exchange')}
-                        className="w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-bold active:scale-95 transition-transform"
+                        className={`w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? "shadow-[#5260FE]/20 text-white" : "shadow-[#5260FE]/30 text-white"}`}
                     >
                         Exchange Currency
                     </button>
