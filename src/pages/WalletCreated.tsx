@@ -50,6 +50,15 @@ const WalletCreated = () => {
             }
         };
         fetchData();
+
+        const channel = supabase.channel('wallet-created-sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${DEV_USER_ID}` }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${DEV_USER_ID}` }, fetchData)
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const walletBg = useAsset("wallet-bg");

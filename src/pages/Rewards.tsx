@@ -18,15 +18,17 @@ import closeIcon from "@/assets/close.svg";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser, WalletTransaction } from "@/contexts/UserContext";
 import { fetchPastOrders, Order } from "@/lib/orders";
+import { supabase, DEV_USER_ID } from "@/lib/supabase";
 
 const POINTS_PER_RUPEE = 40;
 
 const Rewards = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
-    const { profile, walletTransactions } = useUser();
+    const { profile } = useUser();
     const { showToaster } = useCustomToaster();
     const [cashOrders, setCashOrders] = useState<Order[]>([]);
+    const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showHowItWorks, setShowHowItWorks] = useState(false);
 
@@ -42,6 +44,14 @@ const Rewards = () => {
                     o => o.payment_mode === 'cash' && (o.status === 'delivered' || o.status === 'success')
                 );
                 setCashOrders(cashSucceeded);
+
+                const { data: txData } = await supabase
+                    .from('wallet_transactions')
+                    .select('*')
+                    .eq('user_id', DEV_USER_ID);
+                if (txData) {
+                    setWalletTransactions(txData);
+                }
             } catch (err) {
                 console.error("Failed to load rewards orders", err);
             } finally {
