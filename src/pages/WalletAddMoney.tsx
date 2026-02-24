@@ -8,7 +8,6 @@ import pillContainerBg from "@/assets/pill-container-bg.png";
 import backspaceIcon from "@/assets/backspace.png";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
-import { supabase } from "@/lib/supabase";
 
 declare global {
   interface Window {
@@ -268,13 +267,26 @@ const WalletAddMoney = () => {
                     if (val >= 500 && val <= walletLimit) {
                       try {
                         setIsLoading(true);
-                        const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
-                          body: { amount: val }
-                        });
+                        const orderRes = await fetch(
+                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              apikey: import.meta.env.VITE_SUPABASE_KEY,
+                              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`
+                            },
+                            body: JSON.stringify({
+                              amount: val
+                            })
+                          }
+                        );
 
-                        if (error) throw error;
+                        const order = await orderRes.json();
 
-                        const order = data;
+                        if (!order.id) {
+                          throw new Error("Failed to create order");
+                        }
 
                         const options = {
                           key: "rzp_test_SK1zyroAteO2qL",
