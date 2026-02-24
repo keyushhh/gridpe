@@ -104,6 +104,18 @@ export const cancelOrder = async (orderId: string) => {
   if (error) throw error;
 };
 
+export const deliverOrder = async (orderId: string) => {
+  const { error } = await supabase
+    .from('orders')
+    .update({
+      status: 'delivered',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', orderId);
+
+  if (error) throw error;
+};
+
 export const dev_seedMockOrders = async (userId: string) => {
   if (!import.meta.env.DEV) return;
 
