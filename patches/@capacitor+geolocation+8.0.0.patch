@@ -1,3 +1,24 @@
+diff --git a/node_modules/@capacitor/geolocation/android/build.gradle b/node_modules/@capacitor/geolocation/android/build.gradle
+index 1e55411..cd546cf 100644
+--- a/node_modules/@capacitor/geolocation/android/build.gradle
++++ b/node_modules/@capacitor/geolocation/android/build.gradle
+@@ -42,13 +42,13 @@ android {
+         abortOnError = false
+     }
+     compileOptions {
+-        sourceCompatibility JavaVersion.VERSION_21
+-        targetCompatibility JavaVersion.VERSION_21
++        sourceCompatibility JavaVersion.VERSION_17
++        targetCompatibility JavaVersion.VERSION_17
+     }
+ }
+ 
+ kotlin {
+-    jvmToolchain(21)
++    jvmToolchain(17)
+ }
+ 
+ repositories {
 diff --git a/node_modules/@capacitor/geolocation/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml b/node_modules/@capacitor/geolocation/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
 new file mode 100644
 index 0000000..f3d088d
@@ -176,7 +197,7 @@ index 0000000..90fcfb9
 \ No newline at end of file
 diff --git a/node_modules/@capacitor/geolocation/android/build/kotlin/compileDebugKotlin/local-state/build-history.bin b/node_modules/@capacitor/geolocation/android/build/kotlin/compileDebugKotlin/local-state/build-history.bin
 new file mode 100644
-index 0000000..8cace42
+index 0000000..e3e74c3
 Binary files /dev/null and b/node_modules/@capacitor/geolocation/android/build/kotlin/compileDebugKotlin/local-state/build-history.bin differ
 diff --git a/node_modules/@capacitor/geolocation/android/build/outputs/logs/manifest-merger-debug-report.txt b/node_modules/@capacitor/geolocation/android/build/outputs/logs/manifest-merger-debug-report.txt
 new file mode 100644
@@ -201,13 +222,14 @@ index 0000000..8d5d708
 +	android:minSdkVersion
 +		INJECTED from C:\Users\Biradhwaj\Desktop\gridpe\node_modules\@capacitor\geolocation\android\src\main\AndroidManifest.xml
 diff --git a/node_modules/@capacitor/geolocation/android/src/main/kotlin/com/capacitorjs/plugins/geolocation/GeolocationErrors.kt b/node_modules/@capacitor/geolocation/android/src/main/kotlin/com/capacitorjs/plugins/geolocation/GeolocationErrors.kt
-index 7a606c6..12ef52a 100644
+index 7a606c6..2eb412f 100644
 --- a/node_modules/@capacitor/geolocation/android/src/main/kotlin/com/capacitorjs/plugins/geolocation/GeolocationErrors.kt
 +++ b/node_modules/@capacitor/geolocation/android/src/main/kotlin/com/capacitorjs/plugins/geolocation/GeolocationErrors.kt
-@@ -1,12 +1,14 @@
+@@ -1,12 +1,15 @@
  package com.capacitorjs.plugins.geolocation
  
 +import java.util.Locale
++import kotlin.String
 +
  /**
   * Object with plugin errors
@@ -216,7 +238,7 @@ index 7a606c6..12ef52a 100644
  
      private fun formatErrorCode(number: Int): String {
 -        return "OS-PLUG-GLOC-" + number.toString().padStart(4, '0')
-+        return "OS-PLUG-GLOC-" + String.format(Locale.ROOT, "%04d", number)
++        return "OS-PLUG-GLOC-" + java.lang.String.format(Locale.ROOT, "%04d", number)
      }
  
      data class ErrorInfo(
