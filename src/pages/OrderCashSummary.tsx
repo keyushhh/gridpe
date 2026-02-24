@@ -24,7 +24,7 @@ import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import { createOrder } from "@/lib/orders";
 import { createAddress } from "@/lib/addresses";
-import { supabase, DEV_USER_ID } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
 
@@ -73,7 +73,7 @@ const OrderCashSummary = () => {
             const { data } = await supabase
                 .from("wallets")
                 .select("available_balance")
-                .eq("user_id", DEV_USER_ID)
+                .eq("user_id", USER_ID)
                 .single();
             if (data) {
                 setWalletBalance(data.available_balance || 0);

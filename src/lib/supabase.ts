@@ -10,4 +10,4 @@ if (!supabaseUrl || !supabaseKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-export const DEV_USER_ID = "dev-user-1";
+export const USER_ID = "414c977e-6f70-4f57-bfa1-af0a8a2053a4";

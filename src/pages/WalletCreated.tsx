@@ -10,7 +10,7 @@ import successIcon from "@/assets/success.svg";
 import processingIcon from "@/assets/processing.svg";
 import failedIcon from "@/assets/failed.svg";
 import addPaymentCta from "@/assets/add-payment-cta.png";
-import { supabase, DEV_USER_ID } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 const WalletCreated = () => {
     const navigate = useNavigate();
@@ -27,7 +27,7 @@ const WalletCreated = () => {
                 const { data: walletData } = await supabase
                     .from("wallets")
                     .select("available_balance")
-                    .eq("user_id", DEV_USER_ID)
+                    .eq("user_id", USER_ID)
                     .single();
                 if (walletData) {
                     setWalletBalance(walletData.available_balance || 0);
@@ -37,7 +37,7 @@ const WalletCreated = () => {
                 const { data: txData } = await supabase
                     .from("wallet_transactions")
                     .select("*")
-                    .eq("user_id", DEV_USER_ID)
+                    .eq("user_id", USER_ID)
                     .order("created_at", { ascending: false });
                 if (txData) {
                     setWalletTransactions(txData.map(tx => ({
@@ -52,8 +52,8 @@ const WalletCreated = () => {
         fetchData();
 
         const channel = supabase.channel('wallet-created-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${DEV_USER_ID}` }, fetchData)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${DEV_USER_ID}` }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${USER_ID}` }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, fetchData)
             .subscribe();
 
         return () => {

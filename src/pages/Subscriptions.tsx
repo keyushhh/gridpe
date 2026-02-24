@@ -6,7 +6,7 @@ import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tiers } from "@/lib/walletTiers";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
-import { supabase, DEV_USER_ID } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 // Import Assets
 import subStarterBg from "@/assets/subscription-starter.png";
@@ -63,7 +63,7 @@ const Subscriptions = () => {
             const { data } = await supabase
                 .from("wallets")
                 .select("available_balance")
-                .eq("user_id", DEV_USER_ID)
+                .eq("user_id", USER_ID)
                 .single();
             if (data) {
                 setWalletBalance(data.available_balance || 0);

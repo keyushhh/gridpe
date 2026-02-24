@@ -21,7 +21,7 @@ import walletSupremeBgLight from "@/assets/light-cards/fx-wallet-supreme-light.p
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import bgLight from "@/assets/bg-light.png";
-import { supabase, DEV_USER_ID } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 const currencyToCountry: Record<string, string> = {
     AUD: 'au', BRL: 'br', CAD: 'ca', CHF: 'ch', CNY: 'cn', CZK: 'cz', DKK: 'dk', EUR: 'eu',
@@ -185,7 +185,7 @@ const FxExchange = () => {
             const { data } = await supabase
                 .from("wallets")
                 .select("available_balance")
-                .eq("user_id", DEV_USER_ID)
+                .eq("user_id", USER_ID)
                 .single();
             if (data) {
                 setWalletBalance(data.available_balance || 0);

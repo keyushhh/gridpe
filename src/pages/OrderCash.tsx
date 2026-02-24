@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import { supabase, DEV_USER_ID } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
@@ -24,7 +24,7 @@ const OrderCash = () => {
       const { data } = await supabase
         .from("wallets")
         .select("available_balance")
-        .eq("user_id", DEV_USER_ID)
+        .eq("user_id", USER_ID)
         .single();
       if (data) {
         setWalletBalance(data.available_balance || 0);

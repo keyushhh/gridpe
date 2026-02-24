@@ -8,6 +8,7 @@ import pillContainerBg from "@/assets/pill-container-bg.png";
 import backspaceIcon from "@/assets/backspace.png";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 declare global {
   interface Window {
@@ -267,24 +268,15 @@ const WalletAddMoney = () => {
                     if (val >= 500 && val <= walletLimit) {
                       try {
                         setIsLoading(true);
-                        const orderRes = await fetch(
-                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`,
-                          {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                              apikey: import.meta.env.VITE_SUPABASE_KEY,
-                              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`
-                            },
-                            body: JSON.stringify({
-                              amount: val
-                            })
-                          }
-                        );
+                        const { data: order, error } = await supabase.functions.invoke("create-order", {
+                          body: { amount: val, user_id: USER_ID }
+                        });
 
-                        const order = await orderRes.json();
+                        if (error) {
+                          throw error;
+                        }
 
-                        if (!order.id) {
+                        if (!order || !order.id) {
                           throw new Error("Failed to create order");
                         }
 

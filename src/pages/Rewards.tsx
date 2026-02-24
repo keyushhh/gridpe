@@ -18,7 +18,7 @@ import closeIcon from "@/assets/close.svg";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser, WalletTransaction } from "@/contexts/UserContext";
 import { fetchPastOrders, Order } from "@/lib/orders";
-import { supabase, DEV_USER_ID } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 const POINTS_PER_RUPEE = 40;
 
@@ -48,7 +48,7 @@ const Rewards = () => {
                 const { data: txData } = await supabase
                     .from('wallet_transactions')
                     .select('*')
-                    .eq('user_id', DEV_USER_ID);
+                    .eq('user_id', USER_ID);
                 if (txData) {
                     setWalletTransactions(txData);
                 }

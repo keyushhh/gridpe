@@ -5,7 +5,7 @@ import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from "open-location-code";
 import { fetchRecentOrders, fetchActiveOrders, Order } from "@/lib/orders";
-import { supabase, DEV_USER_ID } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 import { useAsset } from "@/hooks/useAsset";
 import addIcon from "@/assets/add-icon.svg";
 // import iconWallet from "@/assets/wallet.svg";
@@ -224,7 +224,7 @@ const Homepage = () => {
         const { data: walletData, error: walletError } = await supabase
           .from("wallets")
           .select("available_balance")
-          .eq("user_id", DEV_USER_ID)
+          .eq("user_id", USER_ID)
           .single();
 
         if (walletData && !walletError) {
