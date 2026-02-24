@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts" 
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -105,6 +105,13 @@ const FAQ_DB = [
     }
 ];
 
+const IMAGE_ANSWERS = [
+    "I've scanned that document. It looks like... well, something only a human could create. Need a refund or just trying to impress me?",
+    "Image received. I see pixels, I see shapes, I see... a potential support ticket. What's the plan?",
+    "Nice photo. If I had eyes, I'd probably be impressed. Since I'm just a superior brain, tell me what you need help with regarding this document.",
+    "Document analyzed. My circuits suggest you're looking for an update on this. Am I right, or am I right?",
+];
+
 serve(async (req: Request) => {
     // Handle CORS preflight
     if (req.method === 'OPTIONS') {
@@ -112,7 +119,16 @@ serve(async (req: Request) => {
     }
 
     try {
-        const { message } = await req.json();
+        const { message, hasImage } = await req.json();
+
+        if (hasImage) {
+            const intro = INTROS[Math.floor(Math.random() * INTROS.length)];
+            const analysis = IMAGE_ANSWERS[Math.floor(Math.random() * IMAGE_ANSWERS.length)];
+            return new Response(
+                JSON.stringify({ reply: `${intro}${analysis}` }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            );
+        }
 
         if (!message) {
             return new Response(
