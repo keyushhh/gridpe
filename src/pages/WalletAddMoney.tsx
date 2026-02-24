@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import bgLightMode from "@/assets/bg-light.png";
@@ -8,6 +8,13 @@ import pillContainerBg from "@/assets/pill-container-bg.png";
 import backspaceIcon from "@/assets/backspace.png";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/lib/supabase";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const WalletAddMoney = () => {
   const navigate = useNavigate();
@@ -18,6 +25,7 @@ const WalletAddMoney = () => {
   const balance = location.state?.balance || "0.00";
   const fromWallet = location.state?.from === 'wallet';
   const [amount, setAmount] = useState<string>("0.00");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleKeyPress = (key: string) => {
     setAmount((prev) => {
@@ -255,18 +263,81 @@ const WalletAddMoney = () => {
               {/* CTA */}
               <div className="w-full mt-[32px]">
                 <Button
-                  onClick={() => {
+                  onClick={async () => {
                     const val = parseFloat(amount);
                     if (val >= 500 && val <= walletLimit) {
-                      navigate('/add-payment-method', { state: { amount } });
+                      try {
+                        setIsLoading(true);
+                        const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+                          body: { amount: val }
+                        });
+
+                        if (error) throw error;
+
+                        const order = data;
+
+                        const options = {
+                          key: "rzp_test_SK1zyroAteO2qL",
+                          amount: order.amount,
+                          currency: order.currency,
+                          name: "GridPe",
+                          description: "Wallet Top-up",
+                          order_id: order.id,
+                          handler: async function (response: any) {
+                            try {
+                              const verifyRes = await fetch(
+                                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-payment`,
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    apikey: import.meta.env.VITE_SUPABASE_KEY,
+                                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`
+                                  },
+                                  body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature
+                                  })
+                                }
+                              );
+
+                              const verifyData = await verifyRes.json();
+
+                              if (verifyData.success) {
+                                console.log("Payment verified");
+                                window.location.href = "/home";
+                              } else {
+                                alert("Payment verification failed");
+                              }
+
+                            } catch (err) {
+                              console.error("Verification error", err);
+                              alert("Something went wrong");
+                            }
+                          },
+                          theme: {
+                            color: "#6366F1"
+                          }
+                        };
+
+                        const rzp = new window.Razorpay(options);
+                        rzp.open();
+                      } catch (err) {
+                        console.error('Error creating Razorpay order:', err);
+                        alert('Failed to initiate payment. Please try again.');
+                      } finally {
+                        setIsLoading(false);
+                      }
                     }
                   }}
-                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${parseFloat(amount) >= 500 && parseFloat(amount) <= walletLimit
+                  disabled={isLoading}
+                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${parseFloat(amount) >= 500 && parseFloat(amount) <= walletLimit && !isLoading
                     ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
                     : "bg-[#5260FE]/50 cursor-not-allowed"
                     }`}
                 >
-                  Add Money
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Add Money"}
                 </Button>
               </div>
             </div>
