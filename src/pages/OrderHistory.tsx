@@ -104,12 +104,19 @@ const OrderHistory = () => {
         const filtered = pastOrders.filter(order => {
             const amountStr = order.amount.toString();
             const date = new Date(order.created_at);
-            const dateStr = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toLowerCase();
-            const monthStr = date.toLocaleDateString('en-US', { month: 'long' }).toLowerCase();
+            const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).toLowerCase();
+            const monthStr = date.toLocaleDateString('en-GB', { month: 'long' }).toLowerCase();
+
+            const typeStr = order.metadata?.isFx ? "fx exchange" : "cash order".toLowerCase();
+            const currencyStr = (order.metadata?.toCurrency as string || "").toLowerCase();
+            const receiveAmountStr = order.metadata?.receiveAmount?.toString() || "";
 
             return amountStr.includes(query) ||
                 dateStr.includes(query) ||
-                monthStr.includes(query);
+                monthStr.includes(query) ||
+                typeStr.includes(query) ||
+                currencyStr.includes(query) ||
+                receiveAmountStr.includes(query);
         });
         setFilteredPastOrders(filtered);
     }, [searchQuery, pastOrders]);
@@ -275,6 +282,36 @@ const OrderHistory = () => {
         );
     };
 
+    // Helper to group orders while preserving order
+    const groupedPastOrders = React.useMemo(() => {
+        const groups: { title: string, orders: Order[] }[] = [];
+        const groupIndexMap: Record<string, number> = {};
+
+        filteredPastOrders.forEach(order => {
+            const date = new Date(order.created_at);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+
+            let groupName = "";
+            if (date.toDateString() === today.toDateString()) {
+                groupName = "Past orders";
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                groupName = "Yesterday";
+            } else {
+                groupName = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+            }
+
+            if (groupIndexMap[groupName] !== undefined) {
+                groups[groupIndexMap[groupName]].orders.push(order);
+            } else {
+                groups.push({ title: groupName, orders: [order] });
+                groupIndexMap[groupName] = groups.length - 1;
+            }
+        });
+        return groups;
+    }, [filteredPastOrders]);
+
     // Search Bar JSX
     const searchBar = (
         <div className="px-5 mb-[38px] relative z-10">
@@ -346,14 +383,14 @@ const OrderHistory = () => {
             )}
 
             {/* Header */}
-            <div className="px-5 pt-12 flex items-center relative mb-[26px] z-10">
+            <div className="pt-12 px-5 flex items-center justify-center relative mb-[26px] z-10 h-[88px]">
                 <button
                     onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/5 border border-white/10 active:bg-white/10' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
+                    className={`absolute left-5 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full backdrop-blur-md z-20 ${isDarkMode ? 'bg-white/5 border border-white/10 active:bg-white/10' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
                 >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
+                    <ChevronLeft className={`w-6 h-6 flex-shrink-0 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className={`w-full text-center text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {showOnlyPast ? "Help & Support" : "Order History"}
                 </h1>
             </div>
@@ -371,13 +408,17 @@ const OrderHistory = () => {
                 </div>
             )}
 
-            {/* Past Orders */}
-            {filteredPastOrders.length > 0 && (
-                <div className="px-5 pb-10 relative z-10">
-                    <h2 className={`${showOnlyPast ? 'text-[#7E7E7E] text-[14px] font-medium uppercase' : (isDarkMode ? 'text-white' : 'text-black')} text-[16px] font-bold font-satoshi mb-[12px]`}>
-                        Past orders
-                    </h2>
-                    {filteredPastOrders.map(order => renderOrderCard(order, false))}
+            {/* Past Orders (Grouped by Date) */}
+            {groupedPastOrders.length > 0 && (
+                <div className="px-5 pb-10 relative z-10 flex flex-col gap-[24px]">
+                    {groupedPastOrders.map((group) => (
+                        <div key={group.title}>
+                            <h2 className={`${showOnlyPast ? 'text-[#7E7E7E] text-[14px] font-medium uppercase' : (isDarkMode ? 'text-white' : 'text-black')} text-[16px] font-bold font-satoshi mb-[12px]`}>
+                                {group.title}
+                            </h2>
+                            {group.orders.map(order => renderOrderCard(order, false))}
+                        </div>
+                    ))}
                 </div>
             )}
 
