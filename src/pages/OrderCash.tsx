@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
+import { supabase, DEV_USER_ID } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
@@ -11,10 +12,26 @@ import { Button } from "@/components/ui/button";
 
 const OrderCash = () => {
   const navigate = useNavigate();
-  const { walletBalance, isWalletLimitReached } = useUser();
+  const { walletLimit } = useUser();
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>("0.00");
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  React.useEffect(() => {
+    const fetchBalance = async () => {
+      const { data } = await supabase
+        .from("wallets")
+        .select("available_balance")
+        .eq("user_id", DEV_USER_ID)
+        .single();
+      if (data) {
+        setWalletBalance(data.available_balance || 0);
+      }
+    };
+    fetchBalance();
+  }, []);
 
   const handleKeyPress = (key: string) => {
     setAmount((prev) => {

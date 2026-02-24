@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
@@ -6,6 +6,7 @@ import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tiers } from "@/lib/walletTiers";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
+import { supabase, DEV_USER_ID } from "@/lib/supabase";
 
 // Import Assets
 import subStarterBg from "@/assets/subscription-starter.png";
@@ -53,8 +54,24 @@ const Subscriptions = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletTier, walletLimit, walletBalance, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss } = useUser();
+    const { walletTier, walletLimit, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss } = useUser();
     const { showToaster } = useCustomToaster();
+    const [walletBalance, setWalletBalance] = useState<number>(0);
+
+    useEffect(() => {
+        const fetchBalance = async () => {
+            const { data } = await supabase
+                .from("wallets")
+                .select("available_balance")
+                .eq("user_id", DEV_USER_ID)
+                .single();
+            if (data) {
+                setWalletBalance(data.available_balance || 0);
+            }
+        };
+        fetchBalance();
+    }, []);
+
     const currentTierConfig = tiers.find(t => t.name === walletTier);
 
     if (!currentTierConfig) return null;

@@ -21,6 +21,7 @@ import walletSupremeBgLight from "@/assets/light-cards/fx-wallet-supreme-light.p
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import bgLight from "@/assets/bg-light.png";
+import { supabase, DEV_USER_ID } from "@/lib/supabase";
 
 const currencyToCountry: Record<string, string> = {
     AUD: 'au', BRL: 'br', CAD: 'ca', CHF: 'ch', CNY: 'cn', CZK: 'cz', DKK: 'dk', EUR: 'eu',
@@ -132,7 +133,9 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
 
 const FxExchange = () => {
     const navigate = useNavigate();
-    const { walletBalance, walletTier, isWalletLimitReached } = useUser();
+    const { walletTier, walletLimit } = useUser();
+    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const isWalletLimitReached = walletBalance >= walletLimit;
     const [amount, setAmount] = useState<number>(100);
     const [fromCurrency, setFromCurrency] = useState('USD');
     const [toCurrency, setToCurrency] = useState('INR');
@@ -174,6 +177,21 @@ const FxExchange = () => {
             setTimer((prev) => (prev > 0 ? prev - 1 : 0));
         }, 1000);
         return () => clearInterval(interval);
+    }, []);
+
+    // Fetch Wallet Balance
+    useEffect(() => {
+        const fetchBalance = async () => {
+            const { data } = await supabase
+                .from("wallets")
+                .select("available_balance")
+                .eq("user_id", DEV_USER_ID)
+                .single();
+            if (data) {
+                setWalletBalance(data.available_balance || 0);
+            }
+        };
+        fetchBalance();
     }, []);
 
     const formatTime = (seconds: number) => {

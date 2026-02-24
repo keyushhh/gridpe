@@ -9,3 +9,5 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+export const DEV_USER_ID = "dev-user-1";

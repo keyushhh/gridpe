@@ -318,7 +318,13 @@ const WalletAddMoney = () => {
 
                               if (verifyData.success) {
                                 console.log("Payment verified");
-                                window.location.href = "/home";
+                                navigate("/wallet-topup-success", {
+                                  state: {
+                                    totalAmount: val,
+                                    creditAmount: val,
+                                    paymentMethod: "razorpay"
+                                  }
+                                });
                               } else {
                                 alert("Payment verification failed");
                               }

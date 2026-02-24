@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useUser, WalletTransaction } from "@/contexts/UserContext";
+import { useUser } from "@/contexts/UserContext";
 import { tierIconMap, tierCardMap, tierCardMapLight } from "@/lib/walletTiers";
 import { useAsset } from "@/hooks/useAsset";
 import settingsIcon from "@/assets/settings.svg";
@@ -10,12 +10,47 @@ import successIcon from "@/assets/success.svg";
 import processingIcon from "@/assets/processing.svg";
 import failedIcon from "@/assets/failed.svg";
 import addPaymentCta from "@/assets/add-payment-cta.png";
+import { supabase, DEV_USER_ID } from "@/lib/supabase";
 
 const WalletCreated = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletBalance, walletTransactions, walletTier, upgradeTimestamp } = useUser();
+    const { walletTier, upgradeTimestamp } = useUser();
+    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch Balance
+                const { data: walletData } = await supabase
+                    .from("wallets")
+                    .select("available_balance")
+                    .eq("user_id", DEV_USER_ID)
+                    .single();
+                if (walletData) {
+                    setWalletBalance(walletData.available_balance || 0);
+                }
+
+                // Fetch Transactions
+                const { data: txData } = await supabase
+                    .from("wallet_transactions")
+                    .select("*")
+                    .eq("user_id", DEV_USER_ID)
+                    .order("created_at", { ascending: false });
+                if (txData) {
+                    setWalletTransactions(txData.map(tx => ({
+                        ...tx,
+                        date: tx.created_at
+                    })));
+                }
+            } catch (error) {
+                console.error("Error fetching wallet data:", error);
+            }
+        };
+        fetchData();
+    }, []);
 
     const walletBg = useAsset("wallet-bg");
 

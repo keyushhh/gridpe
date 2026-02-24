@@ -7,7 +7,7 @@ import { useUser } from "@/contexts/UserContext";
 const WalletTopUpSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { addWalletBalance, addTransaction, activateWallet } = useUser();
+    const { activateWallet } = useUser();
     const processedRef = useRef(false);
 
     // creditAmount is the actual amount added to wallet. totalAmount includes fees.
@@ -21,28 +21,13 @@ const WalletTopUpSuccess = () => {
             setFormattedAmount(amountDisplay.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
         }
 
-        // Process the transaction only once
+        // Process the transaction only once (for instance, activation)
         if (creditAmount && !processedRef.current) {
             processedRef.current = true;
-
-            // update balance
-            addWalletBalance(creditAmount);
-
-            // log transaction
-            addTransaction({
-                id: crypto.randomUUID(),
-                type: 'credit',
-                amount: creditAmount,
-                status: 'success',
-                date: new Date().toISOString(),
-                description: 'Amount Credited',
-                metadata: { paymentMethodId: paymentMethod }
-            });
-
             // Activate wallet (skip intro in future)
             activateWallet();
         }
-    }, [creditAmount, totalAmount, addWalletBalance, addTransaction, activateWallet, paymentMethod]);
+    }, [creditAmount, totalAmount, activateWallet, paymentMethod]);
 
     return (
         <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans bg-white dark:bg-[#0F1115]">

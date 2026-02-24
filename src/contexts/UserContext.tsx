@@ -35,8 +35,6 @@ interface UserState {
   mpin: string | null;
   biometricEnabled: boolean;
   profile: UserProfile | null;
-  walletBalance: number;
-  walletTransactions: WalletTransaction[];
   isWalletActivated: boolean;
 
   /* Wallet Tier */
@@ -44,7 +42,6 @@ interface UserState {
   walletLimit: number;
   upgradeTimestamp: number | null;
   isPassportVerified: boolean;
-  isWalletLimitReached: boolean;
   scheduledDowngrade: { tier: WalletTier; effectiveDate: string } | null;
   lastDowngradeLoss: number | null;
 }
@@ -61,8 +58,6 @@ interface UserContextType extends UserState {
   setProfile: (profile: UserProfile | null) => void;
   submitKyc: (isPassport?: boolean) => void;
   resetForDemo: () => void;
-  addWalletBalance: (amount: number) => void;
-  addTransaction: (transaction: WalletTransaction) => void;
   activateWallet: () => void;
 
   /* Wallet Tier */
@@ -88,15 +83,12 @@ const defaultState: UserState = {
   mpin: null,
   biometricEnabled: false,
   profile: null,
-  walletBalance: 0,
-  walletTransactions: [],
   isWalletActivated: false,
 
   walletTier: 'Starter',
   walletLimit: 5000,
   upgradeTimestamp: null,
   isPassportVerified: false,
-  isWalletLimitReached: false,
   scheduledDowngrade: null,
   lastDowngradeLoss: null,
 };
@@ -200,17 +192,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem(USER_STORAGE_KEY);
   };
 
-  const addWalletBalance = (amount: number) => {
-    setState(prev => ({ ...prev, walletBalance: prev.walletBalance + amount }));
-  };
-
-  const addTransaction = (transaction: WalletTransaction) => {
-    setState(prev => ({
-      ...prev,
-      walletTransactions: [transaction, ...prev.walletTransactions],
-    }));
-  };
-
   const activateWallet = () => {
     setState(prev => ({ ...prev, isWalletActivated: true }));
   };
@@ -249,19 +230,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         case 'Supreme': newLimit = 150000; break;
       }
 
-      let loss = 0;
-      let newBalance = state.walletBalance;
-      if (state.walletBalance > newLimit) {
-        loss = state.walletBalance - newLimit;
-        newBalance = newLimit;
-      }
-
       setState(prev => ({
         ...prev,
         walletTier: newTier,
         walletLimit: newLimit,
-        walletBalance: newBalance,
-        lastDowngradeLoss: loss > 0 ? loss : null,
+        lastDowngradeLoss: null,
         scheduledDowngrade: null,
         upgradeTimestamp: Date.now()
       }));
@@ -270,9 +243,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   /* -------------------- Provider -------------------- */
 
-  const contextValue: UserContextType & { isWalletLimitReached: boolean } = {
+  const contextValue: UserContextType = {
     ...state,
-    isWalletLimitReached: state.walletBalance >= state.walletLimit,
     setPhoneNumber,
     setName,
     setEmail,
@@ -284,8 +256,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setProfile,
     submitKyc,
     resetForDemo,
-    addWalletBalance,
-    addTransaction,
     activateWallet,
     setWalletTier,
     setPassportVerified,

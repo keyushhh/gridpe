@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { getBankAccounts, BankAccount } from "@/utils/bankUtils";
+import { supabase, DEV_USER_ID } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
@@ -40,7 +41,8 @@ const tierWithdrawMapLight = {
 
 const WalletWithdraw = () => {
     const navigate = useNavigate();
-    const { walletBalance, addWalletBalance, addTransaction, walletTier } = useUser();
+    const { walletTier } = useUser();
+    const [walletBalance, setWalletBalance] = useState<number>(0);
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
@@ -61,6 +63,18 @@ const WalletWithdraw = () => {
         const accounts = getBankAccounts();
         const defaultAcc = accounts.find(a => a.isDefault) || accounts[0] || null;
         setDefaultAccount(defaultAcc);
+
+        const fetchBalance = async () => {
+            const { data } = await supabase
+                .from("wallets")
+                .select("available_balance")
+                .eq("user_id", DEV_USER_ID)
+                .single();
+            if (data) {
+                setWalletBalance(data.available_balance || 0);
+            }
+        };
+        fetchBalance();
     }, []);
 
     const handleKeyPress = (key: string) => {
