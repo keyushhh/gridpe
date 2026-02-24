@@ -117,8 +117,8 @@ const WalletAddMoney = () => {
       <div className="flex-1 flex flex-col items-center pt-[60px]">
         {/* Amount Display */}
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
-          <span className={`text-[32px] font-black font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
-          <span className={`text-[32px] font-black font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
+          <span className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
+          <span className={`text-[32px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
         </div>
 
         {/* Divider */}
