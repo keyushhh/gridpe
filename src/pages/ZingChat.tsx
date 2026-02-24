@@ -62,33 +62,19 @@ const ZingChat = () => {
     const fetchZingReply = async (input: string) => {
         setIsThinking(true);
         try {
-            // calculated URL
-            const projectUrl = import.meta.env.VITE_SUPABASE_URL;
-            // projectUrl is https://xxvbmvnrggsgetqswmjs.supabase.co
-            // function url is ProjectURL + /functions/v1/zing-ai
-            const functionUrl = `${projectUrl}/functions/v1/zing-ai`;
-            const anonKey = import.meta.env.VITE_SUPABASE_KEY;
+            console.log("Calling Zing AI");
 
-            console.log("Calling Zing AI at:", functionUrl);
-
-            const response = await fetch(functionUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${anonKey}`,
-                },
-                body: JSON.stringify({
+            const { data, error } = await supabase.functions.invoke("zing-ai", {
+                body: {
                     message: input,
                     hasImage: !!messages[messages.length - 1]?.image
-                })
+                }
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+            if (error) {
+                throw error;
             }
 
-            const data = await response.json();
             console.log("Zing AI Response:", data);
 
             const zingReply: Message = {

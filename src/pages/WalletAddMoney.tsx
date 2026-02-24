@@ -289,24 +289,17 @@ const WalletAddMoney = () => {
                           order_id: order.id,
                           handler: async function (response: any) {
                             try {
-                              const verifyRes = await fetch(
-                                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-payment`,
-                                {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                    apikey: import.meta.env.VITE_SUPABASE_KEY,
-                                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`
-                                  },
-                                  body: JSON.stringify({
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature
-                                  })
+                              const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-payment", {
+                                body: {
+                                  razorpay_order_id: response.razorpay_order_id,
+                                  razorpay_payment_id: response.razorpay_payment_id,
+                                  razorpay_signature: response.razorpay_signature
                                 }
-                              );
+                              });
 
-                              const verifyData = await verifyRes.json();
+                              if (verifyError) {
+                                throw verifyError;
+                              }
 
                               if (verifyData.success) {
                                 console.log("Payment verified");
