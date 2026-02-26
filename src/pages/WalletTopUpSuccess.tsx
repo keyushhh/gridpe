@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import successIcon from "@/assets/success.svg";
+import checkIcon from "@/assets/check-icon.svg";
 import elipseGreenIcon from "@/assets/elipse-green.svg";
 import { useUser } from "@/contexts/UserContext";
 
@@ -30,7 +31,7 @@ const WalletTopUpSuccess = () => {
     }, [creditAmount, totalAmount, activateWallet, paymentMethod]);
 
     return (
-        <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans bg-white dark:bg-[#0F1115]">
+        <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans bg-white dark:bg-[#0F1115] dark:bg-[url('@/assets/success-bg.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat">
             {/* Green Glowing Orb at the top */}
             <div
                 className="absolute top-[-150px] left-1/2 transform -translate-x-1/2 w-[500px] h-[400px] pointer-events-none z-0"
@@ -43,7 +44,7 @@ const WalletTopUpSuccess = () => {
             {/* Top Content */}
             <div className="flex flex-col items-center w-full mt-10 z-10">
                 {/* Heading */}
-                <h1 className="text-[#1A1A1A] dark:text-white text-[26px] font-bold tracking-tight">
+                <h1 className="text-[#1A1A1A] dark:text-white text-[26px] font-bold tracking-tight dark:font-satoshi dark:font-medium dark:text-[22px]">
                     Payment Success!
                 </h1>
 
@@ -52,7 +53,12 @@ const WalletTopUpSuccess = () => {
                     <img
                         src={successIcon}
                         alt="Success"
-                        className="w-[62px] h-[62px] object-contain"
+                        className="w-[62px] h-[62px] object-contain dark:hidden"
+                    />
+                    <img
+                        src={checkIcon}
+                        alt="Success Dark"
+                        className="hidden dark:block w-[62px] h-[62px] object-contain"
                     />
                 </div>
 
@@ -91,7 +97,7 @@ const WalletTopUpSuccess = () => {
             <div className="w-full mt-[40px] z-10">
                 <button
                     onClick={() => navigate("/home")}
-                    className="w-full h-[48px] flex items-center justify-center text-white dark:text-black bg-black dark:bg-white text-[16px] font-medium font-sans active:scale-[0.98] transition-all rounded-full"
+                    className="w-full h-[48px] flex items-center justify-center text-white dark:text-white bg-black dark:bg-[url('@/assets/darkbg-cta.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat dark:border-none text-[16px] font-medium font-sans active:scale-[0.98] transition-all rounded-full"
                 >
                     Order Cash Pickup
                 </button>

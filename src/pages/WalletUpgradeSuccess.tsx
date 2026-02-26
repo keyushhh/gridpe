@@ -3,8 +3,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useTheme } from "next-themes";
 import successBg from "@/assets/success-bg.png";
-import checkIcon from "@/assets/check-icon.png";
+import checkIcon from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
+import darkBgCta from "@/assets/darkbg-cta.png";
 
 const WalletUpgradeSuccess = () => {
     const navigate = useNavigate();
@@ -99,10 +100,17 @@ const WalletUpgradeSuccess = () => {
                             navigate("/wallet-created", { replace: true });
                         }
                     }}
-                    className={`w-[361px] h-[48px] rounded-[296px] flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-transform ${isDarkMode
-                        ? 'bg-[#5260FE] text-white'
-                        : 'bg-black text-white'
+                    className={`w-[361px] h-[48px] rounded-[296px] flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-transform text-white ${isDarkMode
+                        ? ''
+                        : 'bg-black'
                         }`}
+                    style={isDarkMode ? {
+                        backgroundImage: `url(${darkBgCta})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        border: 'none',
+                    } : {}}
                 >
                     {location.state?.fromSubscriptionDashboard ? "Go to Subscriptions" : "View Wallet"}
                 </button>

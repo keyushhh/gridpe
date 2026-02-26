@@ -31,7 +31,6 @@ const OrderDetails = () => {
     const { orderId } = useParams<{ orderId: string }>();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
-    const { addWalletBalance, addTransaction } = useUser();
     const hasDebited = useRef(false);
 
     const [order, setOrder] = useState<Order | null>(null);
@@ -154,23 +153,7 @@ const OrderDetails = () => {
         }
     }, [redirectTimer, order?.status, navigate]);
 
-    // Wallet debit when order is delivered/success
-    useEffect(() => {
-        if (!order || hasDebited.current) return;
-        if (order.status === 'success' || order.status === 'delivered') {
-            hasDebited.current = true;
-            addWalletBalance(-order.amount);
-            addTransaction({
-                id: `txn-${order.id}`,
-                type: 'debit',
-                amount: order.amount,
-                status: 'success',
-                date: new Date().toISOString(),
-                description: 'Debited for cash order',
-                metadata: order.metadata || {},
-            });
-        }
-    }, [order?.status]);
+    // Wallet debit is now handled automatically via secure Postgres Triggers on the backend.
 
     // Click outside to close menu
     useEffect(() => {

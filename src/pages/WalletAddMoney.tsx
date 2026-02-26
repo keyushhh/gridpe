@@ -145,9 +145,9 @@ const WalletAddMoney = () => {
                 Amount needs to be ₹500 or more
               </p>
             )}
-            {parseFloat(amount) > walletLimit && (
+            {(parseFloat(balance) + parseFloat(amount)) > walletLimit && (
               <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
-                Amount cannot exceed ₹{walletLimit.toLocaleString('en-IN')}
+                Amount exceeds maximum wallet limit of ₹{walletLimit.toLocaleString('en-IN')}
               </p>
             )}
           </>
@@ -265,31 +265,39 @@ const WalletAddMoney = () => {
                 <Button
                   onClick={async () => {
                     const val = parseFloat(amount);
-                    if (val >= 500 && val <= walletLimit) {
+                    if (val >= 500 && (parseFloat(balance) + val) <= walletLimit) {
                       try {
                         setIsLoading(true);
 
                         const { data, error } = await supabase.functions.invoke("create-razorpay-order", {
-                          body: {
-                            amount: val
-                          }
+                          body: { amount: val }
                         });
 
                         if (error) {
                           throw error;
                         }
 
-                        if (!data?.id) {
+                        // 🛠️ THE FIX: Parse the data if Supabase returned it as a raw string
+                        let order = data;
+                        if (typeof data === 'string') {
+                          try {
+                            order = JSON.parse(data);
+                          } catch (e) {
+                            console.error("Could not parse data string:", data);
+                          }
+                        }
+
+                        // Now order.id will safely exist
+                        if (!order || !order.id) {
+                          console.error("Raw order data:", order);
                           throw new Error("Invalid Razorpay order response");
                         }
 
-                        const order = data;
-
                         const options = {
-                          key: "rzp_test_SK1zyroAteO2qL",
+                          key: "rzp_test_SK1zyroAteO2qL", // Ensure this is your correct test key
                           amount: order.amount,
                           currency: order.currency,
-                          name: "GridPe",
+                          name: "Grid.pe",
                           description: "Wallet Top-up",
                           order_id: order.id,
                           handler: async function (response: any) {
@@ -306,8 +314,14 @@ const WalletAddMoney = () => {
                                 throw verifyError;
                               }
 
-                              if (verifyData.success) {
-                                console.log("Payment verified");
+                              // Safely parse verifyData just like we did above
+                              let verification = verifyData;
+                              if (typeof verifyData === 'string') {
+                                verification = JSON.parse(verifyData);
+                              }
+
+                              if (verification && verification.success) {
+                                console.log("Payment verified successfully!");
                                 navigate("/wallet-topup-success", {
                                   state: {
                                     totalAmount: val,
@@ -316,31 +330,51 @@ const WalletAddMoney = () => {
                                   }
                                 });
                               } else {
-                                alert("Payment verification failed");
+                                navigate("/wallet-topup-failed", {
+                                  state: { error: verification?.message || "Payment verification failed." }
+                                });
                               }
 
                             } catch (err) {
                               console.error("Verification error", err);
-                              alert("Something went wrong");
+                              alert("Something went wrong during verification.");
                             }
                           },
                           theme: {
-                            color: "#6366F1"
+                            color: "#5260FE" // Matches your Grid.pe brand styling perfectly
+                          },
+                          modal: {
+                            ondismiss: function () {
+                              setIsLoading(false);
+                              navigate("/wallet-topup-failed", {
+                                state: { error: "Payment was cancelled." }
+                              });
+                            }
                           }
                         };
 
                         const rzp = new window.Razorpay(options);
+
+                        // Catch modal close/failures gracefully
+                        rzp.on('payment.failed', function (response: any) {
+                          console.error("Payment Failed:", response.error);
+                          setIsLoading(false);
+                          navigate("/wallet-topup-failed", {
+                            state: { error: response.error.description || "Payment failed at the gateway." }
+                          });
+                        });
+
                         rzp.open();
                       } catch (err) {
                         console.error('Error creating Razorpay order:', err);
-                        alert('Failed to initiate payment. Please try again.');
+                        alert('Failed to initiate payment. Please check console for details.');
                       } finally {
                         setIsLoading(false);
                       }
                     }
                   }}
                   disabled={isLoading}
-                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${parseFloat(amount) >= 500 && parseFloat(amount) <= walletLimit && !isLoading
+                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${parseFloat(amount) >= 500 && (parseFloat(balance) + parseFloat(amount)) <= walletLimit && !isLoading
                     ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
                     : "bg-[#5260FE]/50 cursor-not-allowed"
                     }`}

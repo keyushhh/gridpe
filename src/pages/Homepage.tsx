@@ -890,7 +890,7 @@ const Homepage = () => {
                           <img src={getStatusIcon(tx.status)} alt="Status" className="w-[26px] h-[26px]" />
                           <div className="ml-[7px] flex flex-col">
                             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}>
-                              {tx.metadata?.isFx ? "FX Exchange" : (tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order")}
+                              {tx.metadata?.isFx ? "FX Exchange" : (tx.metadata?.item_value ? `Ordered ₹${tx.metadata.item_value} Cash` : (tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"))}
                             </span>
                             <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
                               {new Date(tx.created_at).toLocaleDateString('en-IN', {

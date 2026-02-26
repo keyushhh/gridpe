@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
+import darkBgCta from "@/assets/darkbg-cta.png";
 
 const HelpReportSuccess = () => {
     const navigate = useNavigate();
@@ -78,7 +79,14 @@ const HelpReportSuccess = () => {
                 <div className="mt-[125px] w-full px-5">
                     <button
                         onClick={() => navigate('/home')}
-                        className={`w-full h-12 rounded-full backdrop-blur-md flex items-center justify-center text-[15px] font-satoshi transition-all active:scale-95 ${isDarkMode ? 'border border-white/10 bg-white/5 text-white/80' : 'bg-black text-white'}`}
+                        className={`w-full h-12 rounded-full backdrop-blur-md flex items-center justify-center text-[15px] font-satoshi transition-all active:scale-95 ${isDarkMode ? 'text-white' : 'bg-black text-white'}`}
+                        style={isDarkMode ? {
+                            backgroundImage: `url(${darkBgCta})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: 'center',
+                            backgroundRepeat: "no-repeat",
+                            border: "none",
+                        } : {}}
                     >
                         Redirecting Back in {countdown}s...
                     </button>

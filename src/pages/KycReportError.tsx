@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import errorBg from "@/assets/error-bg.png";
-import crossFailedIcon from "@/assets/cross failed.svg";
+import cancelledIco from "@/assets/cancelled-ico.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 
 const KycReportError = () => {
@@ -35,13 +35,13 @@ const KycReportError = () => {
         >
             <div className="flex flex-col items-center px-[35px] safe-area-top" style={{ paddingTop: "24px" }}>
                 {/* Header */}
-                <h1 className="text-white text-[24px] font-medium font-satoshi text-center leading-tight">
+                <h1 className="text-white text-[22px] font-medium font-satoshi text-center leading-tight">
                     Verification Failed
                 </h1>
 
                 {/* Status Icon - 21px below header */}
                 <div className="mt-[21px] flex items-center justify-center">
-                    <img src={crossFailedIcon} alt="Failed" style={{ width: '62px', height: '62px' }} />
+                    <img src={cancelledIco} alt="Failed" style={{ width: '62px', height: '62px' }} />
                 </div>
 
                 {/* Sub-text - 35px below icon */}

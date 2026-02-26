@@ -22,7 +22,7 @@ import infoTipIcon from "@/assets/info-tip.svg";
 import deliveryTipLightBg from "@/assets/delivery-tip-light.png";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
-import { createOrder } from "@/lib/orders";
+
 import { createAddress } from "@/lib/addresses";
 import { supabase, USER_ID } from "@/lib/supabase";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
@@ -226,26 +226,35 @@ const OrderCashSummary = () => {
             try {
                 // VERIFICATION LOG:
                 console.log("Creating Order with payload:", {
-                    user_id: user.id,
-                    amount: totalAmount,
+                    item_value: parsedAmount,
+                    delivery_fee: deliveryFee,
+                    delivery_tip: tipAmount,
+                    gst: gst,
+                    platform_fee: platformFee,
                     address_id: addressId,
-                    status: 'processing',
-                    payment_mode: 'wallet',
                 });
 
-                const order = await createOrder({
-                    user_id: user.id,
-                    amount: totalAmount,
-                    address_id: addressId,
-                    status: 'processing',
-                    payment_mode: 'wallet',
+                const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
+                    body: {
+                        item_value: parsedAmount,
+                        delivery_fee: deliveryFee,
+                        delivery_tip: tipAmount,
+                        gst: gst,
+                        platform_fee: platformFee,
+                        address_id: addressId,
+                    }
                 });
 
-                navigate(`/order-details/${order.id}`, {
+                if (invokeError) throw invokeError;
+                if (orderData?.error) throw new Error(orderData.error);
+
+                const orderStub = { id: orderData?.order_id || orderData?.id };
+
+                navigate(`/order-details/${orderStub.id}`, {
                     state: {
                         totalAmount: totalAmount,
                         savedAddress: savedAddress,
-                        order: order
+                        order: orderStub
                     }
                 });
             } catch (orderError: any) {
@@ -276,19 +285,27 @@ const OrderCashSummary = () => {
                         localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
                         // Retry Order Creation
-                        const order = await createOrder({
-                            user_id: user.id,
-                            amount: totalAmount,
-                            address_id: newAddressId,
-                            status: 'processing',
-                            payment_mode: 'wallet',
+                        const { data: retryData, error: retryInvokeError } = await supabase.functions.invoke('create-order', {
+                            body: {
+                                item_value: parsedAmount,
+                                delivery_fee: deliveryFee,
+                                delivery_tip: tipAmount,
+                                gst: gst,
+                                platform_fee: platformFee,
+                                address_id: newAddressId,
+                            }
                         });
 
-                        navigate(`/order-details/${order.id}`, {
+                        if (retryInvokeError) throw retryInvokeError;
+                        if (retryData?.error) throw new Error(retryData.error);
+
+                        const retryOrderStub = { id: retryData?.order_id || retryData?.id };
+
+                        navigate(`/order-details/${retryOrderStub.id}`, {
                             state: {
                                 totalAmount: totalAmount,
                                 savedAddress: updatedAddr,
-                                order: order
+                                order: retryOrderStub
                             }
                         });
                         return; // Success after retry

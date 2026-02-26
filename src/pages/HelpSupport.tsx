@@ -145,7 +145,7 @@ const HelpSupport = () => {
 
                                 <div className="absolute top-[17px] left-[65px] flex flex-col">
                                     <span className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        {recentOrder.addresses?.label ? `Order to ${recentOrder.addresses.label}` : "Order to Home"}
+                                        {recentOrder.metadata?.item_value ? `Ordered ₹${recentOrder.metadata.item_value} Cash` : (recentOrder.addresses?.label ? `Order to ${recentOrder.addresses.label}` : "Cash Order")}
                                     </span>
                                     <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
                                         Today | 12:00 PM

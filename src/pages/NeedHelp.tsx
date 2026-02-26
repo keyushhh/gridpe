@@ -176,7 +176,7 @@ const NeedHelp = () => {
 
                         <div className="absolute top-[17px] left-[65px] flex flex-col">
                             <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                {order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"}
+                                {order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
                             </span>
                             <span className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
                                 {formatOrderDate(order.created_at)}

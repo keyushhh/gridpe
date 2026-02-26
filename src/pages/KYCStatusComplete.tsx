@@ -4,6 +4,8 @@ import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAsset } from "@/hooks/useAsset";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
+import successBg from "@/assets/success-bg.png";
+import darkBgCta from "@/assets/darkbg-cta.png";
 import kycBadge from "@/assets/kyc-badge.png";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +24,7 @@ const KYCStatusComplete = () => {
       className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
-        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
+        backgroundImage: isDarkMode ? `url(${successBg})` : "none",
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
@@ -49,7 +51,7 @@ const KYCStatusComplete = () => {
         >
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
-        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans w-full text-center`}>KYC</h1>
+        <h1 className={`${isDarkMode ? 'text-white font-satoshi' : 'text-black font-sans'} text-[22px] font-medium w-full text-center`}>KYC</h1>
       </div>
 
       {/* Content Container */}
@@ -99,7 +101,12 @@ const KYCStatusComplete = () => {
       {/* Footer / CTA */}
       <div className="px-5 pb-10 mt-auto">
         <Button
-          className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full font-semibold text-[16px]"
+          className={`w-full h-[48px] text-white rounded-full font-semibold text-[16px] ${isDarkMode ? 'border-none' : 'bg-[#5260FE] hover:bg-[#5260FE]/90'}`}
+          style={isDarkMode ? {
+            backgroundImage: `url(${darkBgCta})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          } : {}}
           onClick={handleGoBack}
         >
           Go Back

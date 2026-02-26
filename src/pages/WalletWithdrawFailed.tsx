@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import errorBg from "@/assets/error-bg.png";
 import cancelledIco from "@/assets/cancelled-ico.svg";
 import crossIconLight from "@/assets/cross-icon-light.svg";
-import cancelCta from "@/assets/cancel-cta.png";
+import darkBgCta from "@/assets/darkbg-cta.png";
 
 const WalletWithdrawFailed = () => {
     const navigate = useNavigate();
@@ -72,20 +72,12 @@ const WalletWithdrawFailed = () => {
 
                 {/* Container - 25px below sub-text */}
                 <div
-                    className={`mt-[25px] w-[362px] h-[180px] rounded-[13px] relative overflow-hidden flex flex-col items-start justify-center text-left px-[22px] ${isDarkMode ? '' : 'border border-[#E9EAEB]'}`}
+                    className={`mt-[25px] w-[362px] h-[180px] rounded-[13px] relative overflow-hidden flex flex-col items-start justify-center text-left px-[22px] border ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
                     style={{
-                        backgroundColor: isDarkMode ? "rgba(0, 0, 0, 0.20)" : "transparent",
+                        backgroundColor: isDarkMode ? "rgba(255, 255, 255, 0.06)" : "transparent",
+                        backdropFilter: isDarkMode ? "blur(25px)" : "none",
                     }}
                 >
-                    {/* Border Overlay */}
-                    {isDarkMode && (
-                        <div
-                            className="absolute inset-0 pointer-events-none rounded-[13px]"
-                            style={{
-                                border: '1px solid rgba(255, 255, 255, 0.06)'
-                            }}
-                        />
-                    )}
                     <p className={`${isDarkMode ? 'text-[#AFAFAF]' : 'text-black'} text-[16px] font-normal leading-tight font-satoshi`}>
                         We tried sending {formattedAmount} to your bank. It hesitated, paused, whispered “I’m not ready for this” and ran back into your wallet.
                     </p>
@@ -99,7 +91,13 @@ const WalletWithdrawFailed = () => {
                 <div className="mt-[72px] w-full flex flex-col items-center overflow-hidden">
                     <button
                         onClick={() => navigate("/wallet-withdraw")}
-                        className="w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center active:scale-95 transition-transform bg-[#6C72FF] font-satoshi"
+                        className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center active:scale-95 transition-transform font-satoshi ${isDarkMode ? '' : 'bg-[#6C72FF]'}`}
+                        style={isDarkMode ? {
+                            backgroundImage: `url(${darkBgCta})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat"
+                        } : {}}
                     >
                         Retry Withdrawal
                     </button>
@@ -111,7 +109,7 @@ const WalletWithdrawFailed = () => {
                         onClick={() => navigate("/home")}
                         className={`mt-[32px] w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center active:scale-95 transition-transform font-satoshi ${isDarkMode ? '' : 'bg-black'}`}
                         style={isDarkMode ? {
-                            backgroundImage: `url(${cancelCta})`,
+                            backgroundImage: `url(${darkBgCta})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             backgroundRepeat: "no-repeat"

@@ -255,7 +255,7 @@ const OrderHistory = () => {
                             <img src={config.icon} alt={config.label} className="w-[35px] h-[35px]" />
                             <div className="flex flex-col">
                                 <span className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {order.metadata?.isFx ? "FX Exchange" : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
+                                    {order.metadata?.isFx ? "FX Exchange" : (order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"))}
                                 </span>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black/50'}`}>

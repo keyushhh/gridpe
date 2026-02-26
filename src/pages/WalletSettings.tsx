@@ -7,7 +7,7 @@ import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import tierCardActive from "@/assets/selected wallet.png";
 import tierCardInactive from "@/assets/non selected card.png";
-import { tiers, tierIconMap, tierSettingsCardMap, tierSettingsCardMapLight, tierCarouselActiveMap, tierCarouselInactiveMap, tierChipColorMap, starterSelectedDark, starterNonselectedDark } from "@/lib/walletTiers";
+import { tiers, tierSettingsCardMap, tierSettingsCardMapLight, tierCarouselActiveMap, tierCarouselInactiveMap, tierCarouselActiveMapDark, tierCarouselInactiveMapDark, tierChipColorMap } from "@/lib/walletTiers";
 
 const WalletSettings = () => {
     const navigate = useNavigate();
@@ -123,11 +123,7 @@ const WalletSettings = () => {
                             // Choose card background based on theme
                             let cardBg: string;
                             if (isDarkMode) {
-                                if (tier.name === 'Starter') {
-                                    cardBg = isActive ? starterSelectedDark : starterNonselectedDark;
-                                } else {
-                                    cardBg = isActive ? tierCardActive : tierCardInactive;
-                                }
+                                cardBg = isActive ? tierCarouselActiveMapDark[tier.name] : tierCarouselInactiveMapDark[tier.name];
                             } else {
                                 cardBg = isActive ? tierCarouselActiveMap[tier.name] : tierCarouselInactiveMap[tier.name];
                             }

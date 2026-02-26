@@ -20,7 +20,20 @@ import closeIcon from "@/assets/close.svg";
 import detailsIcon from "@/assets/details.svg";
 import copyIcon from "@/assets/copy.svg";
 import transactionDetailsLightBg from "@/assets/transaction-details-light.png";
-import { useUser, WalletTransaction } from "@/contexts/UserContext";
+import { useUser } from "@/contexts/UserContext";
+import { supabase, USER_ID } from "@/lib/supabase";
+
+export interface WalletTransaction {
+    id: string;
+    user_id: string;
+    type: 'credit' | 'debit' | 'hold';
+    amount: number;
+    status: 'success' | 'failed' | 'pending';
+    created_at: string;
+    description: string;
+    metadata?: Record<string, unknown>;
+    date?: string; // used locally for legacy mapping
+}
 
 const currencySymbols: Record<string, string> = {
     AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
@@ -31,7 +44,8 @@ const currencySymbols: Record<string, string> = {
 
 const WalletTransactionHistory = () => {
     const navigate = useNavigate();
-    const { walletTransactions, profile } = useUser();
+    const { profile } = useUser();
+    const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const [filters, setFilters] = useState({
@@ -56,6 +70,38 @@ const WalletTransactionHistory = () => {
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Fetch transactions
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                const { data: txData } = await supabase
+                    .from("wallet_transactions")
+                    .select("*")
+                    .eq("user_id", USER_ID)
+                    .order("created_at", { ascending: false });
+
+                if (txData) {
+                    setWalletTransactions(txData.map(tx => ({
+                        ...tx,
+                        date: tx.created_at
+                    } as WalletTransaction)));
+                }
+            } catch (error) {
+                console.error("Error fetching transactions:", error);
+            }
+        };
+
+        fetchTransactions();
+
+        const channel = supabase.channel('wallet-history-sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, fetchTransactions)
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const toggleDropdown = (id: string) => {
@@ -90,7 +136,8 @@ const WalletTransactionHistory = () => {
         return walletTransactions.filter(tx => {
             // 1. Search Query
             const query = searchQuery.toLowerCase();
-            const formattedDate = new Date(tx.date).toLocaleDateString('en-IN', {
+            const txDateObj = tx.created_at ? new Date(tx.created_at) : new Date(tx.date || Date.now());
+            const formattedDate = txDateObj.toLocaleDateString('en-IN', {
                 day: 'numeric', month: 'short', year: 'numeric'
             }).toLowerCase();
             const matchesSearch = (
@@ -102,7 +149,7 @@ const WalletTransactionHistory = () => {
             if (!matchesSearch) return false;
 
             // 2. Date Filter
-            const txDate = new Date(tx.date);
+            const txDate = tx.created_at ? new Date(tx.created_at) : new Date(tx.date || Date.now());
             const now = new Date();
             now.setHours(0, 0, 0, 0);
 
@@ -262,7 +309,7 @@ const WalletTransactionHistory = () => {
             subtitle = "FX Exchange";
         } else if (desc.includes("cash order")) {
             title = "Amount Debited";
-            subtitle = "Cash Order";
+            subtitle = tx.metadata?.item_value ? `Ordered ₹${tx.metadata.item_value} Cash` : "Cash Order";
         } else if (desc.includes("withdrawal")) {
             title = "Withdrawal";
             const methodNames: Record<string, string> = {
@@ -384,12 +431,14 @@ const WalletTransactionHistory = () => {
                             const rowData = [
                                 { label: "Transaction Type", value: title },
                                 { label: "Transaction Purpose", value: subtitle === "Wallet Top Up" ? "Wallet Top Up" : subtitle },
-                                ...(tx.metadata?.isFx ? [
-                                    { label: "Converted Amount", value: `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-                                    { label: "Exchange Rate", value: `1 ${tx.metadata.fromCurrency} = ${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.fxRate || 0).toFixed(2)}` }
-                                ] : []),
-                                { label: "Time", value: new Date(tx.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) },
-                                { label: "Date", value: new Date(tx.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
+                                {
+                                    ...(tx.metadata?.isFx ? [
+                                        { label: "Converted Amount", value: `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                                        { label: "Exchange Rate", value: `1 ${tx.metadata.fromCurrency} = ${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.fxRate || 0).toFixed(2)}` }
+                                    ] : [])
+                                },
+                                { label: "Time", value: new Date(tx.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) },
+                                { label: "Date", value: new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
                                 { label: "Payment Mode", value: getPaymentMode() },
                                 { label: "Status", value: getStatusLabel() }
                             ];
@@ -590,7 +639,7 @@ const WalletTransactionHistory = () => {
                     // Group by date
                     const grouped: { [key: string]: typeof walletTransactions } = {};
                     filteredTransactions.forEach(tx => {
-                        const date = new Date(tx.date);
+                        const date = tx.created_at ? new Date(tx.created_at) : new Date(tx.date || Date.now());
                         // Normalize to midnight for grouping
                         const dateKey = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
                         if (!grouped[dateKey]) grouped[dateKey] = [];
@@ -636,7 +685,7 @@ const WalletTransactionHistory = () => {
                                         const icon = tx.type === 'credit' ? creditedArrow : debitedArrow;
                                         const amountColor = tx.type === 'credit' ? '#1CB956' : '#FF1E1E';
 
-                                        const time = new Date(tx.date).toLocaleTimeString('en-US', {
+                                        const time = new Date(tx.created_at).toLocaleTimeString('en-US', {
                                             hour: 'numeric', minute: '2-digit', hour12: true
                                         });
 

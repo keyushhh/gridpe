@@ -6,6 +6,7 @@ import successBg from "@/assets/success-bg.png";
 import checkIconSvg from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
 import buttonPrimaryWide from "@/assets/button-primary-wide.png";
+import darkBgCta from "@/assets/darkbg-cta.png";
 
 const SuccessScreen = () => {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ const SuccessScreen = () => {
 
       {/* Header — "KYC" */}
       <div className="w-full pt-12 flex justify-center relative z-10">
-        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans`}>KYC</h1>
+        <h1 className={`${isDarkMode ? 'text-white font-satoshi' : 'text-black font-sans'} text-[22px] font-medium`}>KYC</h1>
       </div>
 
       {/* Check Icon — 22px below header */}
@@ -96,7 +97,7 @@ const SuccessScreen = () => {
           onClick={() => navigate(isFxFlow ? "/fx-exchange" : "/home")}
           className={`flex items-center justify-center text-[16px] font-medium transition-transform active:scale-95 rounded-full font-sans`}
           style={{
-            backgroundImage: isDarkMode ? `url(${buttonPrimaryWide})` : 'none',
+            backgroundImage: isDarkMode ? `url(${darkBgCta})` : 'none',
             backgroundColor: isDarkMode ? 'transparent' : '#000000',
             color: isDarkMode ? undefined : '#FFFFFF',
             backgroundSize: '100% 100%',

@@ -14,39 +14,22 @@ const OrderDelivered = () => {
     const location = useLocation();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
-    const { addWalletBalance, addTransaction } = useUser();
     const [seconds, setSeconds] = useState(30);
-    const [hasBeenDebited, setHasBeenDebited] = useState(false);
 
     // Fallback amount if not passed in state
     const orderAmount = location.state?.order?.amount || 2000;
     const orderData = location.state?.order;
 
     useEffect(() => {
-        // Real-time debit simulation
-        if (!hasBeenDebited) {
-            addWalletBalance(-orderAmount);
-            addTransaction({
-                id: `txn-${orderData?.id || Date.now()}`,
-                type: 'debit',
-                amount: orderAmount,
-                status: 'success',
-                date: new Date().toISOString(),
-                description: 'Debited for cash order',
-                metadata: orderData?.metadata || {},
-            });
-            setHasBeenDebited(true);
-
-            // Redundancy check: ensure status is updated in Supabase
-            if (location.state?.order?.id) {
-                supabase
-                    .from('orders')
-                    .update({ status: 'delivered' })
-                    .eq('id', location.state.order.id)
-                    .then(({ error }) => {
-                        if (error) console.error("Failed to update status in OrderDelivered", error);
-                    });
-            }
+        // Redundancy check: ensure status is updated in Supabase
+        if (location.state?.order?.id) {
+            supabase
+                .from('orders')
+                .update({ status: 'delivered' })
+                .eq('id', location.state.order.id)
+                .then(({ error }) => {
+                    if (error) console.error("Failed to update status in OrderDelivered", error);
+                });
         }
 
         const timer = setInterval(() => {
@@ -61,7 +44,7 @@ const OrderDelivered = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [navigate, orderAmount, hasBeenDebited, addWalletBalance]);
+    }, [navigate]);
 
     return (
         <div

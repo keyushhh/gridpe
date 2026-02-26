@@ -15,9 +15,11 @@ import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import cancelCta from "@/assets/cancel-cta.png";
 import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 const WithdrawOTP = () => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const location = useLocation();
     const { phoneNumber } = useUser();
     const { theme } = useTheme();
@@ -63,20 +65,25 @@ const WithdrawOTP = () => {
         method.name = upiId;
     }
 
-    const handleVerify = () => {
+    const handleVerify = async () => {
         if (isVerified) {
-            // Flow: withdraw > failed > retry > success
-            const attempts = parseInt(sessionStorage.getItem('withdrawal_attempts') || '0');
+            setLoading(true);
+            try {
+                const { data, error: funcError } = await supabase.functions.invoke("request-withdrawal", {
+                    body: { user_id: USER_ID, amount: parseFloat(amount) }
+                });
 
-            if (attempts === 0) {
-                // First attempt: Fail
-                sessionStorage.setItem('withdrawal_attempts', '1');
-                navigate("/wallet-withdraw-failed", { state: { ...location.state, amount } });
-            } else {
-                // Subsequent attempts: Success
-                // Clear attempts for next time flow starts from scratch
-                sessionStorage.removeItem('withdrawal_attempts');
+                if (funcError) throw funcError;
+                if (data && data.success === false) {
+                    throw new Error(data.message || data.error || "Failed to process withdrawal");
+                }
+
                 navigate("/wallet-withdraw-success", { state: { ...location.state, amount } });
+            } catch (err: any) {
+                console.error("Withdrawal error:", err);
+                navigate("/wallet-withdraw-failed", { state: { ...location.state, amount, error: err.message } });
+            } finally {
+                setLoading(false);
             }
         } else if (otp.length === 6) {
             showToaster("Invalid OTP. Please enter 123456 for testing.", 'error');
@@ -229,18 +236,17 @@ const WithdrawOTP = () => {
                 </div>
             </div>
 
-            {/* Footer */}
             <div className="px-5 pb-10 flex flex-col gap-3 z-10">
                 <button
                     onClick={handleVerify}
-                    disabled={!isComplete}
-                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isComplete ? "active:scale-95 opacity-100" : "opacity-30 pointer-events-none"
+                    disabled={!isComplete || loading}
+                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isComplete && !loading ? "active:scale-95 opacity-100" : "opacity-30 pointer-events-none"
                         }`}
                     style={{
                         backgroundColor: "#5260FE"
                     }}
                 >
-                    Withdraw
+                    {loading ? "Processing..." : "Withdraw"}
                 </button>
                 <button
                     onClick={() => navigate(-1)}

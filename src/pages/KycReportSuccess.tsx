@@ -35,7 +35,7 @@ const KycReportSuccess = () => {
         >
             <div className="flex flex-col items-center px-[35px] safe-area-top" style={{ paddingTop: "24px" }}>
                 {/* Header */}
-                <h1 className="text-white text-[24px] font-medium font-satoshi text-center leading-tight">
+                <h1 className="text-white text-[22px] font-medium font-satoshi text-center leading-tight">
                     Verification Successful
                 </h1>
 

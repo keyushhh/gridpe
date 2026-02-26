@@ -5,13 +5,11 @@ import { useTheme } from "next-themes";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
-import cancelCta from "@/assets/cancel-cta.png";
-import { useUser } from "@/contexts/UserContext";
+import darkBgCta from "@/assets/darkbg-cta.png";
 
 const WalletWithdrawSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { addTransaction, addWalletBalance } = useUser();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
@@ -40,22 +38,6 @@ const WalletWithdrawSuccess = () => {
 
         return () => clearInterval(timer);
     }, [timeLeft, navigate]);
-
-    // Optional: Add the transaction to history on mount
-    useEffect(() => {
-        if (amount > 0) {
-            addWalletBalance(-amount);
-            addTransaction({
-                id: `WTX${Math.random().toString(36).toUpperCase().substr(2, 10)}`,
-                type: 'debit',
-                amount: amount,
-                status: 'success',
-                date: new Date().toISOString(),
-                description: 'Withdrawal to Bank',
-                metadata: { paymentMethodId: selectedMethod }
-            });
-        }
-    }, []); // Only once on mount
 
     return (
         <div
@@ -142,7 +124,7 @@ const WalletWithdrawSuccess = () => {
                         onClick={() => navigate("/home")}
                         className={`mt-[10px] w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center active:scale-95 transition-transform font-satoshi ${isDarkMode ? '' : 'bg-black'}`}
                         style={isDarkMode ? {
-                            backgroundImage: `url(${cancelCta})`,
+                            backgroundImage: `url(${darkBgCta})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             backgroundRepeat: "no-repeat"

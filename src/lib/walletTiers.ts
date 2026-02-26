@@ -10,8 +10,14 @@ import eliteChip from "@/assets/elite chip.png";
 import supremeChip from "@/assets/supreme chip.png";
 
 // Dark carousel card overrides (Starter-specific)
-import starterSelectedDark from "@/assets/starter-selected-dark.png";
-import starterNonselectedDark from "@/assets/starter-nonselected-dark.png";
+import starterSelectedDark from "@/assets/dark-carousel/starter-selected-dark.png";
+import starterNonselectedDark from "@/assets/dark-carousel/starter-nonselected-dark.png";
+import proSelectedDark from "@/assets/dark-carousel/pro-selected-dark.png";
+import proNonselectedDark from "@/assets/dark-carousel/pro-nonselected-dark.png";
+import eliteSelectedDark from "@/assets/dark-carousel/elite-selected-dark.png";
+import eliteNonselectedDark from "@/assets/dark-carousel/elite-nonselected-dark.png";
+import supremeSelectedDark from "@/assets/dark-carousel/supreme-selected-dark.png";
+import supremeNonselectedDark from "@/assets/dark-carousel/supreme-nonselected-dark.png";
 
 // New assets
 import starterExpand from "@/assets/starter-expand.png";
@@ -326,6 +332,20 @@ export const tierExpandCardMapLight: Record<WalletTier, string> = {
     Pro: proExpandLight,
     Elite: eliteExpandLight,
     Supreme: supremeExpandLight,
+};
+
+export const tierCarouselActiveMapDark: Record<WalletTier, string> = {
+    Starter: starterSelectedDark,
+    Pro: proSelectedDark,
+    Elite: eliteSelectedDark,
+    Supreme: supremeSelectedDark,
+};
+
+export const tierCarouselInactiveMapDark: Record<WalletTier, string> = {
+    Starter: starterNonselectedDark,
+    Pro: proNonselectedDark,
+    Elite: eliteNonselectedDark,
+    Supreme: supremeNonselectedDark,
 };
 
 export { starterSelectedDark, starterNonselectedDark };

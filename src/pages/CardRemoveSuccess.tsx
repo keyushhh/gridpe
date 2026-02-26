@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import successBg from "@/assets/success-bg.png";
-import checkIcon from "@/assets/check-icon.png";
+import checkIcon from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
 import buttonPrimaryWide from "@/assets/button-primary-wide.png";
+import darkBgCta from "@/assets/darkbg-cta.png";
 import { useTheme } from "next-themes";
 
 const CardRemoveSuccess = () => {
@@ -58,7 +59,7 @@ const CardRemoveSuccess = () => {
 
       {/* Header */}
       <div className="w-full pt-6 flex justify-center relative z-10">
-        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans`}>My Cards</h1>
+        <h1 className={`${isDarkMode ? 'text-white font-satoshi' : 'text-black font-sans'} text-[22px] font-medium`}>My Cards</h1>
       </div>
 
       <div className="flex-1 flex flex-col items-center w-full relative z-10">
@@ -86,7 +87,7 @@ const CardRemoveSuccess = () => {
           onClick={() => navigate("/cards")}
           className={`flex items-center justify-center ${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px] font-medium transition-transform active:scale-95 mt-[190px] rounded-full`}
           style={isDarkMode ? {
-            backgroundImage: `url(${buttonPrimaryWide})`,
+            backgroundImage: `url(${darkBgCta})`,
             backgroundSize: '100% 100%',
             backgroundPosition: 'center',
             width: '362px',

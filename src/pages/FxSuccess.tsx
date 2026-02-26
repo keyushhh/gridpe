@@ -10,7 +10,7 @@ import successBg from "@/assets/success-bg.png";
 import errorBg from "@/assets/error-bg.png";
 import popBgDefault from "@/assets/pop-bg-default.png";
 import popBgExpanded from "@/assets/pop-bg-expanded.png";
-import checkIcon from "@/assets/check-icon.png";
+import checkIcon from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
 import crossIcon from "@/assets/cross-icon.png";
 import failedIconLight from "@/assets/failed-light.svg";
@@ -20,6 +20,7 @@ import hamburgerMenu from "@/assets/hamburger-menu.svg";
 import currentLocationIcon from "@/assets/current-location.svg";
 import deliveryRiderIcon from "@/assets/delivery-rider.svg";
 import buttonPrimary from "@/assets/button-primary-wide.png";
+import darkBgCta from "@/assets/darkbg-cta.png";
 import infoIcon from "@/assets/delivery-tip-info.svg";
 import closeIcon from "@/assets/cross-icon.svg";
 import radioFilled from "@/assets/radio-fill.svg";
@@ -40,7 +41,6 @@ const FxSuccess = () => {
     const { orderId } = useParams<{ orderId: string }>();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
-    const { addWalletBalance, addTransaction } = useUser();
     const hasDebited = useRef(false);
 
     const [order, setOrder] = useState<Order | null>(null);
@@ -145,26 +145,7 @@ const FxSuccess = () => {
         }
     }, [timer, order?.status]);
 
-    // Wallet debit when FX order is delivered/success
-    useEffect(() => {
-        if (!order || hasDebited.current) return;
-        if (order.status === 'success' || order.status === 'delivered') {
-            hasDebited.current = true;
-            addWalletBalance(-order.amount);
-            addTransaction({
-                id: `txn-${order.id}`,
-                type: 'debit',
-                amount: order.amount,
-                status: 'success',
-                date: new Date().toISOString(),
-                description: 'Debited for cash order',
-                metadata: {
-                    ...(order.metadata || {}),
-                    isFx: true,
-                },
-            });
-        }
-    }, [order?.status]);
+    // Wallet debit when FX order is delivered/success is now handled by Postgres Trigger
 
     useEffect(() => {
         const addr = order?.addresses || location.state?.savedAddress;
@@ -339,7 +320,7 @@ const FxSuccess = () => {
                 style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
             >
                 <div className="w-6" />
-                <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                <h1 className={isDarkMode ? 'text-[22px] font-medium font-satoshi text-white' : 'text-[18px] font-medium font-sans text-black'}>
                     {statusConfig.headerTitle}
                 </h1>
                 <button
@@ -501,11 +482,13 @@ const FxSuccess = () => {
                 <div className="w-full pb-6">
                     <button
                         onClick={() => navigate("/home")}
-                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : ''}`}
+                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : 'rounded-[296px]'}`}
                         style={{
-                            backgroundImage: isDarkMode ? `url(${buttonPrimary})` : 'none',
-                            backgroundSize: "100% 100%",
+                            backgroundImage: isDarkMode ? `url(${darkBgCta})` : 'none',
+                            backgroundSize: "cover",
+                            backgroundPosition: 'center',
                             backgroundRepeat: "no-repeat",
+                            border: "none",
                         }}
                     >
                         Go Home

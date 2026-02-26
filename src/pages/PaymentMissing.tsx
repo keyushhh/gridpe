@@ -5,9 +5,12 @@ import { useTheme } from "next-themes";
 
 // Assets
 import warningBg from "@/assets/warning-background.png";
+import errorBg from "@/assets/error-bg.png";
 import alertIcon from "@/assets/alert.svg";
 import alertYellowIcon from "@/assets/alert-yellow.svg";
+import cancelledIco from "@/assets/cancelled-ico.svg";
 import addPaymentCta from "@/assets/add-payment-cta.png";
+import darkBgCta from "@/assets/darkbg-cta.png";
 
 import { Button } from "@/components/ui/button";
 
@@ -24,7 +27,7 @@ const PaymentMissing = () => {
             className={`h-full w-full overflow-hidden flex flex-col relative safe-area-top safe-area-bottom ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
-                backgroundImage: `url(${warningBg})`,
+                backgroundImage: `url(${errorBg})`,
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
@@ -59,7 +62,7 @@ const PaymentMissing = () => {
             {/* Content */}
             <div className="flex-1 flex flex-col items-center pt-[16px] px-[44px] text-center relative z-10">
                 {/* Icon - 16px below heading */}
-                <img src={isDarkMode ? alertIcon : alertYellowIcon} alt="Alert" className="w-[62px] h-[62px] mb-[35px]" />
+                <img src={isDarkMode ? cancelledIco : alertYellowIcon} alt="Alert" className="w-[62px] h-[62px] mb-[35px]" />
 
                 {/* Subtext - 35px below icon */}
                 <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-[140%] whitespace-nowrap`}>
@@ -68,12 +71,12 @@ const PaymentMissing = () => {
 
                 {/* Styled Container - 35px below subtext */}
                 <div
-                    className={`mt-[35px] rounded-[13px] relative overflow-hidden px-[22px] flex flex-col items-start justify-center text-left ${isDarkMode ? 'border' : 'border border-[#E9EAEB]'}`}
+                    className={`mt-[35px] rounded-[13px] relative overflow-hidden px-[22px] flex flex-col items-start justify-center text-left border ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
                     style={{
                         width: '362px',
                         height: '158px',
-                        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.20)' : 'transparent',
-                        borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.06)' : '#E9EAEB',
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
+                        backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
                     }}
                 >
                     <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi mb-[8px] leading-tight`}>
@@ -91,7 +94,7 @@ const PaymentMissing = () => {
                     onClick={() => navigate("/select-payment-method", { state: { flow: 'withdrawal', amount } })}
                     className={`mt-[30px] w-[363px] h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center active:scale-95 transition-transform ${isDarkMode ? '' : 'bg-black'}`}
                     style={isDarkMode ? {
-                        backgroundImage: `url(${addPaymentCta})`,
+                        backgroundImage: `url(${darkBgCta})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         backgroundRepeat: "no-repeat"

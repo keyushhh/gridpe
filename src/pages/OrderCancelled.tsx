@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import errorBg from "@/assets/error-bg.png";
-import crossFailedIcon from "@/assets/cross failed.svg";
+import cancelledIco from "@/assets/cancelled-ico.svg";
 import failedLightIcon from "@/assets/failed-light.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import { useTheme } from "next-themes";
@@ -47,13 +47,13 @@ const OrderCancelled = () => {
 
       <div className="flex flex-col items-center px-[35px] safe-area-top relative z-10" style={{ paddingTop: "24px" }}>
         {/* Header */}
-        <h1 className={`text-[24px] font-medium font-satoshi text-center leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+        <h1 className={`text-[22px] font-medium font-satoshi text-center leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
           Order Cancelled
         </h1>
 
         {/* Status Icon - 21px below header */}
         <div className="mt-[21px] flex items-center justify-center">
-          <img src={isDarkMode ? crossFailedIcon : failedLightIcon} alt="Cancelled" style={{ width: '62px', height: '62px' }} />
+          <img src={isDarkMode ? cancelledIco : failedLightIcon} alt="Cancelled" style={{ width: '62px', height: '62px' }} />
         </div>
 
         {/* Sub-text - 35px below icon */}

@@ -165,31 +165,9 @@ const WalletWithdraw = () => {
     const amountVal = parseFloat(amount);
     const canWithdraw = amountVal > 0 && amountVal <= Math.min(walletBalance, currentLimit) && walletBalance > 0 && !loading;
 
-    const handleWithdraw = async () => {
+    const handleWithdraw = () => {
         if (!canWithdraw) return;
-
-        setLoading(true);
-        setError(null);
-
-        try {
-            const { data, error: funcError } = await supabase.functions.invoke("request-withdrawal", {
-                body: { user_id: USER_ID, amount: amountVal }
-            });
-
-            if (funcError) {
-                setError(funcError.message || "Failed to process withdrawal");
-            } else if (data && data.error) {
-                setError(data.error);
-            } else {
-                setAmount("0.00");
-                setShowKeypad(false);
-                fetchData();
-            }
-        } catch (err: any) {
-            setError(err.message || "Something went wrong.");
-        } finally {
-            setLoading(false);
-        }
+        navigate('/select-payment-method', { state: { amount: amountVal } });
     };
 
     const isWalletLocked = walletBalance > 0 && amountVal > walletBalance;
@@ -346,25 +324,7 @@ const WalletWithdraw = () => {
                                 </div>
                             </div>
 
-                            {/* Withdrawal History Section */}
-                            {withdrawals.length > 0 && (
-                                <div className="mt-[32px] w-full px-5 pb-[40px]">
-                                    <h2 className={`text-[16px] font-medium mb-4 ${isDarkMode ? 'text-white' : 'text-black'}`}>Withdrawal History</h2>
-                                    <div className="flex flex-col gap-4">
-                                        {withdrawals.map((w) => (
-                                            <div key={w.id} className="flex justify-between items-center pb-3 border-b border-opacity-10 border-gray-500">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className={`text-[14px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{w.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                                    <span className={`text-[12px] text-gray-400 capitalize`}>{w.status.replace('_', ' ')}</span>
-                                                </div>
-                                                <span className={`text-[12px] text-gray-400`}>
-                                                    {new Date(w.created_at).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+
                         </>
                     )}
                 </div>
