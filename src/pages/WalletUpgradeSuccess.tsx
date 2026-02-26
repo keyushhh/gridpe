@@ -2,6 +2,9 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useTheme } from "next-themes";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUser, WalletTier } from "@/contexts/UserContext";
+import { supabase } from "@/lib/supabase";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
@@ -13,6 +16,21 @@ const WalletUpgradeSuccess = () => {
     const { tier } = location.state || { tier: "" };
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
+    const queryClient = useQueryClient();
+    const { setWalletTier } = useUser();
+
+    React.useEffect(() => {
+        // Refresh wallet data and other related user data
+        queryClient.invalidateQueries({ queryKey: ['wallet'] });
+
+        // Refresh session to reflect new tier if updated on backend
+        supabase.auth.refreshSession();
+
+        // Update the local context with the new tier
+        if (tier) {
+            setWalletTier(tier as WalletTier);
+        }
+    }, [queryClient, setWalletTier, tier]);
 
     return (
         <div

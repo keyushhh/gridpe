@@ -23,7 +23,6 @@ import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
 import { Order, dev_updateOrderStatus } from "@/lib/orders";
 import { useTheme } from "next-themes";
-import { useUser } from "@/contexts/UserContext";
 
 const OrderDetails = () => {
     const navigate = useNavigate();
@@ -31,7 +30,6 @@ const OrderDetails = () => {
     const { orderId } = useParams<{ orderId: string }>();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
-    const hasDebited = useRef(false);
 
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);

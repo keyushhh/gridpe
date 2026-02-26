@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useUser } from "@/contexts/UserContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tierIconMap, tierCardMap, tierCardMapLight } from "@/lib/walletTiers";
 import { useAsset } from "@/hooks/useAsset";
 import settingsIcon from "@/assets/settings.svg";
@@ -16,50 +17,53 @@ const WalletCreated = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
+    const queryClient = useQueryClient();
     const { walletTier, upgradeTimestamp } = useUser();
-    const [walletBalance, setWalletBalance] = useState<number>(0);
-    const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
+
+    const { data: walletData, isLoading: isWalletLoading } = useQuery({
+        queryKey: ['wallet'],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("wallets")
+                .select("*, wallet_tiers(*)")
+                .eq("user_id", USER_ID)
+                .single();
+            if (error) throw error;
+            return data;
+        }
+    });
+
+    const { data: walletTransactions = [], isLoading: isTxLoading } = useQuery({
+        queryKey: ['wallet_transactions'],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("wallet_transactions")
+                .select("*")
+                .eq("user_id", USER_ID)
+                .order("created_at", { ascending: false });
+            if (error) throw error;
+            return data?.map(tx => ({ ...tx, date: tx.created_at })) || [];
+        }
+    });
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch Balance
-                const { data: walletData } = await supabase
-                    .from("wallets")
-                    .select("available_balance")
-                    .eq("user_id", USER_ID)
-                    .single();
-                if (walletData) {
-                    setWalletBalance(walletData.available_balance || 0);
-                }
-
-                // Fetch Transactions
-                const { data: txData } = await supabase
-                    .from("wallet_transactions")
-                    .select("*")
-                    .eq("user_id", USER_ID)
-                    .order("created_at", { ascending: false });
-                if (txData) {
-                    setWalletTransactions(txData.map(tx => ({
-                        ...tx,
-                        date: tx.created_at
-                    })));
-                }
-            } catch (error) {
-                console.error("Error fetching wallet data:", error);
-            }
-        };
-        fetchData();
-
         const channel = supabase.channel('wallet-created-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${USER_ID}` }, fetchData)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${USER_ID}` }, () => {
+                queryClient.invalidateQueries({ queryKey: ['wallet'] });
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, () => {
+                queryClient.invalidateQueries({ queryKey: ['wallet_transactions'] });
+            })
             .subscribe();
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [queryClient]);
+
+    const walletBalance = walletData?.available_balance || 0;
+    const dbTier = (walletData?.wallet_tiers as any)?.tier_name as WalletTier || walletTier;
+    const dbLimit = (walletData?.wallet_tiers as any)?.max_wallet_balance || 5000;
 
     const walletBg = useAsset("wallet-bg");
 
@@ -117,13 +121,13 @@ const WalletCreated = () => {
         }
 
         // If no balance/transactions to show, fallback to Tier status for non-Starter tiers
-        if (walletTier !== 'Starter') {
+        if (dbTier !== 'Starter') {
             const priceMap: Record<string, string> = {
                 'Pro': '25',
                 'Elite': '50',
                 'Supreme': '100'
             };
-            const price = priceMap[walletTier] || '0';
+            const price = priceMap[dbTier] || '0';
 
             return (
                 <div className="mt-[16px]">
@@ -138,7 +142,7 @@ const WalletCreated = () => {
                             }}
                         />
                         <span className={`ml-[13px] text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            Your wallet is upgraded to {walletTier}
+                            Your wallet is upgraded to {dbTier}
                         </span>
                     </div>
                     <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-black/80'}`}>
@@ -158,6 +162,14 @@ const WalletCreated = () => {
             </div>
         );
     };
+
+    if (isWalletLoading) {
+        return (
+            <div className="h-full w-full flex items-center justify-center bg-[#0a0a12]">
+                <Loader2 className="w-8 h-8 animate-spin text-[#5260FE]" />
+            </div>
+        );
+    }
 
     return (
         <div
@@ -213,7 +225,7 @@ const WalletCreated = () => {
                     <div
                         className="absolute inset-0 w-full h-full"
                         style={{
-                            backgroundImage: `url('${isDarkMode ? tierCardMap[useUser().walletTier as keyof typeof tierCardMap] : tierCardMapLight[useUser().walletTier as keyof typeof tierCardMapLight]}')`,
+                            backgroundImage: `url('${isDarkMode ? tierCardMap[dbTier as keyof typeof tierCardMap] : tierCardMapLight[dbTier as keyof typeof tierCardMapLight]}')`,
                             backgroundSize: '100% 100%',
                             backgroundRepeat: 'no-repeat',
                             borderRadius: '20px',
@@ -237,7 +249,7 @@ const WalletCreated = () => {
 
                         <div className="mt-[8px]">
                             <span className={`${isDarkMode ? 'text-white/80' : 'text-black/80'} text-[14px] font-medium font-sans`}>
-                                Limit: {useUser().walletLimit.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                                Limit: {dbLimit.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                             </span>
                         </div>
 

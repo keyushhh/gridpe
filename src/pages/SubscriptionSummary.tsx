@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
@@ -55,59 +56,102 @@ const SubscriptionSummary = () => {
     const location = useLocation();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
+    const queryClient = useQueryClient();
     const { setWalletTier, walletTier } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
     const [isLoading, setIsLoading] = React.useState(false);
 
-    const handleSubscription = async () => {
+    const handleUpgrade = async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-            const selectedTierName = tier.toLowerCase();
+            const selectedTierName = tier.toLowerCase() as 'pro' | 'elite' | 'supreme';
+            const validTiers = ['pro', 'elite', 'supreme'];
 
-            const { data, error } = await supabase.functions.invoke('create-subscription', {
-                body: { tier_name: selectedTierName }
+            if (!validTiers.includes(selectedTierName)) {
+                throw new Error(`Invalid tier: ${tier}. Subscription is only available for Pro, Elite, or Supreme tiers.`);
+            }
+
+            // 1. Manually call the function URL
+            const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription`;
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Use your anon key here
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify({
+                    tier_name: selectedTierName,
+                    user_id: "414c977e-6f70-4f57-bfa1-af0a8a2053a4" // Hardcoded for your test
+                }),
             });
 
-            if (error) throw error;
-
-            let subscriptionData = data;
-            if (typeof data === 'string') {
-                subscriptionData = JSON.parse(data);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create subscription');
             }
 
-            if (!subscriptionData?.subscription_id) {
-                throw new Error("Failed to get subscription ID");
-            }
+            const data = await response.json();
 
+            // 2. Open Razorpay using the subscription_id
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                subscription_id: subscriptionData.subscription_id,
+                subscription_id: data.subscription_id,
                 name: "Grid.pe",
-                description: `${tier.toUpperCase()} Wallet Upgrade`,
-                theme: {
-                    color: "#5260FE"
-                },
-                handler: function (response: any) {
-                    console.log("Subscription success:", response);
-                    setWalletTier(tier as WalletTier);
-                    navigate('/wallet-upgrade-success', {
-                        state: { tier, flow: location.state?.flow },
-                        replace: true
-                    });
-                },
-                modal: {
-                    ondismiss: function () {
+                description: `${selectedTierName.toUpperCase()} Upgrade`,
+                handler: async function (response: any) {
+                    console.log("Payment success!", response);
+                    try {
+                        setIsLoading(true);
+                        const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-subscription`;
+                        const verifyResponse = await fetch(verifyUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                            },
+                            body: JSON.stringify({
+                                ...response,
+                                tier_name: selectedTierName,
+                                user_id: '414c977e-6f70-4f57-bfa1-af0a8a2053a4'
+                            }),
+                        });
+
+                        const verifyData = await verifyResponse.json();
+
+                        if (!verifyResponse.ok) {
+                            throw new Error(verifyData.error || verifyData.message || 'Verification failed');
+                        }
+
+                        if (verifyData.success) {
+                            // Immediately refresh the wallet data
+                            await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+
+                            navigate('/wallet-upgrade-success', {
+                                state: { tier, flow: location.state?.flow },
+                                replace: true
+                            });
+                        }
+                    } catch (err: any) {
+                        console.error("Verification error:", err.message || err);
+                        alert(`Payment successful, but verification failed: ${err.message || 'Please contact support.'}`);
+                    } finally {
                         setIsLoading(false);
                     }
-                }
+                },
+                theme: { color: "#5260FE" }
             };
 
             const rzp = new (window as any).Razorpay(options);
             rzp.open();
 
-        } catch (err) {
-            console.error("Subscription error:", err);
-            alert("Failed to initiate subscription. Please try again.");
+        } catch (err: any) {
+            console.error("Upgrade error:", err.message);
+            alert("Error: " + err.message);
+        } finally {
             setIsLoading(false);
         }
     };
@@ -342,7 +386,7 @@ const SubscriptionSummary = () => {
                             }
                             navigate("/wallet-created");
                         } else {
-                            handleSubscription();
+                            handleUpgrade();
                         }
                     }}
                     label={isLoading ? "Processing..." : (location.state?.flow === 'downgrade' ? "Confirm Downgrade" : "Start Monthly Subscription")}
