@@ -184,7 +184,7 @@ export const tiers: TierConfig[] = [
 
         note: "PRO costs ₹50. Your documents and a smidge of effort. We promise it's less painful than filling out a government form.",
         buttonText: "Upgrade Now",
-        buttonAction: "/add-payment-method",
+        buttonAction: "/subscription-details",
     },
     {
         name: "Elite",
@@ -225,7 +225,7 @@ export const tiers: TierConfig[] = [
 
         note: "Auto-renews monthly. Cancel whenever you stop feeling fancy.",
         buttonText: "Upgrade Now",
-        buttonAction: "/add-payment-method",
+        buttonAction: "/subscription-details",
     },
     {
         name: "Supreme",
@@ -267,7 +267,7 @@ export const tiers: TierConfig[] = [
 
         note: "SUPREME is your no-limits, god-tier wallet plan. Cancel anytime. But why would you?",
         buttonText: "Upgrade Now",
-        buttonAction: "/add-payment-method",
+        buttonAction: "/subscription-details",
     },
 ];
 

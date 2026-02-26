@@ -20,7 +20,7 @@ const FxIntro = () => {
 
     return (
         <div
-            className="min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-bottom animate-in fade-in duration-500 relative flex flex-col items-center"
+            className="min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-top safe-area-bottom animate-in fade-in duration-500 relative flex flex-col items-center"
             style={{
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${mainBg})`,
@@ -32,81 +32,76 @@ const FxIntro = () => {
         >
 
             {/* Header */}
-            <div
-                className="w-full max-w-[360px] px-5 flex items-center justify-between z-10 mb-[21px] relative"
-                style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
-            >
+            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-12 pb-0 z-10">
                 <button
                     onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95 ${isDarkMode ? "bg-white/10 backdrop-blur-md" : "bg-white border border-[#E9EAEB]"}`}
+                    className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
                 >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? "text-white" : "text-black"}`} />
+                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className={`${isDarkMode ? "text-white" : "text-black"} text-[22px] font-medium font-sans`}>
+                <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium leading-[120%] font-satoshi`}>
                     FX Exchange
                 </h1>
-                <div className="w-10" />
             </div>
 
-            <div className="w-full max-w-[360px] px-5 pb-[100px] relative z-10">
+            {/* Content Container - Increased max-width to accommodate content and margins */}
+            <div className="w-full max-w-[410px] px-[24px] relative z-10">
                 {/* Main Heading */}
-                <h2 className={`mt-[46px] ${isDarkMode ? "text-white" : "text-black"} text-[16px] font-bold font-satoshi`}>
+                <h2 className={`mt-[46px] ${isDarkMode ? "text-white" : "text-black"} text-[16px] font-bold font-satoshi whitespace-nowrap`}>
                     Requires Pro Wallet or above & KYC Verification
                 </h2>
 
                 {/* Prerequisites Section */}
                 <div className="mt-[24px]">
                     <h3 className={`${isDarkMode ? "text-white" : "text-black"} text-[16px] font-medium font-satoshi`}>
-                        To access international FX, you'll need:
+                        To access international FX, you’ll need:
                     </h3>
-                    <ul className="mt-[10px] space-y-1">
+                    <ul className="mt-[10px] space-y-2">
                         <li className="flex items-start gap-2">
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] leading-relaxed`}>•</span>
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-regular font-satoshi leading-relaxed`}>
-                                Passport/KYC — For secure, compliant transactions.
+                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-regular font-satoshi leading-[120%]`}>
+                                • Passport/KYC — For secure, compliant transactions.
                             </span>
                         </li>
                         <li className="flex items-start gap-2">
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] leading-relaxed`}>•</span>
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-regular font-satoshi leading-relaxed`}>
-                                Pro Wallet Upgrade — Unlock premium FX rates & fraud protection.
+                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-regular font-satoshi leading-[120%]`}>
+                                • Pro Wallet Upgrade — Unlock premium FX rates & fraud protection.
                             </span>
                         </li>
                     </ul>
                 </div>
 
                 {/* Why Upgrade Section */}
-                <div className="mt-[14px]">
+                <div className="mt-[45px]">
                     <h3 className={`${isDarkMode ? "text-white" : "text-black"} text-[16px] font-bold font-satoshi`}>
                         Why Upgrade for FX Exchange?
                     </h3>
-                    <div className="mt-[16px] space-y-[6px]">
-                        <div className="flex items-start gap-2">
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] leading-relaxed`}>🔒</span>
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-regular font-satoshi leading-relaxed`}>
-                                Verified & Secure — Every FX transaction is fully KYC-verified, ensuring compliance and passport-level safety.
-                            </span>
+                    <div className="mt-[16px] space-y-4">
+                        <div className="flex items-start gap-3">
+                            <span className="text-[15px] pt-[2px]">🔒</span>
+                            <p className={`${isDarkMode ? "text-white" : "text-black"} text-[15px] font-regular font-satoshi leading-[120%]`}>
+                                <span className="font-bold">Verified & Secure</span> — Every FX transaction is fully KYC-verified, ensuring compliance and passport-level safety.
+                            </p>
                         </div>
-                        <div className="flex items-start gap-2">
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] leading-relaxed`}>🛡️</span>
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-regular font-satoshi leading-relaxed`}>
-                                Fraud Protection — Prevents misuse and keeps your money safe at all times.
-                            </span>
+                        <div className="flex items-start gap-3">
+                            <span className="text-[15px] pt-[2px]">🛡️</span>
+                            <p className={`${isDarkMode ? "text-white" : "text-black"} text-[15px] font-regular font-satoshi leading-[120%]`}>
+                                <span className="font-bold">Fraud Protection</span> — Prevents misuse and keeps your money safe at all times.
+                            </p>
                         </div>
-                        <div className="flex items-start gap-2">
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] leading-relaxed`}>💱</span>
-                            <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-regular font-satoshi leading-relaxed`}>
-                                Best FX Rates — Access premium live conversion rates, lower than airport kiosks and money changers.
-                            </span>
+                        <div className="flex items-start gap-3">
+                            <span className="text-[15px] pt-[2px]">💱</span>
+                            <p className={`${isDarkMode ? "text-white" : "text-black"} text-[15px] font-regular font-satoshi leading-[120%]`}>
+                                <span className="font-bold">Best FX Rates</span> — Access premium live conversion rates, lower than airport kiosks and money changers.
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 {/* CTA */}
-                <div className="mt-[220px] pb-10">
+                <div className="mt-[220px] pb-10 flex justify-center">
                     <button
                         onClick={() => navigate("/wallet-settings")}
-                        className="w-full h-[48px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
+                        className="w-[362px] h-[48px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
                     >
                         Upgrade Wallet & Verify KYC
                     </button>

@@ -1,9 +1,10 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
+import { supabase } from "@/lib/supabase";
 import starterSub from "@/assets/starter-subscription.png";
 import proSub from "@/assets/pro-subscription.png";
 import eliteSub from "@/assets/elite-subscription.png";
@@ -56,6 +57,60 @@ const SubscriptionSummary = () => {
     const isDarkMode = theme === 'dark' || theme === 'system';
     const { setWalletTier, walletTier } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    const handleSubscription = async () => {
+        try {
+            setIsLoading(true);
+            const selectedTierName = tier.toLowerCase();
+
+            const { data, error } = await supabase.functions.invoke('create-subscription', {
+                body: { tier_name: selectedTierName }
+            });
+
+            if (error) throw error;
+
+            let subscriptionData = data;
+            if (typeof data === 'string') {
+                subscriptionData = JSON.parse(data);
+            }
+
+            if (!subscriptionData?.subscription_id) {
+                throw new Error("Failed to get subscription ID");
+            }
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                subscription_id: subscriptionData.subscription_id,
+                name: "Grid.pe",
+                description: `${tier.toUpperCase()} Wallet Upgrade`,
+                theme: {
+                    color: "#5260FE"
+                },
+                handler: function (response: any) {
+                    console.log("Subscription success:", response);
+                    setWalletTier(tier as WalletTier);
+                    navigate('/wallet-upgrade-success', {
+                        state: { tier, flow: location.state?.flow },
+                        replace: true
+                    });
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsLoading(false);
+                    }
+                }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.open();
+
+        } catch (err) {
+            console.error("Subscription error:", err);
+            alert("Failed to initiate subscription. Please try again.");
+            setIsLoading(false);
+        }
+    };
 
     const bannerImage = isDarkMode ? (subscriptionBanners[tier] || starterSub) : (subscriptionBannersLight[tier] || starterSubLight);
 
@@ -281,17 +336,17 @@ const SubscriptionSummary = () => {
             <div className="px-5 mt-auto pb-[42px] pt-[24px] shrink-0">
                 <SlideToPay
                     onComplete={() => {
-                        if (tier) {
-                            setWalletTier(tier as WalletTier);
-                        }
-
                         if (location.state?.flow === 'downgrade') {
+                            if (tier) {
+                                setWalletTier(tier as WalletTier);
+                            }
                             navigate("/wallet-created");
                         } else {
-                            navigate("/wallet-upgrade-success", { state: { tier, flow: location.state?.flow }, replace: true });
+                            handleSubscription();
                         }
                     }}
-                    label={location.state?.flow === 'downgrade' ? "Confirm Downgrade" : "Start Monthly Subscription"}
+                    label={isLoading ? "Processing..." : (location.state?.flow === 'downgrade' ? "Confirm Downgrade" : "Start Monthly Subscription")}
+                    disabled={isLoading}
                 />
             </div>
         </div>

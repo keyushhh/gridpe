@@ -22,12 +22,11 @@ const WalletSettings = () => {
         const currentIndex = tiers.findIndex(t => t.name === walletTier);
         const nextTier = tiers[currentIndex + 1];
         if (nextTier) {
-            navigate(`/wallet-tier/${nextTier.name.toLowerCase()}`);
-        } else {
-            navigate(`/wallet-tier/${walletTier.toLowerCase()}`);
+            navigate('/subscription-details', {
+                state: { flow: 'upgrade', tier: nextTier.name }
+            });
         }
     };
-
     return (
         <div
             className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
