@@ -268,17 +268,22 @@ const WalletAddMoney = () => {
                     if (val >= 500 && val <= walletLimit) {
                       try {
                         setIsLoading(true);
-                        const { data: order, error } = await supabase.functions.invoke("create-order", {
-                          body: { amount: val, user_id: USER_ID }
+
+                        const { data, error } = await supabase.functions.invoke("create-razorpay-order", {
+                          body: {
+                            amount: val
+                          }
                         });
 
                         if (error) {
                           throw error;
                         }
 
-                        if (!order || !order.id) {
-                          throw new Error("Failed to create order");
+                        if (!data?.id) {
+                          throw new Error("Invalid Razorpay order response");
                         }
+
+                        const order = data;
 
                         const options = {
                           key: "rzp_test_SK1zyroAteO2qL",
