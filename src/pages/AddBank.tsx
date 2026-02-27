@@ -14,7 +14,9 @@ import verifiedIcon from "@/assets/verified.png";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/PhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { fetchBankDetails, getBankLogo, addManualAccount, BankAccount } from "@/utils/bankUtils";
+import { fetchBankDetails, getBankLogo } from "@/utils/bankUtils";
+import { createBankAccount, BankAccount } from "@/lib/banking";
+import { USER_ID } from "@/lib/supabase";
 
 type Selection = "auto" | "manual";
 
@@ -42,9 +44,11 @@ const AddBank = () => {
   // Manual Flow State
   const [accountNumber, setAccountNumber] = useState("");
   const [confirmAccountNumber, setConfirmAccountNumber] = useState("");
+  const [accountHolderName, setAccountHolderName] = useState("");
   const [touchedConfirm, setTouchedConfirm] = useState(false);
   const [ifscCode, setIfscCode] = useState("");
   const [bankName, setBankName] = useState("");
+  const [accountType, setAccountType] = useState("Savings Account");
   const [bankDetails, setBankDetails] = useState<RazorpayBankDetails | null>(null); // To store fetched details
 
   // Timer logic for OTP
@@ -103,7 +107,21 @@ const AddBank = () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsLoading(false);
 
-    navigate("/banking/linked-accounts", { state: { mobile } });
+    // For now, simulate success by navigating with added account state
+    // In a real flow, we'd fetch the newly linked accounts first
+    const mockAccount: BankAccount = {
+      id: "linked-" + Date.now(),
+      user_id: USER_ID,
+      bank_name: "HDFC Bank",
+      account_type: "Savings Account",
+      account_number: "XXXX XXXX 1234",
+      account_holder_name: "Test User",
+      ifsc_code: "HDFC0001234",
+      branch_name: "HDFC Bank, Main Branch",
+      is_default: true
+    };
+
+    navigate("/banking", { state: { accountsAdded: true, selectedAccounts: [mockAccount] } });
   };
 
   // Helper to title case string (e.g. "GUWAHATI" -> "Guwahati")
@@ -114,25 +132,31 @@ const AddBank = () => {
     );
   };
 
-  const handleManualVerify = () => {
+  const handleManualVerify = async () => {
     if (!bankDetails) return;
 
+    setIsLoading(true);
     const formattedBranch = toTitleCase(bankDetails.BRANCH);
 
-    const newAccount: BankAccount = {
-      id: Date.now().toString(), // Generate unique ID
-      bankName: bankDetails.BANK,
-      accountType: "Savings Account", // Default
-      accountNumber: accountNumber,
-      ifsc: ifscCode,
-      branch: `${bankDetails.BANK}, ${formattedBranch}`, // Store fuller details
-      logo: getBankLogo(bankDetails.BANK),
-      isDefault: false, // handled by addManualAccount
-    };
+    try {
+      const newAccount: Omit<BankAccount, 'id' | 'created_at' | 'masked_number'> = {
+        user_id: USER_ID,
+        bank_name: bankDetails.BANK,
+        account_type: accountType,
+        account_number: accountNumber,
+        account_holder_name: accountHolderName,
+        ifsc_code: ifscCode,
+        branch_name: formattedBranch,
+        is_default: false,
+      };
 
-    addManualAccount(newAccount);
-    // Pass state to show success modal if needed, or just standard navigation
-    navigate("/banking", { state: { accountsAdded: true, selectedAccounts: [newAccount] } });
+      const savedAccount = await createBankAccount(newAccount);
+      setIsLoading(false);
+      navigate("/banking", { state: { accountsAdded: true, selectedAccounts: [savedAccount] } });
+    } catch (error) {
+      console.error("Error adding bank account:", error);
+      setIsLoading(false);
+    }
   };
 
   const isButtonDisabled = () => {
@@ -144,7 +168,8 @@ const AddBank = () => {
       // Manual flow validation
       const accountsMatch = accountNumber && confirmAccountNumber && accountNumber === confirmAccountNumber;
       const isIfscValid = ifscCode.length === 11 && bankName.length > 0;
-      return !accountsMatch || !isIfscValid;
+      const hasHolderName = accountHolderName.trim().length > 0;
+      return !accountsMatch || !isIfscValid || !hasHolderName;
     }
   };
 
@@ -420,6 +445,39 @@ const AddBank = () => {
                     Account numbers do not match
                   </p>
                 )}
+              </div>
+
+              {/* Account Holder Name */}
+              <input
+                type="text"
+                placeholder="Account Holder Name"
+                value={accountHolderName}
+                onChange={(e) => setAccountHolderName(e.target.value)}
+                className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${isDarkMode
+                  ? "bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
+                  : "bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20"
+                  }`}
+              />
+
+              {/* Account Type Selection */}
+              <div className="flex flex-col gap-3">
+                <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[13px] ml-5`}>
+                  Account Type
+                </p>
+                <div className="flex gap-3">
+                  {['Savings Account', 'Current Account'].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setAccountType(type)}
+                      className={`flex-1 h-[40px] rounded-full text-[13px] font-medium transition-all duration-200 ${accountType === type
+                        ? (isDarkMode ? 'bg-white text-black' : 'bg-black text-white')
+                        : (isDarkMode ? 'bg-white/5 text-white/60 border border-white/10' : 'bg-[#F7F8FA] text-black/60 border border-[#E6E8EB]')
+                        }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>

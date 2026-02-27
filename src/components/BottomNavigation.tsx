@@ -22,7 +22,7 @@ import moreLight from "@/assets/more-light.svg";
 import moreSelectedLight from "@/assets/more-selected-light.svg";
 
 interface BottomNavigationProps {
-  activeTab: "home" | "cards" | "rewards" | "more";
+  activeTab?: "home" | "cards" | "rewards" | "more" | "";
   isHidden?: boolean;
 }
 

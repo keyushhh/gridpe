@@ -450,15 +450,15 @@ const FxSuccess = () => {
 
                     <div className="flex justify-between items-center mb-[8px]">
                         <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Transaction Number</span>
-                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{order.id.slice(0, 8).toUpperCase()}...</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{order?.transaction_number || 'N/A'}</span>
                     </div>
 
                     <div className="flex justify-between items-center mb-[8px]">
                         <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Date & Time</span>
                         <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>
-                            {new Date(order.created_at).toLocaleString('en-IN', {
+                            {order?.created_at ? new Date(order.created_at).toLocaleString('en-IN', {
                                 day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
-                            })}
+                            }) : '...'}
                         </span>
                     </div>
 
@@ -469,7 +469,7 @@ const FxSuccess = () => {
 
                     <div className="flex justify-between items-center mb-[8px]">
                         <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Amount Held</span>
-                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>₹{(order?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     {isFx && (

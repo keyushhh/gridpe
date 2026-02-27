@@ -26,7 +26,7 @@ import { supabase, USER_ID } from "@/lib/supabase";
 export interface WalletTransaction {
     id: string;
     user_id: string;
-    type: 'credit' | 'debit' | 'hold';
+    transaction_type: 'credit' | 'debit' | 'held';
     amount: number;
     status: 'success' | 'failed' | 'pending';
     created_at: string;
@@ -181,7 +181,7 @@ const WalletTransactionHistory = () => {
             if (filters.type !== 'All') {
                 if (filters.type === 'Cash Order' && !tx.description.toLowerCase().includes('cash order')) return false;
                 if (filters.type === 'Withdrawal' && !tx.description.toLowerCase().includes('withdrawal')) return false;
-                if (filters.type === 'Wallet Top-Up' && !(tx.type === 'credit' && tx.description.toLowerCase().includes('top up'))) return false;
+                if (filters.type === 'Wallet Top-Up' && !(tx.transaction_type === 'credit' && tx.description.toLowerCase().includes('top up'))) return false;
             }
 
             // 4. Method Filter
@@ -282,12 +282,12 @@ const WalletTransactionHistory = () => {
         : ["All Time", "Today", "Past 7 Days", "Past 30 Days", "Past 90 Days", "Past Year"];
 
     const getTransactionDisplay = (tx: WalletTransaction) => {
-        let title = tx.type === 'credit' ? "Amount Credited" : "Amount Debited";
+        let title = tx.transaction_type === 'credit' ? "Amount Credited" : tx.transaction_type === 'held' ? "Amount Held" : "Amount Debited";
         let subtitle = tx.description;
 
         // Try mapping from metadata first (for newer transactions)
         const methodId = tx.metadata?.paymentMethodId as string | undefined;
-        if (methodId && tx.type === 'credit') {
+        if (methodId && tx.transaction_type === 'credit') {
             if (['cred', 'gpay', 'phonepe', 'upi-id'].includes(methodId)) {
                 return { title, subtitle: "Added via UPI" };
             }
@@ -305,7 +305,7 @@ const WalletTransactionHistory = () => {
         // Fallback to pattern matching (for older or non-topup transactions)
         const desc = tx.description.toLowerCase();
         if (tx.metadata?.isFx) {
-            title = tx.type === 'credit' ? "Amount Credited" : "Amount Debited";
+            title = tx.transaction_type === 'credit' ? "Amount Credited" : tx.transaction_type === 'held' ? "Amount Held" : "Amount Debited";
             subtitle = "FX Exchange";
         } else if (desc.includes("cash order")) {
             title = "Amount Debited";
@@ -331,7 +331,7 @@ const WalletTransactionHistory = () => {
             subtitle = "Added via Netbanking";
         } else if (desc.includes("amazon wallet") || desc.includes("amazon")) {
             subtitle = "Added via Amazon Wallet";
-        } else if (tx.type === 'credit') {
+        } else if (tx.transaction_type === 'credit') {
             const cleanDesc = tx.description.replace(/^Added via\s+/i, '');
             subtitle = `Added via ${cleanDesc}`;
         }
@@ -682,8 +682,8 @@ const WalletTransactionHistory = () => {
                                 >
                                     {transactions.map((tx, txIndex) => {
                                         const { title, subtitle } = getTransactionDisplay(tx);
-                                        const icon = tx.type === 'credit' ? creditedArrow : debitedArrow;
-                                        const amountColor = tx.type === 'credit' ? '#1CB956' : '#FF1E1E';
+                                        const icon = (tx.status === 'pending' || tx.transaction_type === 'held') ? processingIcon : (tx.transaction_type === 'credit' ? creditedArrow : debitedArrow);
+                                        const amountColor = (tx.status === 'pending' || tx.transaction_type === 'held') ? '#F59E0B' : (tx.transaction_type === 'credit' ? '#1CB956' : '#FF1E1E');
 
                                         const time = new Date(tx.created_at).toLocaleTimeString('en-US', {
                                             hour: 'numeric', minute: '2-digit', hour12: true
@@ -713,9 +713,9 @@ const WalletTransactionHistory = () => {
                                                             className="text-[12px] font-bold leading-[120%]"
                                                             style={{ color: amountColor }}
                                                         >
-                                                            {tx.type === 'credit' ? '+' : '-'} {tx.metadata?.isFx
+                                                            {tx.transaction_type === 'credit' ? '+' : '-'} {tx.metadata?.isFx
                                                                 ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                                                : `₹${tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                                : `₹${Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                             }
                                                         </span>
                                                         <span className="text-[#666666] dark:text-white/50 text-[12px] font-normal leading-[120%]">

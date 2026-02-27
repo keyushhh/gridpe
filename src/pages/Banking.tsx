@@ -24,12 +24,13 @@ import tutorialTap from "@/assets/tutorial-tap.png";
 import tutorialLongPress from "@/assets/tutorial-long-press.png";
 
 import {
-    getBankAccounts,
-    addSelectedAccounts,
-    removeBankAccount,
-    setDefaultBankAccount,
+    fetchBankAccounts,
+    deleteBankAccount,
+    setDefaultBankAccount as setSupabaseDefault,
     BankAccount
-} from "@/utils/bankUtils";
+} from "@/lib/banking";
+import { getBankLogo } from "@/utils/bankUtils";
+import { USER_ID } from "@/lib/supabase";
 
 const Banking = () => {
     const navigate = useNavigate();
@@ -56,25 +57,28 @@ const Banking = () => {
     const isLongPressRef = useRef(false);
 
     useEffect(() => {
-        // Check if we came from LinkedAccounts flow
-        let currentAccounts = getBankAccounts();
+        const loadAccounts = async () => {
+            try {
+                const data = await fetchBankAccounts();
+                setAccounts(data);
+                setIsStacked(data.length > 1);
 
-        if (location.state?.accountsAdded && location.state?.selectedAccounts) {
-            const selected = location.state.selectedAccounts;
-            currentAccounts = addSelectedAccounts(selected);
-            setAccounts(currentAccounts);
-            setShowSuccessModal(true);
-            setIsStacked(currentAccounts.length > 1);
-            // Clean up state
-            window.history.replaceState({}, document.title);
-        } else {
-            setAccounts(currentAccounts);
-            setIsStacked(currentAccounts.length > 1);
-        }
+                // Handle success state from AddBank redirection
+                if (location.state?.accountsAdded) {
+                    setShowSuccessModal(true);
+                    // Clean up state
+                    window.history.replaceState({}, document.title);
+                }
+            } catch (error) {
+                console.error("Error loading bank accounts:", error);
+            }
+        };
+
+        loadAccounts();
 
         // Check for tutorial
         const hasSeenTutorial = localStorage.getItem("gridpe_stack_tutorial_seen");
-        if (!hasSeenTutorial && currentAccounts.length > 1) {
+        if (!hasSeenTutorial && accounts.length > 1) {
             setTutorialStep(1);
         }
     }, [location.state]);
@@ -131,10 +135,6 @@ const Banking = () => {
         return num.match(/.{1,4}/g)?.join(" ") || num;
     };
 
-    const getMaskedAccountNumber = (num: string) => {
-        return "****************";
-    };
-
     // --- Long Press Handlers ---
     const startPress = (id: string) => {
         if (isStacked) return;
@@ -175,8 +175,8 @@ const Banking = () => {
     }, [isStacked]);
 
     const sortedAccounts = [...accounts].sort((a, b) => {
-        if (a.isDefault === b.isDefault) return 0;
-        return a.isDefault ? -1 : 1;
+        if (a.is_default === b.is_default) return 0;
+        return a.is_default ? -1 : 1;
     });
 
     // Calculate blur class
@@ -215,7 +215,7 @@ const Banking = () => {
                 {/* Header */}
                 <div className="px-5 pt-12 flex items-center justify-between shrink-0 relative z-10">
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate("/settings")}
                         className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
                     >
                         <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
@@ -261,8 +261,7 @@ const Banking = () => {
                         /* Populated State (Stack/List) */
                         <div className={`transition-all duration-500 ease-in-out ${isStacked ? 'mt-4 relative h-[320px] w-full mx-auto' : 'flex flex-col gap-4'}`}>
                             {sortedAccounts.map((account, index) => {
-                                const isDefault = account.isDefault;
-                                const isVisible = visibleAccountIds[account.id] || false;
+                                const isDefault = account.is_default;
                                 const isSelected = selectedAccountId === account.id;
 
                                 // Layout adjustments for Default vs Normal
@@ -334,7 +333,7 @@ const Banking = () => {
                                                             <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi leading-none">
                                                                 Account Number
                                                             </p>
-                                                            {/* Savings Account Pill */}
+                                                            {/* Account Type Pill */}
                                                             <div
                                                                 className="rounded-full flex items-center justify-center"
                                                                 style={{
@@ -345,22 +344,24 @@ const Banking = () => {
                                                                 }}
                                                             >
                                                                 <span className="text-[#C4C4C4] text-[10px] font-medium whitespace-nowrap">
-                                                                    {account.accountType}
+                                                                    {account.account_type}
                                                                 </span>
                                                             </div>
                                                         </div>
 
                                                         {/* Account Number Value */}
-                                                        <div className="flex items-center gap-4 mt-[4px]">
+                                                        <div className="flex items-center justify-between mt-[4px]">
                                                             <p className="text-white text-[18px] font-bold font-satoshi tracking-wider truncate">
-                                                                {isVisible ? formatAccountNumber(account.accountNumber) : getMaskedAccountNumber(account.accountNumber)}
+                                                                {visibleAccountIds[account.id]
+                                                                    ? formatAccountNumber(account.account_number)
+                                                                    : account.account_number.slice(-4).padStart(account.account_number.length, '*')
+                                                                }
                                                             </p>
                                                             <button
-                                                                type="button"
                                                                 onClick={(e) => toggleAccountVisibility(account.id, e)}
-                                                                className="text-white/80 hover:text-white shrink-0"
+                                                                className="text-white/60 hover:text-white transition-colors ml-2 shrink-0"
                                                             >
-                                                                {isVisible ? <Eye size={18} /> : <EyeOff size={18} />}
+                                                                {visibleAccountIds[account.id] ? <EyeOff size={18} /> : <Eye size={18} />}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -369,7 +370,7 @@ const Banking = () => {
                                                     <div className="w-full">
                                                         <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi mb-0.5">IFSC Code</p>
                                                         <p className="text-white text-[15px] font-medium font-satoshi">
-                                                            {account.ifsc}
+                                                            {account.ifsc_code}
                                                         </p>
                                                     </div>
 
@@ -378,13 +379,13 @@ const Banking = () => {
                                                         <div className="max-w-[70%]">
                                                             <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi mb-0.5">Branch</p>
                                                             <p className="text-white text-[14px] font-medium font-satoshi leading-tight truncate">
-                                                                {account.branch}
+                                                                {account.branch_name}
                                                             </p>
                                                         </div>
 
                                                         {/* Bank Logo */}
                                                         <div className="w-[48px] h-[48px] flex items-center justify-end">
-                                                            <img src={account.logo} alt="Bank" className="h-[32px] w-auto object-contain" />
+                                                            <img src={getBankLogo(account.bank_name)} alt="Bank" className="h-[32px] w-auto object-contain" />
                                                         </div>
                                                     </div>
 
@@ -551,7 +552,7 @@ const Banking = () => {
 
             {/* Bottom Nav */}
             <div className={contentBlurClass}>
-                <BottomNavigation activeTab="more" isHidden={confirmAction !== null} />
+                <BottomNavigation activeTab="" isHidden={confirmAction !== null} />
             </div>
 
             {/* Confirmation Modal */}
@@ -566,25 +567,34 @@ const Banking = () => {
                 }
                 primaryButtonSrc={confirmAction === 'remove' ? buttonRemoveCard : buttonSetDefault}
                 primaryText={confirmAction === 'remove' ? "Remove Account" : "Set as Default"}
-                onPrimaryClick={() => {
+                onPrimaryClick={async () => {
                     if (confirmAction === 'remove' && selectedAccountId) {
                         // Find account to get last 4 digits
                         const accountToRemove = accounts.find(a => a.id === selectedAccountId);
-                        const last4 = accountToRemove ? accountToRemove.accountNumber.slice(-4) : 'XXXX';
+                        const last4 = accountToRemove?.account_number?.slice(-4) || 'XXXX';
 
                         // Implementation for removal
-                        removeBankAccount(selectedAccountId);
-
-                        // Navigate to success page
-                        closeConfirmation();
-                        navigate("/bank-remove-success", { state: { last4 } });
+                        try {
+                            await deleteBankAccount(selectedAccountId);
+                            setAccounts(prev => prev.filter(a => a.id !== selectedAccountId));
+                            closeConfirmation();
+                            navigate("/bank-remove-success", { state: { last4 } });
+                        } catch (error) {
+                            console.error("Error removing bank account:", error);
+                        }
                     } else if (confirmAction === 'default' && selectedAccountId) {
                         // Implementation for default
-                        const updated = setDefaultBankAccount(selectedAccountId);
-                        setAccounts(updated);
-                        setIsStacked(updated.length > 0);
-                        setSelectedAccountId(null);
-                        closeConfirmation();
+                        try {
+                            const updatedAccount = await setSupabaseDefault(selectedAccountId);
+                            // Refresh accounts to reflect default change
+                            const updatedList = await fetchBankAccounts();
+                            setAccounts(updatedList);
+                            setIsStacked(updatedList.length > 0);
+                            setSelectedAccountId(null);
+                            closeConfirmation();
+                        } catch (error) {
+                            console.error("Error setting default bank account:", error);
+                        }
                     }
                 }}
                 secondaryButtonSrc={buttonCancelWide}
@@ -592,117 +602,121 @@ const Banking = () => {
             />
 
             {/* Success Modal */}
-            {showSuccessModal && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
-                    {/* Background blur overlay */}
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-                    {/* Popup Box — 362x199px, radius 13px */}
-                    <div
-                        className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? 'border border-white/10' : ''}`}
-                        style={isDarkMode ? {
-                            backgroundImage: `url(${popupBg})`,
-                            backgroundSize: '100% 100%',
-                            backgroundPosition: 'center',
-                            width: '362px',
-                            height: '199px',
-                        } : {
-                            backgroundImage: `url(${cardPopupLight})`,
-                            backgroundSize: '100% 100%',
-                            backgroundPosition: 'center',
-                            width: '362px',
-                            height: '199px',
-                        }}
-                    >
-                        {/* Icon — 26x26, 22px from top */}
-                        <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
-                            <img
-                                src={isDarkMode ? popupCardIcon : cardLineIcon}
-                                alt="Success"
-                                className="object-contain"
-                                style={{
-                                    width: '26px',
-                                    height: '26px',
-                                    filter: !isDarkMode ? 'brightness(0)' : undefined,
-                                }}
-                            />
-                        </div>
-
-                        {/* Header — Satoshi Bold 16px, 12px below icon */}
-                        <h2
-                            className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
-                            style={{ marginTop: '12px' }}
-                        >
-                            Bank Account Added Successfully
-                        </h2>
-
-                        {/* Inner Container — 318x73px, radius 16px, 24px below heading */}
+            {
+                showSuccessModal && (
+                    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
+                        {/* Background blur overlay */}
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                        {/* Popup Box — 362x199px, radius 13px */}
                         <div
-                            className={`${isDarkMode ? 'bg-black' : 'bg-white'} flex items-center px-4`}
-                            style={{
-                                marginTop: '24px',
-                                width: '318px',
-                                height: '73px',
-                                borderRadius: '16px',
+                            className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? 'border border-white/10' : ''}`}
+                            style={isDarkMode ? {
+                                backgroundImage: `url(${popupBg})`,
+                                backgroundSize: '100% 100%',
+                                backgroundPosition: 'center',
+                                width: '362px',
+                                height: '199px',
+                            } : {
+                                backgroundImage: `url(${cardPopupLight})`,
+                                backgroundSize: '100% 100%',
+                                backgroundPosition: 'center',
+                                width: '362px',
+                                height: '199px',
                             }}
                         >
-                            <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[120%] text-left font-sans`}>
-                                Your bank account has been saved successfully. You can now use this account for withdrawals and deposits.
-                            </p>
+                            {/* Icon — 26x26, 22px from top */}
+                            <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
+                                <img
+                                    src={isDarkMode ? popupCardIcon : cardLineIcon}
+                                    alt="Success"
+                                    className="object-contain"
+                                    style={{
+                                        width: '26px',
+                                        height: '26px',
+                                        filter: !isDarkMode ? 'brightness(0)' : undefined,
+                                    }}
+                                />
+                            </div>
+
+                            {/* Header — Satoshi Bold 16px, 12px below icon */}
+                            <h2
+                                className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
+                                style={{ marginTop: '12px' }}
+                            >
+                                Bank Account Added Successfully
+                            </h2>
+
+                            {/* Inner Container — 318x73px, radius 16px, 24px below heading */}
+                            <div
+                                className={`${isDarkMode ? 'bg-black' : 'bg-white'} flex items-center px-4`}
+                                style={{
+                                    marginTop: '24px',
+                                    width: '318px',
+                                    height: '73px',
+                                    borderRadius: '16px',
+                                }}
+                            >
+                                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[120%] text-left font-sans`}>
+                                    Your bank account has been saved successfully. You can now use this account for withdrawals and deposits.
+                                </p>
+                            </div>
                         </div>
+                        <button
+                            onClick={() => setShowSuccessModal(false)}
+                            className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${!isDarkMode ? 'border-none' : ''}`}
+                            style={isDarkMode ? {
+                                backgroundImage: `url(${buttonCloseBg})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                            } : {
+                                backgroundColor: '#5260FE',
+                            }}
+                        >
+                            <X className={`w-4 h-4 ${isDarkMode ? 'text-foreground' : 'text-white'}`} />
+                            <span className={`${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px]`}>Close</span>
+                        </button>
                     </div>
-                    <button
-                        onClick={() => setShowSuccessModal(false)}
-                        className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${!isDarkMode ? 'border-none' : ''}`}
-                        style={isDarkMode ? {
-                            backgroundImage: `url(${buttonCloseBg})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                        } : {
-                            backgroundColor: '#5260FE',
-                        }}
-                    >
-                        <X className={`w-4 h-4 ${isDarkMode ? 'text-foreground' : 'text-white'}`} />
-                        <span className={`${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px]`}>Close</span>
-                    </button>
-                </div>
-            )}
+                )
+            }
 
             {/* Tutorial Overlay */}
-            {tutorialStep > 0 && (
-                <div
-                    className="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
-                    onClick={handleTutorialClick}
-                >
-                    {/* Content */}
-                    <div className="flex flex-col items-center text-center max-w-[320px] pb-32 animate-in zoom-in-95 duration-300">
-                        {tutorialStep === 1 && (
-                            <>
-                                <img
-                                    src={tutorialTap}
-                                    alt="Tap"
-                                    className="w-[60px] h-[60px] object-contain mb-4"
-                                />
-                                <p className="text-white text-[15px] font-medium leading-relaxed">
-                                    Single tap to expand the cards list.
-                                </p>
-                            </>
-                        )}
-                        {tutorialStep === 2 && (
-                            <>
-                                <img
-                                    src={tutorialLongPress}
-                                    alt="Long Press"
-                                    className="w-[60px] h-[60px] object-contain mb-4"
-                                />
-                                <p className="text-white text-[15px] font-medium leading-relaxed">
-                                    Long press the card to expand additional actions such as deleting card, making card primary.
-                                </p>
-                            </>
-                        )}
+            {
+                tutorialStep > 0 && (
+                    <div
+                        className="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+                        onClick={handleTutorialClick}
+                    >
+                        {/* Content */}
+                        <div className="flex flex-col items-center text-center max-w-[320px] pb-32 animate-in zoom-in-95 duration-300">
+                            {tutorialStep === 1 && (
+                                <>
+                                    <img
+                                        src={tutorialTap}
+                                        alt="Tap"
+                                        className="w-[60px] h-[60px] object-contain mb-4"
+                                    />
+                                    <p className="text-white text-[15px] font-medium leading-relaxed">
+                                        Single tap to expand the cards list.
+                                    </p>
+                                </>
+                            )}
+                            {tutorialStep === 2 && (
+                                <>
+                                    <img
+                                        src={tutorialLongPress}
+                                        alt="Long Press"
+                                        className="w-[60px] h-[60px] object-contain mb-4"
+                                    />
+                                    <p className="text-white text-[15px] font-medium leading-relaxed">
+                                        Long press the card to expand additional actions such as deleting card, making card primary.
+                                    </p>
+                                </>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

@@ -232,25 +232,26 @@ const FxExchangeSummary = () => {
             }
 
             const receiveAmount = finalAmount - tipAmount;
+            const cleanedAmount = Math.round(receiveAmount * 100) / 100;
 
             // Call Edge Function using supabase.functions.invoke
             const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
                 body: {
-                    user_id: userId,
-                    amount: finalAmount, // Final Amount You'll Receive (e.g., 8577.81)
+                    amount: cleanedAmount,
                     address_id: addressId,
                     order_type: 'FX_EXCHANGE',
+                    transaction_type: 'held',
                     meta_data: {
                         is_fx: true,
-                        receive_amount: receiveAmount,
+                        receive_amount: cleanedAmount,
                         from_currency: fromCurrency,
                         to_currency: toCurrency,
                         fx_rate: fxRate,
                         markup_amount: markupAmount,
                         flat_fee: flatFee,
                         source_amount: amount,
-                        base_rate: fxRate, // explicitly requested
-                        markup: markupAmount, // explicitly requested
+                        base_rate: fxRate,
+                        markup: markupAmount,
                     }
                 }
             });
@@ -274,6 +275,76 @@ const FxExchangeSummary = () => {
                 }
             });
         } catch (error: any) {
+            // Retry Logic: If address ID is invalid (FK violation), try to create a new address record
+            if (error?.code === '23503' || error?.message?.includes('foreign key constraint') || error?.message?.includes('Address not found') || error?.message?.includes('Invalid request')) {
+                console.log("Stale address ID detected. Creating new address record...");
+                try {
+                    const userId = await getAuthUserId();
+                    if (!savedAddress) throw new Error("No address data to recreate.");
+
+                    const newAddress = await createAddress({
+                        user_id: userId,
+                        label: savedAddress.tag,
+                        apartment: savedAddress.house,
+                        area: savedAddress.area,
+                        landmark: savedAddress.landmark || "",
+                        city: savedAddress.city,
+                        state: savedAddress.state,
+                        plus_code: savedAddress.plusCode || null,
+                        latitude: 0,
+                        longitude: 0,
+                        contact_name: savedAddress.name,
+                        contact_phone: savedAddress.phone
+                    });
+
+                    const newAddressId = newAddress.id;
+                    const updatedAddr = { ...savedAddress, id: newAddressId };
+                    setSavedAddress(updatedAddr);
+                    localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
+
+                    // Retry Order Creation
+                    const receiveAmount = finalAmount - tipAmount;
+                    const cleanedAmount = Math.round(receiveAmount * 100) / 100;
+
+                    const { data: retryData, error: retryInvokeError } = await supabase.functions.invoke('create-order', {
+                        body: {
+                            amount: cleanedAmount,
+                            address_id: newAddressId,
+                            order_type: 'FX_EXCHANGE',
+                            transaction_type: 'held',
+                            meta_data: {
+                                is_fx: true,
+                                receive_amount: cleanedAmount,
+                                from_currency: fromCurrency,
+                                to_currency: toCurrency,
+                                fx_rate: fxRate,
+                                markup_amount: markupAmount,
+                                flat_fee: flatFee,
+                                source_amount: amount,
+                                base_rate: fxRate,
+                                markup: markupAmount,
+                            }
+                        }
+                    });
+
+                    if (retryInvokeError) throw retryInvokeError;
+                    if (retryData?.error) throw new Error(retryData.error);
+
+                    navigate(`/fx-success/${retryData.order_id || retryData.id}`, {
+                        state: {
+                            totalAmount: amount,
+                            receiveAmount: receiveAmount,
+                            savedAddress: updatedAddr,
+                            order: { id: retryData.order_id || retryData.id, ...retryData },
+                            isFx: true
+                        }
+                    });
+                    return; // Success after retry
+                } catch (retryError) {
+                    console.error("Retry failed", retryError);
+                }
+            }
+
             console.error("Failed to create order", error);
             showToaster(`Failed to place order: ${error.message || "Please try again."} `, 'error');
         }

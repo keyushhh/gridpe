@@ -73,26 +73,30 @@ const WalletCreated = () => {
     const renderStatusIndicator = () => {
         // Prioritize showing transaction status if there is a balance and a transaction exists
         if (walletBalance > 0 && latestTx) {
-            const formattedAmount = latestTx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const absAmount = Math.abs(latestTx.amount);
+            const formattedAmount = absAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             let statusColor = "";
             let strokeColor = "";
             let title = "";
             let description = "";
 
-            if (latestTx.type === 'hold') {
+            if (latestTx.status === 'pending' || latestTx.transaction_type === 'held') {
                 statusColor = "#FACC15"; // Yellow
                 strokeColor = "rgba(250, 204, 21, 0.17)";
-                title = `On hold - ₹${formattedAmount}`;
-                description = `₹${formattedAmount} is currently on hold. It’ll be released after delivery confirmation.`;
-            } else if (latestTx.type === 'debit') {
+                const isWithdrawal = latestTx.description.toLowerCase().includes('withdrawal');
+                title = isWithdrawal ? `Withdrawal Pending - ₹${formattedAmount}` : `On hold ₹${formattedAmount}`;
+                description = isWithdrawal
+                    ? `₹${formattedAmount} withdrawal is being processed by the bank.`
+                    : `₹${formattedAmount} is currently on hold. It’ll be released after delivery confirmation.`;
+            } else if (latestTx.transaction_type === 'debit') {
                 statusColor = "#D33313"; // Red
                 strokeColor = "rgba(211, 51, 19, 0.17)";
                 title = `Amount debited - ₹${formattedAmount}`;
                 description = `₹${formattedAmount} was debited from your wallet after successful delivery confirmation.`;
-            } else if (latestTx.type === 'credit') {
+            } else if (latestTx.transaction_type === 'credit') {
                 statusColor = "#5CFF00"; // Green
                 strokeColor = "rgba(92, 255, 0, 0.17)";
-                title = `Amount Credited - ₹${formattedAmount}`;
+                title = `Amount Credited + ₹${formattedAmount}`;
                 description = `₹${formattedAmount} was added to your wallet via UPI.`;
             }
 
@@ -247,7 +251,7 @@ const WalletCreated = () => {
                             </span>
                         </div>
 
-                        <div className="mt-[8px]">
+                        <div className="mt-auto">
                             <span className={`${isDarkMode ? 'text-white/80' : 'text-black/80'} text-[14px] font-medium font-sans`}>
                                 Limit: {dbLimit.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                             </span>
@@ -305,8 +309,8 @@ const WalletCreated = () => {
 
                             <div className="flex flex-col gap-[16px]">
                                 {walletTransactions.map(tx => {
-                                    const icon = (tx.type === 'debit' || tx.status === 'failed') ? failedIcon :
-                                        (tx.status === 'pending' || tx.type === 'hold') ? processingIcon :
+                                    const icon = (tx.transaction_type === 'debit' || tx.status === 'failed') ? failedIcon :
+                                        (tx.status === 'pending' || tx.transaction_type === 'held') ? processingIcon :
                                             successIcon;
 
                                     return (
@@ -326,7 +330,7 @@ const WalletCreated = () => {
                                             </div>
                                             <div className="text-right">
                                                 <span className={`text-[13px] font-normal font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                                    {tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         </div>

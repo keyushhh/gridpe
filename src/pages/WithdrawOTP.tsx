@@ -16,6 +16,7 @@ import cancelCta from "@/assets/cancel-cta.png";
 import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { supabase, USER_ID } from "@/lib/supabase";
+import { createPayout } from "@/lib/banking";
 
 const WithdrawOTP = () => {
     const navigate = useNavigate();
@@ -46,21 +47,11 @@ const WithdrawOTP = () => {
         }
     }, [otp]);
 
-    const allMethods = [
-        { id: "cred", name: "CRED UPI", icon: credIcon },
-        { id: "gpay", name: "Google Pay UPI", icon: gpayIcon },
-        { id: "phonepe", name: "PhonePe UPI", icon: phonepeIcon },
-        { id: "upi-id", name: "UPI ID", subtitle: "Required" },
-        { id: "hdfc-card", name: "3232 **** **** 5233", icon: hdfcLogo },
-        { id: "amazon", name: "Amazon Pay Wallet", icon: amazonIcon },
-        { id: "netbanking", name: "HDFC Netbanking", icon: hdfcLogo, subtitle: "Savings account | 5233" },
-    ];
+    // We now receive the full method details in stateMethod from SelectPaymentMethod
+    // but we can keep a fallback matching the selectedMethod ID if needed for robustness.
 
-    // Priority: 1. stateMethod (passed from prev screen), 2. allMethods lookup, 3. fallback
-    const baseMethod = stateMethod || allMethods.find(m => m.id === selectedMethod) || allMethods[4];
-
-    // Create a copy to override name if it's a UPI ID
-    const method = { ...baseMethod };
+    // Priority: 1. stateMethod (passed from prev screen), 2. fallback
+    const method = { ...(stateMethod || { id: "unknown", name: "Transfer" }) };
     if (method.id === "upi-id" && upiId) {
         method.name = upiId;
     }
@@ -69,6 +60,14 @@ const WithdrawOTP = () => {
         if (isVerified) {
             setLoading(true);
             try {
+                // 1. Create payout record
+                await createPayout({
+                    user_id: USER_ID,
+                    bank_account_id: selectedMethod, // selectedMethod is the ID from Prev screen
+                    amount: parseFloat(amount)
+                });
+
+                // 2. Legacy Edge Function call (if still needed, keeping for now)
                 const { data, error: funcError } = await supabase.functions.invoke("request-withdrawal", {
                     body: { user_id: USER_ID, amount: parseFloat(amount) }
                 });

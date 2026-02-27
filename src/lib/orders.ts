@@ -10,6 +10,7 @@ export interface Order {
   address_id: string | null;
   created_at: string;
   updated_at?: string;
+  transaction_number?: string;
   metadata?: {
     failure_reason?: string;
     cancelled_by?: string;

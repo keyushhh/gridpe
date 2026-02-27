@@ -236,14 +236,21 @@ const OrderCashSummary = () => {
                     address_id: addressId,
                 });
 
+                const cleanedAmount = Math.round(totalAmount * 100) / 100;
+
                 const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
                     body: {
-                        item_value: parsedAmount,
-                        delivery_fee: deliveryFee,
-                        delivery_tip: tipAmount,
-                        gst: gst,
-                        platform_fee: platformFee,
+                        amount: cleanedAmount,
                         address_id: addressId,
+                        order_type: 'CASH_ORDER',
+                        transaction_type: 'held',
+                        meta_data: {
+                            item_value: parsedAmount,
+                            delivery_fee: deliveryFee,
+                            delivery_tip: tipAmount,
+                            gst: gst,
+                            platform_fee: platformFee,
+                        }
                     }
                 });
 
@@ -287,14 +294,21 @@ const OrderCashSummary = () => {
                         localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
                         // Retry Order Creation
+                        const cleanedRetryAmount = Math.round(totalAmount * 100) / 100;
+
                         const { data: retryData, error: retryInvokeError } = await supabase.functions.invoke('create-order', {
                             body: {
-                                item_value: parsedAmount,
-                                delivery_fee: deliveryFee,
-                                delivery_tip: tipAmount,
-                                gst: gst,
-                                platform_fee: platformFee,
+                                amount: cleanedRetryAmount,
                                 address_id: newAddressId,
+                                order_type: 'CASH_ORDER',
+                                transaction_type: 'held',
+                                meta_data: {
+                                    item_value: parsedAmount,
+                                    delivery_fee: deliveryFee,
+                                    delivery_tip: tipAmount,
+                                    gst: gst,
+                                    platform_fee: platformFee,
+                                }
                             }
                         });
 

@@ -82,21 +82,18 @@ export const createAddress = async (address: Omit<Address, 'id' | 'created_at'>)
   const explicitUserId = '414c977e-6f70-4f57-bfa1-af0a8a2053a4';
 
   const insertPayload = {
-    ...address,
     user_id: explicitUserId,
-    // Strictly convert latitude and longitude to numbers (fallback 0)
-    latitude: Number(address.latitude) || 0,
-    longitude: Number(address.longitude) || 0,
-    // Explicit null fallback for optional string values per schema
-    plus_code: address.plus_code || null,
+    label: address.label || null,
     apartment: address.apartment || null,
     area: address.area || null,
     landmark: address.landmark || null,
     city: address.city || null,
     state: address.state || null,
+    latitude: Number(address.latitude) || 0,
+    longitude: Number(address.longitude) || 0,
+    plus_code: address.plus_code || null,
     contact_name: address.contact_name || null,
     contact_phone: address.contact_phone || null,
-    label: address.label || null
   };
 
   const { data, error } = await supabase

@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { useAsset } from "@/hooks/useAsset";
 import { useUser } from "@/contexts/UserContext";
 import { getCards } from "@/utils/cardUtils";
-import { getBankAccounts } from "@/utils/bankUtils";
+import { fetchBankAccounts } from "@/lib/banking";
 import avatarImg from "@/assets/avatar.png";
 import gridPeLogo from "@/assets/grid.pe.svg";
 import iconSecurity from "@/assets/icon-security.svg";
@@ -107,7 +107,15 @@ const Settings = () => {
 
   useEffect(() => {
     setCardCount(getCards().length);
-    setBankAccountCount(getBankAccounts().length);
+    const loadBankCount = async () => {
+      try {
+        const accounts = await fetchBankAccounts();
+        setBankAccountCount(accounts.length);
+      } catch (error) {
+        console.error("Error loading bank count:", error);
+      }
+    };
+    loadBankCount();
   }, []);
 
   const handleLogoPress = () => {

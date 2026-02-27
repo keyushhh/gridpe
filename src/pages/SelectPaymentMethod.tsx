@@ -11,6 +11,8 @@ import phonepeIcon from "@/assets/phonepe.png";
 import hdfcLogo from "@/assets/hdfc-bank-logo.png";
 import amazonIcon from "@/assets/amazon.png";
 import addPaymentCta from "@/assets/add-payment-cta.png";
+import { fetchBankAccounts, BankAccount } from "@/lib/banking";
+import { getBankLogo } from "@/utils/bankUtils";
 
 interface PaymentMethod {
     id: string;
@@ -27,8 +29,28 @@ const SelectPaymentMethod = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const { amount } = location.state || {};
-    const [selectedMethod, setSelectedMethod] = useState<string>("hdfc-card");
+    const [selectedMethod, setSelectedMethod] = useState<string>("");
     const [upiId, setUpiId] = useState<string>("");
+    const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    React.useEffect(() => {
+        const loadBanks = async () => {
+            try {
+                const accounts = await fetchBankAccounts();
+                setBankAccounts(accounts);
+                if (accounts.length > 0) {
+                    const defaultAcc = accounts.find(a => a.is_default) || accounts[0];
+                    setSelectedMethod(defaultAcc.id);
+                }
+            } catch (error) {
+                console.error("Error loading bank accounts:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadBanks();
+    }, []);
 
     const RadioButton = ({ selected }: { selected: boolean }) => (
         <div
@@ -48,9 +70,12 @@ const SelectPaymentMethod = () => {
         { id: "upi-id", name: "UPI ID", hasInput: true, inputPlaceholder: "Required" },
     ];
 
-    const cardMethods: PaymentMethod[] = [
-        { id: "hdfc-card", name: "3232 **** **** 5233", icon: hdfcLogo },
-    ];
+    const cardMethods: PaymentMethod[] = bankAccounts.map(acc => ({
+        id: acc.id,
+        name: acc.account_number.replace(/\d(?=\d{4})/g, "*"), // Mask all but last 4
+        icon: getBankLogo(acc.bank_name),
+        subtitle: `${acc.bank_name} | ${acc.account_type}`
+    }));
 
     const moreMethods: PaymentMethod[] = [
         { id: "amazon", name: "Amazon Pay Wallet", icon: amazonIcon },
@@ -169,55 +194,69 @@ const SelectPaymentMethod = () => {
                     </div>
                 </div>
 
-                {/* Cards Section */}
                 <div className="w-full mb-[36px] flex flex-col items-center">
                     <div className="w-[364px] mb-[12px]">
                         <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans`}>
-                            Cards
+                            {bankAccounts.length > 0 ? "Linked Bank Accounts" : "Cards"}
                         </h2>
                     </div>
-                    <div
-                        className="rounded-[22px] flex flex-col px-[10px] overflow-hidden"
-                        style={{
-                            width: '364px',
-                            height: '66px',
-                            backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
-                            backdropFilter: isDarkMode ? "blur(20px)" : "none",
-                            WebkitBackdropFilter: isDarkMode ? "blur(20px)" : "none",
-                            border: isDarkMode ? "none" : "1px solid #E9EAEB",
-                            boxShadow: isDarkMode ? "none" : "0px 4px 12px rgba(0,0,0,0.02)",
-                            position: "relative",
-                            justifyContent: "center"
-                        }}
-                    >
-                        {isDarkMode && (
-                            <div
-                                className="absolute inset-0 pointer-events-none rounded-[22px]"
-                                style={{
-                                    padding: "0.63px",
-                                    background: "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
-                                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                                    WebkitMaskComposite: "xor",
-                                    maskComposite: "exclude",
-                                }}
-                            />
-                        )}
-                        {cardMethods.map((method, i) => (
-                            <React.Fragment key={method.id}>
+                    {bankAccounts.length === 0 && !loading ? (
+                        <div className="w-[364px] p-4 rounded-[22px] border border-[#E9EAEB] text-center">
+                            <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
+                                No bank accounts linked.
+                            </p>
+                        </div>
+                    ) : (
+                        <div
+                            className="rounded-[22px] flex flex-col px-[10px] overflow-hidden"
+                            style={{
+                                width: '364px',
+                                minHeight: '66px',
+                                backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
+                                backdropFilter: isDarkMode ? "blur(20px)" : "none",
+                                WebkitBackdropFilter: isDarkMode ? "blur(20px)" : "none",
+                                border: isDarkMode ? "none" : "1px solid #E9EAEB",
+                                boxShadow: isDarkMode ? "none" : "0px 4px 12px rgba(0,0,0,0.02)",
+                                position: "relative",
+                                justifyContent: "center"
+                            }}
+                        >
+                            {isDarkMode && (
                                 <div
-                                    className="flex items-center h-[50px] cursor-pointer"
-                                    onClick={() => setSelectedMethod(method.id)}
-                                >
-                                    <img src={method.icon} alt={method.name} className="w-[32px] h-[32px] object-contain" />
-                                    <span className={`ml-[12px] ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans flex-1`}>
-                                        {method.name}
-                                    </span>
-                                    <RadioButton selected={selectedMethod === method.id} />
-                                </div>
-                                {i < cardMethods.length - 1 && <div className={`w-full h-[1px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />}
-                            </React.Fragment>
-                        ))}
-                    </div>
+                                    className="absolute inset-0 pointer-events-none rounded-[22px]"
+                                    style={{
+                                        padding: "0.63px",
+                                        background: "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.20))",
+                                        WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                        WebkitMaskComposite: "xor",
+                                        maskComposite: "exclude",
+                                    }}
+                                />
+                            )}
+                            {cardMethods.map((method, i) => (
+                                <React.Fragment key={method.id}>
+                                    <div
+                                        className={`flex items-center ${cardMethods.length === 1 ? 'h-[66px]' : 'h-[55px]'} cursor-pointer`}
+                                        onClick={() => setSelectedMethod(method.id)}
+                                    >
+                                        <img src={method.icon} alt={method.name} className="w-[32px] h-[32px] object-contain" />
+                                        <div className="flex flex-col flex-1 ml-[12px]">
+                                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans`}>
+                                                {method.name}
+                                            </span>
+                                            {method.subtitle && (
+                                                <span className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[11px] font-medium font-sans`}>
+                                                    {method.subtitle}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <RadioButton selected={selectedMethod === method.id} />
+                                    </div>
+                                    {i < cardMethods.length - 1 && <div className={`w-full h-[1px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* More Payment Options */}
