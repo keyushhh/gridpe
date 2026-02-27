@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft, X, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { createAddress, getAuthUserId } from "@/lib/addresses";
 import bgLight from "@/assets/bg-light.png";
 import currencyIcon from "@/assets/currency.svg";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -27,8 +30,7 @@ import chevronSmall from "@/assets/chevron-small.svg";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import { createOrder } from "@/lib/orders";
-import { createAddress } from "@/lib/addresses";
-import { supabase } from "@/lib/supabase";
+// createAddress already imported above
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import Map, { Marker } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -45,6 +47,7 @@ interface SavedAddress {
     city: string;
     state: string;
     postcode: string;
+    plusCode?: string;
 }
 
 const FxExchangeSummary = () => {
@@ -67,6 +70,23 @@ const FxExchangeSummary = () => {
         markupPercent = 0.006,
         currencySymbols = {}
     } = location.state || {};
+
+    const { data: walletData } = useQuery({
+        queryKey: ['wallet'],
+        queryFn: async () => {
+            const userId = await getAuthUserId();
+            const { data, error } = await supabase
+                .from("wallets")
+                .select("available_balance")
+                .eq("user_id", userId)
+                .single();
+            if (error) throw error;
+            return data;
+        }
+    });
+
+    const availableBalance = walletData?.available_balance || 0;
+    const hasInsufficientBalance = amount > availableBalance;
 
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
@@ -171,9 +191,9 @@ const FxExchangeSummary = () => {
 
     const handlePay = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                showToaster("You must be logged in to place an order.", 'error');
+            const userId = await getAuthUserId();
+            if (hasInsufficientBalance) {
+                showToaster("Insufficient wallet balance.", 'error');
                 return;
             }
 
@@ -182,14 +202,14 @@ const FxExchangeSummary = () => {
             if (!addressId && savedAddress) {
                 try {
                     const newAddress = await createAddress({
-                        user_id: user.id,
+                        user_id: userId,
                         label: savedAddress.tag,
                         apartment: savedAddress.house,
                         area: savedAddress.area,
                         landmark: savedAddress.landmark || "",
                         city: savedAddress.city,
                         state: savedAddress.state,
-                        plus_code: null,
+                        plus_code: savedAddress.plusCode || null,
                         latitude: 0,
                         longitude: 0,
                         contact_name: savedAddress.name,
@@ -211,87 +231,48 @@ const FxExchangeSummary = () => {
                 return;
             }
 
-            try {
-                const receiveAmount = finalAmount - tipAmount;
-                const order = await createOrder({
-                    user_id: user.id,
-                    amount: totalAmount,
+            const receiveAmount = finalAmount - tipAmount;
+
+            // Call Edge Function using supabase.functions.invoke
+            const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
+                body: {
+                    user_id: userId,
+                    amount: finalAmount, // Final Amount You'll Receive (e.g., 8577.81)
                     address_id: addressId,
-                    status: 'processing',
-                    payment_mode: 'wallet',
-                    metadata: {
-                        isFx: true,
-                        receiveAmount: receiveAmount,
-                        fromCurrency: fromCurrency,
-                        toCurrency: toCurrency,
-                        fxRate: fxRate
-                    }
-                });
-
-                navigate(`/fx-success/${order.id}`, {
-                    state: {
-                        totalAmount: totalAmount,
-                        receiveAmount: receiveAmount,
-                        savedAddress: savedAddress,
-                        order: order,
-                        isFx: true
-                    }
-                });
-            } catch (orderError: any) {
-                if (orderError?.code === '23503' || orderError?.message?.includes('foreign key constraint')) {
-                    try {
-                        const newAddress = await createAddress({
-                            user_id: user.id,
-                            label: savedAddress.tag,
-                            apartment: savedAddress.house,
-                            area: savedAddress.area,
-                            landmark: savedAddress.landmark || "",
-                            city: savedAddress.city,
-                            state: savedAddress.state,
-                            plus_code: null,
-                            latitude: 0,
-                            longitude: 0,
-                            contact_name: savedAddress.name,
-                            contact_phone: savedAddress.phone
-                        });
-
-                        const newAddressId = newAddress.id;
-                        const updatedAddr = { ...savedAddress, id: newAddressId };
-                        setSavedAddress(updatedAddr);
-                        localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
-
-                        const receiveAmount = finalAmount - tipAmount;
-                        const order = await createOrder({
-                            user_id: user.id,
-                            amount: totalAmount,
-                            address_id: newAddressId,
-                            status: 'processing',
-                            payment_mode: 'wallet',
-                            metadata: {
-                                isFx: true,
-                                receiveAmount: receiveAmount,
-                                fromCurrency: fromCurrency,
-                                toCurrency: toCurrency,
-                                fxRate: fxRate
-                            }
-                        });
-
-                        navigate(`/fx-success/${order.id}`, {
-                            state: {
-                                totalAmount: totalAmount,
-                                receiveAmount: receiveAmount,
-                                savedAddress: updatedAddr,
-                                order: order,
-                                isFx: true
-                            }
-                        });
-                        return;
-                    } catch (retryError) {
-                        console.error("Retry failed", retryError);
+                    order_type: 'FX_EXCHANGE',
+                    meta_data: {
+                        is_fx: true,
+                        receive_amount: receiveAmount,
+                        from_currency: fromCurrency,
+                        to_currency: toCurrency,
+                        fx_rate: fxRate,
+                        markup_amount: markupAmount,
+                        flat_fee: flatFee,
+                        source_amount: amount,
+                        base_rate: fxRate, // explicitly requested
+                        markup: markupAmount, // explicitly requested
                     }
                 }
-                throw orderError;
+            });
+
+            if (invokeError) {
+                throw new Error(invokeError.message || 'Failed to place order');
             }
+
+            if (!orderData?.success) {
+                throw new Error(orderData?.error || 'Failed to place order');
+            }
+
+            // Using orderData.order_id as returned by the Edge Function
+            navigate(`/fx-success/${orderData.order_id}`, {
+                state: {
+                    totalAmount: amount,
+                    receiveAmount: receiveAmount,
+                    savedAddress: savedAddress,
+                    order: { id: orderData.order_id, ...orderData }, // Pass basic info, FxSuccess will fetch full details
+                    isFx: true
+                }
+            });
         } catch (error: any) {
             console.error("Failed to create order", error);
             showToaster(`Failed to place order: ${error.message || "Please try again."} `, 'error');
@@ -721,16 +702,6 @@ const FxExchangeSummary = () => {
                                     - {currencySymbols[toCurrency] || ''}{flatFee}
                                 </span>
                             </div>
-
-                            {/* Delivery Tip */}
-                            {tipAmount > 0 && (
-                                <div className="flex justify-between items-center h-[18px] mt-[8px]">
-                                    <span className={`${isDarkMode ? "text-white" : "text-black"}`}>Delivery Tip</span>
-                                    <span className={`font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
-                                        - {currencySymbols[toCurrency] || ''}{tipAmount}
-                                    </span>
-                                </div>
-                            )}
                         </div>
 
                         {/* Second Divider */}
@@ -740,7 +711,7 @@ const FxExchangeSummary = () => {
                         <div className="w-full mt-[8px] flex justify-between items-center h-[20px]">
                             <span className={`text-[15px] font-medium font-satoshi ${isDarkMode ? "text-white" : "text-black"}`}>Final Amount You'll Receive</span>
                             <span className={`text-[13px] font-bold font-satoshi ${isDarkMode ? "text-white" : "text-black"}`}>
-                                {currencySymbols[toCurrency] || ''}{(finalAmount - tipAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {currencySymbols[toCurrency] || ''}{finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                     </div>
@@ -769,7 +740,11 @@ const FxExchangeSummary = () => {
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? "text-white" : "text-black"}`}>
                     You won’t be charged unless the delivery is completed.
                 </p>
-                <SlideToPay onComplete={handlePay} disabled={!savedAddress} />
+                <SlideToPay
+                    onComplete={handlePay}
+                    disabled={!savedAddress || hasInsufficientBalance}
+                    label={hasInsufficientBalance ? "Low Balance" : "Slide to Pay"}
+                />
             </div>
 
             {/* Delivery Tip Popup */}

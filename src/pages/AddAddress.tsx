@@ -131,12 +131,7 @@ const AddAddress = () => {
       const fullCode = olc.encode(lat, lng);
       console.log("Generated Full Code:", fullCode);
 
-      let shortCode = fullCode;
-      if (fullCode.length >= 10 && fullCode.includes('+')) {
-        shortCode = fullCode.substring(4);
-      }
-
-      setPlusCode(shortCode);
+      setPlusCode(fullCode);
 
       // Use Nominatim Reverse Geocode
       const geocodeResult = await reverseGeocode(lat, lng);

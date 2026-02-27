@@ -23,8 +23,8 @@ import deliveryTipLightBg from "@/assets/delivery-tip-light.png";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 
-import { createAddress } from "@/lib/addresses";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { createAddress, getAuthUserId } from "@/lib/addresses";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
 
@@ -40,6 +40,7 @@ interface SavedAddress {
     city: string;
     state: string;
     postcode: string;
+    plusCode?: string;
 }
 
 const OrderCashSummary = () => {
@@ -70,10 +71,11 @@ const OrderCashSummary = () => {
         }
 
         const fetchBalance = async () => {
+            const userId = await getAuthUserId();
             const { data } = await supabase
                 .from("wallets")
                 .select("available_balance")
-                .eq("user_id", USER_ID)
+                .eq("user_id", userId)
                 .single();
             if (data) {
                 setWalletBalance(data.available_balance || 0);
@@ -173,8 +175,8 @@ const OrderCashSummary = () => {
 
     const handlePay = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+            const userId = await getAuthUserId();
+            if (!userId) {
                 showToaster("You must be logged in to place an order.", 'error');
                 return;
             }
@@ -191,14 +193,14 @@ const OrderCashSummary = () => {
                 // We must create it.
                 try {
                     const newAddress = await createAddress({
-                        user_id: user.id,
+                        user_id: userId,
                         label: savedAddress.tag,
                         apartment: savedAddress.house,
                         area: savedAddress.area,
                         landmark: savedAddress.landmark || "",
                         city: savedAddress.city,
                         state: savedAddress.state,
-                        plus_code: null, // We might not have this if it's legacy data, or we could try to generate it
+                        plus_code: savedAddress.plusCode || null,
                         latitude: 0, // Fallback if missing
                         longitude: 0, // Fallback if missing
                         contact_name: savedAddress.name,
@@ -264,14 +266,14 @@ const OrderCashSummary = () => {
                     console.log("Stale address ID detected. Creating new address record...");
                     try {
                         const newAddress = await createAddress({
-                            user_id: user.id,
+                            user_id: userId,
                             label: savedAddress.tag,
                             apartment: savedAddress.house,
                             area: savedAddress.area,
                             landmark: savedAddress.landmark || "",
                             city: savedAddress.city,
                             state: savedAddress.state,
-                            plus_code: null,
+                            plus_code: savedAddress.plusCode || null,
                             latitude: 0,
                             longitude: 0,
                             contact_name: savedAddress.name,

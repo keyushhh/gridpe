@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Button } from "@/components/ui/button";
 import SaveAddressSheet from "@/components/SaveAddressSheet";
-import { createAddress, updateAddress, Address } from "@/lib/addresses";
+import { createAddress, updateAddress, Address, ensureGlobalPlusCode, getAuthUserId } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 
 // Assets
@@ -126,9 +126,10 @@ const AddAddressDetails = () => {
         const tagToSave = overrideTag || (selectedTag === "Other" && customLabel ? customLabel : selectedTag);
 
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user) {
-                showToaster("You must be logged in to save an address.", 'error');
+            const userId = await getAuthUserId();
+
+            if (!userId) {
+                showToaster("Authentication error. Please try again.", 'error');
                 return;
             }
 
@@ -154,6 +155,9 @@ const AddAddressDetails = () => {
             const lat = Number(locState?.lat) || 0;
             const lng = Number(locState?.lng) || 0;
 
+            // Enforce Global Plus Code
+            const finalPlusCode = ensureGlobalPlusCode(plusCode, lat, lng);
+
             if (isEditMode && initialState?.id) {
                 const updatePayload = {
                     label: tagToSave,
@@ -170,7 +174,7 @@ const AddAddressDetails = () => {
                 await updateAddress(initialState.id, updatePayload);
             } else {
                 const insertPayload = {
-                    user_id: session.user.id,
+                    user_id: userId,
                     label: tagToSave,
                     apartment: house,
                     area: area,

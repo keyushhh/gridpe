@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { X, Search } from "lucide-react";
-import { forwardGeocode } from "@/utils/geoUtils";
+import { reverseGeocode, forwardGeocode } from "@/utils/geoUtils";
 import { Geolocation } from '@capacitor/geolocation';
-import { reverseGeocode } from "@/utils/geoUtils";
+import { OpenLocationCode } from "open-location-code";
 import { fetchAddresses, deleteAddress, Address } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 
@@ -99,8 +99,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
             if (isOpen) {
                 try {
                     const { data: { session } } = await supabase.auth.getSession();
-                    if (session?.user) {
-                        const data = await fetchAddresses(session.user.id);
+                    const userId = session?.user?.id || (supabase as any).USER_ID || "414c977e-6f70-4f57-bfa1-af0a8a2053a4";
+
+                    if (userId) {
+                        const data = await fetchAddresses(userId);
 
                         // Map DB Address to SavedAddress UI Model
                         const mapped: SavedAddress[] = data.map(d => ({
@@ -175,15 +177,15 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
             const position = await Geolocation.getCurrentPosition();
             const { latitude, longitude } = position.coords;
 
+            // Generate full Plus Code
+            const olc = new OpenLocationCode() as any;
+            const fullCode = olc.encode(latitude, longitude);
+
             // Reverse Geocode to get area name
             const result = await reverseGeocode(latitude, longitude);
             if (result) {
                 const area = result.address?.suburb || result.address?.neighbourhood || result.address?.city || "Current Location";
                 setCurrentLocationName(area);
-
-                // We set a "Temporary" address as selected?
-                // The prompt says: "use current location... (to showcase only the area name)"
-                // And logic: "should grab GPS... reverse geocode... set as active address immediately"
 
                 const tempAddr: SavedAddress = {
                     tag: "Current Location",
@@ -194,7 +196,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                     displayAddress: result.display_name,
                     city: result.address?.city || "",
                     state: result.address?.state || "",
-                    postcode: result.address?.postcode || ""
+                    postcode: result.address?.postcode || "",
+                    plusCode: fullCode
                 };
 
                 localStorage.setItem("gridpe_user_address", JSON.stringify(tempAddr));

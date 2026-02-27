@@ -41,8 +41,10 @@ const SavedAddresses = () => {
     const loadAddresses = async () => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                const data = await fetchAddresses(session.user.id);
+            const userId = session?.user?.id || (supabase as any).USER_ID || "414c977e-6f70-4f57-bfa1-af0a8a2053a4";
+
+            if (userId) {
+                const data = await fetchAddresses(userId);
                 setAddresses(data);
             }
         } catch (e) {

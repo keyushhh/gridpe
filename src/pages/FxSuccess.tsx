@@ -107,8 +107,7 @@ const FxSuccess = () => {
         let channel: any;
 
         const setupSubscription = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user && orderId) {
+            if (orderId) {
                 channel = supabase
                     .channel(`fx-success-${orderId}`)
                     .on(
@@ -467,6 +466,18 @@ const FxSuccess = () => {
                         <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Payment Mode</span>
                         <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>grid.pe Wallet</span>
                     </div>
+
+                    <div className="flex justify-between items-center mb-[8px]">
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Amount Held</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+
+                    {isFx && (
+                        <div className="flex justify-between items-center mb-[8px]">
+                            <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Final Amount (Cash)</span>
+                            <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{currencySymbol}{(order.metadata?.receiveAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                    )}
 
                     <p className={`text-[13px] font-normal font-sans mb-[14px] leading-snug ${isDarkMode ? "text-white/50" : "text-black"}`}>
                         {statusConfig.transactionNote}

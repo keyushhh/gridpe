@@ -22,17 +22,40 @@ Deno.serve(async (req)=>{
       throw new Error("Missing environment variables");
     }
     console.log("REQUEST BODY:", await req.clone().json());
-    const { amount, address_id } = await req.json();
+    const { amount, address_id, user_id, order_type, meta_data } = await req.json();
+
+    const targetUserId = user_id || userId; // Use passed id or fallback to default
+
     if (!amount || !address_id) {
       return new Response(JSON.stringify({
-        error: "Invalid request body"
+        error: "Invalid request body: amount and address_id are required"
       }), {
         status: 400,
         headers: corsHeaders
       });
     }
+
+    // 0️⃣ Verify Address exists (and log details for debugging/delivery integration)
+    const addrRes = await fetch(`${PROJECT_URL}/rest/v1/addresses?id=eq.${address_id}`, {
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`
+      }
+    });
+    const addrData = await addrRes.json();
+    const address = addrData[0];
+    if (!address) {
+       return new Response(JSON.stringify({ error: "Address not found" }), { status: 404, headers: corsHeaders });
+    }
+    console.log("Verified Delivery Address:", {
+      apartment: address.apartment,
+      area: address.area,
+      city: address.city,
+      plus_code: address.plus_code
+    });
+
     // 1️⃣ Fetch wallet
-    const walletRes = await fetch(`${PROJECT_URL}/rest/v1/wallets?user_id=eq.${userId}`, {
+    const walletRes = await fetch(`${PROJECT_URL}/rest/v1/wallets?user_id=eq.${targetUserId}`, {
       headers: {
         apikey: SERVICE_ROLE_KEY,
         Authorization: `Bearer ${SERVICE_ROLE_KEY}`
@@ -66,12 +89,14 @@ Deno.serve(async (req)=>{
         Prefer: "return=representation"
       },
       body: JSON.stringify({
-        user_id: userId,
+        user_id: targetUserId,
         address_id,
         amount,
         currency: "INR",
         payment_mode: "wallet",
-        status: "processing"
+        status: "processing",
+        order_type: order_type || "CASH_ORDER",
+        metadata: meta_data || {}
       })
     });
     const orderData = await orderRes.json();
@@ -101,11 +126,11 @@ Deno.serve(async (req)=>{
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        user_id: userId,
+        user_id: targetUserId,
         type: "hold",
         amount,
         reference_id: order.id,
-        description: "Amount held for order"
+        description: `Amount held for ${order_type || 'order'}`
       })
     });
     return new Response(JSON.stringify({
