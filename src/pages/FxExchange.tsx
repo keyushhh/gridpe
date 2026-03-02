@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import chartLineIcon from "@/assets/chart-line.svg";
 import arrowSwapIcon from "@/assets/Arrow/Arrow_Down_Up.svg";
@@ -133,11 +133,16 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
 
 const FxExchange = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { walletTier, walletLimit, walletBalance } = useUser();
     const isWalletLimitReached = walletBalance >= walletLimit;
-    const [amount, setAmount] = useState<number>(100);
-    const [fromCurrency, setFromCurrency] = useState('USD');
-    const [toCurrency, setToCurrency] = useState('INR');
+
+    // Initial State from navigation
+    const { amount: initialAmount, from: initialFrom, to: initialTo } = location.state || {};
+
+    const [amount, setAmount] = useState<number>(initialAmount || 1);
+    const [fromCurrency, setFromCurrency] = useState(initialFrom || 'USD');
+    const [toCurrency, setToCurrency] = useState(initialTo || 'INR');
     const [currencies, setCurCurrencies] = useState<Record<string, string>>({});
     const [fxRate, setFxRate] = useState<number>(87.36);
     const [isSwapped, setIsSwapped] = useState(false);

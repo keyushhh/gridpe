@@ -96,6 +96,7 @@ const LiveRates = () => {
     const [fromCurrency, setFromCurrency] = useState(initialFrom);
     const [toCurrency, setToCurrency] = useState(initialTo);
     const [currencies, setCurrencies] = useState<Record<string, string>>({});
+    const [amount, setAmount] = useState<string>("1");
     const [fxRate, setFxRate] = useState<number>(0);
     const [history, setHistory] = useState<any[]>([]);
     const [activeRange, setActiveRange] = useState('1M');
@@ -109,6 +110,14 @@ const LiveRates = () => {
     const currentTo = isSwapped ? fromCurrency : toCurrency;
 
     const ranges = ['1D', '5D', '1M', '1Y', '5Y', 'Max'];
+
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        // Allow only numbers and one decimal point
+        if (/^\d*\.?\d*$/.test(val)) {
+            setAmount(val);
+        }
+    };
 
     useEffect(() => {
         const fetchCurrencies = async () => {
@@ -238,7 +247,13 @@ const LiveRates = () => {
                             <span className={`text-[32px] font-medium ${isDarkMode ? "text-white" : "text-black"}`}>
                                 {currencySymbols[currentFrom] || ''}
                             </span>
-                            <span className={`text-[40px] font-bold ${isDarkMode ? "text-white" : "text-black"}`}>100</span>
+                            <input
+                                type="text"
+                                value={amount}
+                                onChange={handleAmountChange}
+                                className={`text-[40px] font-bold bg-transparent outline-none border-none w-full ${isDarkMode ? "text-white" : "text-black"}`}
+                                inputMode="decimal"
+                            />
                         </div>
                     </div>
 
@@ -274,7 +289,7 @@ const LiveRates = () => {
                                 {currencySymbols[currentTo] || ''}
                             </span>
                             <span className={`text-[40px] font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
-                                {(100 * fxRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {(parseFloat(amount || "0") * fxRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                     </div>
@@ -353,7 +368,13 @@ const LiveRates = () => {
                 {/* CTA */}
                 <div className="mt-12 mb-10">
                     <button
-                        onClick={() => navigate('/fx-exchange')}
+                        onClick={() => navigate('/fx-exchange', {
+                            state: {
+                                amount: parseFloat(amount || "1"),
+                                from: currentFrom,
+                                to: currentTo
+                            }
+                        })}
                         className={`w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? "shadow-[#5260FE]/20 text-white" : "shadow-[#5260FE]/30 text-white"}`}
                     >
                         Exchange Currency
