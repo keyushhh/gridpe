@@ -12,26 +12,13 @@ import { Button } from "@/components/ui/button";
 
 const OrderCash = () => {
   const navigate = useNavigate();
-  const { walletLimit } = useUser();
-  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const { walletLimit, walletBalance } = useUser(); // walletBalance now from useUser
   const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>("0.00");
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
 
-  React.useEffect(() => {
-    const fetchBalance = async () => {
-      const { data } = await supabase
-        .from("wallets")
-        .select("available_balance")
-        .eq("user_id", USER_ID)
-        .single();
-      if (data) {
-        setWalletBalance(data.available_balance || 0);
-      }
-    };
-    fetchBalance();
-  }, []);
+  // Removed the useEffect that fetched walletBalance, as it's now from UserContext
 
   const handleKeyPress = (key: string) => {
     setAmount((prev) => {

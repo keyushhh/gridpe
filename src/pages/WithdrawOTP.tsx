@@ -16,20 +16,26 @@ import cancelCta from "@/assets/cancel-cta.png";
 import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { supabase, USER_ID } from "@/lib/supabase";
-import { createPayout } from "@/lib/banking";
+import { createPayout, initiateUPIDisbursement, verifyVPA } from "@/lib/banking";
 
 const WithdrawOTP = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [verifying, setVerifying] = useState(false);
     const location = useLocation();
-    const { phoneNumber } = useUser();
+    const { phoneNumber, refreshBalance } = useUser();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
     const [otp, setOtp] = useState("");
     const { showToaster } = useCustomToaster();
     const [isVerified, setIsVerified] = useState(false);
-    const { selectedMethod, amount, upiId, paymentMethod: stateMethod } = location.state || {};
+    const [verifiedName, setVerifiedName] = useState<string | null>(null);
+    const [verificationError, setVerificationError] = useState(false);
+
+    // location.state might have upiId (from manual) or nothing (for auto)
+    const { selectedMethod, amount, upiId: initialUpiId, paymentMethod: stateMethod } = location.state || {};
+    const [actualUpiId, setActualUpiId] = useState(initialUpiId);
 
     const isComplete = otp.length === 6;
 
@@ -47,39 +53,112 @@ const WithdrawOTP = () => {
         }
     }, [otp]);
 
-    // We now receive the full method details in stateMethod from SelectPaymentMethod
-    // but we can keep a fallback matching the selectedMethod ID if needed for robustness.
+    // Clear verification states when the UPI ID changes (user manual entry or re-selection)
+    useEffect(() => {
+        setVerificationError(false);
+        setVerifiedName(null);
+    }, [actualUpiId]);
+
+    // Ghost VPA & Verification Logic
+    useEffect(() => {
+        const runVerification = async () => {
+            let targetUpi = actualUpiId;
+
+            // 1. Ghost VPA Generation (Skip if manual UPI ID was already provided)
+            if (!targetUpi && phoneNumber && stateMethod?.id !== 'upi-id') {
+                const cleanPhone = phoneNumber.replace(/\D/g, '').slice(-10); // Last 10 digits
+                if (stateMethod?.id === 'gpay') {
+                    targetUpi = `${cleanPhone}@okicici`;
+                } else if (stateMethod?.id === 'phonepe') {
+                    targetUpi = `${cleanPhone}@ybl`;
+                }
+            }
+
+            if (!targetUpi) return;
+
+            setActualUpiId(targetUpi);
+            setVerifying(true);
+            setVerificationError(false);
+
+            try {
+                const result = await verifyVPA(targetUpi);
+                if (result.success) {
+                    setVerifiedName(result.registered_name);
+                }
+                // No setting verificationError here anymore (optimistic)
+            } catch (err) {
+                console.error("VPA Verification Error:", err);
+            } finally {
+                setVerifying(false);
+            }
+        };
+
+        if (stateMethod?.id === 'gpay' || stateMethod?.id === 'phonepe' || stateMethod?.id === 'upi-id') {
+            runVerification();
+        }
+    }, [stateMethod, phoneNumber]);
 
     // Priority: 1. stateMethod (passed from prev screen), 2. fallback
     const method = { ...(stateMethod || { id: "unknown", name: "Transfer" }) };
-    if (method.id === "upi-id" && upiId) {
-        method.name = upiId;
+    // UI Sync: Show ID string instead of generic name for manual mode or fallback
+    if ((method.id === "upi-id" || verificationError) && actualUpiId) {
+        method.name = actualUpiId;
     }
 
     const handleVerify = async () => {
         if (isVerified) {
             setLoading(true);
             try {
-                // 1. Create payout record
-                await createPayout({
-                    user_id: USER_ID,
-                    bank_account_id: selectedMethod, // selectedMethod is the ID from Prev screen
-                    amount: parseFloat(amount)
-                });
+                // 1. Create payout record based on selected method
+                if (stateMethod?.id === 'upi-id' || stateMethod?.id === 'gpay' || stateMethod?.id === 'phonepe') {
+                    // Direct Supabase Insert for UPI Payout - Schema Match per USER request
+                    const { error: insertError } = await supabase
+                        .from('payouts')
+                        .insert({
+                            user_id: USER_ID,
+                            amount: parseFloat(amount),
+                            payout_method: 'upi',
+                            vpa: actualUpiId,
+                            status: 'completed',
+                            description: 'Wallet Withdrawal'
+                        });
 
-                // 2. Legacy Edge Function call (if still needed, keeping for now)
-                const { data, error: funcError } = await supabase.functions.invoke("request-withdrawal", {
-                    body: { user_id: USER_ID, amount: parseFloat(amount) }
-                });
+                    if (insertError) {
+                        setVerificationError(true);
+                        throw new Error(insertError.message);
+                    }
+                    showToaster("Withdrawal request initiated successfully!", 'success');
+                } else {
+                    // Legacy/Existing logic for other methods (Bank Cards, etc.)
+                    let payoutPayload: any = {
+                        user_id: USER_ID,
+                        amount: parseFloat(amount),
+                        currency: 'INR'
+                    };
 
-                if (funcError) throw funcError;
-                if (data && data.success === false) {
-                    throw new Error(data.message || data.error || "Failed to process withdrawal");
+                    if (stateMethod?.id === 'bank-account') {
+                        payoutPayload = {
+                            ...payoutPayload,
+                            bank_account_id: selectedMethod,
+                            payout_method: 'bank_account'
+                        };
+                    } else if (stateMethod?.id === 'wallet') {
+                        payoutPayload = {
+                            ...payoutPayload,
+                            wallet_name: method.name,
+                            payout_method: 'wallet'
+                        };
+                    }
+                    await createPayout(payoutPayload);
                 }
+
+                // 2. Trigger immediate balance refresh since backend/trigger automates completion
+                await refreshBalance();
 
                 navigate("/wallet-withdraw-success", { state: { ...location.state, amount } });
             } catch (err: any) {
                 console.error("Withdrawal error:", err);
+                showToaster(err.message || "Withdrawal failed. Please try again.", 'error');
                 navigate("/wallet-withdraw-failed", { state: { ...location.state, amount, error: err.message } });
             } finally {
                 setLoading(false);
@@ -189,8 +268,34 @@ const WithdrawOTP = () => {
                     )}
                 </div>
 
-                {/* Info Text - 176px below awaiting row */}
-                <div className="mt-[176px]">
+                {/* Verification Result / Fallback */}
+                <div className="mt-6">
+                    {verifying ? (
+                        <p className={`text-[14px] animate-pulse ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>Verifying UPI connection...</p>
+                    ) : verificationError ? (
+                        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-[12px]">
+                            <p className="text-red-500 text-[14px] font-medium font-satoshi">
+                                We couldn't find a linked account. Please enter your UPI ID manually.
+                            </p>
+                            <button
+                                onClick={() => navigate('/select-payment-method', { state: { amount, forceManual: true } })}
+                                className="mt-2 text-[#5260FE] text-[14px] font-bold underline"
+                            >
+                                Re-select Payment Method
+                            </button>
+                        </div>
+                    ) : verifiedName ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <p className={`${isDarkMode ? 'text-white/80' : 'text-black/80'} text-[14px] font-medium font-satoshi`}>
+                                Sending to: <span className="font-bold text-[#6C72FF]">{verifiedName}</span>
+                            </p>
+                        </div>
+                    ) : null}
+                </div>
+
+                {/* Info Text - Spaced out */}
+                <div className="mt-[140px]">
                     <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-tight mb-[12px]`}>
                         Your amount will be credited in this selected mode of payment.
                     </p>
@@ -238,8 +343,8 @@ const WithdrawOTP = () => {
             <div className="px-5 pb-10 flex flex-col gap-3 z-10">
                 <button
                     onClick={handleVerify}
-                    disabled={!isComplete || loading}
-                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isComplete && !loading ? "active:scale-95 opacity-100" : "opacity-30 pointer-events-none"
+                    disabled={!isComplete || loading || ((stateMethod?.id === 'upi-id' || stateMethod?.id === 'gpay' || stateMethod?.id === 'phonepe') && !actualUpiId)}
+                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isComplete && !loading && (!((stateMethod?.id === 'upi-id' || stateMethod?.id === 'gpay' || stateMethod?.id === 'phonepe')) || actualUpiId) ? "active:scale-95 opacity-100" : "opacity-30 pointer-events-none"
                         }`}
                     style={{
                         backgroundColor: "#5260FE"

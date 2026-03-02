@@ -6,7 +6,6 @@ import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tiers } from "@/lib/walletTiers";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
-import { supabase, USER_ID } from "@/lib/supabase";
 
 // Import Assets
 import subStarterBg from "@/assets/subscription-starter.png";
@@ -54,23 +53,8 @@ const Subscriptions = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletTier, walletLimit, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss } = useUser();
+    const { walletTier, walletLimit, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss, walletBalance } = useUser();
     const { showToaster } = useCustomToaster();
-    const [walletBalance, setWalletBalance] = useState<number>(0);
-
-    useEffect(() => {
-        const fetchBalance = async () => {
-            const { data } = await supabase
-                .from("wallets")
-                .select("available_balance")
-                .eq("user_id", USER_ID)
-                .single();
-            if (data) {
-                setWalletBalance(data.available_balance || 0);
-            }
-        };
-        fetchBalance();
-    }, []);
 
     const currentTierConfig = tiers.find(t => t.name === walletTier);
 

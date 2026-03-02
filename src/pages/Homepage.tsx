@@ -79,11 +79,10 @@ const Homepage = () => {
   const orderCashBg = useAsset("order-cash-bg");
   const circleButtonBg = useAsset("circle-button-bg");
   const bannerBg = useAsset("banner-bg");
-  const { walletTier, isPassportVerified } = useUser();
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const [showBalance, setShowBalance] = useState(false);
-  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const { walletBalance, walletTier, isPassportVerified } = useUser();
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
@@ -217,21 +216,6 @@ const Homepage = () => {
         } catch (e) {
           console.error("Failed to fetch data", e);
         }
-      }
-
-      // Fetch Wallet Balance
-      try {
-        const { data: walletData, error: walletError } = await supabase
-          .from("wallets")
-          .select("available_balance")
-          .eq("user_id", USER_ID)
-          .single();
-
-        if (walletData && !walletError) {
-          setWalletBalance(walletData.available_balance || 0);
-        }
-      } catch (e) {
-        console.error("Failed to fetch wallet data", e);
       }
     };
 

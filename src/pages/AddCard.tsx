@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { useSensitiveInput } from "@/hooks/useSensitiveInput";
 import { addCard } from "@/utils/cardUtils";
 import { luhnCheck, validateExpiry, validateCVV } from "@/utils/validationUtils";
+import { supabase, USER_ID } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const AddCard = () => {
   const navigate = useNavigate();
@@ -49,12 +51,19 @@ const AddCard = () => {
   // Check if we returned from scan
   useEffect(() => {
     if (location.state?.scanned) {
-      // Simulate scan population
-      cardNumberProps.handleChange("5244315678911203");
-      cvvProps.handleChange("607");
-      setExpiry("08/29");
-      setCardHolder("KHUSHI KAPOOR");
-      setCardType("mastercard");
+      const { cardNumber, expiry, cardHolder, cardType: scannedType } = location.state;
+
+      if (cardNumber) {
+        cardNumberProps.handleChange(cardNumber);
+        // Simple Detection for card type based on scanned number
+        if (cardNumber.startsWith("4")) setCardType("visa");
+        else if (/^5[1-5]/.test(cardNumber) || /^2[2-7]/.test(cardNumber)) setCardType("mastercard");
+        else if (/^60|^65|^81|^82|^508/.test(cardNumber)) setCardType("rupay");
+      }
+
+      if (expiry) setExpiry(expiry);
+      if (cardHolder) setCardHolder(cardHolder);
+      if (scannedType) setCardType(scannedType);
     }
   }, [location.state]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -159,19 +168,36 @@ const AddCard = () => {
     return isValid;
   };
 
-  const handleSaveCard = () => {
-    // We allow validation check even if hasInput is true (which means at least ONE field has input)
-    // But logically we should check everything.
+  const handleSaveCard = async () => {
     if (!validateForm()) return;
 
-    addCard({
-      number: cardNumberProps.value,
-      holder: cardHolder,
-      expiry: expiry,
-      type: cardType,
-    });
+    try {
+      const [month, year] = expiry.split("/");
+      const lastFour = cardNumberProps.value.slice(-4);
+      const mockToken = 'mock_tok_' + Math.random().toString(36).slice(2);
 
-    navigate("/cards", { state: { cardAdded: true } });
+      const { data, error } = await supabase
+        .from('bank_cards')
+        .insert([{
+          user_id: USER_ID,
+          card_holder_name: cardHolder, // Use user-entered name
+          last_four: lastFour,
+          expiry_month: month,
+          expiry_year: "20" + year,
+          card_type: cardType?.charAt(0).toUpperCase() + cardType?.slice(1) || "Visa",
+          razorpay_token_id: mockToken
+        }])
+        .select();
+
+      if (error) throw error;
+
+      toast.success("Card saved successfully!");
+      navigate("/cards", { state: { cardAdded: true } });
+    } catch (err) {
+      console.error("Save Card Error:", err);
+      setErrors(prev => ({ ...prev, general: "Failed to save card. Please try again." }));
+      toast.error("Failed to save card");
+    }
   };
 
   const hasInput = cardNumberProps.value.length > 0 || expiry.length > 0 || cvvProps.value.length > 0 || cardHolder.length > 0;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import { supabase } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
@@ -37,8 +37,6 @@ const tierWithdrawMapLight = {
     'Supreme': supremeWithdrawLight
 };
 
-const USER_ID = "414c977e-6f70-4f57-bfa1-af0a8a2053a4";
-
 interface Withdrawal {
     id: string;
     amount: number;
@@ -48,8 +46,7 @@ interface Withdrawal {
 
 const WalletWithdraw = () => {
     const navigate = useNavigate();
-    const { walletTier } = useUser();
-    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const { walletTier, walletBalance } = useUser();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
@@ -71,17 +68,6 @@ const WalletWithdraw = () => {
     const currentLimit = withdrawalLimits[walletTier] || 3000;
 
     const fetchData = async () => {
-        // Fetch wallets
-        const { data: walletData } = await supabase
-            .from("wallets")
-            .select("available_balance, held_balance")
-            .eq("user_id", USER_ID)
-            .single();
-
-        if (walletData) {
-            setWalletBalance(walletData.available_balance || 0);
-        }
-
         // Fetch wallet_transactions (as specified by task requirements)
         await supabase
             .from("wallet_transactions")

@@ -128,7 +128,7 @@ const OrderHistory = () => {
         const today = new Date();
         const isToday = date.toDateString() === today.toDateString();
 
-        const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
         if (isToday) {
             return `Today | ${timeStr}`;

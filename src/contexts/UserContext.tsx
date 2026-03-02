@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase, USER_ID } from '@/lib/supabase';
+import { calculateBalance, calculateHeldBalance, WalletTransaction as LibWalletTransaction, Payout } from '@/lib/wallet';
 
 /* -------------------- Types -------------------- */
 
@@ -14,15 +16,7 @@ interface UserProfile {
   mpin_created_at?: string | null;
 }
 
-export interface WalletTransaction {
-  id: string;
-  type: 'credit' | 'debit' | 'hold';
-  amount: number;
-  status: 'success' | 'failed' | 'pending';
-  date: string;
-  description: string;
-  metadata?: Record<string, unknown>;
-}
+export interface WalletTransaction extends LibWalletTransaction { }
 
 interface UserState {
   phoneNumber: string;
@@ -44,6 +38,10 @@ interface UserState {
   isPassportVerified: boolean;
   scheduledDowngrade: { tier: WalletTier; effectiveDate: string } | null;
   lastDowngradeLoss: number | null;
+
+  /* Wallet Balance */
+  walletBalance: number;
+  heldBalance: number;
 }
 
 interface UserContextType extends UserState {
@@ -66,6 +64,7 @@ interface UserContextType extends UserState {
   scheduleDowngrade: (tier: WalletTier, effectiveDate: string) => void;
   cancelDowngrade: () => void;
   completeScheduledDowngrade: () => void;
+  refreshBalance: () => Promise<void>;
 }
 
 /* -------------------- Constants -------------------- */
@@ -91,6 +90,8 @@ const defaultState: UserState = {
   isPassportVerified: false,
   scheduledDowngrade: null,
   lastDowngradeLoss: null,
+  walletBalance: 0,
+  heldBalance: 0,
 };
 
 /* -------------------- Context -------------------- */
@@ -139,6 +140,72 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   }, [state.kycStatus, state.kycSubmittedAt]);
+
+  /* Real-time Wallet Balance Calculation */
+  const fetchAndCalculateBalance = async () => {
+    const [txResult, payoutResult] = await Promise.all([
+      supabase.from('wallet_transactions').select('*').eq('user_id', USER_ID),
+      supabase.from('payouts').select('*').eq('user_id', USER_ID)
+    ]);
+
+    if (!txResult.error && txResult.data) {
+      const transactions = txResult.data as LibWalletTransaction[];
+      const payouts = payoutResult.data as Payout[] || [];
+
+      const balance = calculateBalance(transactions, payouts);
+      const held = calculateHeldBalance(transactions);
+      setState(prev => ({ ...prev, walletBalance: balance, heldBalance: held }));
+    }
+  };
+
+  useEffect(() => {
+    fetchAndCalculateBalance();
+
+    // Refresh on focus/visibility change
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('App focused, refreshing balance...');
+        fetchAndCalculateBalance();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const channel = supabase.channel('user-context-wallet-sync')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'wallet_transactions',
+          filter: `user_id=eq.${USER_ID}`
+        },
+        () => {
+          console.log('Wallet transactions updated, recalculating balance...');
+          fetchAndCalculateBalance();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payouts',
+          filter: `user_id=eq.${USER_ID}`
+        },
+        () => {
+          console.log('Payouts updated, recalculating balance...');
+          fetchAndCalculateBalance();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const refreshBalance = fetchAndCalculateBalance;
 
   /* -------------------- Setters -------------------- */
 
@@ -262,6 +329,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     scheduleDowngrade,
     cancelDowngrade,
     completeScheduledDowngrade,
+    refreshBalance,
   };
 
   return (

@@ -13,9 +13,7 @@ import typeBg from "@/assets/type.png";
 import methodBg from "@/assets/method.png";
 import debitedArrow from "@/assets/debited-arrow.svg";
 import creditedArrow from "@/assets/credited-arrow.svg";
-import successIcon from "@/assets/success.svg";
-import processingIcon from "@/assets/processing.svg";
-import failedIcon from "@/assets/failed.svg";
+import walletDebited from "@/assets/wallet-debited.svg";
 import closeIcon from "@/assets/close.svg";
 import detailsIcon from "@/assets/details.svg";
 import copyIcon from "@/assets/copy.svg";
@@ -26,7 +24,7 @@ import { supabase, USER_ID } from "@/lib/supabase";
 export interface WalletTransaction {
     id: string;
     user_id: string;
-    transaction_type: 'credit' | 'debit' | 'held';
+    transaction_type: 'credit' | 'debit' | 'held' | 'deposit';
     amount: number;
     status: 'success' | 'failed' | 'pending';
     created_at: string;
@@ -76,18 +74,49 @@ const WalletTransactionHistory = () => {
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
-                const { data: txData } = await supabase
-                    .from("wallet_transactions")
-                    .select("*")
-                    .eq("user_id", USER_ID)
-                    .order("created_at", { ascending: false });
+                // Fetch both wallet_transactions and payouts for a truly inclusive list
+                const [txResult, payoutResult] = await Promise.all([
+                    supabase.from("wallet_transactions").select("*").eq("user_id", USER_ID),
+                    supabase.from("payouts").select("*").eq("user_id", USER_ID)
+                ]);
 
-                if (txData) {
-                    setWalletTransactions(txData.map(tx => ({
+                let mergedData: WalletTransaction[] = [];
+
+                if (txResult.data) {
+                    mergedData = txResult.data.map(tx => ({
                         ...tx,
                         date: tx.created_at
-                    } as WalletTransaction)));
+                    }));
                 }
+
+                if (payoutResult.data) {
+                    payoutResult.data.forEach(p => {
+                        // Avoid double counting if the payout already has a matching wallet_transaction
+                        // (Backend bridges them, but sometimes one or the other might be missing in history)
+                        const exists = mergedData.some(m =>
+                            m.description.toLowerCase().includes('withdrawal') &&
+                            Math.abs(m.amount) === Math.abs(p.amount) &&
+                            new Date(m.created_at).getTime() === new Date(p.created_at).getTime()
+                        );
+
+                        if (!exists) {
+                            mergedData.push({
+                                id: p.id,
+                                user_id: p.user_id,
+                                amount: p.amount,
+                                transaction_type: 'debit',
+                                status: p.status as any,
+                                created_at: p.created_at,
+                                date: p.created_at,
+                                description: 'Wallet Withdrawal'
+                            });
+                        }
+                    });
+                }
+
+                setWalletTransactions(mergedData.sort((a, b) =>
+                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                ));
             } catch (error) {
                 console.error("Error fetching transactions:", error);
             }
@@ -95,11 +124,30 @@ const WalletTransactionHistory = () => {
 
         fetchTransactions();
 
+        // Refresh on focus
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                console.log('App focused, refreshing transactions...');
+                fetchTransactions();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         const channel = supabase.channel('wallet-history-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, fetchTransactions)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` },
+                fetchTransactions
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'payouts', filter: `user_id=eq.${USER_ID}` },
+                fetchTransactions
+            )
             .subscribe();
 
         return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
             supabase.removeChannel(channel);
         };
     }, []);
@@ -437,8 +485,8 @@ const WalletTransactionHistory = () => {
                                         { label: "Exchange Rate", value: `1 ${tx.metadata.fromCurrency} = ${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.fxRate || 0).toFixed(2)}` }
                                     ] : [])
                                 },
-                                { label: "Time", value: new Date(tx.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) },
-                                { label: "Date", value: new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
+                                { label: "Time", value: new Date(tx.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) },
+                                { label: "Date", value: new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
                                 { label: "Payment Mode", value: getPaymentMode() },
                                 { label: "Status", value: getStatusLabel() }
                             ];
@@ -500,7 +548,7 @@ const WalletTransactionHistory = () => {
 
     return (
         <div
-            className="min-h-screen flex flex-col relative overflow-hidden font-sans"
+            className="h-screen flex flex-col relative overflow-hidden font-sans"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -636,18 +684,24 @@ const WalletTransactionHistory = () => {
             {/* Content area */}
             <div className="flex-1 w-full overflow-y-auto px-5 pb-[20px] mt-4 z-0">
                 {(() => {
-                    // Group by date
+                    // Group by date (localized to avoid UTC shifts)
                     const grouped: { [key: string]: typeof walletTransactions } = {};
                     filteredTransactions.forEach(tx => {
                         const date = tx.created_at ? new Date(tx.created_at) : new Date(tx.date || Date.now());
-                        // Normalize to midnight for grouping
-                        const dateKey = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
+                        // Use local date string as key for consistent local grouping
+                        const dateKey = date.toLocaleDateString('en-IN');
                         if (!grouped[dateKey]) grouped[dateKey] = [];
                         grouped[dateKey].push(tx);
                     });
 
                     // Sort dates descending
-                    const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+                    const sortedDates = Object.keys(grouped).sort((a, b) => {
+                        const aParts = a.split('/');
+                        const bParts = b.split('/');
+                        const aTime = new Date(Number(aParts[2]), Number(aParts[1]) - 1, Number(aParts[0])).getTime();
+                        const bTime = new Date(Number(bParts[2]), Number(bParts[1]) - 1, Number(bParts[0])).getTime();
+                        return bTime - aTime;
+                    });
 
                     if (sortedDates.length === 0) {
                         return (
@@ -661,32 +715,51 @@ const WalletTransactionHistory = () => {
 
                     return sortedDates.map((dateKey, index) => {
                         const transactions = grouped[dateKey];
-                        const dateObj = new Date(dateKey);
+                        const dateKeyParts = dateKey.split('/'); // DD/MM/YYYY from en-IN
+                        const dateObj = new Date(Number(dateKeyParts[2]), Number(dateKeyParts[1]) - 1, Number(dateKeyParts[0]));
                         const today = new Date();
                         const isToday = dateObj.getDate() === today.getDate() &&
                             dateObj.getMonth() === today.getMonth() &&
                             dateObj.getFullYear() === today.getFullYear();
 
                         const heading = isToday ? "TODAY" : dateObj.toLocaleDateString('en-GB', {
-                            day: 'numeric', month: 'short', year: 'numeric'
+                            day: '2-digit', month: 'short', year: 'numeric'
                         }).toUpperCase();
 
                         return (
-                            <div key={dateKey} className={index === 0 ? "" : "mt-[20px]"}>
-                                <h2 className="text-black/50 dark:text-white/50 text-[13px] font-medium leading-[120%] tracking-[1px]">
+                            <div key={dateKey} className={index === 0 ? "" : "mt-[24px]"}>
+                                <h2 className="text-[#7E7E7E] dark:text-white/50 text-[13px] font-medium leading-[120%] tracking-[1px] uppercase ml-[4px]">
                                     {heading}
                                 </h2>
 
                                 <div
-                                    className="mt-[10px] flex flex-col bg-white dark:bg-[#1A1C20] border border-[#E9EAEB] dark:border-[#2A2D35] rounded-[12px] p-[10px_13px]"
+                                    className="mt-[12px] flex flex-col bg-white dark:bg-[#1A1C20] border border-[#E9EAEB] dark:border-[#2A2D35] rounded-[16px] p-[14px_16px]"
+                                    style={{
+                                        boxShadow: isDarkMode ? 'none' : '0px 2px 8px rgba(0, 0, 0, 0.04)'
+                                    }}
                                 >
                                     {transactions.map((tx, txIndex) => {
                                         const { title, subtitle } = getTransactionDisplay(tx);
-                                        const icon = (tx.status === 'pending' || tx.transaction_type === 'held') ? processingIcon : (tx.transaction_type === 'credit' ? creditedArrow : debitedArrow);
-                                        const amountColor = (tx.status === 'pending' || tx.transaction_type === 'held') ? '#F59E0B' : (tx.transaction_type === 'credit' ? '#1CB956' : '#FF1E1E');
+                                        const type = tx.transaction_type?.toLowerCase();
+                                        const status = tx.status?.toLowerCase();
+                                        const desc = tx.description?.toLowerCase() || '';
+                                        const isTopUp = type === 'credit' || desc.includes('top-up') || desc.includes('top up');
 
-                                        const time = new Date(tx.created_at).toLocaleTimeString('en-US', {
-                                            hour: 'numeric', minute: '2-digit', hour12: true
+                                        // Deduce Icon
+                                        const isMoneyIn = type === 'credit' || type === 'deposit' || desc.includes('top-up') || desc.includes('top up');
+                                        const isUPIWithdrawal = desc.includes('withdrawal') && (desc.includes('upi') || subtitle.includes('UPI'));
+                                        const icon = isUPIWithdrawal ? walletDebited : (isMoneyIn ? creditedArrow : debitedArrow);
+
+                                        // Deduce Color
+                                        let amountColor = (type === 'credit' || type === 'deposit') ? '#1CB956' : '#FF1E1E';
+                                        if (status === 'pending' || status === 'held' || type === 'held') {
+                                            amountColor = '#F59E0B';
+                                        } else if (status === 'failed') {
+                                            amountColor = '#FF1E1E';
+                                        }
+
+                                        const time = new Date(tx.created_at).toLocaleTimeString('en-IN', {
+                                            hour: '2-digit', minute: '2-digit', hour12: true
                                         });
 
                                         return (
@@ -697,28 +770,27 @@ const WalletTransactionHistory = () => {
                                                             src={icon}
                                                             alt=""
                                                             className="w-[32px] h-[32px]"
-                                                            style={isDarkMode ? {} : { opacity: 0.31, filter: 'grayscale(1) brightness(0.1)' }}
                                                         />
                                                         <div className="flex flex-col gap-[2px]">
-                                                            <span className="text-[#1A1A1A] dark:text-white text-[12px] font-bold leading-[120%]">
+                                                            <span className="text-[#1A1A1A] dark:text-white text-[15px] font-bold leading-[120%] tracking-[-0.3px]">
                                                                 {title}
                                                             </span>
-                                                            <span className="text-[#4A4A4A] dark:text-white/50 text-[12px] font-normal leading-[120%]">
+                                                            <span className="text-[#4A4A4A] dark:text-white/50 text-[13px] font-normal leading-[120%]">
                                                                 {subtitle}
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right flex flex-col items-end gap-[2px]">
+                                                    <div className="text-right flex flex-col items-end gap-[4px]">
                                                         <span
-                                                            className="text-[12px] font-bold leading-[120%]"
+                                                            className="text-[15px] font-bold leading-[120%] tracking-[-0.3px]"
                                                             style={{ color: amountColor }}
                                                         >
-                                                            {tx.transaction_type === 'credit' ? '+' : '-'} {tx.metadata?.isFx
+                                                            {(tx.transaction_type === 'credit' || tx.transaction_type === 'deposit') ? '+' : '-'} {tx.metadata?.isFx
                                                                 ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                                 : `₹${Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                             }
                                                         </span>
-                                                        <span className="text-[#666666] dark:text-white/50 text-[12px] font-normal leading-[120%]">
+                                                        <span className="text-[#666666] dark:text-white/40 text-[12px] font-normal leading-[120%]">
                                                             {time} | {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                                                         </span>
                                                     </div>

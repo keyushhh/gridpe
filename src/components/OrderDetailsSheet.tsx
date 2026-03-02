@@ -104,8 +104,8 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
             const now = new Date();
             const isToday = date.toDateString() === now.toDateString();
 
-            const timeStr = date.toLocaleTimeString('en-US', {
-                hour: 'numeric',
+            const timeStr = date.toLocaleTimeString('en-IN', {
+                hour: '2-digit',
                 minute: '2-digit',
                 hour12: true
             });
@@ -114,7 +114,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                 return `Today | ${timeStr}`;
             } else {
                 const day = date.getDate().toString().padStart(2, '0');
-                const month = date.toLocaleString('en-GB', { month: 'short' });
+                const month = date.toLocaleString('en-IN', { month: 'short' });
                 return `${day} ${month} | ${timeStr}`;
             }
         } catch (e) {
@@ -418,7 +418,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                                 <div className="flex justify-between items-center">
                                     <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Date & Time</span>
                                     <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}, {new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                        {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}, {new Date(order.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
@@ -649,7 +649,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                                 <div className="flex justify-between items-center">
                                     <span className={`text-[14px] font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Time</span>
                                     <span className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        {new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                        {new Date(order.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                     </span>
                                 </div>
 

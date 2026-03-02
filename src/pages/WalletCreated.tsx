@@ -10,6 +10,8 @@ import settingsIcon from "@/assets/settings.svg";
 import successIcon from "@/assets/success.svg";
 import processingIcon from "@/assets/processing.svg";
 import failedIcon from "@/assets/failed.svg";
+import walletCreditedIcon from "@/assets/wallet-credited.svg";
+import walletDebitedIcon from "@/assets/wallet-debited.svg";
 import addPaymentCta from "@/assets/add-payment-cta.png";
 import { supabase, USER_ID } from "@/lib/supabase";
 
@@ -18,7 +20,7 @@ const WalletCreated = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
-    const { walletTier, upgradeTimestamp } = useUser();
+    const { walletTier, upgradeTimestamp, walletBalance, heldBalance } = useUser();
 
     const { data: walletData, isLoading: isWalletLoading } = useQuery({
         queryKey: ['wallet'],
@@ -36,13 +38,41 @@ const WalletCreated = () => {
     const { data: walletTransactions = [], isLoading: isTxLoading } = useQuery({
         queryKey: ['wallet_transactions'],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from("wallet_transactions")
-                .select("*")
-                .eq("user_id", USER_ID)
-                .order("created_at", { ascending: false });
-            if (error) throw error;
-            return data?.map(tx => ({ ...tx, date: tx.created_at })) || [];
+            const [txRes, payoutRes] = await Promise.all([
+                supabase.from("wallet_transactions").select("*").eq("user_id", USER_ID),
+                supabase.from("payouts").select("*").eq("user_id", USER_ID)
+            ]);
+
+            let merged: any[] = [];
+            if (txRes.data) {
+                merged = txRes.data.map(tx => ({ ...tx, date: tx.created_at }));
+            }
+
+            if (payoutRes.data) {
+                payoutRes.data.forEach(p => {
+                    // Avoid double counting if already bridged in wallet_transactions
+                    const exists = merged.some(m =>
+                        m.description?.toLowerCase().includes('withdrawal') &&
+                        Math.abs(m.amount) === Math.abs(p.amount) &&
+                        new Date(m.created_at).getTime() === new Date(p.created_at).getTime()
+                    );
+
+                    if (!exists) {
+                        merged.push({
+                            id: p.id,
+                            user_id: p.user_id,
+                            amount: p.amount,
+                            transaction_type: 'debit',
+                            status: p.status,
+                            created_at: p.created_at,
+                            date: p.created_at,
+                            description: 'Wallet Withdrawal'
+                        });
+                    }
+                });
+            }
+
+            return merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         }
     });
 
@@ -54,6 +84,10 @@ const WalletCreated = () => {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, () => {
                 queryClient.invalidateQueries({ queryKey: ['wallet_transactions'] });
             })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'payouts', filter: `user_id=eq.${USER_ID}` }, () => {
+                queryClient.invalidateQueries({ queryKey: ['wallet_transactions'] });
+                queryClient.invalidateQueries({ queryKey: ['wallet'] });
+            })
             .subscribe();
 
         return () => {
@@ -61,7 +95,7 @@ const WalletCreated = () => {
         };
     }, [queryClient]);
 
-    const walletBalance = walletData?.available_balance || 0;
+
     const dbTier = (walletData?.wallet_tiers as any)?.tier_name as WalletTier || walletTier;
     const dbLimit = (walletData?.wallet_tiers as any)?.max_wallet_balance || 5000;
 
@@ -80,24 +114,34 @@ const WalletCreated = () => {
             let title = "";
             let description = "";
 
-            if (latestTx.status === 'pending' || latestTx.transaction_type === 'held') {
+            const type = latestTx.transaction_type?.toLowerCase();
+            const txDescription = latestTx.description?.toLowerCase() || '';
+            const status = latestTx.status?.toLowerCase();
+
+            // Immediate Release for Top-ups: Treat as 'credit' success
+            const isTopUp = type === 'credit' || txDescription.includes('top-up');
+
+            // Hold Restrictions: Only FX/Cash orders can show 'On hold'
+            const isFxOrCash = txDescription.includes('fx exchange') || txDescription.includes('cash delivery');
+            const isOnHold = status === 'held' && isFxOrCash;
+
+            if (isOnHold) {
                 statusColor = "#FACC15"; // Yellow
                 strokeColor = "rgba(250, 204, 21, 0.17)";
-                const isWithdrawal = latestTx.description.toLowerCase().includes('withdrawal');
-                title = isWithdrawal ? `Withdrawal Pending - ₹${formattedAmount}` : `On hold ₹${formattedAmount}`;
-                description = isWithdrawal
-                    ? `₹${formattedAmount} withdrawal is being processed by the bank.`
-                    : `₹${formattedAmount} is currently on hold. It’ll be released after delivery confirmation.`;
-            } else if (latestTx.transaction_type === 'debit') {
+                title = `On hold ₹${formattedAmount}`;
+                description = `₹${formattedAmount} is currently on hold. It’ll be released after delivery confirmation.`;
+            } else if (type === 'debit') {
                 statusColor = "#D33313"; // Red
                 strokeColor = "rgba(211, 51, 19, 0.17)";
                 title = `Amount debited - ₹${formattedAmount}`;
                 description = `₹${formattedAmount} was debited from your wallet after successful delivery confirmation.`;
-            } else if (latestTx.transaction_type === 'credit') {
+            } else if (isTopUp || type === 'credit' || type === 'deposit') {
                 statusColor = "#5CFF00"; // Green
                 strokeColor = "rgba(92, 255, 0, 0.17)";
                 title = `Amount Credited + ₹${formattedAmount}`;
-                description = `₹${formattedAmount} was added to your wallet via UPI.`;
+                description = txDescription.includes('top-up')
+                    ? `₹${formattedAmount} was added to your wallet via top-up.`
+                    : `₹${formattedAmount} was added to your wallet via UPI.`;
             }
 
             return (
@@ -308,10 +352,13 @@ const WalletCreated = () => {
                             </div>
 
                             <div className="flex flex-col gap-[16px]">
-                                {walletTransactions.map(tx => {
-                                    const icon = (tx.transaction_type === 'debit' || tx.status === 'failed') ? failedIcon :
-                                        (tx.status === 'pending' || tx.transaction_type === 'held') ? processingIcon :
-                                            successIcon;
+                                {walletTransactions.slice(0, 10).map(tx => {
+                                    const status = tx.status?.toLowerCase();
+                                    const type = tx.transaction_type?.toLowerCase();
+                                    const desc = tx.description?.toLowerCase() || '';
+
+                                    const isMoneyIn = type === 'credit' || type === 'deposit' || desc.includes('top-up');
+                                    const icon = isMoneyIn ? walletCreditedIcon : walletDebitedIcon;
 
                                     return (
                                         <div key={tx.id} className="flex justify-between items-center">
@@ -322,9 +369,7 @@ const WalletCreated = () => {
                                                         {tx.description}
                                                     </span>
                                                     <span className={`text-[12px] font-normal font-sans leading-none ${isDarkMode ? 'text-[#7E7E7E]' : 'text-[#7E7E7E]'}`}>
-                                                        {new Date(tx.date).toLocaleDateString('en-IN', {
-                                                            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                                                        })}
+                                                        {new Date(tx.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} | {new Date(tx.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                                     </span>
                                                 </div>
                                             </div>

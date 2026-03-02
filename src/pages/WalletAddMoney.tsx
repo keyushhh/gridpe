@@ -294,7 +294,7 @@ const WalletAddMoney = () => {
                         }
 
                         const options = {
-                          key: "rzp_test_SK1zyroAteO2qL", // Ensure this is your correct test key
+                          key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use environment variable
                           amount: order.amount,
                           currency: order.currency,
                           name: "Grid.pe",

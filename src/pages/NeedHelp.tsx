@@ -88,8 +88,8 @@ const NeedHelp = () => {
             const now = new Date();
             const isToday = date.toDateString() === now.toDateString();
 
-            const timeStr = date.toLocaleTimeString('en-US', {
-                hour: 'numeric',
+            const timeStr = date.toLocaleTimeString('en-IN', {
+                hour: '2-digit',
                 minute: '2-digit',
                 hour12: true
             });
@@ -98,7 +98,7 @@ const NeedHelp = () => {
                 return `Today | ${timeStr}`;
             } else {
                 const day = date.getDate().toString().padStart(2, '0');
-                const month = date.toLocaleString('en-GB', { month: 'short' });
+                const month = date.toLocaleString('en-IN', { month: 'short' });
                 return `${day} ${month} | ${timeStr}`;
             }
         } catch (e) {

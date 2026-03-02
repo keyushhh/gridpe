@@ -23,7 +23,7 @@ import deliveryTipLightBg from "@/assets/delivery-tip-light.png";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 
-import { supabase } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 import { createAddress, getAuthUserId } from "@/lib/addresses";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
@@ -49,9 +49,8 @@ const OrderCashSummary = () => {
     const { showToaster } = useCustomToaster();
     const { amount } = location.state || { amount: "0.00" };
     const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
-
-    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { walletBalance } = useUser();
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isPayOpen, setIsPayOpen] = useState(false);
     const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
@@ -69,19 +68,6 @@ const OrderCashSummary = () => {
                 console.error("Failed to parse saved address", e);
             }
         }
-
-        const fetchBalance = async () => {
-            const userId = await getAuthUserId();
-            const { data } = await supabase
-                .from("wallets")
-                .select("available_balance")
-                .eq("user_id", userId)
-                .single();
-            if (data) {
-                setWalletBalance(data.available_balance || 0);
-            }
-        };
-        fetchBalance();
     }, []);
 
     const handleAddressSelect = (address: SavedAddress | null) => {

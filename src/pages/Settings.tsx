@@ -6,6 +6,7 @@ import { useAsset } from "@/hooks/useAsset";
 import { useUser } from "@/contexts/UserContext";
 import { getCards } from "@/utils/cardUtils";
 import { fetchBankAccounts } from "@/lib/banking";
+import { supabase, USER_ID } from "@/lib/supabase";
 import avatarImg from "@/assets/avatar.png";
 import gridPeLogo from "@/assets/grid.pe.svg";
 import iconSecurity from "@/assets/icon-security.svg";
@@ -106,16 +107,34 @@ const Settings = () => {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setCardCount(getCards().length);
-    const loadBankCount = async () => {
+    const loadCounts = async () => {
+      // 1. Bank Accounts
       try {
         const accounts = await fetchBankAccounts();
         setBankAccountCount(accounts.length);
       } catch (error) {
         console.error("Error loading bank count:", error);
       }
+
+      // 2. Cards (Local + DB)
+      try {
+        const localCards = getCards();
+        const { count, error } = await supabase
+          .from('bank_cards')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', USER_ID);
+
+        if (error) throw error;
+
+        const dbCount = count || 0;
+        setCardCount(localCards.length + dbCount);
+      } catch (error) {
+        console.error("Error loading card count:", error);
+        setCardCount(getCards().length);
+      }
     };
-    loadBankCount();
+
+    loadCounts();
   }, []);
 
   const handleLogoPress = () => {

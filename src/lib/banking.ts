@@ -19,7 +19,10 @@ export interface BankAccount {
 export interface Payout {
   id: string;
   user_id: string;
-  bank_account_id: string;
+  bank_account_id?: string | null;
+  upi_id?: string | null;
+  wallet_name?: string | null;
+  payout_method: 'bank_account' | 'upi' | 'wallet';
   amount: number;
   status: 'pending' | 'success' | 'failed';
   currency: string;
@@ -103,4 +106,22 @@ export const createPayout = async (payout: Omit<Payout, 'id' | 'created_at' | 'c
   
     if (error) throw error;
     return data as Payout;
+};
+
+export const initiateUPIDisbursement = async (amount: number, upiId: string, userId: string = USER_ID) => {
+    const { data, error } = await supabase.functions.invoke('create-payout', {
+        body: { amount, upi_id: upiId, user_id: userId }
+    });
+
+    if (error) throw error;
+    return data;
+};
+
+export const verifyVPA = async (upiId: string) => {
+    const { data, error } = await supabase.functions.invoke('create-payout', {
+        body: { upi_id: upiId, action: 'verify-vpa' }
+    });
+
+    if (error) throw error;
+    return data;
 };

@@ -26,6 +26,7 @@ import buttonCancelWide from "@/assets/button-cancel-wide.png";
 import tutorialTap from "@/assets/tutorial-tap.png";
 import tutorialLongPress from "@/assets/tutorial-long-press.png";
 import { getCards, Card, removeCard, setDefaultCard } from "@/utils/cardUtils";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 // Import all saved card backgrounds
 import savedCard1 from "@/assets/saved-card-1.png";
@@ -61,32 +62,49 @@ const MyCards = () => {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const isLongPressRef = useRef(false);
 
-    useEffect(() => {
-        // Load cards on mount
-        const loadedCards = getCards();
-        setCards(loadedCards);
+    const fetchAllCards = async () => {
+        // 1. Get Local Storage Cards
+        const localCards = getCards();
 
-        // Default to stacked only if we have cards
-        setIsStacked(loadedCards.length > 1);
+        // 2. Fetch from Supabase
+        try {
+            const { data: dbCards, error } = await supabase
+                .from('bank_cards')
+                .select('*')
+                .eq('user_id', USER_ID);
 
-        // Check for tutorial
-        const hasSeenTutorial = localStorage.getItem("gridpe_stack_tutorial_seen");
-        if (!hasSeenTutorial && loadedCards.length > 1) {
-            setTutorialStep(1);
+            if (error) throw error;
+
+            if (dbCards) {
+                const mappedDbCards: Card[] = dbCards.map((db, index) => ({
+                    id: db.id.toString(),
+                    number: `**** **** **** ${db.last_four}`,
+                    holder: db.card_holder_name,
+                    expiry: `${db.expiry_month}/${db.expiry_year.toString().slice(-2)}`,
+                    type: db.card_type.toLowerCase() as any,
+                    isDefault: localCards.length === 0 && index === 0, // Fallback logic
+                    backgroundIndex: (localCards.length + index % 6) + 1
+                }));
+
+                // Combine (avoiding duplicates if possible, but for now just show both)
+                setCards([...localCards, ...mappedDbCards]);
+                setIsStacked(localCards.length + mappedDbCards.length > 1);
+            } else {
+                setCards(localCards);
+                setIsStacked(localCards.length > 1);
+            }
+        } catch (err) {
+            console.error("Error fetching cards:", err);
+            setCards(localCards);
+            setIsStacked(localCards.length > 1);
         }
+    };
+
+    useEffect(() => {
+        fetchAllCards();
 
         if (location.state?.cardAdded) {
-            // Reload cards to get the new one
-            const refreshedCards = getCards();
-            setCards(refreshedCards);
             setShowSuccessModal(true);
-            setIsStacked(refreshedCards.length > 1);
-
-            // If we just added a card and now have >1, we might need to show tutorial if not seen
-            if (!hasSeenTutorial && refreshedCards.length > 1) {
-                setTutorialStep(1);
-            }
-
             // Clean up state so refresh doesn't trigger it again
             window.history.replaceState({}, document.title);
         }

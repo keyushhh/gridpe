@@ -133,8 +133,7 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
 
 const FxExchange = () => {
     const navigate = useNavigate();
-    const { walletTier, walletLimit } = useUser();
-    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const { walletTier, walletLimit, walletBalance } = useUser();
     const isWalletLimitReached = walletBalance >= walletLimit;
     const [amount, setAmount] = useState<number>(100);
     const [fromCurrency, setFromCurrency] = useState('USD');
@@ -179,20 +178,6 @@ const FxExchange = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // Fetch Wallet Balance
-    useEffect(() => {
-        const fetchBalance = async () => {
-            const { data } = await supabase
-                .from("wallets")
-                .select("available_balance")
-                .eq("user_id", USER_ID)
-                .single();
-            if (data) {
-                setWalletBalance(data.available_balance || 0);
-            }
-        };
-        fetchBalance();
-    }, []);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);

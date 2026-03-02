@@ -28,8 +28,8 @@ const SelectPaymentMethod = () => {
     const location = useLocation();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { amount } = location.state || {};
-    const [selectedMethod, setSelectedMethod] = useState<string>("");
+    const { amount, forceManual } = location.state || {};
+    const [selectedMethod, setSelectedMethod] = useState<string>(forceManual ? "upi-id" : "");
     const [upiId, setUpiId] = useState<string>("");
     const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [loading, setLoading] = useState(true);
@@ -341,7 +341,8 @@ const SelectPaymentMethod = () => {
                             }
                         });
                     }}
-                    className="w-full h-[48px] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center bg-[#6C72FF]"
+                    disabled={selectedMethod === 'upi-id' && !upiId}
+                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center bg-[#6C72FF] ${selectedMethod === 'upi-id' && !upiId ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                     Proceed
                 </button>

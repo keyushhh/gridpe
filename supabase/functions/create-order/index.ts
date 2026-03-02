@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
         user_id: user_id || '414c977e-6f70-4f57-bfa1-af0a8a2053a4',
         amount: -amount, // Negative for a hold
         transaction_type: 'held',
+        status: 'held', // Explicitly set status to held as per new rules
         order_id: order.id, // Maps to the new SQL column
         description: order_type === 'FX_EXCHANGE' ? 'FX Exchange Hold' : 'Cash Order Hold'
       });

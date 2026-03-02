@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft, X, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
+import { useUser } from "@/contexts/UserContext";
+import { supabase, USER_ID } from "@/lib/supabase";
 import { createAddress, getAuthUserId } from "@/lib/addresses";
 import bgLight from "@/assets/bg-light.png";
 import currencyIcon from "@/assets/currency.svg";
@@ -56,6 +57,7 @@ const FxExchangeSummary = () => {
     const { showToaster } = useCustomToaster();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
+    const { walletBalance } = useUser();
 
     // Accept full FX state
     const {
@@ -71,22 +73,8 @@ const FxExchangeSummary = () => {
         currencySymbols = {}
     } = location.state || {};
 
-    const { data: walletData } = useQuery({
-        queryKey: ['wallet'],
-        queryFn: async () => {
-            const userId = await getAuthUserId();
-            const { data, error } = await supabase
-                .from("wallets")
-                .select("available_balance")
-                .eq("user_id", userId)
-                .single();
-            if (error) throw error;
-            return data;
-        }
-    });
-
-    const availableBalance = walletData?.available_balance || 0;
-    const hasInsufficientBalance = amount > availableBalance;
+    // No longer fetching wallet data here, using walletBalance from UserContext
+    const hasInsufficientBalance = amount > walletBalance;
 
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
