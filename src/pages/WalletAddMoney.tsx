@@ -266,6 +266,10 @@ const WalletAddMoney = () => {
                           body: {
                             amount: val,
                             userId: currentUserId
+                          },
+                          headers: {
+                            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
                           }
                         });
 

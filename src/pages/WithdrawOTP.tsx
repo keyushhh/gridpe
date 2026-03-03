@@ -126,27 +126,24 @@ const WithdrawOTP = () => {
                     }
                     showToaster("Withdrawal request initiated successfully!", 'success');
                 } else {
-                    // Legacy/Existing logic for other methods (Bank Cards, etc.)
-                    let payoutPayload: any = {
-                        user_id: USER_ID,
-                        amount: parseFloat(amount),
-                        currency: 'INR'
-                    };
+                    // Atomic RPC for Bank Account, Wallet, and Card withdrawals
+                    const payoutMethod = stateMethod?.id === 'bank-account' ? 'bank_transfer'
+                        : stateMethod?.id === 'wallet' ? 'wallet'
+                            : 'card';
 
-                    if (stateMethod?.id === 'bank-account') {
-                        payoutPayload = {
-                            ...payoutPayload,
-                            bank_account_id: selectedMethod,
-                            payout_method: 'bank_account'
-                        };
-                    } else if (stateMethod?.id === 'wallet') {
-                        payoutPayload = {
-                            ...payoutPayload,
-                            wallet_name: method.name,
-                            payout_method: 'wallet'
-                        };
+                    const { error: rpcError } = await supabase.rpc('wallet_withdraw', {
+                        p_user_id: USER_ID,
+                        p_amount: parseFloat(amount),
+                        p_payout_method: payoutMethod,
+                        p_vpa: stateMethod?.id === 'bank-account' ? selectedMethod : method?.name || null,
+                        p_description: 'Wallet Withdrawal'
+                    });
+
+                    if (rpcError) {
+                        setVerificationError(true);
+                        throw new Error(rpcError.message);
                     }
-                    await createPayout(payoutPayload);
+                    showToaster("Withdrawal request initiated successfully!", 'success');
                 }
 
                 // 2. Wait for DB transaction to fully commit, then refresh

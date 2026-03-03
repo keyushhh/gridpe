@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, Authorization, apikey, content-type, Content-Type, x-client-info",
 };
 
 // Hardcoded user ID for testing
@@ -33,8 +33,10 @@ Deno.serve(async (req) => {
     const RAZORPAY_KEY_ID = Deno.env.get("RAZORPAY_KEY_ID")!;
     const RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET")!;
 
-    // Initialize Supabase Admin Client
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+    // Initialize Supabase Admin Client bypassing RLS and JWT checks explicitly per user
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+      global: { headers: { Authorization: '' } }
+    });
 
     // 1️⃣ Fetch the Wallet and its attached Tier Limits
     const { data: walletData, error: walletError } = await supabase
