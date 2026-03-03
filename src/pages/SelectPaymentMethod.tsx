@@ -111,7 +111,7 @@ const SelectPaymentMethod = () => {
                 </h1>
             </div>
 
-            <div className="flex-1 flex flex-col px-5 pt-[34px] overflow-y-auto pb-[180px] z-10">
+            <div className="flex-1 flex flex-col px-5 pt-[34px] overflow-y-auto overscroll-y-contain pb-[180px] z-10 min-h-0">
                 {/* Sub-text - 34px below header */}
                 <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-tight mb-[22px]`}>
                     Select a payment method where you want the amount to be refunded.

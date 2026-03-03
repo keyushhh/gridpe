@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, CalendarIcon } from "lucide-react";
+import { ChevronLeft, CalendarIcon, X } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -98,8 +98,26 @@ const KYCUpload = () => {
   const [addressProof, setAddressProof] = useState<string | null>(null);
   const addressProofInputRef = useRef<HTMLInputElement>(null);
 
-  // Reference for hidden file input
+  // Reference for hidden file input and live camera
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [activeSide, setActiveSide] = useState<'front' | 'back' | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  // Shutterless Auto-Capture States
+  const [detectionProgress, setDetectionProgress] = useState(0);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isStable, setIsStable] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [isSearching, setIsSearching] = useState(true);
+  const detectionRef = useRef<number | null>(null);
+  const lastCornersRef = useRef<{ x: number; y: number }[]>([]);
+  const stabilityCounterRef = useRef(0);
+
+
+
+
 
   // Check OTP verification when OTP changes
   useEffect(() => {
@@ -107,6 +125,131 @@ const KYCUpload = () => {
       setOtpVerified(true);
     }
   }, [otp, otpVerified]);
+
+  // Handle Camera Stream
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    if (detectionRef.current) {
+      cancelAnimationFrame(detectionRef.current);
+      detectionRef.current = null;
+    }
+  };
+
+  const processVideoFrame = () => {
+    if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || isCapturing) {
+      detectionRef.current = requestAnimationFrame(processVideoFrame);
+      return;
+    }
+
+    // ADVANCED DETECTION SIMULATION (OpenCV structure)
+    // 1. Check for stability and corners
+
+    // Simulate finding 4 corners
+    const currentCorners = [
+      { x: 10 + Math.random() * 2, y: 10 + Math.random() * 2 },
+      { x: 90 + Math.random() * 2, y: 12 + Math.random() * 2 },
+      { x: 88 + Math.random() * 2, y: 85 + Math.random() * 2 },
+      { x: 12 + Math.random() * 2, y: 88 + Math.random() * 2 }
+    ];
+
+    // Stability Lock: shift < 5px
+    let movement = 0;
+    if (lastCornersRef.current.length === 4) {
+      movement = currentCorners.reduce((acc, curr, i) => {
+        const last = lastCornersRef.current[i];
+        return acc + Math.sqrt(Math.pow(curr.x - last.x, 2) + Math.pow(curr.y - last.y, 2));
+      }, 0) / 4;
+    }
+
+    const stable = movement < 0.5; // Scaled for simulation
+    setIsStable(stable);
+    lastCornersRef.current = currentCorners;
+
+    // Aspect Ratio Check (1.5 to 1.6)
+    // Standard Aadhar/PAN is ~1.58
+    const width = 80; // Simulated
+    const height = 50; // Simulated
+    const aspectRatio = width / height; // 1.6
+    const validAspectRatio = aspectRatio >= 1.5 && aspectRatio <= 1.6;
+
+    // Safety Margin: > 60% area of VIEWPORT (simulated)
+    const cardArea = (85 * 75) / (100 * 100); // 0.6375 (63.75%)
+    const validArea = cardArea >= 0.6;
+
+    if (validAspectRatio && validArea && stable) {
+      stabilityCounterRef.current += 1;
+      if (stabilityCounterRef.current >= 30) { // Approx 500ms at 60fps
+        setIsLocked(true);
+        handleAutoCapture();
+      }
+    } else {
+      stabilityCounterRef.current = 0;
+      setIsLocked(false);
+    }
+
+    setDetectionProgress(prev => (stabilityCounterRef.current / 30) * 100);
+    detectionRef.current = requestAnimationFrame(processVideoFrame);
+  };
+
+  const handleAutoCapture = () => {
+    if (isCapturing) return;
+    setIsCapturing(true);
+    setIsSearching(false);
+
+    // Success feedback pulse happens just before capture
+    setTimeout(() => {
+      capturePhoto();
+
+      setTimeout(() => {
+        setIsCapturing(false);
+        setIsLocked(false);
+        setIsSearching(true);
+        stabilityCounterRef.current = 0;
+      }, 1500);
+    }, 300); // Pulse duration
+  };
+
+
+  // Auto-start/stop camera based on image presence
+  useEffect(() => {
+    const isBothCaptured = images.front !== null && images.back !== null;
+    if (!isBothCaptured) {
+      if (!stream) {
+        startCamera();
+      }
+      // Start detection loop
+      if (!detectionRef.current) {
+        detectionRef.current = requestAnimationFrame(processVideoFrame);
+      }
+    } else if (isBothCaptured && stream) {
+      stopCamera();
+    }
+
+    return () => stopCamera();
+  }, [images.front, images.back, isCapturing]);
+
+
 
   // Check if all conditions are met to enable Continue button
   const isFormComplete =
@@ -152,12 +295,23 @@ const KYCUpload = () => {
   // Toggle Flash
   const toggleFlash = () => {
     setFlashOn(!flashOn);
-    // In a real native implementation, this would call a capacitor plugin
+    // In a real native implementation, this would involve setTorch on the video track
+    const track = stream?.getVideoTracks()[0];
+    if (track && 'applyConstraints' in track) {
+      // Note: torch constraint often requires specific advanced permissions or secure contexts
+      (track as any).applyConstraints({
+        advanced: [{ torch: !flashOn }]
+      }).catch((e: any) => console.log("Flash not supported", e));
+    }
     console.log("Flash toggled:", !flashOn);
   };
 
-  // Handle Gallery Selection
-  const handleGalleryClick = () => {
+
+  // Handle Gallery/Camera Selection
+  const handleTriggerCapture = (side?: 'front' | 'back') => {
+    if (side) setActiveSide(side);
+    else setActiveSide(null); // Fallback to auto-detection
+
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -179,19 +333,79 @@ const KYCUpload = () => {
         // Clear any previous quality error on successful upload
         setImageQualityError(null);
 
-        // Simple logic: first upload fills 'front', second fills 'back'
-        if (!images.front) {
-          setImages(prev => ({ ...prev, front: reader.result as string }));
-        } else if (!images.back) {
-          setImages(prev => ({ ...prev, back: reader.result as string }));
+        // Update based on active side or auto-detect
+        const result = reader.result as string;
+        if (activeSide === 'front') {
+          setImages(prev => ({ ...prev, front: result }));
+        } else if (activeSide === 'back') {
+          setImages(prev => ({ ...prev, back: result }));
+        } else {
+          // Fallback logic: first upload fills 'front', second fills 'back'
+          if (!images.front) {
+            setImages(prev => ({ ...prev, front: result }));
+          } else if (!images.back) {
+            setImages(prev => ({ ...prev, back: result }));
+          }
         }
       };
       reader.readAsDataURL(file);
     }
+
     // Reset input so same file can be selected again if needed
     if (event.target) {
       event.target.value = '';
     }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      // Target resolution for the cropped ID
+      const targetWidth = 1200;
+      const targetHeight = 1200 / 1.58; // Standard ID aspect ratio
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const context = canvas.getContext('2d');
+
+      if (context) {
+        // AUTO-CROP LOGIC
+        // We simulate a clean crop by drawing only the area that matches
+        // our detected ID card, effectively removing the environment.
+
+        const sourceWidth = video.videoWidth;
+        const sourceHeight = video.videoHeight;
+
+        // Simulating the 80% area crop as defined by the "Safe Zone"
+        const cropX = sourceWidth * 0.1;
+        const cropY = sourceHeight * 0.2;
+        const cropWidth = sourceWidth * 0.8;
+        const cropHeight = sourceHeight * 0.6;
+
+        context.drawImage(
+          video,
+          cropX, cropY, cropWidth, cropHeight, // Source
+          0, 0, targetWidth, targetHeight      // Destination
+        );
+
+        const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+
+        // Automated filling logic
+        if (!images.front) {
+          setImages(prev => ({ ...prev, front: dataURL }));
+        } else if (!images.back) {
+          setImages(prev => ({ ...prev, back: dataURL }));
+        }
+      }
+    }
+  };
+
+
+  const handleClearImage = (side: 'front' | 'back') => {
+    setImages(prev => ({ ...prev, [side]: null }));
+    // Reactivating camera is handled by the useEffect
   };
 
   const handleClearAll = () => {
@@ -200,6 +414,7 @@ const KYCUpload = () => {
     setDocumentMismatchError(null);
     setNameMismatchError(null);
   };
+
 
   // Simulate document verification when both images are uploaded
   useEffect(() => {
@@ -250,14 +465,20 @@ const KYCUpload = () => {
         />
       )}
 
-      {/* Hidden File Input */}
+      {/* Hidden File Input for Document Capture */}
       <input
         type="file"
         ref={fileInputRef}
         className="hidden"
         accept="image/*"
+        capture="environment"
         onChange={handleFileChange}
       />
+
+      {/* Hidden Canvas for Snapshots */}
+      <canvas ref={canvasRef} className="hidden" />
+
+
 
       {/* Header */}
       <div className="flex-none flex items-center justify-between px-5 pt-12 pb-2 z-10">
@@ -302,9 +523,74 @@ const KYCUpload = () => {
           {/* Camera Area Container */}
           <div className="flex flex-col items-center mb-6">
             {/* Camera Box */}
-            <div className="w-[362px] h-[184px] bg-black rounded-[24px] flex flex-col items-center justify-center relative overflow-hidden mb-4">
-              {/* Simulated Camera View */}
+            <div
+              className={`w-[362px] h-[184px] bg-black rounded-[24px] flex flex-col items-center justify-center relative overflow-hidden mb-4 transition-all duration-300 ${isLocked ? 'ring-4 ring-green-500 ring-offset-2' : ''}`}
+            >
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+                style={{ filter: isLocked ? 'brightness(1.1) contrast(1.2)' : 'none' }}
+              />
+
+              {/* Laser Line & Scanning Overlays */}
+              {isSearching && (!images.front || !images.back) && (
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Laser Line (Subtle monochrome pulsing) */}
+                  <div className={`absolute left-0 right-0 h-[1.5px] bg-white/30 shadow-[0_0_15px_rgba(255,255,255,0.4)] z-30 transition-all duration-300 ${isLocked ? 'bg-green-500 shadow-green-500' : 'animate-scan'}`} />
+
+                  <style>{`
+                    @keyframes scan {
+                      0% { top: 0%; opacity: 0.2; }
+                      50% { top: 100%; opacity: 0.5; }
+                      100% { top: 0%; opacity: 0.2; }
+                    }
+                    .animate-scan {
+                      animation: scan 3s ease-in-out infinite;
+                    }
+                  `}</style>
+
+                  {/* Dynamic Corner Brackets */}
+                  <div className={`absolute top-4 left-4 w-10 h-10 border-t-[3px] border-l-[3px] rounded-tl-lg ${isLocked ? 'border-green-500 scale-110' : 'border-white/20'} transition-all duration-300`} />
+                  <div className={`absolute top-4 right-4 w-10 h-10 border-t-[3px] border-r-[3px] rounded-tr-lg ${isLocked ? 'border-green-500 scale-110' : 'border-white/20'} transition-all duration-300`} />
+                  <div className={`absolute bottom-4 left-4 w-10 h-10 border-b-[3px] border-l-[3px] rounded-bl-lg ${isLocked ? 'border-green-500 scale-110' : 'border-white/20'} transition-all duration-300`} />
+                  <div className={`absolute bottom-4 right-4 w-10 h-10 border-b-[3px] border-r-[3px] rounded-br-lg ${isLocked ? 'border-green-500 scale-110' : 'border-white/20'} transition-all duration-300`} />
+
+                  {/* Search Feedback */}
+                  <div className="absolute inset-x-0 bottom-6 flex flex-col items-center gap-2">
+                    {isStable ? (
+                      <div className="bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
+                        <span className={`text-[10px] uppercase font-bold tracking-widest ${isLocked ? 'text-green-400' : 'text-white/80'}`}>
+                          {isLocked ? "LOCKING..." : "KEEP HOLDING..."}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-white/40 text-[10px] uppercase font-bold tracking-widest">
+                        HOLD STEADY
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {images.front && images.back && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-white text-sm font-semibold tracking-wide">CAPTURE COMPLETE</p>
+                  </div>
+                </div>
+              )}
             </div>
+
+
+
+
 
             {/* Label Pill */}
             <div
@@ -331,7 +617,7 @@ const KYCUpload = () => {
                 />
               </button>
               <button
-                onClick={handleGalleryClick}
+                onClick={() => handleTriggerCapture()}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95 ${!isDarkMode ? 'bg-white' : 'border border-white/10 bg-white/10'}`}
               >
                 <img
@@ -341,6 +627,7 @@ const KYCUpload = () => {
                 />
               </button>
             </div>
+
           </div>
 
           {/* Thumbnails Section */}
@@ -356,11 +643,22 @@ const KYCUpload = () => {
               <div className="flex gap-4">
                 {/* Front Side */}
                 <div
-                  onClick={handleGalleryClick}
+                  onClick={() => handleTriggerCapture('front')}
                   className={`w-[100px] h-[80px] cursor-pointer rounded-[12px] border ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-[#E9EAEB] bg-[#F9FAFB]'} flex flex-col items-center justify-center gap-2 overflow-hidden relative`}
                 >
                   {images.front ? (
-                    <img src={images.front} alt="Front" className="w-full h-full object-cover" />
+                    <>
+                      <img src={images.front} alt="Front" className="w-full h-full object-cover" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearImage('front');
+                        }}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center z-30"
+                      >
+                        <X className="w-3 h-3 text-white" />
+                      </button>
+                    </>
                   ) : (
                     <>
                       <img src={iconPlaceholder} alt="" className={`w-6 h-6 ${isDarkMode ? 'opacity-50' : 'filter brightness-0 opacity-20'}`} />
@@ -370,11 +668,22 @@ const KYCUpload = () => {
                 </div>
                 {/* Back Side */}
                 <div
-                  onClick={handleGalleryClick}
+                  onClick={() => handleTriggerCapture('back')}
                   className={`w-[100px] h-[80px] cursor-pointer rounded-[12px] border ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-[#E9EAEB] bg-[#F9FAFB]'} flex flex-col items-center justify-center gap-2 overflow-hidden relative`}
                 >
                   {images.back ? (
-                    <img src={images.back} alt="Back" className="w-full h-full object-cover" />
+                    <>
+                      <img src={images.back} alt="Back" className="w-full h-full object-cover" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearImage('back');
+                        }}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center z-30"
+                      >
+                        <X className="w-3 h-3 text-white" />
+                      </button>
+                    </>
                   ) : (
                     <>
                       <img src={iconPlaceholder} alt="" className={`w-6 h-6 ${isDarkMode ? 'opacity-50' : 'filter brightness-0 opacity-20'}`} />
@@ -382,6 +691,8 @@ const KYCUpload = () => {
                     </>
                   )}
                 </div>
+
+
               </div>
               <button
                 onClick={handleClearAll}
@@ -580,7 +891,7 @@ const KYCUpload = () => {
         </div>
 
         {/* Footer - Constrained container */}
-        <div className={`mt-auto pb-8 pt-4 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20 px-5`}>
+        <div className={`mt-auto pb-8 pt-4 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20 px-5`}>
           <Button
             variant="gradient"
             className="w-full h-[48px] rounded-full text-white font-semibold text-[16px]"

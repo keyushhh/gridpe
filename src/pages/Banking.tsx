@@ -192,9 +192,6 @@ const Banking = () => {
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
             }}
-            onClick={() => {
-                if (!isStacked && accounts.length > 1) setIsStacked(true);
-            }}
         >
             {/* Light Mode Purple Glow Blob */}
             {!isDarkMode && (
@@ -210,7 +207,7 @@ const Banking = () => {
             )}
 
             {/* Main Content */}
-            <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass}`}>
+            <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass} min-h-0 overflow-hidden`}>
 
                 {/* Header */}
                 <div className="px-5 pt-12 flex items-center justify-between shrink-0 relative z-10">
@@ -225,7 +222,7 @@ const Banking = () => {
                 </div>
 
                 {/* Content */}
-                <div className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-none scrollbar-hide pb-0">
+                <div className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[120px] min-h-0">
 
                     {accounts.length === 0 ? (
                         /* Empty State */
@@ -492,7 +489,7 @@ const Banking = () => {
                             })}
 
                             {/* Count */}
-                            <div className={`w-full flex items-center justify-center transition-all duration-300 ${isStacked ? 'absolute' : 'mt-2 pb-[100px]'}`}
+                            <div className={`w-full flex items-center justify-center transition-all duration-300 ${isStacked ? 'absolute' : 'mt-2 pb-[40px]'}`}
                                 style={isStacked ? {
                                     top: `${(sortedAccounts.length - 1) * 15 + 234 + 24}px`
                                 } : {}}

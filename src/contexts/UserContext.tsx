@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase, USER_ID } from '@/lib/supabase';
 import { calculateBalance, calculateHeldBalance, WalletTransaction as LibWalletTransaction, Payout } from '@/lib/wallet';
 
@@ -42,6 +42,9 @@ interface UserState {
   /* Wallet Balance */
   walletBalance: number;
   heldBalance: number;
+
+  /* FX Stats */
+  isFxEnabled: boolean;
 }
 
 interface UserContextType extends UserState {
@@ -92,6 +95,7 @@ const defaultState: UserState = {
   lastDowngradeLoss: null,
   walletBalance: 0,
   heldBalance: 0,
+  isFxEnabled: false,
 };
 
 /* -------------------- Context -------------------- */
@@ -123,23 +127,75 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [state]);
 
-  /* Auto-transition KYC */
-  useEffect(() => {
-    if (state.kycStatus === 'pending' && state.kycSubmittedAt) {
-      const elapsed = Date.now() - state.kycSubmittedAt;
-      const twoMinutes = 2 * 60 * 1000;
+  /* Removed mock KYC auto-transition as per requirements to use real database status */
 
-      if (elapsed >= twoMinutes) {
-        setState(prev => ({ ...prev, kycStatus: 'complete' }));
+
+  /* Refetch Profile Data from Supabase */
+  const fetchProfileData = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name, avatar_url, kyc_status, email, is_fx_enabled')
+        .eq('id', USER_ID)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setState(prev => ({
+          ...prev,
+          name: data.name || prev.name,
+          profileImage: data.avatar_url || prev.profileImage,
+          kycStatus: data.kyc_status === 'verified' ? 'complete' : (data.kyc_status === 'pending' ? 'pending' : 'incomplete'),
+          email: data.email || prev.email,
+          isFxEnabled: !!data.is_fx_enabled,
+        }));
+        console.log('Profile data refreshed from Supabase');
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile data:', error);
+    }
+  }, []);
+
+  /* Initial Load */
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
+
+  /* Mock-to-Real KYC Verification Timer (120 seconds) */
+  useEffect(() => {
+    if (state.kycStatus !== 'pending' || !state.kycSubmittedAt) return;
+
+    const checkVerification = async () => {
+      const elapsed = Date.now() - state.kycSubmittedAt;
+      const remaining = 120000 - elapsed;
+
+      if (remaining <= 0) {
+        console.log('Verification timer hit zero. Updating database...');
+        try {
+          // 1. Update database status to 'verified'
+          const { error } = await supabase
+            .from('profiles')
+            .update({ kyc_status: 'verified' })
+            .eq('id', USER_ID);
+
+          if (error) throw error;
+
+          // 2. Refetch profile to update UI instantly
+          await fetchProfileData();
+          console.log('KYC Status verified and UI updated.');
+        } catch (error) {
+          console.error('Failed to update kyc_status persistently:', error);
+        }
       } else {
-        const remaining = twoMinutes - elapsed;
-        const timer = setTimeout(() => {
-          setState(prev => ({ ...prev, kycStatus: 'complete' }));
-        }, remaining);
+        // Schedule the next check
+        const timer = setTimeout(checkVerification, remaining);
         return () => clearTimeout(timer);
       }
-    }
-  }, [state.kycStatus, state.kycSubmittedAt]);
+    };
+
+    checkVerification();
+  }, [state.kycStatus, state.kycSubmittedAt, fetchProfileData]);
 
   /* Real-time Wallet Balance Calculation */
   const fetchAndCalculateBalance = async () => {

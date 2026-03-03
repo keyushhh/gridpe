@@ -82,7 +82,7 @@ const Homepage = () => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const [showBalance, setShowBalance] = useState(false);
-  const { walletBalance, walletTier, isPassportVerified } = useUser();
+  const { walletBalance, walletTier, isPassportVerified, profileImage, name } = useUser();
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
@@ -454,7 +454,9 @@ const Homepage = () => {
                   </p>
                 </div>
               ) : (
-                <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider">DELIVERING</p>
+                <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider uppercase">
+                  {name ? `HI, ${name.split(' ')[0]}` : 'DELIVERING'}
+                </p>
               )}
 
               <button
@@ -474,7 +476,7 @@ const Homepage = () => {
               </button>
             </div>
             <button onClick={() => navigate('/settings')}>
-              <img src={avatarImg} alt="Profile" className="w-12 h-12 rounded-full" />
+              <img src={profileImage || avatarImg} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
             </button>
           </div>
 

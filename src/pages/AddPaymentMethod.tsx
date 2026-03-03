@@ -13,28 +13,42 @@ import gpayIcon from "@/assets/gpay.png";
 import phonepeIcon from "@/assets/phonepe.png";
 import amazonIcon from "@/assets/amazon.png";
 import hdfcLogo from "@/assets/hdfc-bank-logo.png";
+import { fetchBankAccounts, BankAccount } from "@/lib/banking";
+import { getBankLogo } from "@/utils/bankUtils";
+import { USER_ID } from "@/lib/supabase";
 
-// Mock payment methods data
-interface PaymentMethod {
+interface UpiMethod {
     id: string;
     name: string;
     icon: string;
-    type: "upi" | "card" | "wallet" | "netbanking";
+    type: "upi";
+    linked: boolean;
+    hasInput?: boolean;
+    inputPlaceholder?: string;
+    subtitle?: string;
+}
+
+interface StaticMethod {
+    id: string;
+    name: string;
+    icon: string;
+    type: "wallet" | "netbanking";
     linked: boolean;
     subtitle?: string;
     hasInput?: boolean;
     inputPlaceholder?: string;
 }
 
-const mockPaymentMethods: PaymentMethod[] = [
-    // UPI Methods
+type PaymentMethod = UpiMethod | StaticMethod | (BankAccount & { type: "card"; linked: boolean; icon: string; name: string; subtitle?: string; hasInput?: boolean; inputPlaceholder?: string; });
+
+const upiAppMethods: UpiMethod[] = [
     { id: "cred", name: "CRED UPI", icon: credIcon, type: "upi", linked: true },
     { id: "gpay", name: "Google Pay UPI", icon: gpayIcon, type: "upi", linked: true },
     { id: "phonepe", name: "PhonePe UPI", icon: phonepeIcon, type: "upi", linked: true },
     { id: "upi-id", name: "UPI ID", icon: "", type: "upi", linked: false, hasInput: true, inputPlaceholder: "Required" },
-    // Cards
-    { id: "hdfc-card", name: "3232 **** **** 5233", icon: hdfcLogo, type: "card", linked: true },
-    // More Options
+];
+
+const staticMoreMethods: StaticMethod[] = [
     { id: "amazon", name: "Amazon Pay Wallet", icon: amazonIcon, type: "wallet", linked: true },
     { id: "netbanking", name: "HDFC Netbanking", icon: hdfcLogo, type: "netbanking", linked: true, subtitle: "Savings account | 5233" },
 ];
@@ -48,13 +62,38 @@ const AddPaymentMethod = () => {
 
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
     const [upiId, setUpiId] = useState<string>("");
+    const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const hasLinkedMethods = mockPaymentMethods.some((m) => m.linked);
+    React.useEffect(() => {
+        const loadBanks = async () => {
+            try {
+                const accounts = await fetchBankAccounts();
+                setBankAccounts(accounts);
+            } catch (error) {
+                console.error("Error loading bank accounts:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadBanks();
+    }, []);
+
+    const cardMethods = bankAccounts.map(acc => ({
+        ...acc,
+        id: acc.id,
+        name: acc.account_number.replace(/\d(?=\d{4})/g, "*"),
+        icon: getBankLogo(acc.bank_name),
+        type: "card" as const,
+        linked: true,
+        subtitle: `${acc.bank_name} | ${acc.account_type}`
+    }));
+
+    const hasLinkedMethods = bankAccounts.length > 0 || upiAppMethods.some(m => m.linked);
     const title = flow === "withdrawal" ? "Add Payment Method" : (hasLinkedMethods ? "Select Payment" : "Add Payment");
 
-    const upiMethods = mockPaymentMethods.filter((m) => m.type === "upi");
-    const cardMethods = mockPaymentMethods.filter((m) => m.type === "card");
-    const moreMethods = mockPaymentMethods.filter((m) => m.type === "wallet" || m.type === "netbanking");
+    const upiMethods = upiAppMethods;
+    const moreMethods = staticMoreMethods;
 
     const glassContainerStyle: React.CSSProperties = {
         backgroundColor: "rgba(25, 25, 25, 0.31)",
@@ -96,7 +135,7 @@ const AddPaymentMethod = () => {
 
     const handleProceed = () => {
         if (!selectedMethod) return;
-        const method = mockPaymentMethods.find(m => m.id === selectedMethod);
+        const method = [...upiAppMethods, ...cardMethods, ...staticMoreMethods].find(m => m.id === selectedMethod);
         const navState = {
             ...location.state,
             amount,

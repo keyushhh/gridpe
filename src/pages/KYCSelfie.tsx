@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, X } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -15,40 +15,93 @@ const KYCSelfie = () => {
   const location = useLocation();
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  // State for camera results
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [selfieError, setSelfieError] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  // Ref for the video element (even if we simulate, good to have structure)
+  // Refs for camera
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
-  const handleOpenCamera = () => {
+
+  const handleTriggerCapture = () => {
+    setSelfieError(null);
     setIsCameraOpen(true);
-    setSelfieError(null); // Clear error when opening camera to retry
+  };
+
+
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      setSelfieError("Unable to access camera. Please check permissions.");
+      setIsCameraOpen(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
   };
 
   const handleCapture = () => {
-    // Simulate capture with 25% chance of error for demo
-    const hasSelfieError = Math.random() < 0.25;
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
 
-    if (hasSelfieError) {
-      setSelfieError("Selfie was too dark and unclear. Please try again with proper lighting and background.");
-      setIsCameraOpen(false);
-      setCapturedImage(null);
-      return;
+      // Target a high-quality square-ish crop for the selfie
+      const size = Math.min(video.videoWidth, video.videoHeight);
+      canvas.width = size;
+      canvas.height = size;
+
+      const context = canvas.getContext('2d');
+      if (context) {
+        // Draw centered square crop
+        const startX = (video.videoWidth - size) / 2;
+        const startY = (video.videoHeight - size) / 2;
+
+        // Mirror the image for selfie naturality if needed, 
+        // but typically standard capture is non-mirrored. 
+        // Let's keep it simple for now.
+        context.drawImage(video, startX, startY, size, size, 0, 0, size, size);
+
+        const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+        setCapturedImage(dataURL);
+        setIsCameraOpen(false);
+        setSelfieError(null);
+      }
     }
-
-    // Clear any previous error on successful capture
-    setSelfieError(null);
-
-    // In a real app, we would draw video frame to canvas
-    // For now, we'll just use a placeholder color/data URI
-    const placeholderImage = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNTI2MEZFIi8+PC9zdmc+";
-    setCapturedImage(placeholderImage);
-    setIsCameraOpen(false);
   };
 
+  // Manage camera lifecycle
+  useEffect(() => {
+    if (isCameraOpen) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    return () => stopCamera();
+  }, [isCameraOpen]);
+
+
+
   return (
+
     <>
       <div
         className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
@@ -126,7 +179,7 @@ const KYCSelfie = () => {
                   <Button
                     variant="default"
                     className="w-full h-[48px] rounded-full text-[16px] font-semibold bg-[#5260FE] hover:bg-[#5260FE]/90 text-white"
-                    onClick={handleOpenCamera}
+                    onClick={handleTriggerCapture}
                   >
                     {selfieError ? "Retake Selfie" : "Open Camera"}
                   </Button>
@@ -156,7 +209,7 @@ const KYCSelfie = () => {
 
             {/* Footer - Constrained container */}
             {capturedImage && (
-              <div className={`mt-auto pb-8 pt-4 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20 px-5`}>
+              <div className={`mt-auto pb-8 pt-4 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20 px-5`}>
                 <Button
                   variant="default"
                   className="w-full h-[48px] rounded-full text-[16px] font-semibold bg-[#5260FE] hover:bg-[#5260FE]/90 text-white"
@@ -181,7 +234,7 @@ const KYCSelfie = () => {
       {isCameraOpen && (
         <div className="fixed inset-0 z-50 bg-black flex flex-col">
           {/* Camera Header */}
-          <div className="flex items-center px-5 pt-4 pb-2 absolute top-0 left-0 right-0 z-10 safe-area-top">
+          <div className="flex items-center px-5 pt-4 pb-2 absolute top-0 left-0 right-0 z-20 safe-area-top">
             <button
               onClick={() => setIsCameraOpen(false)}
               className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm"
@@ -189,46 +242,63 @@ const KYCSelfie = () => {
               <X className="w-5 h-5 text-white" />
             </button>
             {/* Blue dot/camera indicator simulation */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.8)]"></div>
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-blue-600/20 flex items-center justify-center">
+              <div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.8)]"></div>
+            </div>
           </div>
 
-          {/* Camera Viewport Simulation */}
-          <div className="flex-1 relative bg-black flex flex-col items-center justify-center">
+          {/* Camera Viewport */}
+          <div className="flex-1 relative bg-black flex flex-col items-center justify-center overflow-hidden">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)' }} // Mirror selfie view
+            />
+
             {/* Frame Asset */}
-            <div className="relative w-[85%] aspect-square max-w-[360px] flex items-center justify-center">
+            <div className="relative w-[85%] aspect-square max-w-[360px] flex items-center justify-center z-10">
               <img src={frameIcon} alt="Frame" className="w-full h-full object-contain" />
+
+              {/* Face Guide Silhouette/Circle if needed, but we use the provided frameIcon */}
             </div>
 
             {/* Text Instructions */}
-            <div className="mt-12 flex flex-col items-center gap-4">
+            <div className="mt-12 flex flex-col items-center gap-4 z-10">
               <p className="text-white text-[20px] font-normal font-sans text-center">Align your face within the frame</p>
 
-              <div className="w-[256px] h-[34px] bg-[#090909] rounded-full flex items-center justify-center border border-white/5">
+              <div className="w-[256px] h-[34px] bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/5">
                 <span className="text-white/80 text-[12px] font-normal font-sans">Avoid sunglasses, hats, or masks.</span>
               </div>
             </div>
           </div>
 
           {/* Camera Controls */}
-          <div className="h-[120px] pb-8 flex items-center justify-center relative bg-black px-8">
+          <div className="h-[140px] pb-10 flex items-center justify-center relative bg-black px-8">
             {/* Shutter Button */}
             <button
               onClick={handleCapture}
-              className="w-20 h-20 rounded-full flex items-center justify-center transition-transform active:scale-95 z-20"
+              className="w-20 h-20 rounded-full flex items-center justify-center transition-transform active:scale-90 z-20"
             >
               <img src={shutterIcon} alt="Capture" className="w-full h-full object-contain" />
             </button>
 
-            {/* Flash Button */}
+            {/* Flash Button (Stub) */}
             <div className="absolute inset-0 flex items-center justify-end px-12 pointer-events-none">
-              <button className="w-8 h-8 flex items-center justify-center pointer-events-auto">
+              <button className="w-8 h-8 flex items-center justify-center pointer-events-auto opacity-50">
                 <img src={flashIcon} alt="Flash" className="w-full h-full object-contain" />
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Hidden Canvas for Snapshots */}
+      <canvas ref={canvasRef} className="hidden" />
+
     </>
+
   );
 };
 

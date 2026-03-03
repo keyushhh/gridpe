@@ -11,13 +11,21 @@ import thumbnailsBg from "@/assets/thumbnails-bg.png";
 import checkBox from "@/assets/check-box.png";
 import checkBoxOutlineBlank from "@/assets/check-box-outline-blank.png";
 import { Button } from "@/components/ui/button";
+import { supabase, USER_ID } from "@/lib/supabase";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { useUser } from "@/contexts/UserContext";
+
 
 const KYCReview = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
+  const { showToaster } = useCustomToaster();
+  const { setProfileImage } = useUser();
   const isDarkMode = theme === 'dark' || theme === 'system';
   const [agreed, setAgreed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const {
     images,
@@ -54,20 +62,90 @@ const KYCReview = () => {
     return cleanNum.slice(-4);
   };
 
-  const handleConfirm = () => {
-    console.log("Submitting KYC Data:", {
-      documentType,
-      documentNumber,
-      fullName,
-      dob,
-      images,
-      selfie,
-      addressProof
-    });
-    if (flow === "fx") {
-      navigate("/fx-kyc-success", { replace: true });
-    } else {
-      navigate("/kyc-success", { state: { flow }, replace: true });
+  const dataURItoBlob = (dataURI: string) => {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  };
+
+  const uploadImage = async (dataURI: string | null, path: string) => {
+    if (!dataURI) return null;
+    const blob = dataURItoBlob(dataURI);
+    const { data, error } = await supabase.storage
+      .from('kyc-documents')
+      .upload(path, blob, { upsert: true });
+
+    if (error) {
+      console.error(`Error uploading image to ${path}:`, error);
+      throw error;
+    }
+    return data.path;
+  };
+
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    try {
+      const timestamp = Date.now();
+      const folder = `${USER_ID}/${timestamp}`;
+
+      // 1. Upload Images to kyc-documents bucket
+      const [frontUrl, backUrl, selfieUrl, addressProofUrl] = await Promise.all([
+        uploadImage(images?.front, `${folder}/front.jpg`),
+        uploadImage(images?.back, `${folder}/back.jpg`),
+        uploadImage(selfie, `${folder}/selfie.jpg`),
+        addressProof ? uploadImage(addressProof, `${folder}/address_proof.jpg`) : Promise.resolve(null)
+      ]);
+
+      // 2. Determine verification tier
+      const verificationTier = documentType === "passport" ? "fx_pro" : "standard";
+
+      // 3. Insert into kyc_submissions
+      const { error: kycError } = await supabase
+        .from('kyc_submissions')
+        .insert({
+          user_id: USER_ID,
+          document_type: documentType,
+          document_number: documentNumber,
+          full_name: fullName,
+          dob: dob,
+          front_image_url: frontUrl,
+          back_image_url: backUrl,
+          selfie_url: selfieUrl,
+          address_proof_url: addressProofUrl,
+          verification_tier: verificationTier,
+          status: 'pending'
+        });
+
+      if (kycError) throw kycError;
+
+      // 4. Update profiles kyc_status
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ kyc_status: 'pending' })
+        .eq('id', USER_ID);
+
+      if (profileError) throw profileError;
+
+      showToaster("KYC Submitted Successfully", "success");
+
+      navigate("/kyc-success", {
+        state: {
+          flow,
+          doc: documentType === 'passport'
+        },
+        replace: true
+      });
+
+    } catch (error) {
+      console.error("KYC Submission error:", error);
+      showToaster("Failed to submit KYC. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -244,14 +322,14 @@ const KYCReview = () => {
           </div>
 
           {/* Footer - Constrained container */}
-          <div className={`mt-auto pt-[25px] pb-8 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20 px-5`}>
+          <div className={`mt-auto pt-[25px] pb-8 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20 px-5`}>
             <Button
               variant="default"
               className="w-full h-[48px] rounded-full text-[16px] font-semibold bg-[#5260FE] hover:bg-[#5260FE]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!agreed}
+              disabled={!agreed || isSubmitting}
               onClick={handleConfirm}
             >
-              Submit KYC
+              {isSubmitting ? "Submitting..." : "Submit KYC"}
             </Button>
           </div>
         </div>

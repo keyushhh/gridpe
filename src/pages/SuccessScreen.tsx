@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import successBg from "@/assets/success-bg.png";
@@ -13,9 +13,13 @@ const SuccessScreen = () => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
   const [searchParams] = useSearchParams();
-  const isFxFlow = searchParams.get("flow") === "fx";
-  const docType = searchParams.get("doc");
+  const location = useLocation();
+  const state = location.state || {};
+
+  const isFxFlow = searchParams.get("flow") === "fx" || state.flow === "fx";
+  const docType = searchParams.get("doc") || (state.doc ? 'passport' : null);
   const { submitKyc } = useUser();
+
   const [countdown, setCountdown] = useState(30);
 
   // Set KYC status to pending on mount

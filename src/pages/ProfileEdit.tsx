@@ -12,6 +12,7 @@ import gridPeLogo from "@/assets/grid.pe.svg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -75,13 +76,29 @@ const ProfileEdit = () => {
     }
   };
 
-  const handleSave = () => {
-    setContextName(name);
-    setContextEmail(email);
-    setContextEmailVerified(emailVerified);
-    setContextProfileImage(profileImage);
-    showToaster("Profile updated successfully", 'success');
-    navigate(-1);
+  const handleSave = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name,
+          avatar_url: profileImage,
+          email
+        })
+        .eq('id', USER_ID);
+
+      if (error) throw error;
+
+      setContextName(name);
+      setContextEmail(email);
+      setContextEmailVerified(emailVerified);
+      setContextProfileImage(profileImage);
+      showToaster("Profile updated successfully", 'success');
+      navigate(-1);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      showToaster("Failed to update profile", 'error');
+    }
   };
 
   const handleVerify = () => {
