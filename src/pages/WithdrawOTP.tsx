@@ -111,21 +111,18 @@ const WithdrawOTP = () => {
             try {
                 // 1. Create payout record based on selected method
                 if (stateMethod?.id === 'upi-id' || stateMethod?.id === 'gpay' || stateMethod?.id === 'phonepe') {
-                    // Direct Supabase Insert for UPI Payout - Schema Match per USER request
-                    const { error: insertError } = await supabase
-                        .from('payouts')
-                        .insert({
-                            user_id: USER_ID,
-                            amount: parseFloat(amount),
-                            payout_method: 'upi',
-                            vpa: actualUpiId,
-                            status: 'completed',
-                            description: 'Wallet Withdrawal'
-                        });
+                    // Atomic RPC: deducts wallets.available_balance + inserts payout in one transaction
+                    const { error: rpcError } = await supabase.rpc('wallet_withdraw', {
+                        p_user_id: USER_ID,
+                        p_amount: parseFloat(amount),
+                        p_payout_method: 'upi',
+                        p_vpa: actualUpiId,
+                        p_description: 'Wallet Withdrawal'
+                    });
 
-                    if (insertError) {
+                    if (rpcError) {
                         setVerificationError(true);
-                        throw new Error(insertError.message);
+                        throw new Error(rpcError.message);
                     }
                     showToaster("Withdrawal request initiated successfully!", 'success');
                 } else {
@@ -152,7 +149,8 @@ const WithdrawOTP = () => {
                     await createPayout(payoutPayload);
                 }
 
-                // 2. Trigger immediate balance refresh since backend/trigger automates completion
+                // 2. Wait for DB transaction to fully commit, then refresh
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 await refreshBalance();
 
                 navigate("/wallet-withdraw-success", { state: { ...location.state, amount } });

@@ -20,15 +20,25 @@ const WalletCreated = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
-    const { walletTier, upgradeTimestamp, walletBalance, heldBalance } = useUser();
+    const { profile, walletTier, upgradeTimestamp, walletBalance, heldBalance, walletLimit, dailyLimit, wallet_tiers } = useUser();
+    const [userId, setUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const getSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUserId(session?.user?.id || null);
+        };
+        getSession();
+    }, []);
 
     const { data: walletData, isLoading: isWalletLoading } = useQuery({
-        queryKey: ['wallet'],
+        queryKey: ['wallet', userId],
+        enabled: !!userId,
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("wallets")
-                .select("*, wallet_tiers(*)")
-                .eq("user_id", USER_ID)
+                .from("profiles")
+                .select("*, wallet_tiers!current_tier_id(*)")
+                .eq("id", userId)
                 .single();
             if (error) throw error;
             return data;
@@ -36,11 +46,12 @@ const WalletCreated = () => {
     });
 
     const { data: walletTransactions = [], isLoading: isTxLoading } = useQuery({
-        queryKey: ['wallet_transactions'],
+        queryKey: ['wallet_transactions', userId],
+        enabled: !!userId,
         queryFn: async () => {
             const [txRes, payoutRes] = await Promise.all([
-                supabase.from("wallet_transactions").select("*").eq("user_id", USER_ID),
-                supabase.from("payouts").select("*").eq("user_id", USER_ID)
+                supabase.from("wallet_transactions").select("*").eq("user_id", userId),
+                supabase.from("payouts").select("*").eq("user_id", userId)
             ]);
 
             let merged: any[] = [];
@@ -77,27 +88,30 @@ const WalletCreated = () => {
     });
 
     useEffect(() => {
+        if (!userId) return;
+
         const channel = supabase.channel('wallet-created-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${USER_ID}` }, () => {
-                queryClient.invalidateQueries({ queryKey: ['wallet'] });
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` }, () => {
+                queryClient.invalidateQueries({ queryKey: ['wallet', userId] });
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, () => {
-                queryClient.invalidateQueries({ queryKey: ['wallet_transactions'] });
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${userId}` }, () => {
+                queryClient.invalidateQueries({ queryKey: ['wallet_transactions', userId] });
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'payouts', filter: `user_id=eq.${USER_ID}` }, () => {
-                queryClient.invalidateQueries({ queryKey: ['wallet_transactions'] });
-                queryClient.invalidateQueries({ queryKey: ['wallet'] });
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'payouts', filter: `user_id=eq.${userId}` }, () => {
+                queryClient.invalidateQueries({ queryKey: ['wallet_transactions', userId] });
+                queryClient.invalidateQueries({ queryKey: ['wallet', userId] });
             })
             .subscribe();
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [queryClient]);
+    }, [queryClient, userId]);
 
 
-    const dbTier = (walletData?.wallet_tiers as any)?.tier_name as WalletTier || walletTier;
-    const dbLimit = (walletData?.wallet_tiers as any)?.max_wallet_balance || 5000;
+    const dbTier = walletTier;
+    const dbLimit = wallet_tiers?.max_wallet_balance || walletLimit;
+    const dbDailyLimit = wallet_tiers?.daily_withdraw_limit ?? dailyLimit;
 
     const walletBg = useAsset("wallet-bg");
 
@@ -295,10 +309,19 @@ const WalletCreated = () => {
                             </span>
                         </div>
 
-                        <div className="mt-auto">
+                        <div className="mt-auto flex flex-col gap-1">
                             <span className={`${isDarkMode ? 'text-white/80' : 'text-black/80'} text-[14px] font-medium font-sans`}>
-                                Limit: {dbLimit.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                                Wallet Limit: {dbLimit.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                             </span>
+                            {dbDailyLimit != null ? (
+                                <span className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-medium font-sans`}>
+                                    Daily Limit: {dbDailyLimit.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                                </span>
+                            ) : dbTier === 'Supreme' ? (
+                                <span className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-medium font-sans`}>
+                                    Daily Limit: No Limit
+                                </span>
+                            ) : null}
                         </div>
 
                         {/* Dynamic Status Indicator */}

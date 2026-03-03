@@ -1,0 +1,4 @@
+[dotenv@17.2.3] injecting env (9) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+Setting up data for USER_ID: 414c977e-6f70-4f57-bfa1-af0a8a2053a4
+Wallet already exists. Updating tier...
+Wallet tier updated.

@@ -1,12 +1,15 @@
 export interface WalletTransaction {
     id: string;
     user_id: string;
-    transaction_type: 'credit' | 'debit' | 'held' | 'deposit';
+    type: 'credit' | 'debit' | 'held' | 'deposit';
+    transaction_type?: 'credit' | 'debit' | 'held' | 'deposit'; // Legacy field
     amount: number;
     status: string;
     created_at: string;
     description: string;
+    reference_id?: string;
     metadata?: Record<string, unknown>;
+    date?: string; // used locally for legacy mapping
 }
 
 export interface Payout {
@@ -28,7 +31,7 @@ export const calculateBalance = (transactions: WalletTransaction[], payouts: Pay
     if (!transactions || !Array.isArray(transactions)) return 0;
 
     const credits = transactions.reduce((total, tx) => {
-        const type = tx.transaction_type?.toLowerCase();
+        const type = (tx.type || tx.transaction_type)?.toLowerCase();
         const description = tx.description?.toLowerCase() || '';
         const rawStatus = tx.status?.toLowerCase();
         
@@ -51,7 +54,7 @@ export const calculateBalance = (transactions: WalletTransaction[], payouts: Pay
     }, 0);
 
     const otherDebits = transactions.reduce((total, tx) => {
-        const type = tx.transaction_type?.toLowerCase();
+        const type = (tx.type || tx.transaction_type)?.toLowerCase();
         const description = tx.description?.toLowerCase() || '';
         const rawStatus = tx.status?.toLowerCase();
 
@@ -67,7 +70,7 @@ export const calculateBalance = (transactions: WalletTransaction[], payouts: Pay
         return total;
     }, 0);
 
-    return credits - (withdrawals + otherDebits);
+    return Math.floor(credits - (withdrawals + otherDebits));
 };
 
 /**

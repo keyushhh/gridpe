@@ -82,7 +82,39 @@ const Homepage = () => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const [showBalance, setShowBalance] = useState(false);
-  const { walletBalance, walletTier, isPassportVerified, profileImage, name } = useUser();
+  const { walletBalance, walletTier, isPassportVerified, profileImage, name, scheduledDowngrade } = useUser();
+  const [balanceAlert, setBalanceAlert] = useState<{ days: number; excess: number; targetTier: string } | null>(null);
+
+  useEffect(() => {
+    if (scheduledDowngrade && walletBalance > 0) {
+      // Find the target tier's limit
+      const tierLimits: Record<string, number> = {
+        'Starter': 5000,
+        'Pro': 15000,
+        'Elite': 50000,
+        'Supreme': 150000
+      };
+
+      const limit = tierLimits[scheduledDowngrade.tier] || 0;
+
+      if (walletBalance > limit) {
+        const excess = walletBalance - limit;
+        const targetDate = new Date(scheduledDowngrade.effectiveDate);
+        const diffTime = targetDate.getTime() - new Date().getTime();
+        const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+        setBalanceAlert({
+          days: diffDays,
+          excess: excess,
+          targetTier: scheduledDowngrade.tier
+        });
+      } else {
+        setBalanceAlert(null);
+      }
+    } else {
+      setBalanceAlert(null);
+    }
+  }, [scheduledDowngrade, walletBalance]);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
@@ -511,6 +543,23 @@ const Homepage = () => {
               <span className="text-white dark:text-foreground">Order Cash</span>
             </button>
           </div>
+
+          {/* Balance Alert Banner */}
+          {balanceAlert && (
+            <div className="mx-5 mt-6 p-4 rounded-[13px] bg-[#FF3B30]/10 border border-[#FF3B30]/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="w-10 h-10 rounded-full bg-[#FF3B30]/20 flex items-center justify-center shrink-0">
+                <img src={failedIcon} alt="Alert" className="w-6 h-6" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-[#FF4248] text-[14px] font-bold font-satoshi leading-tight">
+                  Balance Alert
+                </p>
+                <p className="text-[#FF4248]/80 text-[12px] font-medium font-satoshi mt-1 leading-tight">
+                  You have {balanceAlert.days} days to use ₹{Math.floor(balanceAlert.excess).toLocaleString('en-IN')} before it expires due to {balanceAlert.targetTier} limit.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className="flex justify-center gap-6 mt-8 px-5">

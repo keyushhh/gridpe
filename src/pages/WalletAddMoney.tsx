@@ -21,7 +21,7 @@ const WalletAddMoney = () => {
   const { theme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { walletLimit } = useUser();
+  const { walletLimit, refreshBalance, fetchProfileData } = useUser();
   const balance = location.state?.balance || "0.00";
   const fromWallet = location.state?.from === 'wallet';
   const [amount, setAmount] = useState<string>("0.00");
@@ -134,23 +134,13 @@ const WalletAddMoney = () => {
 
         {/* Balance Text */}
         <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px] mb-[17px]`}>
-          Total Available Balance ₹ {balance}
+          Available Balance: ₹ {balance} • Wallet Capacity: ₹ {walletLimit.toLocaleString('en-IN')}
         </p>
 
-        {/* Error Message */}
-        {parseFloat(amount) > 0 && (
-          <>
-            {parseFloat(amount) < 500 && (
-              <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
-                Amount needs to be ₹500 or more
-              </p>
-            )}
-            {(parseFloat(balance) + parseFloat(amount)) > walletLimit && (
-              <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
-                Amount exceeds maximum wallet limit of ₹{walletLimit.toLocaleString('en-IN')}
-              </p>
-            )}
-          </>
+        {parseFloat(amount) > 0 && Math.floor(parseFloat(amount)) < 500 && (
+          <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
+            Amount needs to be ₹500 or more
+          </p>
         )}
 
         {/* Pills */}
@@ -201,7 +191,7 @@ const WalletAddMoney = () => {
               Note:
             </p>
             <p className={`text-[14px] font-normal font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
-              Some payment methods may include a small processing fee. UPI is always free.
+              Minimum top-up is ₹500. UPI payments are always free.
             </p>
           </div>
         </div>
@@ -265,16 +255,39 @@ const WalletAddMoney = () => {
                 <Button
                   onClick={async () => {
                     const val = parseFloat(amount);
-                    if (val >= 500 && (parseFloat(balance) + val) <= walletLimit) {
+                    if (Math.floor(val) >= 500) {
                       try {
                         setIsLoading(true);
 
+                        const { data: { user } } = await supabase.auth.getUser();
+                        const currentUserId = user?.id || USER_ID;
+
                         const { data, error } = await supabase.functions.invoke("create-razorpay-order", {
-                          body: { amount: val }
+                          body: {
+                            amount: val,
+                            userId: currentUserId
+                          }
                         });
 
                         if (error) {
-                          throw error;
+                          console.error("Functions error:", error);
+                          let errorMessage = error.message || "Failed to create payment order";
+
+                          // Try to extract the specific error message from the response body
+                          try {
+                            // Supabase FunctionsHttpError usually has the message in the body
+                            const errorResponse = (error as any).context;
+                            if (errorResponse) {
+                              const body = await errorResponse.json();
+                              if (body && body.error) {
+                                errorMessage = body.error;
+                              }
+                            }
+                          } catch (e) {
+                            console.warn("Could not parse error response body:", e);
+                          }
+
+                          throw new Error(errorMessage);
                         }
 
                         // 🛠️ THE FIX: Parse the data if Supabase returned it as a raw string
@@ -322,6 +335,14 @@ const WalletAddMoney = () => {
 
                               if (verification && verification.success) {
                                 console.log("Payment verified successfully!");
+
+                                // Sync wallet balance and profile logic with hardening delay
+                                console.log(`Verification success for ${user.id}, waiting 2s for DB consistency...`);
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                                await refreshBalance(user.id);
+                                await fetchProfileData(user.id);
+
                                 navigate("/wallet-topup-success", {
                                   state: {
                                     totalAmount: val,
@@ -374,7 +395,7 @@ const WalletAddMoney = () => {
                     }
                   }}
                   disabled={isLoading}
-                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${parseFloat(amount) >= 500 && (parseFloat(balance) + parseFloat(amount)) <= walletLimit && !isLoading
+                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${Math.floor(parseFloat(amount)) >= 500 && !isLoading
                     ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
                     : "bg-[#5260FE]/50 cursor-not-allowed"
                     }`}

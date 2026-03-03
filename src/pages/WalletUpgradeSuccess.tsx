@@ -18,8 +18,40 @@ const WalletUpgradeSuccess = () => {
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
     const { setWalletTier } = useUser();
+    const [tierDetails, setTierDetails] = React.useState<{
+        name: string;
+        max_wallet_balance: number;
+        daily_topup_limit: number;
+    } | null>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
+        const loadTierDetails = async () => {
+            if (!tier) {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('wallet_tiers')
+                    .select('name, max_wallet_balance, daily_topup_limit')
+                    .ilike('name', tier)
+                    .single();
+
+                if (error) throw error;
+                if (data) {
+                    setTierDetails(data);
+                }
+            } catch (err) {
+                console.error('Error fetching tier details:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadTierDetails();
+
         // Refresh wallet data and other related user data
         queryClient.invalidateQueries({ queryKey: ['wallet'] });
 
@@ -96,15 +128,15 @@ const WalletUpgradeSuccess = () => {
                 }}
             >
                 <p className={`${isDarkMode ? 'text-[#AFAFAF]' : 'text-[#1A1A1A]'} text-[16px] font-medium font-sans leading-[120%] tracking-[0px]`}>
-                    Your wallet has been upgraded to {tier?.toUpperCase() || "PRO"}.
+                    Your wallet has been upgraded to {tierDetails?.name?.toUpperCase() || tier?.toUpperCase() || "PRO"}.
                     <br />
                     Benefits include:
                 </p>
                 <ul className={`list-disc pl-4 mt-[17px] ${isDarkMode ? 'text-[#AFAFAF]' : 'text-[#4A4A4A]'} text-[16px] font-normal font-sans leading-[120%] tracking-[0px]`}>
-                    <li>Wallet limit ₹15,000</li>
+                    <li>Wallet limit ₹{(tierDetails?.max_wallet_balance || 15000).toLocaleString('en-IN')}</li>
                     <li>Faster deposits & withdrawals</li>
                     <li>Priority support</li>
-                    <li>Deposit limit increased to ₹10,000/day</li>
+                    <li>Deposit limit increased to ₹{(tierDetails?.daily_topup_limit || 10000).toLocaleString('en-IN')}/day</li>
                 </ul>
             </div>
 

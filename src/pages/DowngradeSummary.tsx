@@ -67,6 +67,46 @@ const DowngradeSummary = () => {
 
     const effectiveDate = getEffectiveDate();
 
+    const handleRazorpay = (tierName: string) => {
+        return new Promise((resolve, reject) => {
+            if (!window.Razorpay) {
+                reject(new Error("Razorpay script not loaded"));
+                return;
+            }
+
+            const options = {
+                key: "rzp_test_placeholder", // Replace with real key from dashboard
+                amount: 100, // ₹1 in paise (processing fee)
+                currency: "INR",
+                name: "GridPe",
+                description: `Confirm Downgrade to ${tierName} Wallet`,
+                handler: function (response: any) {
+                    if (response.razorpay_payment_id) {
+                        resolve(response.razorpay_payment_id);
+                    } else {
+                        reject(new Error("Payment failed"));
+                    }
+                },
+                modal: {
+                    ondismiss: function () {
+                        reject(new Error("Payment cancelled"));
+                    }
+                },
+                prefill: {
+                    name: "",
+                    email: "",
+                    contact: ""
+                },
+                theme: {
+                    color: "#5260FE"
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        });
+    };
+
     return (
         <div
             className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
@@ -271,11 +311,23 @@ const DowngradeSummary = () => {
             {/* Slide to Pay */}
             <div className="px-5 mt-auto pb-[42px] pt-[24px] shrink-0">
                 <SlideToPay
-                    onComplete={() => {
-                        if (tier) {
-                            scheduleDowngrade(tier as WalletTier, effectiveDate);
+                    onComplete={async () => {
+                        try {
+                            if (tier) {
+                                // 1. Trigger Razorpay Payment
+                                await handleRazorpay(tier);
+
+                                // 2. Only on success, set the scheduled_tier_id and tier_change_date
+                                // Using ISO format for the database
+                                const isoDate = new Date();
+                                isoDate.setMonth(isoDate.getMonth() + 1);
+                                await scheduleDowngrade(tier as WalletTier, isoDate.toISOString().split('T')[0]);
+                            }
+                            navigate("/subscriptions", { replace: true });
+                        } catch (error: any) {
+                            console.error("Payment or scheduling failed:", error);
+                            // Optionally handle dismiss or error here
                         }
-                        navigate("/subscriptions", { replace: true });
                     }}
                     label="Confirm Downgrade"
                 />

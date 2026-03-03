@@ -44,7 +44,12 @@ Deno.serve(async (req) => {
 
     const { data: tierData } = await supabase.from("wallet_tiers").select("id").ilike("name", tier_name).single();
     
-    await supabase.from("wallets").update({ tier_id: tierData.id }).eq("user_id", user_id);
+    // Sync both wallets and profiles tables
+    await Promise.all([
+      supabase.from("wallets").update({ tier_id: tierData.id }).eq("user_id", user_id),
+      supabase.from("profiles").update({ current_tier_id: tierData.id }).eq("id", user_id)
+    ]);
+    
     await supabase.from("user_subscriptions").update({ status: 'active' }).eq("razorpay_subscription_id", razorpay_subscription_id);
 
     return new Response(JSON.stringify({ success: true }), {

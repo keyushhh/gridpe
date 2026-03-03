@@ -52,14 +52,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 4️⃣ Fetch Pending Payment
+    // 4️⃣ Fetch Pending Payment (including the user who created it)
     const { data: pendingData, error: pendingError } = await supabase
       .from("pending_payments")
-      .select("amount, status")
+      .select("amount, status, user_id")
       .eq("razorpay_order_id", razorpay_order_id)
       .single();
 
     if (pendingError || !pendingData) {
+      console.error("Pending record not found for order:", razorpay_order_id);
       return new Response(JSON.stringify({ success: false, message: "Pending record not found" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -67,34 +68,22 @@ Deno.serve(async (req: Request) => {
     }
 
     const amount = pendingData.amount;
+    const effectiveUserId = pendingData.user_id || userId; // Fallback to hardcoded for legacy
 
-    // 5️⃣ Fetch Wallet
-    const { data: walletData, error: walletError } = await supabase
-      .from("wallets")
-      .select("available_balance")
-      .eq("user_id", userId)
-      .single();
+    console.log(`Verifying payment for user ${effectiveUserId}, amount: ${amount}`);
 
-    if (walletError || !walletData) {
-      throw new Error("Wallet not found for testing user");
-    }
-
-    const newBalance = Number(walletData.available_balance) + Number(amount);
-
-    // 6️⃣ Update Wallet Balance
-    await supabase
-      .from("wallets")
-      .update({ available_balance: newBalance })
-      .eq("user_id", userId);
-
-    // 7️⃣ Insert Transaction
-    await supabase.from("wallet_transactions").insert({
-      user_id: userId, // Using hardcoded ID
-      type: "credit",
-      amount: amount,
-      reference_id: razorpay_payment_id,
-      description: "Wallet top-up via Razorpay",
+    // 5️⃣ Atomic deposit: updates wallets.available_balance + inserts transaction in one DB transaction
+    const { error: depositError } = await supabase.rpc("wallet_deposit", {
+      p_user_id: effectiveUserId,
+      p_amount: amount,
+      p_description: "Wallet top-up via Razorpay",
+      p_reference_id: razorpay_payment_id,
     });
+
+    if (depositError) {
+      console.error("wallet_deposit RPC failed:", depositError);
+      throw depositError;
+    }
 
     // 8️⃣ Mark Pending Payment as Completed
     await supabase

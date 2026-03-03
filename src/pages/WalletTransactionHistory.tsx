@@ -18,20 +18,8 @@ import closeIcon from "@/assets/close.svg";
 import detailsIcon from "@/assets/details.svg";
 import copyIcon from "@/assets/copy.svg";
 import transactionDetailsLightBg from "@/assets/transaction-details-light.png";
-import { useUser } from "@/contexts/UserContext";
+import { useUser, WalletTransaction } from "@/contexts/UserContext";
 import { supabase, USER_ID } from "@/lib/supabase";
-
-export interface WalletTransaction {
-    id: string;
-    user_id: string;
-    transaction_type: 'credit' | 'debit' | 'held' | 'deposit';
-    amount: number;
-    status: 'success' | 'failed' | 'pending';
-    created_at: string;
-    description: string;
-    metadata?: Record<string, unknown>;
-    date?: string; // used locally for legacy mapping
-}
 
 const currencySymbols: Record<string, string> = {
     AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
@@ -104,6 +92,7 @@ const WalletTransactionHistory = () => {
                                 id: p.id,
                                 user_id: p.user_id,
                                 amount: p.amount,
+                                type: 'debit',
                                 transaction_type: 'debit',
                                 status: p.status as any,
                                 created_at: p.created_at,
@@ -229,7 +218,7 @@ const WalletTransactionHistory = () => {
             if (filters.type !== 'All') {
                 if (filters.type === 'Cash Order' && !tx.description.toLowerCase().includes('cash order')) return false;
                 if (filters.type === 'Withdrawal' && !tx.description.toLowerCase().includes('withdrawal')) return false;
-                if (filters.type === 'Wallet Top-Up' && !(tx.transaction_type === 'credit' && tx.description.toLowerCase().includes('top up'))) return false;
+                if (filters.type === 'Wallet Top-Up' && !((tx.type === 'credit' || tx.transaction_type === 'credit') && tx.description.toLowerCase().includes('top up'))) return false;
             }
 
             // 4. Method Filter
@@ -330,12 +319,13 @@ const WalletTransactionHistory = () => {
         : ["All Time", "Today", "Past 7 Days", "Past 30 Days", "Past 90 Days", "Past Year"];
 
     const getTransactionDisplay = (tx: WalletTransaction) => {
-        let title = tx.transaction_type === 'credit' ? "Amount Credited" : tx.transaction_type === 'held' ? "Amount Held" : "Amount Debited";
+        const txType = tx.type || tx.transaction_type;
+        let title = txType === 'credit' ? "Amount Credited" : txType === 'held' ? "Amount Held" : "Amount Debited";
         let subtitle = tx.description;
 
         // Try mapping from metadata first (for newer transactions)
         const methodId = tx.metadata?.paymentMethodId as string | undefined;
-        if (methodId && tx.transaction_type === 'credit') {
+        if (methodId && (tx.type === 'credit' || tx.transaction_type === 'credit')) {
             if (['cred', 'gpay', 'phonepe', 'upi-id'].includes(methodId)) {
                 return { title, subtitle: "Added via UPI" };
             }
@@ -353,7 +343,8 @@ const WalletTransactionHistory = () => {
         // Fallback to pattern matching (for older or non-topup transactions)
         const desc = tx.description.toLowerCase();
         if (tx.metadata?.isFx) {
-            title = tx.transaction_type === 'credit' ? "Amount Credited" : tx.transaction_type === 'held' ? "Amount Held" : "Amount Debited";
+            const txType = tx.type || tx.transaction_type;
+            title = txType === 'credit' ? "Amount Credited" : txType === 'held' ? "Amount Held" : "Amount Debited";
             subtitle = "FX Exchange";
         } else if (desc.includes("cash order")) {
             title = "Amount Debited";
@@ -379,7 +370,7 @@ const WalletTransactionHistory = () => {
             subtitle = "Added via Netbanking";
         } else if (desc.includes("amazon wallet") || desc.includes("amazon")) {
             subtitle = "Added via Amazon Wallet";
-        } else if (tx.transaction_type === 'credit') {
+        } else if (tx.type === 'credit' || tx.transaction_type === 'credit') {
             const cleanDesc = tx.description.replace(/^Added via\s+/i, '');
             subtitle = `Added via ${cleanDesc}`;
         }
@@ -740,7 +731,7 @@ const WalletTransactionHistory = () => {
                                 >
                                     {transactions.map((tx, txIndex) => {
                                         const { title, subtitle } = getTransactionDisplay(tx);
-                                        const type = tx.transaction_type?.toLowerCase();
+                                        const type = (tx.type || tx.transaction_type)?.toLowerCase();
                                         const status = tx.status?.toLowerCase();
                                         const desc = tx.description?.toLowerCase() || '';
                                         const isTopUp = type === 'credit' || desc.includes('top-up') || desc.includes('top up');
@@ -785,7 +776,7 @@ const WalletTransactionHistory = () => {
                                                             className="text-[15px] font-bold leading-[120%] tracking-[-0.3px]"
                                                             style={{ color: amountColor }}
                                                         >
-                                                            {(tx.transaction_type === 'credit' || tx.transaction_type === 'deposit') ? '+' : '-'} {tx.metadata?.isFx
+                                                            {(tx.type === 'credit' || tx.transaction_type === 'credit' || tx.type === 'deposit' || tx.transaction_type === 'deposit') ? '+' : '-'} {tx.metadata?.isFx
                                                                 ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                                 : `₹${Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                             }
