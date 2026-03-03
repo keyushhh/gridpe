@@ -243,7 +243,7 @@ const OrderCashSummary = () => {
                 if (invokeError) throw invokeError;
                 if (orderData?.error) throw new Error(orderData.error);
 
-                const orderStub = { id: orderData?.order_id || orderData?.id };
+                const orderStub = { id: orderData?.order?.id || orderData?.order_id || orderData?.id };
 
                 navigate(`/order-details/${orderStub.id}`, {
                     state: {
@@ -301,7 +301,7 @@ const OrderCashSummary = () => {
                         if (retryInvokeError) throw retryInvokeError;
                         if (retryData?.error) throw new Error(retryData.error);
 
-                        const retryOrderStub = { id: retryData?.order_id || retryData?.id };
+                        const retryOrderStub = { id: retryData?.order?.id || retryData?.order_id || retryData?.id };
 
                         navigate(`/order-details/${retryOrderStub.id}`, {
                             state: {

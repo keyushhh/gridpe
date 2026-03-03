@@ -72,7 +72,7 @@ const OrderDetails = () => {
                 return;
             }
 
-            if (orderId) {
+            if (orderId && orderId !== "undefined") {
                 try {
                     const { data, error } = await supabase
                         .from('orders')

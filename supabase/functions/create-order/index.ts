@@ -26,38 +26,21 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Create the Order
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        user_id: user_id || '414c977e-6f70-4f57-bfa1-af0a8a2053a4',
-        address_id,
-        amount,
-        order_type: order_type || 'CASH_ORDER',
-        status: 'pending',
-        payment_mode: 'wallet',
-        currency: 'INR'
-      })
-      .select()
-      .single();
+    // 1. Atomically create the Order and place the HOLD on the wallet
+    const { data: orderResponse, error: rpcError } = await supabase.rpc('create_cash_order', {
+      p_user_id: user_id || '414c977e-6f70-4f57-bfa1-af0a8a2053a4',
+      p_address_id: address_id,
+      p_amount: amount,
+      p_order_type: order_type || 'CASH_ORDER',
+      p_meta_data: {} // Default empty JSONB, real metadata isn't strictly requested in this edge function payload yet but added as parameter
+    });
 
-    if (orderError) throw orderError;
+    if (rpcError) {
+      console.error("RPC Error:", rpcError);
+      throw new Error(rpcError.message);
+    }
 
-    // 2. Place the HOLD on the wallet
-    const { error: transactionError } = await supabase
-      .from("wallet_transactions")
-      .insert({
-        user_id: user_id || '414c977e-6f70-4f57-bfa1-af0a8a2053a4',
-        amount: -amount, // Negative for a hold
-        transaction_type: 'held',
-        status: 'held', // Explicitly set status to held as per new rules
-        order_id: order.id, // Maps to the new SQL column
-        description: order_type === 'FX_EXCHANGE' ? 'FX Exchange Hold' : 'Cash Order Hold'
-      });
-
-    if (transactionError) throw transactionError;
-
-    return new Response(JSON.stringify({ success: true, order }), {
+    return new Response(JSON.stringify({ success: true, order: orderResponse }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

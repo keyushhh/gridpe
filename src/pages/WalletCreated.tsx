@@ -136,7 +136,7 @@ const WalletCreated = () => {
             const isTopUp = type === 'credit' || txDescription.includes('top-up');
 
             // Hold Restrictions: Only FX/Cash orders can show 'On hold'
-            const isFxOrCash = txDescription.includes('fx exchange') || txDescription.includes('cash delivery');
+            const isFxOrCash = txDescription.includes('fx exchange') || txDescription.includes('cash delivery') || txDescription.includes('cash order');
             const isOnHold = status === 'held' && isFxOrCash;
 
             if (isOnHold) {
@@ -144,6 +144,12 @@ const WalletCreated = () => {
                 strokeColor = "rgba(250, 204, 21, 0.17)";
                 title = `On hold ₹${formattedAmount}`;
                 description = `₹${formattedAmount} is currently on hold. It’ll be released after delivery confirmation.`;
+            } else if (txDescription.includes('cancelled') || txDescription.includes('failed') || txDescription.includes('released')) {
+                // Refund / Released Funds State
+                statusColor = "#5CFF00"; // Green
+                strokeColor = "rgba(92, 255, 0, 0.17)";
+                title = `Funds Returned + ₹${formattedAmount}`;
+                description = `₹${formattedAmount} was returned to your wallet for a cancelled/failed order.`;
             } else if (type === 'debit') {
                 statusColor = "#D33313"; // Red
                 strokeColor = "rgba(211, 51, 19, 0.17)";
@@ -156,6 +162,12 @@ const WalletCreated = () => {
                 description = txDescription.includes('top-up')
                     ? `₹${formattedAmount} was added to your wallet via top-up.`
                     : `₹${formattedAmount} was added to your wallet via UPI.`;
+            } else {
+                // Fallback for any other unhandled transaction
+                statusColor = "#3B82F6"; // Blue default
+                strokeColor = "rgba(59, 130, 246, 0.17)";
+                title = `Transaction ₹${formattedAmount}`;
+                description = `₹${formattedAmount} transaction processed.`;
             }
 
             return (
