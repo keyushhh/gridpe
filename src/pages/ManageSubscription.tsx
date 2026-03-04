@@ -38,10 +38,21 @@ const ManageSubscription = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletTier, walletLimit } = useUser();
+    const { walletTier, walletLimit, scheduleDowngrade } = useUser();
     const currentTierConfig = tiers.find(t => t.name === walletTier);
 
     if (!currentTierConfig) return null;
+
+    const handleCancel = async () => {
+        try {
+            const isoDate = new Date();
+            isoDate.setDate(isoDate.getDate() + 31);
+            await scheduleDowngrade('Starter', isoDate.toISOString().split('T')[0]);
+            navigate("/subscriptions", { replace: true });
+        } catch (error: any) {
+            console.error("Cancellation scheduling failed:", error);
+        }
+    };
 
     const backgroundImage = isDarkMode ? subscriptionBgs[walletTier] : subscriptionBgsLight[walletTier];
 
@@ -171,6 +182,7 @@ const ManageSubscription = () => {
                         Downgrade Plan
                     </button>
                     <button
+                        onClick={handleCancel}
                         className={`w-[362px] h-[48px] rounded-full text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center overflow-hidden relative ${isDarkMode ? 'text-white' : 'text-black bg-[#EBEBEB]'}`}
                         style={isDarkMode ? {
                             backgroundImage: `url(${addPaymentCta})`,

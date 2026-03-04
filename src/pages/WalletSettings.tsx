@@ -11,7 +11,7 @@ import { tiers, tierSettingsCardMap, tierSettingsCardMapLight, tierCarouselActiv
 
 const WalletSettings = () => {
     const navigate = useNavigate();
-    const { walletTier, resetForDemo } = useUser();
+    const { walletTier, resetForDemo, scheduledDowngrade } = useUser();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
@@ -19,6 +19,7 @@ const WalletSettings = () => {
         tiers.find((tier) => tier.name === walletTier) || tiers[0];
 
     const handleUpgrade = () => {
+        if (scheduledDowngrade) return;
         const currentIndex = tiers.findIndex(t => t.name === walletTier);
         const nextTier = tiers[currentIndex + 1];
         if (nextTier) {
@@ -101,13 +102,24 @@ const WalletSettings = () => {
                             </div>
 
                             <div className="mt-[17px] mb-[17px] px-6">
-                                <button
-                                    onClick={handleUpgrade}
-                                    className="mx-auto h-[48px] flex items-center justify-center rounded-full text-white text-[18px] font-medium active:scale-95 transition-transform"
-                                    style={{ background: "#6C72FF", width: "326px", maxWidth: "100%" }}
-                                >
-                                    {currentTier.buttonText}
-                                </button>
+                                {walletTier === 'Supreme' ? (
+                                    <button
+                                        disabled
+                                        className="mx-auto h-[48px] flex items-center justify-center rounded-full text-white text-[16px] font-medium transition-transform opacity-50 cursor-not-allowed"
+                                        style={{ background: "#6C72FF", width: "326px", maxWidth: "100%" }}
+                                    >
+                                        Current Plan
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleUpgrade}
+                                        className={`mx-auto h-[48px] flex items-center justify-center rounded-full text-white text-[18px] font-medium active:scale-95 transition-transform ${scheduledDowngrade ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        style={{ background: "#6C72FF", width: "326px", maxWidth: "100%" }}
+                                        disabled={!!scheduledDowngrade}
+                                    >
+                                        {currentTier.buttonText}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

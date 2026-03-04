@@ -10,7 +10,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 const WalletTierDetails = () => {
     const { tierId } = useParams<{ tierId: string }>();
     const navigate = useNavigate();
-    const { walletTier, setWalletTier } = useUser();
+    const { walletTier, setWalletTier, scheduledDowngrade } = useUser();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const currentTier = tiers.find(t => t.name.toLowerCase() === tierId?.toLowerCase());
@@ -218,6 +218,7 @@ const WalletTierDetails = () => {
                     const isCurrent = viewedTierIndex === currentTierIndex;
 
                     const handleAction = () => {
+                        if (scheduledDowngrade) return;
                         if (isUpgrade) {
                             navigate(currentTier.buttonAction, {
                                 state: { flow: 'upgrade', tier: currentTier.name },
@@ -234,8 +235,11 @@ const WalletTierDetails = () => {
                         if (currentTier.name === 'Starter') {
                             return (
                                 <button
-                                    onClick={() => navigate(currentTier.buttonAction)}
-                                    className="w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px]"
+                                    onClick={() => {
+                                        if (!scheduledDowngrade) navigate(currentTier.buttonAction);
+                                    }}
+                                    disabled={!!scheduledDowngrade}
+                                    className={`w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px] ${scheduledDowngrade ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                 >
                                     {currentTier.buttonText}
                                 </button>
@@ -244,7 +248,7 @@ const WalletTierDetails = () => {
                         return (
                             <button
                                 disabled
-                                className="w-full h-[52px] rounded-full bg-[#2C2C2C] text-white/50 text-[16px] font-medium flex items-center justify-center mt-[20px]"
+                                className="w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium flex items-center justify-center mt-[20px] opacity-50 cursor-not-allowed"
                             >
                                 Current Plan
                             </button>
@@ -254,7 +258,8 @@ const WalletTierDetails = () => {
                     return (
                         <button
                             onClick={handleAction}
-                            className="w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px]"
+                            disabled={!!scheduledDowngrade}
+                            className={`w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px] ${scheduledDowngrade ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                         >
                             {isDowngrade ? "Downgrade Now" : "Upgrade Now"}
                         </button>

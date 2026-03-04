@@ -143,7 +143,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .select(`
           id, name, avatar_url, kyc_status, email, is_fx_enabled, 
           current_tier_id, scheduled_tier_id, tier_change_date,
-          wallet_tiers!current_tier_id(*)
+          wallet_tiers!current_tier_id(*),
+          scheduled_tier:wallet_tiers!scheduled_tier_id(name)
         `)
         .eq('id', userId)
         .maybeSingle();
@@ -151,10 +152,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (profileError) throw profileError;
 
       if (profileData) {
-        // profileData.wallet_tiers might be an object OR an array [object] depending on the JOIN
-        let tierData = (profileData.wallet_tiers as any);
+        let tierData = profileData.wallet_tiers as any;
         if (Array.isArray(tierData)) {
           tierData = tierData[0];
+        }
+
+        let schedData = profileData.scheduled_tier as any;
+        if (Array.isArray(schedData)) schedData = schedData[0];
+        let schedParsedName: string | null = null;
+        if (schedData && schedData.name) {
+          schedParsedName = schedData.name.charAt(0).toUpperCase() + schedData.name.slice(1);
         }
 
         setState(prev => ({
@@ -175,7 +182,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           wallet_tiers: tierData,
 
           scheduledDowngrade: profileData.scheduled_tier_id ? {
-            tier: (prev.scheduledDowngrade?.tier || 'Starter'),
+            tier: (schedParsedName as WalletTier) || prev.scheduledDowngrade?.tier || 'Starter',
             effectiveDate: profileData.tier_change_date
           } : null,
         }));
@@ -437,7 +444,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const [profileUpdate, walletUpdate] = await Promise.all([
         supabase
           .from('profiles')
-          .update({ current_tier_id: tierData.id })
+          .update({
+            current_tier_id: tierData.id,
+            scheduled_tier_id: null,
+            tier_change_date: null
+          })
           .eq('id', userId),
         supabase
           .from('wallets')
@@ -460,28 +471,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const scheduleDowngrade = async (tier: WalletTier, effectiveDate: string) => {
     try {
-      // 1. Fetch the ID for the tier
-      const { data: tierData, error: tierError } = await supabase
-        .from('wallet_tiers')
-        .select('id')
-        .ilike('name', tier)
-        .single();
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || USER_ID;
 
-      if (tierError) throw tierError;
+      const { error: rpcError } = await supabase.rpc('schedule_downgrade', {
+        p_user_id: userId,
+        p_tier_name: tier,
+        p_tier_change_date: effectiveDate
+      });
 
-      // 2. Update profiles with the tier ID
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          scheduled_tier_id: tierData.id,
-          tier_change_date: effectiveDate
-        })
-        .eq('id', USER_ID);
+      if (rpcError) throw rpcError;
 
-      if (error) throw error;
       setState(prev => ({ ...prev, scheduledDowngrade: { tier, effectiveDate } }));
     } catch (error) {
-      console.error('Failed to schedule downgrade in Supabase:', error);
+      console.error('Failed to schedule downgrade via RPC:', error);
     }
   };
 

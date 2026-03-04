@@ -119,7 +119,7 @@ const Subscriptions = () => {
                     style={{
                         height: containerHeight,
                         backgroundImage: `url(${backgroundImage})`,
-                        backgroundSize: "cover",
+                        backgroundSize: "100% 100%",
                         backgroundPosition: "top center",
                         backgroundRepeat: "no-repeat",
                         border: !isDarkMode ? "1px solid #F2F2F7" : "none",
@@ -127,16 +127,17 @@ const Subscriptions = () => {
                 >
                     {/* Price Chip or Scheduled Chip */}
                     <div
-                        className="absolute flex items-center justify-center text-white z-20 rounded-full"
+                        className={`absolute flex items-center justify-center z-20 rounded-[100px] ${scheduledDowngrade ? 'border border-white/20' : 'text-white'}`}
                         style={{
-                            top: "12px",
-                            right: "12px",
-                            width: scheduledDowngrade ? "117px" : "88px",
-                            height: scheduledDowngrade ? "23px" : "24px",
-                            backgroundColor: "#000000",
+                            top: "14px",
+                            right: "14px",
+                            padding: scheduledDowngrade ? "4px 10px" : "0",
+                            width: scheduledDowngrade ? "auto" : "88px",
+                            height: scheduledDowngrade ? "22px" : "24px",
+                            backgroundColor: scheduledDowngrade ? "transparent" : "#000000",
                         }}
                     >
-                        <span className="font-satoshi font-medium text-[10px]">
+                        <span className={`${scheduledDowngrade ? 'text-white text-[10px] whitespace-nowrap' : 'font-satoshi font-medium text-[10px]'}`}>
                             {scheduledDowngrade ? "Downgrade Scheduled" : currentTierConfig.badge}
                         </span>
                     </div>
@@ -157,9 +158,14 @@ const Subscriptions = () => {
                         </div>
 
                         {scheduledDowngrade ? (
-                            <div className="flex flex-col mt-[16px] -ml-[60px]" style={{ width: '326px' }}>
-                                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-satoshi leading-[1.3]`}>
-                                    Note: Downgrade to {scheduledDowngrade.tier} will take effect on {scheduledDowngrade.effectiveDate}.
+                            <div className="flex flex-col mt-[24px] -ml-[60px]" style={{ width: '326px' }}>
+                                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-medium font-satoshi leading-[1.3]`}>
+                                    Note: Downgrade to {scheduledDowngrade.tier} will take effect on {(() => {
+                                        const d = new Date(scheduledDowngrade.effectiveDate);
+                                        const day = String(d.getDate()).padStart(2, "0");
+                                        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+                                        return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                                    })()}.
                                 </p>
                             </div>
                         ) : (
@@ -257,20 +263,25 @@ const Subscriptions = () => {
                     <button
                         disabled={walletTier === 'Starter' || !!scheduledDowngrade}
                         onClick={() => navigate('/manage-subscription')}
-                        className={`w-[362px] h-[48px] rounded-full flex items-center justify-center text-white text-[16px] font-medium font-satoshi transition-all bg-[#5260FE] active:scale-95 disabled:opacity-50`}
+                        className={`w-[362px] h-[48px] rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi transition-all active:scale-95 ${walletTier === 'Starter' || !!scheduledDowngrade
+                            ? isDarkMode
+                                ? 'bg-transparent border border-white/10 text-white/50'
+                                : 'bg-transparent border border-[#E9EAEB] text-black/50'
+                            : 'bg-[#5260FE] text-white'
+                            }`}
                     >
                         Manage Subscription
                     </button>
 
                     {walletTier === 'Starter' && !scheduledDowngrade && (
-                        <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mt-[12px] text-center">
+                        <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mt-[12px] text-center w-[362px]">
                             There’s nothing to manage here, this is the lowest you can go.
                         </p>
                     )}
 
                     {scheduledDowngrade && (
-                        <div className="w-full flex flex-col items-start px-1 mt-[12px]">
-                            <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi text-left">
+                        <div className="flex flex-col items-start mt-[12px]" style={{ width: '362px' }}>
+                            <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi text-left w-full">
                                 Plan changes are locked until your downgrade takes effect.
                             </p>
 

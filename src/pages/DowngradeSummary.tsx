@@ -13,10 +13,10 @@ import autoRefreshIcon from "@/assets/auto-refresh.svg";
 import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tierChipColorMap } from "@/lib/walletTiers";
 
-import starterSubLight from "@/assets/light-cards/starter-subscription-light.png";
-import proSubLight from "@/assets/light-cards/pro-subscription-light.png";
-import eliteSubLight from "@/assets/light-cards/elite-subscription-light.png";
-import supremeSubLight from "@/assets/light-cards/supreme-subscription-light.png";
+import starterSubLight from "@/assets/light-cards/subscription-starter-light.png";
+import proSubLight from "@/assets/light-cards/subscription-pro-light.png";
+import eliteSubLight from "@/assets/light-cards/subscription-elite-light.png";
+import supremeSubLight from "@/assets/light-cards/subscription-supreme-light.png";
 
 const subscriptionBanners: Record<string, string> = {
     Starter: starterSub,
@@ -51,10 +51,21 @@ const DowngradeSummary = () => {
     const location = useLocation();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletTier, scheduleDowngrade } = useUser();
+    const { walletTier, scheduleDowngrade, walletBalance } = useUser();
     const { tier } = location.state || { tier: "" };
 
     const bannerImage = isDarkMode ? (subscriptionBanners[tier] || starterSub) : (subscriptionBannersLight[tier] || starterSubLight);
+
+    // Hardcoded max limits per tier for comparison during downgrade flow
+    const tierLimits: Record<string, number> = {
+        Starter: 5000,
+        Pro: 15000,
+        Elite: 50000,
+        Supreme: 150000,
+    };
+
+    const nextLimit = tierLimits[tier] || 0;
+    const isBalanceOverLimit = walletBalance > nextLimit;
 
     // Calculate effective date (e.g. 1 month from now)
     const getEffectiveDate = () => {
@@ -66,46 +77,6 @@ const DowngradeSummary = () => {
     };
 
     const effectiveDate = getEffectiveDate();
-
-    const handleRazorpay = (tierName: string) => {
-        return new Promise((resolve, reject) => {
-            if (!window.Razorpay) {
-                reject(new Error("Razorpay script not loaded"));
-                return;
-            }
-
-            const options = {
-                key: "rzp_test_placeholder", // Replace with real key from dashboard
-                amount: 100, // ₹1 in paise (processing fee)
-                currency: "INR",
-                name: "GridPe",
-                description: `Confirm Downgrade to ${tierName} Wallet`,
-                handler: function (response: any) {
-                    if (response.razorpay_payment_id) {
-                        resolve(response.razorpay_payment_id);
-                    } else {
-                        reject(new Error("Payment failed"));
-                    }
-                },
-                modal: {
-                    ondismiss: function () {
-                        reject(new Error("Payment cancelled"));
-                    }
-                },
-                prefill: {
-                    name: "",
-                    email: "",
-                    contact: ""
-                },
-                theme: {
-                    color: "#5260FE"
-                }
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.open();
-        });
-    };
 
     return (
         <div
@@ -139,10 +110,10 @@ const DowngradeSummary = () => {
             <div className="flex-1 flex flex-col items-center pt-[36px] px-5">
                 {/* Subscription Banner */}
                 <div
-                    className="w-full max-w-[362px] h-[84px] rounded-[20px] relative"
+                    className="w-full max-w-[362px] h-[95px] rounded-[20px] relative overflow-hidden"
                     style={{
                         backgroundImage: `url(${bannerImage})`,
-                        backgroundSize: isDarkMode ? "100% 100%" : "contain",
+                        backgroundSize: "100% 100%",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                         border: !isDarkMode ? "1px solid #F2F2F7" : "none",
@@ -306,18 +277,24 @@ const DowngradeSummary = () => {
                 <p className={`w-full max-w-[362px] mt-[14px] text-[14px] font-normal leading-[140%] font-satoshi text-left ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Your wallet will be downgraded to {tier} Wallet. Changes will take place on your next billing date. Any balance above the new limit will be <span className="text-[#FF0000] font-bold">lost forever</span>.
                 </p>
+
+                {/* Over Limit Warning */}
+                {isBalanceOverLimit && (
+                    <div className={`mt-[14px] w-full max-w-[362px] rounded-[12px] p-[10px] border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-[#E9EAEB]'}`}>
+                        <h3 className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[12px] font-bold font-satoshi`}>Note:</h3>
+                        <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[12px] font-medium font-satoshi mt-[7px]`}>
+                            Your current balance (₹{walletBalance.toLocaleString('en-IN')}) exceeds the {tier} limit (₹{nextLimit.toLocaleString('en-IN')}). <span className="text-[#FF0000] font-bold">Before downgrading... make sure your wallet balance is used</span> — once it’s gone, it’s really gone.
+                        </p>
+                    </div>
+                )}
             </div>
 
-            {/* Slide to Pay */}
             <div className="px-5 mt-auto pb-[42px] pt-[24px] shrink-0">
                 <SlideToPay
                     onComplete={async () => {
                         try {
                             if (tier) {
-                                // 1. Trigger Razorpay Payment
-                                await handleRazorpay(tier);
-
-                                // 2. Only on success, set the scheduled_tier_id and tier_change_date
+                                // 1. Set the scheduled_tier_id and tier_change_date
                                 // Using ISO format for the database
                                 const isoDate = new Date();
                                 isoDate.setMonth(isoDate.getMonth() + 1);
