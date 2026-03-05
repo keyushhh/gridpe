@@ -225,7 +225,7 @@ const WalletTierDetails = () => {
                                 replace: true
                             });
                         } else if (isDowngrade) {
-                            navigate('/subscription-details', {
+                            navigate('/downgrade-summary', {
                                 state: { flow: 'downgrade', tier: currentTier.name }
                             });
                         }

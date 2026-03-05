@@ -21,7 +21,7 @@ const WalletAddMoney = () => {
   const { theme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { walletLimit, refreshBalance, fetchProfileData } = useUser();
+  const { walletLimit, refreshBalance, fetchProfileData, refreshTransactions, profile } = useUser();
   const balance = location.state?.balance || "0.00";
   const fromWallet = location.state?.from === 'wallet';
   const [amount, setAmount] = useState<string>("0.00");
@@ -341,17 +341,19 @@ const WalletAddMoney = () => {
                                 console.log("Payment verified successfully!");
 
                                 // Sync wallet balance and profile logic with hardening delay
-                                console.log(`Verification success for ${user.id}, waiting 2s for DB consistency...`);
+                                console.log(`Verification success for ${currentUserId}, waiting 2s for DB consistency...`);
                                 await new Promise(resolve => setTimeout(resolve, 2000));
 
-                                await refreshBalance(user.id);
-                                await fetchProfileData(user.id);
+                                await refreshBalance(currentUserId);
+                                await fetchProfileData(currentUserId);
+                                await refreshTransactions(currentUserId);
 
                                 navigate("/wallet-topup-success", {
                                   state: {
                                     totalAmount: val,
                                     creditAmount: val,
-                                    paymentMethod: "razorpay"
+                                    paymentMethod: "razorpay",
+                                    transactionId: verification?.transactionData?.id
                                   }
                                 });
                               } else {

@@ -60,12 +60,18 @@ const WalletTransactionHistory = () => {
 
     // Fetch transactions
     useEffect(() => {
+        let currentUserId = USER_ID;
+        let channel: any;
+
         const fetchTransactions = async () => {
             try {
+                const { data: { session } } = await supabase.auth.getSession();
+                currentUserId = session?.user?.id || USER_ID;
+
                 // Fetch both wallet_transactions and payouts for a truly inclusive list
                 const [txResult, payoutResult] = await Promise.all([
-                    supabase.from("wallet_transactions").select("*").eq("user_id", USER_ID),
-                    supabase.from("payouts").select("*").eq("user_id", USER_ID)
+                    supabase.from("wallet_transactions").select("*").eq("user_id", currentUserId),
+                    supabase.from("payouts").select("*").eq("user_id", currentUserId)
                 ]);
 
                 let mergedData: WalletTransaction[] = [];
@@ -122,22 +128,37 @@ const WalletTransactionHistory = () => {
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        const channel = supabase.channel('wallet-history-sync')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` },
-                fetchTransactions
-            )
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'payouts', filter: `user_id=eq.${USER_ID}` },
-                fetchTransactions
-            )
-            .subscribe();
+        // Setup channel matching currentUserId
+        const setupChannel = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            const cid = session?.user?.id || USER_ID;
+            channel = supabase.channel('wallet-history-sync')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${cid}` },
+                    fetchTransactions
+                )
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'payouts', filter: `user_id=eq.${cid}` },
+                    fetchTransactions
+                )
+                .subscribe();
+        };
+        setupChannel();
+
+        // Listen for refresh events
+        const handleCustomRefresh = (e: CustomEvent<{ userId: string }>) => {
+            if (e.detail?.userId === currentUserId) {
+                fetchTransactions();
+            }
+        };
+        window.addEventListener('refresh_wallet_transactions' as any, handleCustomRefresh);
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
-            supabase.removeChannel(channel);
+            window.removeEventListener('refresh_wallet_transactions' as any, handleCustomRefresh);
+            if (channel) supabase.removeChannel(channel);
         };
     }, []);
 

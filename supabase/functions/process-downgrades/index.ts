@@ -32,8 +32,8 @@ Deno.serve(async (req) => {
       // 2. Fetch the target tier's limits
       const { data: tierData, error: tierError } = await supabase
         .from('wallet_tiers')
-        .select('id, max_wallet_balance, daily_limit, max_withdrawal_limit')
-        .eq('tier_name', profile.scheduled_tier_id)
+        .select('id, name, max_wallet_balance, daily_limit, max_withdrawal_limit')
+        .eq('id', profile.scheduled_tier_id)
         .single();
 
       if (tierError || !tierData) {
@@ -88,17 +88,24 @@ Deno.serve(async (req) => {
         const excess = currentBalance - limit;
         await supabase.from('wallet_transactions').insert({
           user_id: profile.id,
-          transaction_type: 'debit',
+          transaction_type: 'tier_adjustment',
           amount: excess,
           status: 'completed',
-          description: 'System Adjustment (Tier Downgrade)',
+          description: 'Tier Limit Adjustment',
           metadata: { 
-            scheduled_tier: profile.scheduled_tier_id, 
+            scheduled_tier: tierData.name || profile.scheduled_tier_id, 
             limit_enforced: limit,
-            burn_amount: excess 
+            burn_amount: excess,
+            previous_balance: currentBalance
           }
         });
-        console.log(`Clipped ${excess} from user ${profile.id} for downgrade to ${profile.scheduled_tier_id}`);
+
+        // Cap the wallet balance to the new tier limit
+        await supabase.from('wallets')
+          .update({ available_balance: limit })
+          .eq('user_id', profile.id);
+
+        console.log(`Clipped ${excess} from user ${profile.id} for downgrade to ${tierData.name || profile.scheduled_tier_id}`);
       }
 
       // 5. Apply the final switch

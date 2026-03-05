@@ -14,6 +14,7 @@ import walletCreditedIcon from "@/assets/wallet-credited.svg";
 import walletDebitedIcon from "@/assets/wallet-debited.svg";
 import addPaymentCta from "@/assets/add-payment-cta.png";
 import { supabase, USER_ID } from "@/lib/supabase";
+import BalanceAlert from "@/components/BalanceAlert";
 
 const WalletCreated = () => {
     const navigate = useNavigate();
@@ -108,6 +109,16 @@ const WalletCreated = () => {
         };
     }, [queryClient, userId]);
 
+    useEffect(() => {
+        const handleRefresh = (e: any) => {
+            if (e.detail?.userId === userId) {
+                queryClient.invalidateQueries({ queryKey: ['wallet_transactions', userId] });
+                queryClient.invalidateQueries({ queryKey: ['wallet', userId] });
+            }
+        };
+        window.addEventListener('refresh_wallet_transactions', handleRefresh);
+        return () => window.removeEventListener('refresh_wallet_transactions', handleRefresh);
+    }, [queryClient, userId]);
 
     const dbTier = walletTier;
     const dbLimit = wallet_tiers?.max_wallet_balance || walletLimit;
@@ -120,7 +131,7 @@ const WalletCreated = () => {
 
     const renderStatusIndicator = () => {
         // Prioritize showing transaction status if there is a balance and a transaction exists
-        if (walletBalance > 0 && latestTx) {
+        if (Number(walletBalance) > 0 && latestTx) {
             const absAmount = Math.abs(latestTx.amount);
             const formattedAmount = absAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             let statusColor = "";
@@ -162,6 +173,11 @@ const WalletCreated = () => {
                 description = txDescription.includes('top-up')
                     ? `₹${formattedAmount} was added to your wallet via top-up.`
                     : `₹${formattedAmount} was added to your wallet via UPI.`;
+            } else if (type === 'tier_adjustment') {
+                statusColor = "#FF9500"; // Orange
+                strokeColor = "rgba(255, 149, 0, 0.17)";
+                title = `Tier Adjustment - ₹${formattedAmount}`;
+                description = `₹${formattedAmount} was adjusted due to a tier limit change.`;
             } else {
                 // Fallback for any other unhandled transaction
                 statusColor = "#3B82F6"; // Blue default
@@ -227,6 +243,7 @@ const WalletCreated = () => {
         }
 
         // Default Empty State (Starter Tier, 0 Balance)
+        if (Number(walletBalance) > 0) return null;
         return (
             <div className="mt-[16px]">
                 <p className={`text-[13px] font-medium font-sans leading-tight tracking-tight ${isDarkMode ? 'text-white/90' : 'text-black/90'}`}>
@@ -237,7 +254,7 @@ const WalletCreated = () => {
         );
     };
 
-    if (isWalletLoading) {
+    if (isWalletLoading || isTxLoading) {
         return (
             <div className="h-full w-full flex items-center justify-center bg-[#0a0a12]">
                 <Loader2 className="w-8 h-8 animate-spin text-[#5260FE]" />
@@ -361,6 +378,9 @@ const WalletCreated = () => {
                         </p>
                     </div>
                 )}
+
+                {/* Balance Alert Banner */}
+                <BalanceAlert className="mt-[14px] mb-5" />
 
                 {/* Transaction History */}
                 <div className="mt-5 w-full mx-auto mb-[20px]" style={{ maxWidth: '362px' }}>

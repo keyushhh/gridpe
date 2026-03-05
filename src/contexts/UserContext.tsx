@@ -73,6 +73,7 @@ interface UserContextType extends UserState {
   cancelDowngrade: () => void;
   completeScheduledDowngrade: () => void;
   refreshBalance: (userId?: string) => Promise<void>;
+  refreshTransactions: (userId?: string) => Promise<void>;
   fetchProfileData: (userId?: string) => Promise<void>;
   addMoney: (amount: number) => Promise<{ success: boolean; error?: any }>;
 }
@@ -293,7 +294,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error reading wallet balance:', walletError);
       }
 
-      const balance = Math.floor(Number(walletData?.available_balance) || 0);
+      const balance = Number(walletData?.available_balance || 0);
+      const flooredBalance = Math.floor(balance);
 
       // We can still calculate held balance from transactions if needed
       const { data: txData } = await supabase
@@ -304,12 +306,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       const held = Math.floor(calculateHeldBalance(txData as LibWalletTransaction[] || []));
 
-      console.log('Balance read from wallets (floored):', balance, 'Held:', held, 'for userId:', userId);
-      setState(prev => ({ ...prev, walletBalance: balance, heldBalance: held }));
+      console.log('Balance read from wallets (floored):', flooredBalance, 'Held:', held, 'for userId:', userId);
+      setState(prev => ({ ...prev, walletBalance: flooredBalance, heldBalance: held }));
     } catch (err) {
       console.error('Error in fetchAndCalculateBalance:', err);
     }
   };
+
+  const refreshTransactions = useCallback(async (overrideUserId?: string) => {
+    let id = overrideUserId;
+    if (!id) {
+      const { data: { session } } = await supabase.auth.getSession();
+      id = session?.user?.id;
+    }
+    const currentId = id || USER_ID;
+    if (currentId) {
+      window.dispatchEvent(new CustomEvent('refresh_wallet_transactions', { detail: { userId: currentId } }));
+    }
+  }, []);
 
   useEffect(() => {
     fetchAndCalculateBalance();
@@ -474,17 +488,33 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || USER_ID;
 
-      const { error: rpcError } = await supabase.rpc('schedule_downgrade', {
+      console.log('[scheduleDowngrade] Calling RPC with:', {
         p_user_id: userId,
         p_tier_name: tier,
         p_tier_change_date: effectiveDate
       });
 
-      if (rpcError) throw rpcError;
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('schedule_downgrade', {
+        p_user_id: userId,
+        p_tier_name: tier,
+        p_tier_change_date: effectiveDate
+      });
 
+      if (rpcError) {
+        console.error('[scheduleDowngrade] RPC ERROR:', rpcError);
+        throw rpcError;
+      }
+
+      console.log('[scheduleDowngrade] RPC SUCCESS:', rpcResult);
+
+      // Set optimistic local state immediately
       setState(prev => ({ ...prev, scheduledDowngrade: { tier, effectiveDate } }));
+
+      // Re-fetch from DB to confirm the write actually persisted
+      await fetchProfileData();
+      console.log('[scheduleDowngrade] Profile data re-fetched from DB after RPC');
     } catch (error) {
-      console.error('Failed to schedule downgrade via RPC:', error);
+      console.error('[scheduleDowngrade] Failed to schedule downgrade via RPC:', error);
     }
   };
 
@@ -510,37 +540,48 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const newTier = state.scheduledDowngrade.tier;
 
       try {
-        // 1. Fetch the ID for the new tier from wallet_tiers
+        // 1. Fetch the ID and limits for the new tier from wallet_tiers
         const { data: tierData, error: tierError } = await supabase
           .from('wallet_tiers')
-          .select('id')
+          .select('id, max_wallet_balance')
           .ilike('name', newTier)
           .single();
 
         if (tierError) throw tierError;
 
-        // 2. Update profiles and wallets simultaneously
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id || USER_ID;
 
-        const [profileUpdate, walletUpdate] = await Promise.all([
-          supabase
-            .from('profiles')
-            .update({
-              scheduled_tier_id: null,
-              tier_change_date: null,
-              current_tier_id: tierData.id,
-            })
-            .eq('id', userId),
-          supabase
-            .from('wallets')
-            .update({ tier_id: tierData.id })
-            .eq('user_id', userId)
-        ]);
+        const newLimit = tierData.max_wallet_balance || 0;
+        const currentBalance = state.walletBalance;
 
-        if (profileUpdate.error) throw profileUpdate.error;
-        if (walletUpdate.error) throw walletUpdate.error;
+        console.log('[completeScheduledDowngrade] Calling apply_tier_forfeiture RPC:', {
+          p_user_id: userId,
+          p_new_tier_id: tierData.id,
+          p_new_limit: newLimit,
+          p_current_balance: currentBalance
+        });
+
+        // 2. Single atomic RPC: handles insert, balance cap, tier flip, and cleanup
+        const { data: rpcResult, error: rpcError } = await supabase.rpc('apply_tier_forfeiture', {
+          p_user_id: userId,
+          p_new_tier_id: tierData.id,
+          p_new_limit: newLimit,
+          p_current_balance: currentBalance
+        });
+
+        if (rpcError) {
+          console.error('[completeScheduledDowngrade] RPC ERROR:', rpcError);
+          throw rpcError;
+        }
+
+        console.log('[completeScheduledDowngrade] RPC SUCCESS:', rpcResult);
+
+        // 3. Refresh everything so the UI updates immediately
+        await refreshBalance(userId);
         await fetchProfileData();
+
+        console.log('[completeScheduledDowngrade] UI refreshed after forfeiture');
       } catch (err) {
         console.error('Failed to complete downgrade:', err);
       }
@@ -593,6 +634,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     cancelDowngrade,
     completeScheduledDowngrade,
     refreshBalance,
+    refreshTransactions,
     fetchProfileData,
     addMoney,
   };

@@ -57,7 +57,7 @@ const SubscriptionSummary = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
-    const { setWalletTier, walletTier } = useUser();
+    const { setWalletTier, walletTier, scheduleDowngrade } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
     const [isLoading, setIsLoading] = React.useState(false);
 
@@ -379,12 +379,14 @@ const SubscriptionSummary = () => {
             {/* Slide to Pay */}
             <div className="px-5 mt-auto pb-[42px] pt-[24px] shrink-0">
                 <SlideToPay
-                    onComplete={() => {
+                    onComplete={async () => {
                         if (location.state?.flow === 'downgrade') {
                             if (tier) {
-                                setWalletTier(tier as WalletTier);
+                                const isoDate = new Date();
+                                isoDate.setMonth(isoDate.getMonth() + 1);
+                                await scheduleDowngrade(tier as WalletTier, isoDate.toISOString().split('T')[0]);
                             }
-                            navigate("/wallet-created");
+                            navigate("/subscriptions", { replace: true });
                         } else {
                             handleUpgrade();
                         }
