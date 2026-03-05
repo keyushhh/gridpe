@@ -130,87 +130,8 @@ const WalletCreated = () => {
     const latestTx = walletTransactions.length > 0 ? walletTransactions[0] : null;
 
     const renderStatusIndicator = () => {
-        // Prioritize showing transaction status if there is a balance and a transaction exists
-        if (Number(walletBalance) > 0 && latestTx) {
-            const absAmount = Math.abs(latestTx.amount);
-            const formattedAmount = absAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            let statusColor = "";
-            let strokeColor = "";
-            let title = "";
-            let description = "";
-
-            const type = latestTx.transaction_type?.toLowerCase();
-            const txDescription = latestTx.description?.toLowerCase() || '';
-            const status = latestTx.status?.toLowerCase();
-
-            // Immediate Release for Top-ups: Treat as 'credit' success
-            const isTopUp = type === 'credit' || txDescription.includes('top-up');
-
-            // Hold Restrictions: Only FX/Cash orders can show 'On hold'
-            const isFxOrCash = txDescription.includes('fx exchange') || txDescription.includes('cash delivery') || txDescription.includes('cash order');
-            const isOnHold = status === 'held' && isFxOrCash;
-
-            if (isOnHold) {
-                statusColor = "#FACC15"; // Yellow
-                strokeColor = "rgba(250, 204, 21, 0.17)";
-                title = `On hold ₹${formattedAmount}`;
-                description = `₹${formattedAmount} is currently on hold. It’ll be released after delivery confirmation.`;
-            } else if (txDescription.includes('cancelled') || txDescription.includes('failed') || txDescription.includes('released')) {
-                // Refund / Released Funds State
-                statusColor = "#5CFF00"; // Green
-                strokeColor = "rgba(92, 255, 0, 0.17)";
-                title = `Funds Returned + ₹${formattedAmount}`;
-                description = `₹${formattedAmount} was returned to your wallet for a cancelled/failed order.`;
-            } else if (type === 'debit') {
-                statusColor = "#D33313"; // Red
-                strokeColor = "rgba(211, 51, 19, 0.17)";
-                title = `Amount debited - ₹${formattedAmount}`;
-                description = `₹${formattedAmount} was debited from your wallet after successful delivery confirmation.`;
-            } else if (isTopUp || type === 'credit' || type === 'deposit') {
-                statusColor = "#5CFF00"; // Green
-                strokeColor = "rgba(92, 255, 0, 0.17)";
-                title = `Amount Credited + ₹${formattedAmount}`;
-                description = txDescription.includes('top-up')
-                    ? `₹${formattedAmount} was added to your wallet via top-up.`
-                    : `₹${formattedAmount} was added to your wallet via UPI.`;
-            } else if (type === 'tier_adjustment') {
-                statusColor = "#FF9500"; // Orange
-                strokeColor = "rgba(255, 149, 0, 0.17)";
-                title = `Tier Adjustment - ₹${formattedAmount}`;
-                description = `₹${formattedAmount} was adjusted due to a tier limit change.`;
-            } else {
-                // Fallback for any other unhandled transaction
-                statusColor = "#3B82F6"; // Blue default
-                strokeColor = "rgba(59, 130, 246, 0.17)";
-                title = `Transaction ₹${formattedAmount}`;
-                description = `₹${formattedAmount} transaction processed.`;
-            }
-
-            return (
-                <div className="mt-[16px]">
-                    <div className="flex items-center">
-                        {/* Circle Indicator */}
-                        <div
-                            style={{
-                                width: '14px',
-                                height: '14px',
-                                borderRadius: '50%',
-                                backgroundColor: statusColor,
-                                boxShadow: `0 0 0 5px ${strokeColor}`
-                            }}
-                        />
-                        <span className={`ml-[13px] text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            {title}
-                        </span>
-                    </div>
-                    <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                        {description}
-                    </p>
-                </div>
-            );
-        }
-
-        // If no balance/transactions to show, fallback to Tier status for non-Starter tiers
+        // PERMANENT FIXTURE FOR UPGRADED TIERS: 
+        // Always show the "Upgraded to" badge on the card for non-Starter tiers.
         if (dbTier !== 'Starter') {
             const priceMap: Record<string, string> = {
                 'Pro': '25',
@@ -237,6 +158,80 @@ const WalletCreated = () => {
                     </div>
                     <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-black/80'}`}>
                         You will be charged ₹{price} / month
+                    </p>
+                </div>
+            );
+        }
+
+        // For Starter Tier: Show the latest transaction if balance > 0
+        if (Number(walletBalance) > 0 && latestTx) {
+            const absAmount = Math.abs(latestTx.amount);
+            const formattedAmount = absAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let statusColor = "";
+            let strokeColor = "";
+            let title = "";
+            let description = "";
+
+            const type = latestTx.transaction_type?.toLowerCase();
+            const txDescription = latestTx.description?.toLowerCase() || '';
+            const status = latestTx.status?.toLowerCase();
+
+            const isTopUp = type === 'credit' || txDescription.includes('top-up');
+            const isFxOrCash = txDescription.includes('fx exchange') || txDescription.includes('cash delivery') || txDescription.includes('cash order');
+            const isOnHold = status === 'held' && isFxOrCash;
+
+            if (isOnHold) {
+                statusColor = "#FACC15";
+                strokeColor = "rgba(250, 204, 21, 0.17)";
+                title = `On hold ₹${formattedAmount}`;
+                description = `₹${formattedAmount} is currently on hold. It’ll be released after delivery confirmation.`;
+            } else if (txDescription.includes('cancelled') || txDescription.includes('failed') || txDescription.includes('released')) {
+                statusColor = "#5CFF00";
+                strokeColor = "rgba(92, 255, 0, 0.17)";
+                title = `Funds Returned + ₹${formattedAmount}`;
+                description = `₹${formattedAmount} was returned to your wallet for a cancelled/failed order.`;
+            } else if (type === 'debit') {
+                statusColor = "#D33313";
+                strokeColor = "rgba(211, 51, 19, 0.17)";
+                title = `Amount debited - ₹${formattedAmount}`;
+                description = `₹${formattedAmount} was debited from your wallet after successful delivery confirmation.`;
+            } else if (isTopUp || type === 'credit' || type === 'deposit') {
+                statusColor = "#5CFF00";
+                strokeColor = "rgba(92, 255, 0, 0.17)";
+                title = `Amount Credited + ₹${formattedAmount}`;
+                description = txDescription.includes('top-up')
+                    ? `₹${formattedAmount} was added to your wallet via top-up.`
+                    : `₹${formattedAmount} was added to your wallet via UPI.`;
+            } else if (type === 'tier_adjustment') {
+                statusColor = "#3B82F6"; // Keep blue for administrative adjustment
+                strokeColor = "rgba(59, 130, 246, 0.17)";
+                title = `Balance adjusted to ${dbTier} limit`;
+                description = `₹${formattedAmount} adjustment processed.`;
+            } else {
+                statusColor = "#3B82F6";
+                strokeColor = "rgba(59, 130, 246, 0.17)";
+                title = `Transaction ₹${formattedAmount}`;
+                description = `₹${formattedAmount} transaction processed.`;
+            }
+
+            return (
+                <div className="mt-[16px]">
+                    <div className="flex items-center">
+                        <div
+                            style={{
+                                width: '14px',
+                                height: '14px',
+                                borderRadius: '50%',
+                                backgroundColor: statusColor,
+                                boxShadow: `0 0 0 5px ${strokeColor}`
+                            }}
+                        />
+                        <span className={`ml-[13px] text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                            {title}
+                        </span>
+                    </div>
+                    <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                        {description}
                     </p>
                 </div>
             );

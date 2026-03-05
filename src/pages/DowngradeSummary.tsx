@@ -4,19 +4,19 @@ import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
-import starterSub from "@/assets/subscription-starter.png";
-import proSub from "@/assets/subscription-pro.png";
-import eliteSub from "@/assets/subscription-elite.png";
-import supremeSub from "@/assets/subscription-supreme.png";
+import starterSub from "@/assets/subscriptions-summary/starter-subscription.png";
+import proSub from "@/assets/subscriptions-summary/pro-subscription.png";
+import eliteSub from "@/assets/subscriptions-summary/elite-subscription.png";
+import supremeSub from "@/assets/subscriptions-summary/supreme-subscription.png";
 import subscriptionChip from "@/assets/subscription-chip.png";
 import autoRefreshIcon from "@/assets/auto-refresh.svg";
 import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tierChipColorMap } from "@/lib/walletTiers";
 
-import starterSubLight from "@/assets/light-cards/subscription-starter-light.png";
-import proSubLight from "@/assets/light-cards/subscription-pro-light.png";
-import eliteSubLight from "@/assets/light-cards/subscription-elite-light.png";
-import supremeSubLight from "@/assets/light-cards/subscription-supreme-light.png";
+import starterSubLight from "@/assets/subscriptions-summary/starter-subscription-light.png";
+import proSubLight from "@/assets/subscriptions-summary/pro-subscription-light.png";
+import eliteSubLight from "@/assets/subscriptions-summary/elite-subscription-light.png";
+import supremeSubLight from "@/assets/subscriptions-summary/supreme-subscription-light.png";
 
 const subscriptionBanners: Record<string, string> = {
     Starter: starterSub,
@@ -113,7 +113,7 @@ const DowngradeSummary = () => {
                     className="w-full max-w-[362px] h-[95px] rounded-[20px] relative overflow-hidden"
                     style={{
                         backgroundImage: `url(${bannerImage})`,
-                        backgroundSize: "100% 100%",
+                        backgroundSize: "cover",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                         border: !isDarkMode ? "1px solid #F2F2F7" : "none",
@@ -199,7 +199,7 @@ const DowngradeSummary = () => {
 
                     {/* First payment note */}
                     <p className={`${isDarkMode ? 'text-[#A4A4A4] font-normal' : 'text-black/80 font-normal'} text-[12px] leading-[139%] font-satoshi -mt-[2px]`}>
-                        First payment will be charged today.
+                        You will be charged ₹{tierPrice[tier] || 0} on {effectiveDate}.
                     </p>
 
                     {/* Divider */}
@@ -211,7 +211,7 @@ const DowngradeSummary = () => {
                             Total Payable
                         </span>
                         <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
-                            ₹{tierPrice[tier] || 0}
+                            ₹0
                         </span>
                     </div>
                 </div>

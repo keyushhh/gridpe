@@ -6,16 +6,16 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
 import { supabase } from "@/lib/supabase";
-import starterSub from "@/assets/starter-subscription.png";
-import proSub from "@/assets/pro-subscription.png";
-import eliteSub from "@/assets/elite-subscription.png";
-import supremeSub from "@/assets/supreme-subscription.png";
+import starterSub from "@/assets/subscriptions-summary/starter-subscription.png";
+import proSub from "@/assets/subscriptions-summary/pro-subscription.png";
+import eliteSub from "@/assets/subscriptions-summary/elite-subscription.png";
+import supremeSub from "@/assets/subscriptions-summary/supreme-subscription.png";
 
 // Light Mode Assets
-import starterSubLight from "@/assets/light-cards/starter-subscription-light.png";
-import proSubLight from "@/assets/light-cards/pro-subscription-light.png";
-import eliteSubLight from "@/assets/light-cards/elite-subscription-light.png";
-import supremeSubLight from "@/assets/light-cards/supreme-subscription-light.png";
+import starterSubLight from "@/assets/subscriptions-summary/starter-subscription-light.png";
+import proSubLight from "@/assets/subscriptions-summary/pro-subscription-light.png";
+import eliteSubLight from "@/assets/subscriptions-summary/elite-subscription-light.png";
+import supremeSubLight from "@/assets/subscriptions-summary/supreme-subscription-light.png";
 
 import subscriptionChip from "@/assets/subscription-chip.png";
 import autoRefreshIcon from "@/assets/auto-refresh.svg";
@@ -60,6 +60,17 @@ const SubscriptionSummary = () => {
     const { setWalletTier, walletTier, scheduleDowngrade } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
     const [isLoading, setIsLoading] = React.useState(false);
+
+    const isDowngrade = location.state?.flow === 'downgrade' || (tierPrice[tier] || 0) < (tierPrice[walletTier] || 0);
+
+    const getEffectiveDate = () => {
+        const next = new Date();
+        next.setMonth(next.getMonth() + 1);
+        const day = String(next.getDate()).padStart(2, "0");
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+        return `${day} ${months[next.getMonth()]} ${next.getFullYear()}`;
+    };
+    const effectiveDate = getEffectiveDate();
 
     const handleUpgrade = async () => {
         setIsLoading(true);
@@ -186,10 +197,10 @@ const SubscriptionSummary = () => {
             <div className="flex-1 flex flex-col items-center pt-[36px] px-5">
                 {/* Subscription Banner */}
                 <div
-                    className={`w-full max-w-[362px] h-[70px] rounded-[20px] relative ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+                    className={`w-full max-w-[362px] h-[70px] rounded-[20px] relative overflow-hidden ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                     style={{
                         backgroundImage: `url(${bannerImage})`,
-                        backgroundSize: isDarkMode ? "100% 100%" : "contain",
+                        backgroundSize: "cover",
                         backgroundRepeat: "no-repeat",
                         backgroundPosition: "center",
                         border: !isDarkMode ? "1px solid #F2F2F7" : "none",
@@ -275,7 +286,7 @@ const SubscriptionSummary = () => {
 
                     {/* First payment note */}
                     <p className={`${isDarkMode ? 'text-[#A4A4A4] font-normal' : 'text-black/80 font-normal'} text-[12px] leading-[139%] font-satoshi -mt-[2px]`}>
-                        First payment will be charged today.
+                        {isDowngrade ? `You will be charged ₹${tierPrice[tier] || 0} on ${effectiveDate}` : "First payment will be charged today."}
                     </p>
 
                     {/* Divider */}
@@ -287,7 +298,7 @@ const SubscriptionSummary = () => {
                             Total Payable
                         </span>
                         <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
-                            ₹{tierPrice[tier] || 0}
+                            {isDowngrade ? '₹0' : `₹${tierPrice[tier] || 0}`}
                         </span>
                     </div>
                 </div>
@@ -343,13 +354,7 @@ const SubscriptionSummary = () => {
                         Next Payment Date
                     </span>
                     <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
-                        {(() => {
-                            const next = new Date();
-                            next.setMonth(next.getMonth() + 1);
-                            const day = String(next.getDate()).padStart(2, "0");
-                            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-                            return `${day} ${months[next.getMonth()]} ${next.getFullYear()}`;
-                        })()}
+                        {effectiveDate}
                     </span>
                 </div>
 
@@ -361,12 +366,12 @@ const SubscriptionSummary = () => {
                     // "should appear only from pro till supreme, and whilte downgrading, it should appear on all the tiers"
 
                     const shouldShowNote =
-                        stateFlow === 'downgrade' ||
+                        isDowngrade ||
                         (stateFlow === 'upgrade' && walletTier !== 'Starter');
 
                     if (!shouldShowNote) return null;
 
-                    const actionVerb = stateFlow === 'downgrade' ? 'downgraded' : 'upgraded';
+                    const actionVerb = isDowngrade ? 'downgraded' : 'upgraded';
 
                     return (
                         <p className={`w-full max-w-[362px] mt-[14px] text-[14px] font-normal leading-[140%] font-satoshi text-left ${isDarkMode ? 'text-white' : 'text-black'}`}>
@@ -380,7 +385,7 @@ const SubscriptionSummary = () => {
             <div className="px-5 mt-auto pb-[42px] pt-[24px] shrink-0">
                 <SlideToPay
                     onComplete={async () => {
-                        if (location.state?.flow === 'downgrade') {
+                        if (isDowngrade) {
                             if (tier) {
                                 const isoDate = new Date();
                                 isoDate.setMonth(isoDate.getMonth() + 1);
@@ -391,7 +396,7 @@ const SubscriptionSummary = () => {
                             handleUpgrade();
                         }
                     }}
-                    label={isLoading ? "Processing..." : (location.state?.flow === 'downgrade' ? "Confirm Downgrade" : "Start Monthly Subscription")}
+                    label={isLoading ? "Processing..." : (isDowngrade ? "Confirm Downgrade" : "Start Monthly Subscription")}
                     disabled={isLoading}
                 />
             </div>
