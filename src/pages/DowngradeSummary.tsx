@@ -39,12 +39,7 @@ const chipContent: Record<string, string> = {
     Supreme: "₹100/month",
 };
 
-const tierPrice: Record<string, number> = {
-    Starter: 0,
-    Pro: 25,
-    Elite: 50,
-    Supreme: 100,
-};
+import { supabase } from "@/lib/supabase";
 
 const DowngradeSummary = () => {
     const navigate = useNavigate();
@@ -55,6 +50,27 @@ const DowngradeSummary = () => {
     const { tier } = location.state || { tier: "" };
 
     const bannerImage = isDarkMode ? (subscriptionBanners[tier] || starterSub) : (subscriptionBannersLight[tier] || starterSubLight);
+    const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
+
+    React.useEffect(() => {
+        const fetchTierPrices = async () => {
+            try {
+                const { data, error } = await supabase.from('wallet_tiers').select('name, subscription_price');
+                if (data && !error) {
+                    const priceMap: Record<string, number> = {};
+                    data.forEach(t => {
+                        priceMap[t.name] = Number(t.subscription_price) || 0;
+                    });
+                    setTierPrices(priceMap);
+                }
+            } catch (err) {
+                console.error("Failed to fetch tier prices", err);
+            }
+        };
+        fetchTierPrices();
+    }, []);
+
+    const selectedTierPrice = tierPrices[tier] || 0;
 
     // Hardcoded max limits per tier for comparison during downgrade flow
     const tierLimits: Record<string, number> = {
@@ -115,7 +131,7 @@ const DowngradeSummary = () => {
                         backgroundImage: `url(${bannerImage})`,
                         backgroundSize: "cover",
                         backgroundRepeat: "no-repeat",
-                        backgroundPosition: "center",
+                        backgroundPosition: "calc(50% + 50px) center",
                         border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                     }}
                 >
@@ -193,13 +209,13 @@ const DowngradeSummary = () => {
                             Monthly Subscription Fee
                         </span>
                         <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
-                            ₹{tierPrice[tier] || 0}
+                            ₹{selectedTierPrice}
                         </span>
                     </div>
 
                     {/* First payment note */}
                     <p className={`${isDarkMode ? 'text-[#A4A4A4] font-normal' : 'text-black/80 font-normal'} text-[12px] leading-[139%] font-satoshi -mt-[2px]`}>
-                        You will be charged ₹{tierPrice[tier] || 0} on {effectiveDate}.
+                        You will be charged ₹{selectedTierPrice} on {effectiveDate}.
                     </p>
 
                     {/* Divider */}

@@ -1,5 +1,8 @@
 export const config = { auth: false };
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import crypto from "node:crypto";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, accept",
@@ -13,44 +16,78 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature, tier_name, user_id } = await req.json();
-
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, tier_name, user_id } = await req.json();
     const SECRET = Deno.env.get("RAZORPAY_KEY_SECRET")!;
-    
-    // 2. Ultra-fast Native Verification
-    const data = `${razorpay_payment_id}|${razorpay_subscription_id}`;
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(SECRET);
-    const msgData = encoder.encode(data);
 
-    const cryptoKey = await crypto.subtle.importKey(
-      "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
-    );
+    console.log("[DEBUG] verify-subscription payload:", { razorpay_order_id, razorpay_payment_id, razorpay_signature, tier_name, user_id });
     
-    const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, msgData);
-    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+    // 1. Signature Verification
+    // Orders use: razorpay_order_id + "|" + razorpay_payment_id
+    const expectedSignature = crypto
+      .createHmac("sha256", SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    console.log("[DEBUG] verify-subscription signature check:", { expected: expectedSignature, received: razorpay_signature });
 
     if (expectedSignature !== razorpay_signature) {
+      console.error("[ERROR] Signature mismatch detected!");
       return new Response(JSON.stringify({ error: "Signature mismatch" }), { 
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } 
       });
     }
 
-    // 3. Database Upgrade Logic
-    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.39.3");
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SERVICE_ROLE_KEY")!);
+    // 2. Database Verify & Upgrade Logic
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const { data: tierData } = await supabase.from("wallet_tiers").select("id").ilike("name", tier_name).single();
+    // Get expected tier price
+    const { data: tierData } = await supabase.from("wallet_tiers").select("id, subscription_price").ilike("name", tier_name).single();
+    if (!tierData) throw new Error("Tier not found in database.");
+
+    // Fetch the pending payment value and verify
+    const { data: pendingData, error: pendingError } = await supabase
+      .from("pending_payments")
+      .select("amount, status")
+      .eq("razorpay_order_id", razorpay_order_id)
+      .single();
+
+    if (pendingError || !pendingData) {
+        throw new Error("Pending transaction not found.");
+    }
     
-    // Sync both wallets and profiles tables
+    if (pendingData.status === "completed") {
+         return new Response(JSON.stringify({ success: true, message: "Already processed" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+         });
+    }
+
+    const expectedPrice = Number(tierData.subscription_price);
+    if (pendingData.amount < expectedPrice) {
+        throw new Error(`Amount paid (₹${pendingData.amount}) is less than expected subscription price (₹${expectedPrice})`);
+    }
+
+    // Calculate next billing date (+30 days)
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 30);
+    const nextBillingStr = nextDate.toISOString();
+
+    // 3. Mark payment completed and sync wallets / profiles
+    await supabase.from("pending_payments").update({ status: "completed" }).eq("razorpay_order_id", razorpay_order_id);
+
     await Promise.all([
       supabase.from("wallets").update({ tier_id: tierData.id }).eq("user_id", user_id),
-      supabase.from("profiles").update({ current_tier_id: tierData.id }).eq("id", user_id)
+      supabase.from("profiles").update({ 
+          current_tier_id: tierData.id, 
+          next_billing_date: nextBillingStr,
+          scheduled_tier_id: null,
+          payment_status: 'completed'
+      }).eq("id", user_id),
+      supabase.from("user_subscriptions").upsert({
+          user_id: user_id,
+          status: 'active',
+          current_period_end: nextBillingStr
+      }, { onConflict: 'user_id' })
     ]);
-    
-    await supabase.from("user_subscriptions").update({ status: 'active' }).eq("razorpay_subscription_id", razorpay_subscription_id);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

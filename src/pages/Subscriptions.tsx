@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
 import { useUser, WalletTier } from "@/contexts/UserContext";
@@ -20,6 +21,7 @@ import subEliteBgLight from "@/assets/light-cards/subscription-elite-light.png";
 import subSupremeBgLight from "@/assets/light-cards/subscription-supreme-light.png";
 
 import downgradeChip from "@/assets/downgrade-chip.png";
+import { supabase, USER_ID } from "@/lib/supabase";
 
 const subscriptionBgs: Record<WalletTier, string> = {
     Starter: subStarterBg,
@@ -35,13 +37,6 @@ const subscriptionBgsLight: Record<WalletTier, string> = {
     Supreme: subSupremeBgLight,
 };
 
-const upgradePrices: Record<WalletTier, number> = {
-    Starter: 25,
-    Pro: 50,
-    Elite: 100,
-    Supreme: 0, // No upgrade from Supreme
-};
-
 const nextTierMap: Record<WalletTier, WalletTier | null> = {
     Starter: 'Pro',
     Pro: 'Elite',
@@ -53,8 +48,68 @@ const Subscriptions = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletTier, walletLimit, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss, walletBalance } = useUser();
+    const { walletTier, walletLimit, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss, walletBalance, subscriptionPrice, isRenewalPending, paymentStatus, profile, fetchProfileData } = useUser();
     const { showToaster } = useCustomToaster();
+    const queryClient = useQueryClient();
+
+    const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
+    const [isSubscriptionActive, setIsSubscriptionActive] = React.useState<boolean>(true);
+    const [isLoadingPay, setIsLoadingPay] = React.useState(false);
+
+    React.useEffect(() => {
+        const fetchTierPrices = async () => {
+            try {
+                const { data, error } = await supabase.from('wallet_tiers').select('name, subscription_price');
+                if (data && !error) {
+                    const priceMap: Record<string, number> = {};
+                    data.forEach(t => {
+                        priceMap[t.name.toLowerCase()] = Number(t.subscription_price) || 0;
+                    });
+                    setTierPrices(priceMap);
+                }
+            } catch (err) {
+                console.error("Failed to fetch tier prices", err);
+            }
+        };
+        fetchTierPrices();
+
+        const checkSubscriptionStatus = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.user?.id) return;
+
+                // For this demo, let's assume we read either the user_subscriptions table or a custom RPC
+                // However, since we're using Razorpay checkout triggered by the frontend, let's check
+                // if they actually have a valid next_billing_date or active subscription status
+                const { data: subData } = await supabase
+                    .from('user_subscriptions')
+                    .select('status, current_period_end')
+                    .eq('user_id', session?.user?.id || USER_ID)
+                    .maybeSingle();
+
+                // If they are on a paid tier but don't have an active subscription record or it's expired
+                if (subData) {
+                    const isActive = subData.status === 'active' && new Date(subData.current_period_end) > new Date();
+                    setIsSubscriptionActive(isActive);
+                } else {
+                    // If they are Starter, it's always "active" (free). If they are Pro+ and no sub record, it's inactive (needs renewal)
+                    // EXTRA CHECK: If payment_status is pending, it definitely needs renewal
+                    setIsSubscriptionActive(false);
+                }
+
+                if (paymentStatus === 'pending') {
+                    setIsSubscriptionActive(false);
+                }
+            } catch (err) {
+                console.warn("Failed to check generic subscription status", err);
+            }
+        };
+        if (walletTier !== 'Starter') {
+            checkSubscriptionStatus();
+        } else {
+            setIsSubscriptionActive(true);
+        }
+    }, [walletTier, paymentStatus]);
 
     const currentTierConfig = tiers.find(t => t.name === walletTier);
 
@@ -63,8 +118,9 @@ const Subscriptions = () => {
     const isProPlus = walletTier !== 'Starter';
     const containerHeight = scheduledDowngrade ? '155px' : (isProPlus ? '195px' : '166px');
     const backgroundImage = isDarkMode ? subscriptionBgs[walletTier] : subscriptionBgsLight[walletTier];
-    const upgradePrice = upgradePrices[walletTier];
+    const backgroundPosition = "top center";
     const nextTier = nextTierMap[walletTier];
+    const upgradePrice = nextTier ? tierPrices[nextTier.toLowerCase()] || 0 : 0;
 
     // Calculate consumption
     const consumptionPercentage = Math.min((walletBalance / walletLimit) * 100, 100);
@@ -74,6 +130,125 @@ const Subscriptions = () => {
             navigate('/wallet-tier/' + nextTier.toLowerCase(), {
                 state: { fromSubscriptionDashboard: true }
             });
+        }
+    };
+
+    const handleRenew = async () => {
+        if (isLoadingPay) return;
+        setIsLoadingPay(true);
+        try {
+            // If we have a scheduled downgrade, we are renewing for that new tier
+            const targetTierName = (isRenewalPending && scheduledDowngrade?.tier) ? scheduledDowngrade.tier : walletTier;
+            const selectedTierName = targetTierName.toLowerCase() as 'pro' | 'elite' | 'supreme';
+            const priceToPay = (isRenewalPending && scheduledDowngrade?.tier) ? (tierPrices[scheduledDowngrade.tier] || subscriptionPrice) : subscriptionPrice;
+            const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`;
+
+            const { data: { session } } = await supabase.auth.getSession();
+            const currentUserId = session?.user?.id;
+
+            const payload = {
+                amount: priceToPay,
+                userId: currentUserId || "414c977e-6f70-4f57-bfa1-af0a8a2053a4",
+                type: "subscription_renewal",
+                tier_name: selectedTierName
+            };
+            console.log("[DEBUG] Sending Renewal Payload:", payload);
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create subscription order');
+            }
+
+            const data = await response.json();
+
+            // 🛠️ The FIX: Parse the data if Supabase returned it as a raw string
+            let order = data;
+            if (typeof data === 'string') {
+                try { order = JSON.parse(data); } catch (e) { }
+            }
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: order.amount,
+                currency: order.currency,
+                order_id: order.id,
+                name: "Grid.pe",
+                description: `${selectedTierName.toUpperCase()} Renewal`,
+                handler: async function (response: any) {
+                    try {
+                        setIsLoadingPay(true);
+                        const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-subscription`;
+                        const verifyResponse = await fetch(verifyUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                            },
+                            body: JSON.stringify({
+                                ...response,
+                                tier_name: selectedTierName,
+                                user_id: currentUserId || '414c977e-6f70-4f57-bfa1-af0a8a2053a4'
+                            }),
+                        });
+
+                        const verifyData = await verifyResponse.json();
+
+                        if (!verifyResponse.ok) {
+                            throw new Error(verifyData.error || verifyData.message || 'Verification failed');
+                        }
+
+                        if (verifyData.success) {
+                            await fetchProfileData();
+                            await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+                            navigate('/wallet-upgrade-success', {
+                                state: {
+                                    tier: targetTierName,
+                                    flow: isRenewalPending ? 'downgrade' : 'upgrade',
+                                    message: isRenewalPending ? `Downgraded to ${targetTierName} Successfully` : `Subscription Renewed for ${walletTier}`
+                                },
+                                replace: true
+                            });
+                        }
+                    } catch (err: any) {
+                        console.error("Renewal verification error:", err.message || err);
+                        alert(`Payment successful, but verification failed: ${err.message || 'Please contact support.'}`);
+                    } finally {
+                        setIsLoadingPay(false);
+                        setIsSubscriptionActive(true); // Optimistically set active
+                    }
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsLoadingPay(false);
+                    }
+                },
+                theme: { color: "#5260FE" }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+
+            rzp.on('payment.failed', function (response: any) {
+                console.error("Payment Failed:", response.error);
+                setIsLoadingPay(false);
+            });
+
+            rzp.open();
+
+        } catch (err: any) {
+            console.error("Renewal error:", err.message);
+            alert("Error: " + err.message);
+            setIsLoadingPay(false);
         }
     };
 
@@ -119,22 +294,25 @@ const Subscriptions = () => {
                     style={{
                         height: containerHeight,
                         backgroundImage: `url(${backgroundImage})`,
-                        backgroundSize: "100% 100%",
-                        backgroundPosition: "top center",
+                        backgroundSize: "cover",
+                        backgroundPosition: backgroundPosition,
                         backgroundRepeat: "no-repeat",
                         border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                     }}
                 >
                     {/* Price Chip or Scheduled Chip */}
                     <div
-                        className={`absolute flex items-center justify-center z-20 rounded-[100px] ${scheduledDowngrade ? 'border border-white/20' : 'text-white'}`}
+                        className={`absolute flex items-center justify-center z-20 rounded-[100px] ${scheduledDowngrade ? '' : 'text-white'}`}
                         style={{
                             top: "14px",
                             right: "14px",
                             padding: scheduledDowngrade ? "4px 10px" : "0",
                             width: scheduledDowngrade ? "auto" : "88px",
                             height: scheduledDowngrade ? "22px" : "24px",
-                            backgroundColor: scheduledDowngrade ? "transparent" : "#000000",
+                            backgroundColor: scheduledDowngrade
+                                ? (isDarkMode ? "transparent" : "#000000")
+                                : "#000000",
+                            border: scheduledDowngrade && isDarkMode ? "1px solid rgba(255, 255, 255, 0.2)" : "none",
                         }}
                     >
                         <span className={`${scheduledDowngrade ? 'text-white text-[10px] whitespace-nowrap' : 'font-satoshi font-medium text-[10px]'}`}>
@@ -157,9 +335,9 @@ const Subscriptions = () => {
                             </span>
                         </div>
 
-                        {scheduledDowngrade ? (
-                            <div className="flex flex-col mt-[24px] -ml-[60px]" style={{ width: '326px' }}>
-                                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-medium font-satoshi leading-[1.3]`}>
+                        <div className="flex flex-col mt-[16px] -ml-[60px]" style={{ width: '326px' }}>
+                            {scheduledDowngrade && (
+                                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-medium font-satoshi leading-[1.3] ${(!isSubscriptionActive && isProPlus) ? 'mb-4' : ''}`}>
                                     Note: Downgrade to {scheduledDowngrade.tier} will take effect on {(() => {
                                         const d = new Date(scheduledDowngrade.effectiveDate);
                                         const day = String(d.getDate()).padStart(2, "0");
@@ -167,37 +345,49 @@ const Subscriptions = () => {
                                         return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
                                     })()}.
                                 </p>
-                            </div>
-                        ) : (
-                            <>
-                                {/* Upgrade CTA */}
-                                {nextTier && (
-                                    <button
-                                        onClick={handleUpgrade}
-                                        className="w-[260px] h-[48px] mt-[17px] rounded-full bg-[#5260FE] text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center -ml-[30px]"
-                                        style={{
-                                            width: '326px',
-                                            marginLeft: '-60px' // Adjusting to center properly relative to container since left is 77px
-                                        }}
-                                    >
-                                        Upgrade Now ₹{upgradePrice}/month
-                                    </button>
-                                )}
+                            )}
 
-                                {/* Next Billing Date */}
-                                {isProPlus && (
-                                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-satoshi mt-[12px] block text-left -ml-[60px]`} style={{ width: '326px' }}>
-                                        Next billing date: {(() => {
-                                            const next = new Date();
-                                            next.setMonth(next.getMonth() + 1);
-                                            const day = String(next.getDate()).padStart(2, "0");
-                                            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-                                            return `${day} ${months[next.getMonth()]}, ${next.getFullYear()}`;
-                                        })()}
-                                    </span>
-                                )}
-                            </>
-                        )}
+                            {/* Renew CTA */}
+                            {(isProPlus && !isSubscriptionActive) && (
+                                <button
+                                    onClick={handleRenew}
+                                    disabled={isLoadingPay}
+                                    className={`w-full h-[48px] rounded-full ${isDarkMode ? 'bg-[#5260FE]' : 'bg-black'} text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center mb-3`}
+                                >
+                                    {isLoadingPay ? "Processing..." : `Renew Now ₹${isRenewalPending && scheduledDowngrade ? (tierPrices[scheduledDowngrade.tier.toLowerCase()] || subscriptionPrice) : subscriptionPrice}/month`}
+                                </button>
+                            )}
+
+                            {/* Upgrade CTA */}
+                            {nextTier && isSubscriptionActive && !scheduledDowngrade && (
+                                <button
+                                    onClick={handleUpgrade}
+                                    disabled={isProPlus && (paymentStatus === 'pending' || isRenewalPending || (profile as any)?.subscription_status === 'pending')}
+                                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium font-satoshi flex items-center justify-center ${isProPlus && (paymentStatus === 'pending' || isRenewalPending || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE] active:scale-95 transition-transform mb-3'}`}
+                                >
+                                    Upgrade Now ₹{upgradePrice}/month
+                                </button>
+                            )}
+
+                            {/* Next Billing Date */}
+                            {isProPlus && isSubscriptionActive && (
+                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-satoshi mt-[8px] block text-left`}>
+                                    Next billing date: {(() => {
+                                        const next = new Date();
+                                        next.setMonth(next.getMonth() + 1);
+                                        const day = String(next.getDate()).padStart(2, "0");
+                                        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+                                        return `${day} ${months[next.getMonth()]}, ${next.getFullYear()}`;
+                                    })()}
+                                </span>
+                            )}
+
+                            {isProPlus && !isSubscriptionActive && (
+                                <span className={`text-[#FF453A] text-[14px] font-medium font-satoshi mt-0 mb-2 block text-center`}>
+                                    Subscription Payment Pending
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,9 +451,9 @@ const Subscriptions = () => {
                     )}
 
                     <button
-                        disabled={walletTier === 'Starter' || !!scheduledDowngrade}
+                        disabled={walletTier === 'Starter' || !!scheduledDowngrade || !isSubscriptionActive}
                         onClick={() => navigate('/manage-subscription')}
-                        className={`w-[362px] h-[48px] rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi transition-all active:scale-95 ${walletTier === 'Starter' || !!scheduledDowngrade
+                        className={`w-[362px] h-[48px] rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi transition-all active:scale-95 ${walletTier === 'Starter' || !!scheduledDowngrade || !isSubscriptionActive
                             ? isDarkMode
                                 ? 'bg-transparent border border-white/10 text-white/50'
                                 : 'bg-transparent border border-[#E9EAEB] text-black/50'

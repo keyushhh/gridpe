@@ -54,7 +54,8 @@ BEGIN
     UPDATE profiles
     SET current_tier_id = p_new_tier_id,
         scheduled_tier_id = NULL,
-        tier_change_date = NULL
+        tier_change_date = NULL,
+        payment_status = 'completed'
     WHERE id = p_user_id;
 
     -- 4. Also update the wallets table tier

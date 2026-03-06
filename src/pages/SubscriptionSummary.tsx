@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
-import { supabase } from "@/lib/supabase";
+import { supabase, USER_ID } from "@/lib/supabase";
 import starterSub from "@/assets/subscriptions-summary/starter-subscription.png";
 import proSub from "@/assets/subscriptions-summary/pro-subscription.png";
 import eliteSub from "@/assets/subscriptions-summary/elite-subscription.png";
@@ -42,13 +42,6 @@ const chipContent: Record<string, string> = {
     Supreme: "₹100/month",
 };
 
-const tierPrice: Record<string, number> = {
-    Starter: 0,
-    Pro: 25,
-    Elite: 50,
-    Supreme: 100,
-};
-
 import { useUser, WalletTier } from "@/contexts/UserContext";
 
 const SubscriptionSummary = () => {
@@ -57,11 +50,33 @@ const SubscriptionSummary = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
-    const { setWalletTier, walletTier, scheduleDowngrade } = useUser();
+    const { setWalletTier, walletTier, scheduleDowngrade, subscriptionPrice, profile, paymentStatus, scheduledDowngrade, fetchProfileData } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
     const [isLoading, setIsLoading] = React.useState(false);
+    const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
 
-    const isDowngrade = location.state?.flow === 'downgrade' || (tierPrice[tier] || 0) < (tierPrice[walletTier] || 0);
+    React.useEffect(() => {
+        const fetchTierPrices = async () => {
+            try {
+                const { data, error } = await supabase.from('wallet_tiers').select('name, subscription_price');
+                if (data && !error) {
+                    const priceMap: Record<string, number> = {};
+                    data.forEach(t => {
+                        priceMap[t.name.toLowerCase()] = Number(t.subscription_price) || 0;
+                    });
+                    setTierPrices(priceMap);
+                }
+            } catch (err) {
+                console.error("Failed to fetch tier prices", err);
+            }
+        };
+        fetchTierPrices();
+    }, []);
+
+    const selectedTierPrice = tierPrices[tier.toLowerCase()] || 0;
+    const currentTierPrice = tierPrices[walletTier.toLowerCase()] || 0;
+
+    const isDowngrade = location.state?.flow === 'downgrade' || selectedTierPrice < currentTierPrice;
 
     const getEffectiveDate = () => {
         const next = new Date();
@@ -83,33 +98,48 @@ const SubscriptionSummary = () => {
             }
 
             // 1. Manually call the function URL
-            const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription`;
+            const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`;
+
+            const { data: { session } } = await supabase.auth.getSession();
+            const currentUserId = session?.user?.id || "414c977e-6f70-4f57-bfa1-af0a8a2053a4"; // Fallback for test
+
+            const payload = {
+                amount: selectedTierPrice,
+                userId: currentUserId,
+                type: "tier_upgrade",
+                tier_name: selectedTierName
+            };
+            console.log("[DEBUG] Sending Upgrade Payload:", payload);
 
             const response = await fetch(functionUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Use your anon key here
                     'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
                     'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
                 },
-                body: JSON.stringify({
-                    tier_name: selectedTierName,
-                    user_id: "414c977e-6f70-4f57-bfa1-af0a8a2053a4" // Hardcoded for your test
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create subscription');
+                throw new Error(errorData.error || 'Failed to create payment order');
             }
 
             const data = await response.json();
 
-            // 2. Open Razorpay using the subscription_id
+            // 🛠️ The FIX: Parse if raw string
+            let order = data;
+            if (typeof data === 'string') {
+                try { order = JSON.parse(data); } catch (e) { }
+            }
+
+            // 2. Open Razorpay using the order_id
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                subscription_id: data.subscription_id,
+                amount: order.amount,
+                currency: order.currency,
+                order_id: order.id,
                 name: "Grid.pe",
                 description: `${selectedTierName.toUpperCase()} Upgrade`,
                 handler: async function (response: any) {
@@ -127,7 +157,7 @@ const SubscriptionSummary = () => {
                             body: JSON.stringify({
                                 ...response,
                                 tier_name: selectedTierName,
-                                user_id: '414c977e-6f70-4f57-bfa1-af0a8a2053a4'
+                                user_id: currentUserId
                             }),
                         });
 
@@ -139,10 +169,15 @@ const SubscriptionSummary = () => {
 
                         if (verifyData.success) {
                             // Immediately refresh the wallet data
+                            await fetchProfileData();
                             await queryClient.invalidateQueries({ queryKey: ['wallet'] });
 
                             navigate('/wallet-upgrade-success', {
-                                state: { tier, flow: location.state?.flow },
+                                state: {
+                                    tier,
+                                    flow: location.state?.flow,
+                                    message: `Subscription Renewed for ${tier}`
+                                },
                                 replace: true
                             });
                         }
@@ -200,9 +235,9 @@ const SubscriptionSummary = () => {
                     className={`w-full max-w-[362px] h-[70px] rounded-[20px] relative overflow-hidden ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                     style={{
                         backgroundImage: `url(${bannerImage})`,
-                        backgroundSize: "cover",
+                        backgroundSize: isDowngrade ? "auto 100%" : "cover",
                         backgroundRepeat: "no-repeat",
-                        backgroundPosition: "center",
+                        backgroundPosition: isDowngrade ? "calc(50% + 40px) center" : "center",
                         border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                     }}
                 >
@@ -280,13 +315,13 @@ const SubscriptionSummary = () => {
                             Monthly Subscription Fee
                         </span>
                         <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
-                            ₹{tierPrice[tier] || 0}
+                            ₹{selectedTierPrice}
                         </span>
                     </div>
 
                     {/* First payment note */}
                     <p className={`${isDarkMode ? 'text-[#A4A4A4] font-normal' : 'text-black/80 font-normal'} text-[12px] leading-[139%] font-satoshi -mt-[2px]`}>
-                        {isDowngrade ? `You will be charged ₹${tierPrice[tier] || 0} on ${effectiveDate}` : "First payment will be charged today."}
+                        {isDowngrade ? `You will be charged ₹${selectedTierPrice} on ${effectiveDate}` : "First payment will be charged today."}
                     </p>
 
                     {/* Divider */}
@@ -298,7 +333,7 @@ const SubscriptionSummary = () => {
                             Total Payable
                         </span>
                         <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold leading-[120%] font-satoshi`}>
-                            {isDowngrade ? '₹0' : `₹${tierPrice[tier] || 0}`}
+                            {isDowngrade ? '₹0' : `₹${selectedTierPrice}`}
                         </span>
                     </div>
                 </div>
@@ -390,6 +425,8 @@ const SubscriptionSummary = () => {
                                 const isoDate = new Date();
                                 isoDate.setMonth(isoDate.getMonth() + 1);
                                 await scheduleDowngrade(tier as WalletTier, isoDate.toISOString().split('T')[0]);
+                                // Set payment_status to pending as requested
+                                await supabase.from('profiles').update({ payment_status: 'pending' }).eq('id', (await supabase.auth.getUser()).data.user?.id || USER_ID);
                             }
                             navigate("/subscriptions", { replace: true });
                         } else {
@@ -397,7 +434,7 @@ const SubscriptionSummary = () => {
                         }
                     }}
                     label={isLoading ? "Processing..." : (isDowngrade ? "Confirm Downgrade" : "Start Monthly Subscription")}
-                    disabled={isLoading}
+                    disabled={isLoading || (!isDowngrade && walletTier !== 'Starter' && (!!scheduledDowngrade || paymentStatus === 'pending' || (profile as any)?.subscription_status === 'pending'))}
                 />
             </div>
         </div>

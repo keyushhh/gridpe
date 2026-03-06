@@ -16,16 +16,39 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { amount, userId: bodyUserId } = await req.json();
+    const body = await req.json().catch(e => ({}));
+    const { amount, userId: bodyUserId, type } = body;
     const effectiveUserId = bodyUserId || userId;
-    console.log(`[DEBUG] Received request to create order. Amount: ${amount}, UserID: ${effectiveUserId}`);
+    console.log(`[DEBUG] create-razorpay-order: Amount=${amount}, UserID=${effectiveUserId}, Type=${type}`);
 
-    if (!amount || amount < 500) {
-      console.log(`[DEBUG] 400: Minimum amount check failed. Amount: ${amount}`);
-      return new Response(
-        JSON.stringify({ error: "Minimum add amount is ₹500" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // 🛠️ EXTREMELY ROBUST ORDER TYPE LOGIC
+    const incomingType = (type || "").toString().trim().toLowerCase();
+    const isSubscriptionOrder = incomingType === "subscription_renewal" || incomingType === "tier_upgrade";
+    const isStandardTopupOrder = ["wallet_topup", "fx_exchange", "cash_order"].includes(incomingType);
+    const isUnknownType = !incomingType;
+
+    console.log(`[DEBUG] Decision Engine - Raw: "${type}", Trimmed: "${incomingType}", isSub: ${isSubscriptionOrder}, isTopup: ${isStandardTopupOrder}, Amount: ${amount}`);
+
+    // 1️⃣ SECURITY GATE 0: Minimum Amount (ONLY for wallet_topup)
+    if (incomingType === "wallet_topup") {
+        if (!amount || Number(amount) < 500) {
+            console.log(`[DEBUG] 400: Minimum top-up limit hit. Type: ${incomingType}, Amount: ${amount}`);
+            return new Response(JSON.stringify({ error: "Minimum add amount is ₹500" }), {
+                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+        }
+    }
+
+    // 2️⃣ SECURITY GATE 1: Subscription Price Whitelist
+    if (isSubscriptionOrder) {
+        const validPrices = [0, 25, 50, 100];
+        const numAmount = Number(amount) || 0;
+        if (!validPrices.includes(numAmount)) {
+            console.log(`[DEBUG] 400: Invalid subscription price: ${amount}`);
+            return new Response(JSON.stringify({ error: `Invalid subscription amount. Expected ₹0, ₹25, ₹50, or ₹100.` }), {
+                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+        }
     }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -80,26 +103,21 @@ Deno.serve(async (req) => {
 
     console.log(`[DEBUG] Hardened Limits check for user ${effectiveUserId}:`, { currentBalance, maxWalletBalance, maxAddPerTxn });
 
-    // 2️⃣ SECURITY GATE 1: Check Per-Transaction Limit
-    if (amount > maxAddPerTxn) {
-       console.log(`[DEBUG] 400: Per-transaction limit hit. Amount: ${amount}, Limit: ${maxAddPerTxn}`);
-       return new Response(
-        JSON.stringify({ 
-          error: `Amount exceeds your per-transaction limit of ₹${maxAddPerTxn}` 
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // 3️⃣ SECURITY GATE 2: Transaction Limits (ONLY for top-ups)
+    if (isStandardTopupOrder || isUnknownType) {
+        if (amount > maxAddPerTxn) {
+           console.log(`[DEBUG] 400: Per-transaction limit hit. Amount: ${amount}, Limit: ${maxAddPerTxn}`);
+           return new Response(JSON.stringify({ error: `Amount exceeds your per-transaction limit of ₹${maxAddPerTxn}` }), {
+               status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+           });
+        }
 
-    // 3️⃣ SECURITY GATE 2: Block if Top-up + Balance exceeds Total Wallet Limit
-    if (currentBalance + amount > maxWalletBalance) {
-      console.log(`[DEBUG] 400: Max wallet balance limit hit. Balance: ${currentBalance}, Adding: ${amount}, Max: ${maxWalletBalance}`);
-      return new Response(
-        JSON.stringify({ 
-          error: `Adding this amount exceeds your maximum wallet balance. You can only add up to ₹${maxWalletBalance - currentBalance}` 
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        if (currentBalance + amount > maxWalletBalance) {
+          console.log(`[DEBUG] 400: Max wallet balance limit hit. Balance: ${currentBalance}, Adding: ${amount}, Max: ${maxWalletBalance}`);
+          return new Response(JSON.stringify({ error: `Adding this amount exceeds your maximum wallet balance.` }), {
+              status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
     }
 
     // 4️⃣ Create Razorpay order

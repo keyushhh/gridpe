@@ -50,6 +50,9 @@ interface UserState {
 
   /* Tier Object */
   wallet_tiers: any | null;
+  subscriptionPrice: number;
+  paymentStatus: 'pending' | 'completed' | null;
+  isRenewalPending: boolean;
 }
 
 interface UserContextType extends UserState {
@@ -107,6 +110,9 @@ const defaultState: UserState = {
   heldBalance: 0,
   isFxEnabled: false,
   wallet_tiers: null,
+  subscriptionPrice: 0,
+  paymentStatus: null,
+  isRenewalPending: false,
 };
 
 /* -------------------- Context -------------------- */
@@ -144,7 +150,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .select(`
           id, name, avatar_url, kyc_status, email, is_fx_enabled, 
           current_tier_id, scheduled_tier_id, tier_change_date,
-          wallet_tiers!current_tier_id(*),
+          payment_status, subscription_status,
+          wallet_tiers!current_tier_id(*, subscription_price),
           scheduled_tier:wallet_tiers!scheduled_tier_id(name)
         `)
         .eq('id', userId)
@@ -181,11 +188,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           dailyLimit: tierData?.daily_withdraw_limit != null ? Math.floor(tierData.daily_withdraw_limit) : null,
           maxWithdrawalLimit: tierData?.daily_withdraw_limit != null ? Math.floor(tierData.daily_withdraw_limit) : null,
           wallet_tiers: tierData,
+          subscriptionPrice: tierData?.subscription_price ? Number(tierData.subscription_price) : 0,
 
           scheduledDowngrade: profileData.scheduled_tier_id ? {
             tier: (schedParsedName as WalletTier) || prev.scheduledDowngrade?.tier || 'Starter',
             effectiveDate: profileData.tier_change_date
           } : null,
+          paymentStatus: profileData.payment_status as 'pending' | 'completed' | null,
+          isRenewalPending: profileData.payment_status === 'pending' || profileData.subscription_status === 'pending',
+          profile: {
+            ...prev.profile,
+            id: profileData.id,
+            name: profileData.name,
+            subscription_status: profileData.subscription_status
+          } as any,
         }));
         console.log('Profile and tier data refreshed via JOIN from Supabase');
       } else {

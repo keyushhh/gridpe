@@ -356,8 +356,8 @@ const OrderDetails = () => {
         >
             {/* Light Mode Glow - Green for Success, Red/Orange for others if needed, but user asked for Green for Order Success */}
             {!isDarkMode && (
-                <div className={`absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0 ${order?.status === 'success' || order?.status === 'delivered' || order?.status === 'processing' ? 'bg-[#0D992F]' : 'bg-[#FF3B30]'}`} />
-                // Using Red for failed/cancelled to be semantic, Green for success/processing.
+                <div className={`absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0 ${['success', 'delivered', 'processing', 'pending', 'out_for_delivery', 'arrived'].includes(order?.status || '') ? 'bg-[#0D992F]' : 'bg-[#FF3B30]'}`} />
+                // Using Red for failed/cancelled to be semantic, Green for success/processing/pending/etc.
             )}
             {/* DEV CONTROLS */}
             {import.meta.env.DEV && (

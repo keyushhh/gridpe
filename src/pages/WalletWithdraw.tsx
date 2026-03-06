@@ -46,7 +46,7 @@ interface Withdrawal {
 
 const WalletWithdraw = () => {
     const navigate = useNavigate();
-    const { walletTier, walletBalance } = useUser();
+    const { walletTier, walletBalance, isRenewalPending } = useUser();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
@@ -149,7 +149,7 @@ const WalletWithdraw = () => {
 
     const isZero = amount === "0.00";
     const amountVal = parseFloat(amount);
-    const canWithdraw = amountVal > 0 && amountVal <= Math.min(walletBalance, currentLimit) && walletBalance > 0 && !loading;
+    const canWithdraw = amountVal > 0 && amountVal <= Math.min(walletBalance, currentLimit) && walletBalance > 0 && !loading && !isRenewalPending;
 
     const handleWithdraw = () => {
         if (!canWithdraw) return;
@@ -230,6 +230,14 @@ const WalletWithdraw = () => {
                         <p className={`text-[#FF3B30] text-[12px] font-medium font-sans mt-[8px] max-w-[80%] text-center`}>
                             {error}
                         </p>
+                    )}
+
+                    {isRenewalPending && (
+                        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg mx-5">
+                            <p className="text-red-500 text-[13px] text-center font-medium">
+                                Withdrawals are locked. Please complete your subscription renewal to continue.
+                            </p>
+                        </div>
                     )}
 
                     <div className="flex gap-4 mt-[17px]">

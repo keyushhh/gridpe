@@ -21,13 +21,13 @@ const WalletCreated = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
-    const { profile, walletTier, upgradeTimestamp, walletBalance, heldBalance, walletLimit, dailyLimit, wallet_tiers } = useUser();
+    const { profile, walletTier, upgradeTimestamp, walletBalance, heldBalance, walletLimit, dailyLimit, wallet_tiers, isRenewalPending, scheduledDowngrade } = useUser();
     const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
         const getSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            setUserId(session?.user?.id || null);
+            setUserId(session?.user?.id || USER_ID);
         };
         getSession();
     }, []);
@@ -139,6 +139,8 @@ const WalletCreated = () => {
                 'Supreme': '100'
             };
             const price = priceMap[dbTier] || '0';
+            const isDowngradePending = isRenewalPending || (profile as any)?.subscription_status === 'pending';
+            const showWarning = isDowngradePending || !!scheduledDowngrade;
 
             return (
                 <div className="mt-[16px]">
@@ -148,16 +150,22 @@ const WalletCreated = () => {
                                 width: '14px',
                                 height: '14px',
                                 borderRadius: '50%',
-                                backgroundColor: '#5CFF00',
-                                boxShadow: '0 0 0 5px rgba(92, 255, 0, 0.17)'
+                                backgroundColor: showWarning ? '#FACC15' : '#5CFF00',
+                                boxShadow: `0 0 0 5px ${showWarning ? 'rgba(250, 204, 21, 0.17)' : 'rgba(92, 255, 0, 0.17)'}`
                             }}
                         />
                         <span className={`ml-[13px] text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            Your wallet is upgraded to {dbTier}
+                            {isDowngradePending && scheduledDowngrade?.tier.toLowerCase() !== 'starter'
+                                ? `Downgrade Payment Pending`
+                                : (!!scheduledDowngrade
+                                    ? `Downgrade Scheduled to ${scheduledDowngrade.tier}`
+                                    : `Your wallet is active on ${dbTier} tier`)}
                         </span>
                     </div>
                     <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-black/80'}`}>
-                        You will be charged ₹{price} / month
+                        {showWarning
+                            ? "Wallet features are locked until renewal is paid."
+                            : `You will be charged ₹${price} / month`}
                     </p>
                 </div>
             );
@@ -447,11 +455,9 @@ const WalletCreated = () => {
             {/* Footer CTA */}
             <div className="shrink-0 px-5 pb-[30px] pt-4 w-full bg-transparent flex flex-col gap-[12px]">
                 <button
-                    onClick={() => navigate('/wallet-add-money', { state: { balance: walletBalance.toFixed(2), from: 'wallet' } })}
-                    className="w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform"
-                    style={{
-                        backgroundColor: '#5260FE',
-                    }}
+                    disabled={isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending'}
+                    onClick={() => !isRenewalPending && !scheduledDowngrade && navigate('/wallet-add-money')}
+                    className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${(isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE]'}`}
                 >
                     Add Money
                 </button>
@@ -459,8 +465,9 @@ const WalletCreated = () => {
                 {walletBalance > 0 && (
                     <button
                         onClick={() => navigate('/wallet-withdraw')}
-                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${isDarkMode ? '' : 'bg-black'}`}
-                        style={{
+                        disabled={isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending'}
+                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${(isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : (isDarkMode ? '' : 'bg-black')}`}
+                        style={(isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending') ? {} : {
                             backgroundImage: isDarkMode ? `url(${addPaymentCta})` : "none",
                             backgroundSize: "cover",
                             backgroundPosition: "center",

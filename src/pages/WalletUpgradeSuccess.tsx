@@ -13,17 +13,19 @@ import darkBgCta from "@/assets/darkbg-cta.png";
 const WalletUpgradeSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { tier } = location.state || { tier: "" };
+    const { tier, flow, message } = location.state || { tier: "", flow: "upgrade", message: "" };
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
-    const { setWalletTier } = useUser();
+    const { setWalletTier, fetchProfileData } = useUser();
     const [tierDetails, setTierDetails] = React.useState<{
         name: string;
         max_wallet_balance: number;
         daily_topup_limit: number;
     } | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
+
+    const isDowngrade = flow === 'downgrade' || message?.toLowerCase().includes('downgrade');
 
     React.useEffect(() => {
         const loadTierDetails = async () => {
@@ -53,6 +55,7 @@ const WalletUpgradeSuccess = () => {
         loadTierDetails();
 
         // Refresh wallet data and other related user data
+        fetchProfileData();
         queryClient.invalidateQueries({ queryKey: ['wallet'] });
 
         // Refresh session to reflect new tier if updated on backend
@@ -62,7 +65,7 @@ const WalletUpgradeSuccess = () => {
         if (tier) {
             setWalletTier(tier as WalletTier);
         }
-    }, [queryClient, setWalletTier, tier]);
+    }, [queryClient, setWalletTier, tier, fetchProfileData]);
 
     return (
         <div
@@ -78,7 +81,9 @@ const WalletUpgradeSuccess = () => {
                 <div
                     className="absolute top-[-150px] left-1/2 transform -translate-x-1/2 w-[500px] h-[400px] pointer-events-none z-0"
                     style={{
-                        background: 'radial-gradient(circle, rgba(12, 126, 75, 0.12) 0%, rgba(255, 255, 255, 0) 75%)',
+                        background: isDowngrade
+                            ? 'radial-gradient(circle, rgba(12, 126, 75, 0.12) 0%, rgba(255, 255, 255, 0) 75%)'
+                            : 'radial-gradient(circle, rgba(12, 126, 75, 0.12) 0%, rgba(255, 255, 255, 0) 75%)', // Keeping it consistent for now
                         filter: 'blur(50px)',
                     }}
                 />
@@ -87,7 +92,7 @@ const WalletUpgradeSuccess = () => {
             {/* Heading */}
             <div className="w-full pt-6 flex justify-center z-10">
                 <h1 className={`${isDarkMode ? 'text-white' : 'text-[#1A1A1A]'} text-[22px] font-medium leading-[120%] font-satoshi`}>
-                    Wallet Upgraded
+                    {isDowngrade ? 'Wallet Downgraded' : 'Wallet Upgraded'}
                 </h1>
             </div>
 
@@ -108,13 +113,15 @@ const WalletUpgradeSuccess = () => {
             </div>
 
             {/* Subheading */}
-            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi text-center mt-[35px] leading-[140%] z-10`}>
-                Extra space, extra power - all yours! 🎉
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi text-center mt-[35px] leading-[140%] z-10 px-4`}>
+                {isDowngrade
+                    ? "Tier updated successfully - continue exploring!"
+                    : "Extra space, extra power - all yours! 🎉"}
             </h2>
 
             {/* Details Container */}
             <div
-                className="w-[362px] h-[162px] mt-[35px] rounded-[13px] relative z-10"
+                className="w-full max-w-[362px] h-[162px] mt-[35px] rounded-[13px] relative z-10"
                 style={isDarkMode ? {
                     backgroundColor: "rgba(0, 0, 0, 0.20)",
                     border: "1px solid rgba(255, 255, 255, 0.06)",
@@ -128,7 +135,7 @@ const WalletUpgradeSuccess = () => {
                 }}
             >
                 <p className={`${isDarkMode ? 'text-[#AFAFAF]' : 'text-[#1A1A1A]'} text-[16px] font-medium font-sans leading-[120%] tracking-[0px]`}>
-                    Your wallet has been upgraded to {tierDetails?.name?.toUpperCase() || tier?.toUpperCase() || "PRO"}.
+                    Your wallet has been {isDowngrade ? 'downgraded' : 'upgraded'} to {tierDetails?.name?.toUpperCase() || tier?.toUpperCase() || "PRO"}.
                     <br />
                     Benefits include:
                 </p>
@@ -136,21 +143,17 @@ const WalletUpgradeSuccess = () => {
                     <li>Wallet limit ₹{(tierDetails?.max_wallet_balance || 15000).toLocaleString('en-IN')}</li>
                     <li>Faster deposits & withdrawals</li>
                     <li>Priority support</li>
-                    <li>Deposit limit increased to ₹{(tierDetails?.daily_topup_limit || 10000).toLocaleString('en-IN')}/day</li>
+                    <li>Deposit limit ₹{(tierDetails?.daily_topup_limit || 10000).toLocaleString('en-IN')}/day</li>
                 </ul>
             </div>
 
-            {/* CTA Button */}
-            <div className="w-full mt-auto mb-[50px] flex justify-center z-10">
+            {/* CTA Buttons */}
+            <div className="w-full mt-auto mb-[50px] flex flex-col gap-[12px] items-center z-10">
                 <button
                     onClick={() => {
-                        if (location.state?.fromSubscriptionDashboard) {
-                            navigate("/subscriptions", { replace: true });
-                        } else {
-                            navigate("/wallet-created", { replace: true });
-                        }
+                        navigate("/wallet-created", { replace: true });
                     }}
-                    className={`w-[361px] h-[48px] rounded-[296px] flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-transform text-white ${isDarkMode
+                    className={`w-full max-w-[361px] h-[48px] rounded-[296px] flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-transform text-white ${isDarkMode
                         ? ''
                         : 'bg-black'
                         }`}
@@ -162,7 +165,19 @@ const WalletUpgradeSuccess = () => {
                         border: 'none',
                     } : {}}
                 >
-                    {location.state?.fromSubscriptionDashboard ? "Go to Subscriptions" : "View Wallet"}
+                    View Wallet
+                </button>
+
+                <button
+                    onClick={() => {
+                        navigate("/subscriptions", { replace: true });
+                    }}
+                    className={`w-full max-w-[361px] h-[48px] rounded-[296px] flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-transform ${isDarkMode
+                        ? 'text-white bg-white/10 backdrop-blur-md border border-white/20'
+                        : 'text-black bg-white border border-[#E9EAEB]'
+                        }`}
+                >
+                    View Subscriptions
                 </button>
             </div>
         </div>

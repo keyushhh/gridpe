@@ -21,7 +21,7 @@ const WalletAddMoney = () => {
   const { theme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { walletLimit, refreshBalance, fetchProfileData, refreshTransactions, profile } = useUser();
+  const { walletLimit, refreshBalance, fetchProfileData, refreshTransactions, profile, isRenewalPending } = useUser();
   const balance = location.state?.balance || "0.00";
   const fromWallet = location.state?.from === 'wallet';
   const [amount, setAmount] = useState<string>("0.00");
@@ -194,6 +194,13 @@ const WalletAddMoney = () => {
               Minimum top-up is ₹500. UPI payments are always free.
             </p>
           </div>
+          {isRenewalPending && (
+            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-red-500 text-[13px] text-center font-medium">
+                Wallet features are locked. Please complete your subscription renewal to continue.
+              </p>
+            </div>
+          )}
         </div>
 
 
@@ -400,8 +407,8 @@ const WalletAddMoney = () => {
                       }
                     }
                   }}
-                  disabled={isLoading}
-                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${Math.floor(parseFloat(amount)) >= 500 && !isLoading
+                  disabled={isLoading || isRenewalPending}
+                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${Math.floor(parseFloat(amount)) >= 500 && !isLoading && !isRenewalPending
                     ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
                     : "bg-[#5260FE]/50 cursor-not-allowed"
                     }`}
