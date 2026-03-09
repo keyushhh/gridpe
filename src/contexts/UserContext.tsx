@@ -14,6 +14,7 @@ interface UserProfile {
   mpin_set?: boolean;
   mpin_hash?: string | null;
   mpin_created_at?: string | null;
+  reward_points?: number;
 }
 
 export interface WalletTransaction extends LibWalletTransaction { }
@@ -53,6 +54,7 @@ interface UserState {
   subscriptionPrice: number;
   paymentStatus: 'pending' | 'completed' | null;
   isRenewalPending: boolean;
+  rewardPoints: number;
 }
 
 interface UserContextType extends UserState {
@@ -113,6 +115,7 @@ const defaultState: UserState = {
   subscriptionPrice: 0,
   paymentStatus: null,
   isRenewalPending: false,
+  rewardPoints: 0,
 };
 
 /* -------------------- Context -------------------- */
@@ -150,7 +153,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .select(`
           id, name, avatar_url, kyc_status, email, is_fx_enabled, 
           current_tier_id, scheduled_tier_id, tier_change_date,
-          payment_status, subscription_status,
+          payment_status, subscription_status, reward_points,
           wallet_tiers!current_tier_id(*, subscription_price),
           scheduled_tier:wallet_tiers!scheduled_tier_id(name)
         `)
@@ -200,8 +203,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             ...prev.profile,
             id: profileData.id,
             name: profileData.name,
-            subscription_status: profileData.subscription_status
+            subscription_status: profileData.subscription_status,
+            reward_points: profileData.reward_points
           } as any,
+          rewardPoints: Number(profileData.reward_points || 0),
         }));
         console.log('Profile and tier data refreshed via JOIN from Supabase');
       } else {

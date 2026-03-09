@@ -50,7 +50,7 @@ const OrderCashSummary = () => {
     const { amount } = location.state || { amount: "0.00" };
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletBalance } = useUser();
+    const { walletBalance, rewardPoints: rewardPointsData } = useUser();
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isPayOpen, setIsPayOpen] = useState(false);
     const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
@@ -224,12 +224,22 @@ const OrderCashSummary = () => {
 
                 const cleanedAmount = Math.round(totalAmount * 100) / 100;
 
+                if (isNaN(cleanedAmount)) {
+                    throw new Error("Invalid total amount calculated. Please check your inputs.");
+                }
+
                 const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
                     body: {
-                        amount: cleanedAmount,
+                        user_id: userId,
+                        amount: parsedAmount, // item_value
+                        total_amount: cleanedAmount, // total payable
                         address_id: addressId,
                         order_type: 'CASH_ORDER',
                         transaction_type: 'held',
+                        delivery_fee: deliveryFee,
+                        platform_fee: platformFee,
+                        gst: gst,
+                        delivery_tip: tipAmount,
                         meta_data: {
                             item_value: parsedAmount,
                             delivery_fee: deliveryFee,
@@ -243,7 +253,14 @@ const OrderCashSummary = () => {
                 if (invokeError) throw invokeError;
                 if (orderData?.error) throw new Error(orderData.error);
 
-                const orderStub = { id: orderData?.order?.id || orderData?.order_id || orderData?.id };
+                const orderId = orderData?.order?.order_id || orderData?.order?.id || orderData?.order_id || orderData?.id;
+
+                if (!orderId) {
+                    console.error("Order creation returned success but no ID:", orderData);
+                    throw new Error("Failed to retrieve Order ID from server.");
+                }
+
+                const orderStub = { id: orderId };
 
                 navigate(`/order-details/${orderStub.id}`, {
                     state: {
@@ -301,7 +318,8 @@ const OrderCashSummary = () => {
                         if (retryInvokeError) throw retryInvokeError;
                         if (retryData?.error) throw new Error(retryData.error);
 
-                        const retryOrderStub = { id: retryData?.order?.id || retryData?.order_id || retryData?.id };
+                        const retryOrderId = retryData?.order?.order_id || retryData?.order?.id || retryData?.order_id || retryData?.id;
+                        const retryOrderStub = { id: retryOrderId };
 
                         navigate(`/order-details/${retryOrderStub.id}`, {
                             state: {
@@ -493,7 +511,7 @@ const OrderCashSummary = () => {
                     {isRewardsOpen && (
                         <div className="px-[12px] pb-[16px]">
                             <p className={`text-[14px] font-medium font-sans -mt-[7px] mb-[21px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                You have 12,000 points available
+                                You have {rewardPointsData.toLocaleString()} points available
                             </p>
                             <div className="flex items-center gap-[12px]">
                                 <div className="relative flex-1 h-[45px]">

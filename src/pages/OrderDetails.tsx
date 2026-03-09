@@ -21,7 +21,7 @@ import closeIcon from "@/assets/cross-icon.svg";
 import cancelIcon from "@/assets/cancel-ico.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
-import { Order, dev_updateOrderStatus } from "@/lib/orders";
+import { Order, dev_updateOrderStatus, getOrderById, cancelOrder as lib_cancelOrder } from "@/lib/orders";
 import { useTheme } from "next-themes";
 
 const OrderDetails = () => {
@@ -74,16 +74,12 @@ const OrderDetails = () => {
 
             if (orderId && orderId !== "undefined") {
                 try {
-                    const { data, error } = await supabase
-                        .from('orders')
-                        .select('*, addresses(*)')
-                        .eq('id', orderId)
-                        .single();
+                    const data = await getOrderById(orderId);
 
                     if (data) {
-                        setOrder(data as Order);
+                        setOrder(data);
                     } else {
-                        console.error("Order not found", error);
+                        console.error("Order not found");
                     }
                 } catch (e) {
                     console.error("Failed to fetch order", e);
@@ -107,13 +103,25 @@ const OrderDetails = () => {
                         {
                             event: 'UPDATE',
                             schema: 'public',
-                            table: 'orders',
+                            table: 'cash_orders',
                             filter: `id=eq.${orderId}`
                         },
                         (payload) => {
-                            console.log('Order details real-time update:', payload);
-                            // Merge updated fields into current order
-                            setOrder(prev => prev ? { ...prev, ...payload.new } : (payload.new as Order));
+                            console.log('Cash order real-time update:', payload);
+                            setOrder(prev => prev ? { ...prev, ...payload.new, amount: payload.new.item_value } : null);
+                        }
+                    )
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: 'UPDATE',
+                            schema: 'public',
+                            table: 'fx_orders',
+                            filter: `id=eq.${orderId}`
+                        },
+                        (payload) => {
+                            console.log('FX order real-time update:', payload);
+                            setOrder(prev => prev ? { ...prev, ...payload.new, amount: payload.new.amount_total } : null);
                         }
                     )
                     .subscribe();
@@ -212,12 +220,7 @@ const OrderDetails = () => {
                 cancelled_at: new Date().toISOString()
             };
 
-            const { error } = await supabase
-                .from('orders')
-                .update({ status: 'cancelled', metadata })
-                .eq('id', order.id);
-
-            if (error) throw error;
+            await lib_cancelOrder(order.id);
 
             // Optimistic update
             setOrder({
@@ -366,7 +369,7 @@ const OrderDetails = () => {
                     <button
                         onClick={async () => {
                             try {
-                                await dev_updateOrderStatus(order.id, 'success');
+                                await dev_updateOrderStatus(order.id, 'success', order.user_id);
                             } catch (e) {
                                 console.error("Dev update failed (likely RLS), proceeding with local mock", e);
                             }

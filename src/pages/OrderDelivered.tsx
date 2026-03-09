@@ -8,12 +8,14 @@ import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/lib/supabase";
+import { deliverOrder } from "@/lib/orders";
 
 const OrderDelivered = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
+    const { profile } = useUser();
     const [seconds, setSeconds] = useState(30);
 
     // Fallback amount if not passed in state
@@ -21,15 +23,10 @@ const OrderDelivered = () => {
     const orderData = location.state?.order;
 
     useEffect(() => {
-        // Redundancy check: ensure status is updated in Supabase
-        if (location.state?.order?.id) {
-            supabase
-                .from('orders')
-                .update({ status: 'delivered' })
-                .eq('id', location.state.order.id)
-                .then(({ error }) => {
-                    if (error) console.error("Failed to update status in OrderDelivered", error);
-                });
+        // Redundancy check: ensure status is updated in Supabase via RPC to trigger rewards
+        if (location.state?.order?.id && profile?.id) {
+            deliverOrder(location.state.order.id, profile.id, location.state.isFx)
+                .catch(err => console.error("Failed to mark order as delivered:", err));
         }
 
         const timer = setInterval(() => {

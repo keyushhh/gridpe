@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Copy, ChevronRight } from "lucide-react";
+import { Coins, Copy, ChevronRight } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -16,80 +16,106 @@ import detailsIcon from "@/assets/details.svg";
 import popupCloseBtnBg from "@/assets/pop-up-close-btn.png";
 import closeIcon from "@/assets/close.svg";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
-import { useUser, WalletTransaction } from "@/contexts/UserContext";
-import { fetchPastOrders, Order } from "@/lib/orders";
+import { useUser } from "@/contexts/UserContext";
 import { supabase, USER_ID } from "@/lib/supabase";
+
+interface RewardTransaction {
+    id: string;
+    user_id: string;
+    amount?: number;
+    points_amount?: number;
+    transaction_type: 'credit' | 'debit';
+    description: string;
+    order_id?: string;
+    created_at: string;
+    expires_at: string;
+}
 
 const POINTS_PER_RUPEE = 40;
 
 const Rewards = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
-    const { profile } = useUser();
+    const { profile, fetchProfileData, rewardPoints } = useUser();
     const { showToaster } = useCustomToaster();
-    const [cashOrders, setCashOrders] = useState<Order[]>([]);
-    const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
+    const [rewardTransactions, setRewardTransactions] = useState<RewardTransaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showHowItWorks, setShowHowItWorks] = useState(false);
+    const [isRedeeming, setIsRedeeming] = useState(false);
 
     const referralLink = "http://sdp.apl/?ref=" + Math.random().toString(36).substring(2, 7).toUpperCase();
 
     useEffect(() => {
-        const loadOrders = async () => {
+        const loadRewards = async () => {
             if (!profile?.id) return;
             try {
-                const pastOrders = await fetchPastOrders(profile.id);
-                // Filter for successful cash orders
-                const cashSucceeded = pastOrders.filter(
-                    o => o.payment_mode === 'cash' && (o.status === 'delivered' || o.status === 'success')
-                );
-                setCashOrders(cashSucceeded);
-
-                const { data: txData } = await supabase
-                    .from('wallet_transactions')
+                const { data, error } = await supabase
+                    .from('reward_transactions')
                     .select('*')
-                    .eq('user_id', USER_ID);
-                if (txData) {
-                    setWalletTransactions(txData);
+                    .eq('user_id', profile.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                if (data) {
+                    setRewardTransactions(data);
                 }
             } catch (err) {
-                console.error("Failed to load rewards orders", err);
+                console.error("Failed to load rewards", err);
+                showToaster("Failed to load reward history", 'error');
             } finally {
                 setIsLoading(false);
             }
         };
 
-        loadOrders();
+        loadRewards();
+
+        // Subscribe to real-time updates
+        const channel = supabase
+            .channel('reward-updates')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'reward_transactions', filter: `user_id=eq.${profile?.id}` },
+                () => loadRewards()
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [profile?.id]);
 
-    const rewardTransactions = useMemo(() => {
-        const walletTopUps = walletTransactions.filter(t => t.type === 'credit' && t.status === 'success');
+    useEffect(() => {
+        if (!profile?.id) return;
 
-        const merged = [
-            ...cashOrders.map(o => ({
-                id: o.id,
-                type: 'debit' as const,
-                amount: o.amount,
-                date: o.created_at,
-                label: 'Amount Debited',
-                subLabel: 'Cash Order'
-            })),
-            ...walletTopUps.map(t => ({
-                id: t.id,
-                type: 'credit' as const,
-                amount: t.amount,
-                date: t.date,
-                label: 'Amount Credited',
-                subLabel: 'Amount added to wallet'
-            }))
-        ];
+        // Subscribe to profile changes for reward_points updates
+        const channel = supabase
+            .channel('profile-reward-updates')
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${profile.id}` },
+                (payload) => {
+                    if (payload.new && 'reward_points' in payload.new) {
+                        fetchProfileData();
+                    }
+                }
+            )
+            .subscribe();
 
-        return merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [cashOrders, walletTransactions]);
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [profile?.id]);
 
-    const totalPoints = useMemo(() => {
-        const totalAmount = rewardTransactions.reduce((acc, curr) => acc + curr.amount, 0);
-        return Math.floor(totalAmount * POINTS_PER_RUPEE);
+    const totalPoints = rewardPoints;
+
+    const latestExpiry = useMemo(() => {
+        if (rewardTransactions.length === 0) return "N/A";
+        const expiries = rewardTransactions
+            .filter(tx => tx.transaction_type === 'credit')
+            .map(tx => new Date(tx.expires_at).getTime());
+        if (expiries.length === 0) return "N/A";
+        const latest = new Date(Math.max(...expiries));
+        return `${latest.getMonth() + 1}/${latest.getFullYear().toString().slice(-2)}`;
     }, [rewardTransactions]);
 
     const handleCopyLink = () => {
@@ -141,12 +167,12 @@ const Rewards = () => {
                         <p
                             className="font-satoshi font-medium text-[12px] text-[#C4C4C4] leading-none"
                         >
-                            Expiry Date
+                            Next Expiry
                         </p>
                         <p
                             className="font-satoshi font-bold text-[12px] text-[#FFFFFF] leading-none mt-[5px]"
                         >
-                            12/26
+                            {latestExpiry}
                         </p>
                     </div>
 
@@ -160,7 +186,7 @@ const Rewards = () => {
                         </p>
                     </div>
 
-                    <div className="mt-[16px]">
+                    <div className="mt-[16px] flex items-center gap-3">
                         <div
                             className="flex items-center justify-center"
                             style={{
@@ -173,6 +199,19 @@ const Rewards = () => {
                         >
                             <span className="text-white text-[11px] font-satoshi">Min. 500 points to redeem</span>
                         </div>
+
+                        <button
+                            disabled={totalPoints < 500 || isRedeeming}
+                            onClick={() => {
+                                showToaster("Redemption logic coming soon!", 'success');
+                            }}
+                            className={`h-[25px] px-4 rounded-full text-[11px] font-bold font-satoshi transition-all ${totalPoints >= 500
+                                ? 'bg-[#FFD700] text-black hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(255,215,0,0.5)]'
+                                : 'bg-white/10 text-white/40 border border-white/10 cursor-not-allowed'
+                                }`}
+                        >
+                            {isRedeeming ? 'Redeeming...' : 'REDEEM'}
+                        </button>
                     </div>
 
                     <div className="mt-auto">
@@ -227,28 +266,31 @@ const Rewards = () => {
 
                             <div className="flex flex-col space-y-[8px]">
                                 {rewardTransactions.map((tx) => (
-                                    <div key={tx.id} className="flex items-center justify-between">
+                                    <div key={tx.id} className="flex items-center justify-between py-1">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                                                <img
-                                                    src={tx.type === 'credit' ? creditedArrow : debitedArrow}
-                                                    alt={tx.type}
-                                                    className="w-[26px] h-[26px] object-contain"
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                                                <Coins
+                                                    className={`w-5 h-5 ${tx.transaction_type === 'credit' ? 'text-[#FFD700]' : 'text-red-500'}`}
                                                 />
                                             </div>
                                             <div className="flex flex-col justify-center">
                                                 <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-satoshi leading-tight`}>
-                                                    {tx.label}
+                                                    {tx.description}
                                                 </p>
                                                 <p className="text-[#7E7E7E] text-[13px] font-normal font-satoshi mt-0.5 leading-tight">
-                                                    {tx.subLabel}
+                                                    {new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className={`text-[15px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                                {tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                            <p className={`text-[15px] font-bold font-satoshi ${tx.transaction_type === 'credit' ? 'text-[#FFD700]' : 'text-red-500'}`}>
+                                                {tx.transaction_type === 'credit' ? '+' : '-'}{Math.abs(tx.points_amount || tx.amount || 0)} P
                                             </p>
+                                            {tx.transaction_type === 'credit' && (
+                                                <p className="text-[10px] text-[#7E7E7E] mt-0.5">
+                                                    Exp: {new Date(tx.expires_at).toLocaleDateString()}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

@@ -87,7 +87,7 @@ const FxSuccess = () => {
             if (orderId) {
                 try {
                     const { data, error } = await supabase
-                        .from('orders')
+                        .from('fx_orders')
                         .select('*, addresses(*)')
                         .eq('id', orderId)
                         .single();
@@ -115,7 +115,7 @@ const FxSuccess = () => {
                         {
                             event: 'UPDATE',
                             schema: 'public',
-                            table: 'orders',
+                            table: 'fx_orders',
                             filter: `id=eq.${orderId}`
                         },
                         (payload) => {
@@ -181,7 +181,7 @@ const FxSuccess = () => {
                 cancelled_at: new Date().toISOString()
             };
             const { error } = await supabase
-                .from('orders')
+                .from('fx_orders')
                 .update({ status: 'cancelled', metadata })
                 .eq('id', order.id);
 

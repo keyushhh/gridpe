@@ -85,8 +85,9 @@ const OrderTracking = () => {
             // Update order status in Supabase
             if (order?.id) {
                 try {
+                    const table = order.order_type === 'FX_EXCHANGE' ? 'fx_orders' : 'cash_orders';
                     await supabase
-                        .from('orders')
+                        .from(table)
                         .update({ status: 'delivered' })
                         .eq('id', order.id);
                 } catch (e) {

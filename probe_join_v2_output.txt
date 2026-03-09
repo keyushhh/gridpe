@@ -1,0 +1,5 @@
+[dotenv@17.3.1] injecting env (9) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+Syntax [id, wallet_tiers!current_tier_id(name)]: SUCCESS
+Syntax [id, wallet_tiers!scheduled_tier_id(name)]: SUCCESS
+Syntax [id, wallet_tiers!profiles_current_tier_id_fkey(name)]: SUCCESS
+Syntax [id, wallet_tiers!profiles_scheduled_tier_id_fkey(name)]: SUCCESS

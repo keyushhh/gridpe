@@ -1,0 +1,11 @@
+[dotenv@17.3.1] injecting env (9) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+Trying insert with column: amount
+Failed for amount: Could not find the 'amount' column of 'reward_transactions' in the schema cache
+Trying insert with column: points
+Failed for points: Could not find the 'description' column of 'reward_transactions' in the schema cache
+Trying insert with column: reward_points
+Failed for reward_points: Could not find the 'description' column of 'reward_transactions' in the schema cache
+Trying insert with column: value
+Failed for value: Could not find the 'description' column of 'reward_transactions' in the schema cache
+Trying insert with column: credits
+Failed for credits: Could not find the 'credits' column of 'reward_transactions' in the schema cache

@@ -30,7 +30,6 @@ import infoIcon from "@/assets/delivery-tip-info.svg";
 import chevronSmall from "@/assets/chevron-small.svg";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
-import { createOrder } from "@/lib/orders";
 // createAddress already imported above
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import Map, { Marker } from "react-map-gl/maplibre";
@@ -225,6 +224,7 @@ const FxExchangeSummary = () => {
             // Call Edge Function using supabase.functions.invoke
             const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
                 body: {
+                    user_id: userId,
                     amount: cleanedAmount,
                     address_id: addressId,
                     order_type: 'FX_EXCHANGE',
@@ -252,13 +252,15 @@ const FxExchangeSummary = () => {
                 throw new Error(orderData?.error || 'Failed to place order');
             }
 
+            const finalOrderId = orderData?.order?.order_id || orderData?.order?.id || orderData?.order_id || orderData?.id;
+
             // Using orderData.order_id as returned by the Edge Function
-            navigate(`/fx-success/${orderData.order_id}`, {
+            navigate(`/fx-success/${finalOrderId}`, {
                 state: {
                     totalAmount: amount,
                     receiveAmount: receiveAmount,
                     savedAddress: savedAddress,
-                    order: { id: orderData.order_id, ...orderData }, // Pass basic info, FxSuccess will fetch full details
+                    order: { id: finalOrderId, ...orderData }, // Pass basic info, FxSuccess will fetch full details
                     isFx: true
                 }
             });
@@ -296,6 +298,7 @@ const FxExchangeSummary = () => {
 
                     const { data: retryData, error: retryInvokeError } = await supabase.functions.invoke('create-order', {
                         body: {
+                            user_id: userId,
                             amount: cleanedAmount,
                             address_id: newAddressId,
                             order_type: 'FX_EXCHANGE',
@@ -318,12 +321,14 @@ const FxExchangeSummary = () => {
                     if (retryInvokeError) throw retryInvokeError;
                     if (retryData?.error) throw new Error(retryData.error);
 
-                    navigate(`/fx-success/${retryData.order_id || retryData.id}`, {
+                    const finalRetryOrderId = retryData?.order?.order_id || retryData?.order?.id || retryData?.order_id || retryData?.id;
+
+                    navigate(`/fx-success/${finalRetryOrderId}`, {
                         state: {
                             totalAmount: amount,
                             receiveAmount: receiveAmount,
                             savedAddress: updatedAddr,
-                            order: { id: retryData.order_id || retryData.id, ...retryData },
+                            order: { id: finalRetryOrderId, ...retryData },
                             isFx: true
                         }
                     });

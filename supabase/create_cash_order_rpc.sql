@@ -1,96 +1,103 @@
--- =======================================================================================
--- Atomic RPC: create_cash_order
--- Bundles creating an order and holding the wallet balance into a single transaction
--- =======================================================================================
+-- =============================================================================
+-- Atomic Order Creation RPCs (CORRECTED)
+-- =============================================================================
 
+-- 1. Create Cash Order RPC
 CREATE OR REPLACE FUNCTION create_cash_order(
     p_user_id UUID,
     p_address_id UUID,
     p_amount NUMERIC,
     p_order_type TEXT,
-    p_meta_data JSONB
-)
-RETURNS JSONB
-LANGUAGE plpgsql
-AS $$
+    p_meta_data JSONB DEFAULT '{}'
+) RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
     v_order_id UUID;
-    v_available_balance NUMERIC;
-    v_result JSONB;
 BEGIN
-    -- 1. Lock the wallet row to prevent race conditions and check balance
-    SELECT available_balance INTO v_available_balance
-    FROM wallets
-    WHERE user_id = p_user_id
-    FOR UPDATE;
-
-    IF v_available_balance IS NULL THEN
-        RAISE EXCEPTION 'Wallet not found for user_id: %', p_user_id;
-    END IF;
-
-    IF v_available_balance < p_amount THEN
-        RAISE EXCEPTION 'Insufficient wallet balance. Available: %, Required: %', v_available_balance, p_amount;
-    END IF;
-
-    -- 2. Insert into orders table
-    INSERT INTO orders (
-        user_id,
-        address_id,
-        amount,
-        order_type,
-        status,
+    -- 1. Insert into cash_orders instead of orders
+    INSERT INTO public.cash_orders (
+        user_id, 
+        address_id, 
+        item_value, -- Using item_value as per user's hint for cash orders
+        status, 
         payment_mode,
-        currency,
         metadata
     ) VALUES (
-        p_user_id,
-        p_address_id,
-        p_amount,
-        p_order_type,
-        'pending',
+        p_user_id, 
+        p_address_id, 
+        p_amount, 
+        'pending', 
         'wallet',
-        'INR',
         p_meta_data
-    )
-    RETURNING id INTO v_order_id;
+    ) RETURNING id INTO v_order_id;
 
-    -- 3. Insert into wallet_transactions to hold the amount
-    INSERT INTO wallet_transactions (
-        user_id,
-        amount,
-        transaction_type,
-        status,
-        order_id,
-        description
+    -- 2. Place HOLD on wallet
+    INSERT INTO public.wallet_transactions (
+        user_id, 
+        type, 
+        amount, 
+        status, 
+        description, 
+        order_id
     ) VALUES (
-        p_user_id,
-        -p_amount, -- Negative amount for held sum
-        'held',
-        'held',
-        v_order_id,
-        CASE WHEN p_order_type = 'FX_EXCHANGE' THEN 'FX Exchange Hold' ELSE 'Cash Order Hold' END
+        p_user_id, 
+        'debit', 
+        p_amount, 
+        'held', 
+        'Hold for Cash Order #' || v_order_id, 
+        v_order_id
     );
 
-    -- Note: DO NOT manually deduct from wallets.available_balance here if your triggers
-    -- already calculate 'held' statuses or if the transaction history is enough.
-    -- Wait, the user previously had a "held ghost" problem because they subtracted and then triggers didn't release it.
-    -- If the wallet system considers 'held' in wallet_transactions as part of the total deducted sum (which we saw in the previous session), we just insert the transaction.
-    -- Actually, in wallet_withdraw we updated the available_balance directly safely.
-    -- BUT for orders, the user's previous code ONLY did:
-    --   insert into orders
-    --   insert into wallet_transactions (-amount, 'held', 'held', order_id)
-    -- So we just replicate that atomically.
-    
-    -- Format return JSON exactly as requested
-    SELECT jsonb_build_object(
-        'id', v_order_id,
-        'user_id', p_user_id,
-        'address_id', p_address_id,
-        'amount', p_amount,
-        'order_type', p_order_type,
-        'status', 'pending'
-    ) INTO v_result;
+    RETURN jsonb_build_object('success', true, 'order_id', v_order_id);
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object('success', false, 'error', SQLERRM);
+END; $$;
 
-    RETURN v_result;
-END;
-$$;
+-- 2. Create FX Order RPC
+CREATE OR REPLACE FUNCTION create_fx_order(
+    p_user_id UUID,
+    p_address_id UUID,
+    p_amount NUMERIC, -- Total amount to be held
+    p_order_type TEXT,
+    p_meta_data JSONB DEFAULT '{}'
+) RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+    v_order_id UUID;
+BEGIN
+    -- 1. Insert into fx_orders instead of orders
+    INSERT INTO public.fx_orders (
+        user_id, 
+        address_id, 
+        amount_total, -- Using amount_total as per user's hint for FX orders
+        status, 
+        payment_mode,
+        metadata
+    ) VALUES (
+        p_user_id, 
+        p_address_id, 
+        p_amount, 
+        'pending', 
+        'wallet',
+        p_meta_data
+    ) RETURNING id INTO v_order_id;
+
+    -- 2. Place HOLD on wallet
+    INSERT INTO public.wallet_transactions (
+        user_id, 
+        type, 
+        amount, 
+        status, 
+        description, 
+        order_id
+    ) VALUES (
+        p_user_id, 
+        'debit', 
+        p_amount, 
+        'held', 
+        'Hold for FX Order #' || v_order_id, 
+        v_order_id
+    );
+
+    RETURN jsonb_build_object('success', true, 'order_id', v_order_id);
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object('success', false, 'error', SQLERRM);
+END; $$;

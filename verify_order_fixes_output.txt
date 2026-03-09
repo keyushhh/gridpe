@@ -1,0 +1,11 @@
+[dotenv@17.3.1] injecting env (9) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+--- Testing fetchRecentOrders logic ---
+fetchRecentOrders: SUCCESS
+Cash count: 0
+FX count: 0
+
+--- Testing fetchActiveOrders logic ---
+fetchActiveOrders: SUCCESS
+
+--- Testing fetchPastOrders logic ---
+fetchPastOrders: SUCCESS

@@ -1,0 +1,9 @@
+[dotenv@17.3.1] injecting env (9) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+--- Testing cash_orders joins ---
+cash_orders Syntax [*, addresses(*)]: FAILED (Could not find a relationship between 'cash_orders' and 'addresses' in the schema cache)
+cash_orders Syntax [*, addresses!address_id(*)]: FAILED (Could not find a relationship between 'cash_orders' and 'addresses' in the schema cache)
+cash_orders Syntax [*, addresses!cash_orders_address_id_fkey(*)]: FAILED (Could not find a relationship between 'cash_orders' and 'addresses' in the schema cache)
+--- Testing fx_orders joins ---
+fx_orders Syntax [*, addresses(*)]: FAILED (Could not find a relationship between 'fx_orders' and 'addresses' in the schema cache)
+fx_orders Syntax [*, addresses!address_id(*)]: FAILED (Could not find a relationship between 'fx_orders' and 'addresses' in the schema cache)
+fx_orders Syntax [*, addresses!cash_orders_address_id_fkey(*)]: FAILED (Could not find a relationship between 'fx_orders' and 'addresses' in the schema cache)

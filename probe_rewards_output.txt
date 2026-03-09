@@ -1,0 +1,5 @@
+[dotenv@17.3.1] injecting env (9) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+--- Probing reward_transactions schema ---
+Columns in reward_transactions: No data, trying insert to see error...
+Insert error with "amount": Could not find the 'amount' column of 'reward_transactions' in the schema cache
+Insert error with "points": Could not find the 'points' column of 'reward_transactions' in the schema cache
