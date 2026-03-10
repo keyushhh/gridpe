@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Copy, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -44,6 +45,7 @@ interface RewardTransaction {
 const POINTS_PER_RUPEE = 40;
 
 const Rewards = () => {
+    const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const { profile, fetchProfileData, rewardPoints } = useUser();
@@ -65,7 +67,8 @@ const Rewards = () => {
                     .eq('user_id', profile.id)
                     .eq('type', 'earned')
                     .not('reference_id', 'is', null)
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(10);
 
                 if (rewardError) throw rewardError;
 
@@ -306,7 +309,9 @@ const Rewards = () => {
                 <div className="flex flex-col min-h-[300px] relative z-10">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Transaction History</h3>
-                        <button className="text-[#5260FE] text-[14px]">View All</button>
+                        <button onClick={() => navigate('/order-history?rewards=true')} className="text-[#5260FE] text-[14px]">
+                            View All
+                        </button>
                     </div>
 
                     <div className={`w-full h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} mb-[15px]`} />
@@ -349,9 +354,6 @@ const Rewards = () => {
                                                             {new Date(tx.created_at).toLocaleDateString('en-IN', {
                                                                 day: 'numeric', month: 'short'
                                                             })}
-                                                        </span>
-                                                        <span className="text-[#FFD700] text-[11px] font-bold font-sans leading-none">
-                                                            +{tx.points_amount} P
                                                         </span>
                                                     </div>
                                                 </div>

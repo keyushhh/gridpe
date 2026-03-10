@@ -28,6 +28,8 @@ const OrderHistory = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const showOnlyPast = location.state?.showOnlyPast || false;
+    const searchParams = new URLSearchParams(location.search);
+    const showOnlyRewards = location.state?.showOnlyRewards || searchParams.get('rewards') === 'true';
 
     const [activeOrders, setActiveOrders] = useState<Order[]>([]);
     const [pastOrders, setPastOrders] = useState<Order[]>([]);
@@ -48,8 +50,30 @@ const OrderHistory = () => {
 
                 // Fetch Past Orders
                 const past = await fetchPastOrders(session.user.id);
-                setPastOrders(past);
-                setFilteredPastOrders(past);
+
+                if (showOnlyRewards) {
+                    const { data: rewardData } = await supabase
+                        .from('reward_transactions')
+                        .select('reference_id')
+                        .eq('user_id', session.user.id)
+                        .eq('type', 'earned')
+                        .not('reference_id', 'is', null);
+
+                    if (rewardData) {
+                        const earnedOrderIds = new Set(rewardData.map(r => r.reference_id));
+                        const filtered = past.filter(o => earnedOrderIds.has(o.id));
+                        setPastOrders(filtered);
+                        setFilteredPastOrders(filtered);
+                        setActiveOrders([]); // Clear active orders
+                    } else {
+                        setPastOrders([]);
+                        setFilteredPastOrders([]);
+                        setActiveOrders([]);
+                    }
+                } else {
+                    setPastOrders(past);
+                    setFilteredPastOrders(past);
+                }
             } catch (e) {
                 console.error("Failed to load order history", e);
             }
@@ -404,15 +428,15 @@ const OrderHistory = () => {
                     <ChevronLeft className={`w-6 h-6 flex-shrink-0 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                    {showOnlyPast ? "Help & Support" : "Order History"}
+                    {showOnlyRewards ? "Reward History" : (showOnlyPast ? "Help & Support" : "Order History")}
                 </h1>
             </div>
 
             {/* Search Bar */}
-            {!showOnlyPast && searchBar}
+            {!showOnlyPast && !showOnlyRewards && searchBar}
 
             {/* Active Orders */}
-            {!showOnlyPast && activeOrders.length > 0 && (
+            {!showOnlyPast && !showOnlyRewards && activeOrders.length > 0 && (
                 <div className="px-5 mb-[35px] relative z-10">
                     <h2 className={`text-[16px] font-bold font-satoshi mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         Active orders
