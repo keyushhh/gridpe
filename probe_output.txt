@@ -1,6 +1,0 @@
-[dotenv@17.2.3] injecting env (9) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
-Column current_tier_id: EXISTS
-Column scheduled_tier_id: EXISTS
-Column wallet_limit: MISSING (column profiles.wallet_limit does not exist)
-Column daily_limit: MISSING (column profiles.daily_limit does not exist)
-Column tier_change_date: EXISTS

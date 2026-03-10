@@ -1,9 +1,0 @@
-[dotenv@17.3.1] injecting env (9) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
-Existing profiles: [
-  { id: '60596403-7780-497e-977e-a0cc1d8308f0', email: null },
-  { id: '7aa07499-9806-4f9f-870d-6dd94c447b5b', email: null },
-  { id: '6c42f8d1-5912-4f64-9c37-a5e824607374', email: null },
-  { id: 'dae4fa11-2f0b-41ef-ac8c-e5434e6bbe1c', email: null },
-  { id: 'b09845a5-1361-4733-8e11-f6eaafd32144', email: null }
-]
-Hardcoded ID exists in profiles: true

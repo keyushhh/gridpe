@@ -1,6 +1,0 @@
-[dotenv@17.3.1] injecting env (9) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
-Column id: EXISTS
-Column user_id: EXISTS
-Column address_id: EXISTS
-Column status: EXISTS
-Column created_at: MISSING (column cash_orders.created_at does not exist)

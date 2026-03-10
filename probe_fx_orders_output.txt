@@ -1,6 +1,0 @@
-[dotenv@17.3.1] injecting env (9) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
-fx_orders Column id: EXISTS
-fx_orders Column user_id: EXISTS
-fx_orders Column address_id: EXISTS
-fx_orders Column status: EXISTS
-fx_orders Column created_at: MISSING (column fx_orders.created_at does not exist)

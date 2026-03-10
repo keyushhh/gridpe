@@ -1,4 +1,0 @@
-[dotenv@17.2.3] injecting env (9) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
-Syntax [id, current_tier_id, wallet_tiers(*)] FAILED: Could not embed because more than one relationship was found for 'profiles' and 'wallet_tiers'
-Syntax [id, current_tier_id, wallet_tiers!current_tier_id(*)] SUCCESS
-Syntax [id, current_tier_id, wallet_tier:current_tier_id(*)] SUCCESS

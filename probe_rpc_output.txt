@@ -1,7 +1,0 @@
-[dotenv@17.3.1] injecting env (9) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
---- Probing RPC signatures ---
-Attempting 10-param call...
-10-param result: SUCCESS
-
---- Checking cash_orders columns ---
-Column "delivery_tip" exists: true
