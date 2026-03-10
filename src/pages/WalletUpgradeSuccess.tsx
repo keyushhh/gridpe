@@ -151,7 +151,15 @@ const WalletUpgradeSuccess = () => {
             <div className="w-full mt-auto mb-[50px] flex flex-col gap-[12px] items-center z-10">
                 <button
                     onClick={() => {
-                        navigate("/wallet-created", { replace: true });
+                        navigate("/wallet-created", {
+                            replace: true,
+                            state: {
+                                transitionSuccess: {
+                                    type: isDowngrade ? 'downgrade' : 'upgrade',
+                                    tier: tierDetails?.name || tier
+                                }
+                            }
+                        });
                     }}
                     className={`w-full max-w-[361px] h-[48px] rounded-[296px] flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-transform text-white ${isDarkMode
                         ? ''

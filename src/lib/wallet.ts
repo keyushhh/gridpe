@@ -10,6 +10,8 @@ export interface WalletTransaction {
     reference_id?: string;
     metadata?: Record<string, unknown>;
     date?: string; // used locally for legacy mapping
+    payout_method?: string;
+    vpa?: string;
 }
 
 export interface Payout {
@@ -18,6 +20,8 @@ export interface Payout {
     amount: number;
     status: string;
     created_at: string;
+    payout_method?: string;
+    vpa?: string;
 }
 
 /**

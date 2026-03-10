@@ -117,7 +117,8 @@ const OrderCashSummary = () => {
 
     // Calculations
     const parsedAmount = parseFloat((amount || "0").toString().replace(/,/g, "")) || 0;
-    const parsedRewardPoints = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
+    const rewardPointsValue = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
+    const rewardDiscount = rewardPointsValue * 0.025;
 
     // Fetch Quote
     React.useEffect(() => {
@@ -150,7 +151,7 @@ const OrderCashSummary = () => {
     const gst = quoteData?.gst || 0;
     const baseTotal = quoteData?.total_payable || (parsedAmount + deliveryFee + platformFee + gst);
 
-    const totalAmount = baseTotal - parsedRewardPoints + tipAmount;
+    const totalAmount = baseTotal - rewardDiscount + tipAmount;
 
     const handleTipSelect = (option: string) => {
         setSelectedTipOption(option);
@@ -279,14 +280,14 @@ const OrderCashSummary = () => {
                         platform_fee: platformFee,
                         gst: gst,
                         delivery_tip: tipAmount,
-                        reward_points: parsedRewardPoints,
+                        reward_points: rewardPointsValue,
                         meta_data: {
                             item_value: parsedAmount,
                             delivery_fee: deliveryFee,
                             delivery_tip: tipAmount,
                             gst: gst,
                             platform_fee: platformFee,
-                            reward_points: parsedRewardPoints,
+                            reward_points: rewardPointsValue,
                             quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK'
                         }
                     }
@@ -402,6 +403,9 @@ const OrderCashSummary = () => {
 
         if (isNaN(points) || points < 500) {
             setRewardError("Minimum 500 points to redeem.");
+            setRewardApplied(false);
+        } else if (points > rewardPointsData) {
+            setRewardError(`You only have ${rewardPointsData.toLocaleString()} points.`);
             setRewardApplied(false);
         } else {
             setRewardError("");
@@ -553,7 +557,7 @@ const OrderCashSummary = () => {
                     {isRewardsOpen && (
                         <div className="px-[12px] pb-[16px]">
                             <p className={`text-[14px] font-medium font-sans -mt-[7px] mb-[21px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                You have {rewardPointsData.toLocaleString()} points available
+                                You have {rewardPointsData.toLocaleString()} points available (₹{(rewardPointsData * 0.025).toLocaleString('en-IN', { minimumFractionDigits: 2 })})
                             </p>
                             <div className="flex items-center gap-[12px]">
                                 <div className="relative flex-1 h-[45px]">
@@ -592,7 +596,7 @@ const OrderCashSummary = () => {
                                 </button>
                             </div>
                             <p className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/40' : 'text-black'}`}>
-                                {rewardError || "Minimum 500 points to redeem"}
+                                {rewardError || (rewardApplied ? `Applied: ₹${rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} discount` : "500 points = ₹12.50")}
                             </p>
                         </div>
                     )}
@@ -776,8 +780,8 @@ const OrderCashSummary = () => {
                                 </div>
                                 {rewardApplied && (
                                     <div className="flex justify-between items-center mb-[2px]">
-                                        <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Reward Points</span>
-                                        <span className="text-[#FF3B30] font-bold font-sans text-[13px]">-₹{parsedRewardPoints}</span>
+                                        <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Reward Discount ({rewardPointsValue} pts)</span>
+                                        <span className="text-[#FF3B30] font-bold font-sans text-[13px]">-₹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center">

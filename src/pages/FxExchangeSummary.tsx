@@ -137,7 +137,8 @@ const FxExchangeSummary = () => {
 
     // Total amount to be held from wallet is the INR converted value (e.g., ₹923)
     // and not the source currency amount (e.g., $10).
-    const parsedRewardPoints = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
+    const rewardPointsValue = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
+    const rewardDiscount = rewardPointsValue * 0.025;
     const serviceAmount = (markupAmount || 0) + (flatFee || 0);
 
     // Fetch Quote
@@ -176,7 +177,7 @@ const FxExchangeSummary = () => {
     // Total hold amount = receive amount + all fees + gst + tips - rewards
     // Note: baseTotal from quote is receive + delivery + platform + gst. 
     // We add markup + flatFee (serviceAmount) and tips, and subtract rewards.
-    const holdAmount = (finalAmount || 0) + serviceAmount + deliveryFee + platformFee + gst + tipAmount - parsedRewardPoints;
+    const holdAmount = (finalAmount || 0) + serviceAmount + deliveryFee + platformFee + gst + tipAmount - rewardDiscount;
     const totalAmount = holdAmount;
 
     const handleTipSelect = (option: string) => {
@@ -284,7 +285,7 @@ const FxExchangeSummary = () => {
                     platform_fee: platformFee,
                     gst: gst,
                     delivery_tip: tipAmount,
-                    reward_points: parsedRewardPoints,
+                    reward_points: rewardPointsValue,
                     meta_data: {
                         is_fx: true,
                         receive_amount: cleanedReceiveAmount,
@@ -301,7 +302,7 @@ const FxExchangeSummary = () => {
                         platform_fee: platformFee,
                         gst: gst,
                         delivery_tip: tipAmount,
-                        reward_points: parsedRewardPoints,
+                        reward_points: rewardPointsValue,
                         quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK'
                     }
                 }
@@ -424,6 +425,9 @@ const FxExchangeSummary = () => {
         const points = parseInt(rewardPoints, 10);
         if (isNaN(points) || points < 500) {
             setRewardError("Minimum 500 points to redeem.");
+            setRewardApplied(false);
+        } else if (points > availableRewardPoints) {
+            setRewardError(`You only have ${availableRewardPoints.toLocaleString()} points.`);
             setRewardApplied(false);
         } else {
             setRewardError("");
@@ -582,7 +586,7 @@ const FxExchangeSummary = () => {
                     {isRewardsOpen && (
                         <div className="px-[12px] pb-[16px]">
                             <p className={`text-[14px] font-medium font-sans -mt-[7px] mb-[21px] ${isDarkMode ? "text-white" : "text-black"}`}>
-                                You have {availableRewardPoints.toLocaleString()} points available
+                                You have {availableRewardPoints.toLocaleString()} points available (₹{(availableRewardPoints * 0.025).toLocaleString('en-IN', { minimumFractionDigits: 2 })})
                             </p>
                             <div className="flex items-center gap-[12px]">
                                 <div className="relative flex-1 h-[45px]">
@@ -621,7 +625,7 @@ const FxExchangeSummary = () => {
                                 </button>
                             </div>
                             <p className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/40' : 'text-black'}`}>
-                                {rewardError || "Minimum 500 points to redeem"}
+                                {rewardError || (rewardApplied ? `Applied: ₹${rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} discount` : "500 points = ₹12.50")}
                             </p>
                         </div>
                     )}
@@ -853,10 +857,8 @@ const FxExchangeSummary = () => {
                             {/* Reward Points */}
                             {rewardApplied && (
                                 <div className="flex justify-between items-center h-[18px] mt-[8px]">
-                                    <span className={`${isDarkMode ? "text-white" : "text-black"}`}>Reward Points Redemption</span>
-                                    <span className="text-[#FF3B30] font-bold">
-                                        - ₹{parsedRewardPoints.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
+                                    <span className={`${isDarkMode ? "text-white/70" : "text-black/60"} text-[13px]`}>Reward Discount ({rewardPointsValue} pts)</span>
+                                    <span className="text-[#FF3B30] font-bold text-[13px]">-₹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                                 </div>
                             )}
                         </div>

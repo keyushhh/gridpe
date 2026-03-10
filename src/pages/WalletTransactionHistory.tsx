@@ -103,7 +103,9 @@ const WalletTransactionHistory = () => {
                                 status: p.status as any,
                                 created_at: p.created_at,
                                 date: p.created_at,
-                                description: 'Wallet Withdrawal'
+                                description: 'Wallet Withdrawal',
+                                payout_method: p.payout_method,
+                                vpa: p.vpa
                             });
                         }
                     });
@@ -383,6 +385,17 @@ const WalletTransactionHistory = () => {
             };
             const methodLabel = methodId ? (methodNames[methodId as string] || "Bank") : "Netbanking";
             subtitle = `Withdrawn to ${methodLabel}`;
+        } else if (desc.includes("withdrawal")) {
+            const method = tx.payout_method || tx.metadata?.payout_method;
+            const vpa = tx.vpa || tx.metadata?.vpa;
+            title = "Withdrawal";
+            if (method === 'upi') {
+                subtitle = `Withdrawn to ${vpa || 'UPI'}`;
+            } else if (method === 'card') {
+                subtitle = `Withdrawn to Card`;
+            } else {
+                subtitle = `Withdrawn to Bank`;
+            }
         } else if (desc.includes("cred") || desc.includes("google pay") || desc.includes("phone pe") || desc.includes("upi id") || desc.includes("upi")) {
             subtitle = "Added via UPI";
         } else if (desc.includes("cards") || desc.includes("card")) {

@@ -15,6 +15,7 @@ interface UserProfile {
   mpin_hash?: string | null;
   mpin_created_at?: string | null;
   reward_points?: number;
+  subscription_status?: string;
 }
 
 export interface WalletTransaction extends LibWalletTransaction { }
@@ -198,7 +199,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             effectiveDate: profileData.tier_change_date
           } : null,
           paymentStatus: profileData.payment_status as 'pending' | 'completed' | null,
-          isRenewalPending: profileData.payment_status === 'pending' || profileData.subscription_status === 'pending',
+          isRenewalPending: profileData.payment_status === 'pending' ||
+            profileData.subscription_status === 'pending' ||
+            (!!profileData.tier_change_date && new Date() >= new Date(profileData.tier_change_date)),
           profile: {
             ...prev.profile,
             id: profileData.id,

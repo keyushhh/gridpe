@@ -425,8 +425,6 @@ const SubscriptionSummary = () => {
                                 const isoDate = new Date();
                                 isoDate.setMonth(isoDate.getMonth() + 1);
                                 await scheduleDowngrade(tier as WalletTier, isoDate.toISOString().split('T')[0]);
-                                // Set payment_status to pending as requested
-                                await supabase.from('profiles').update({ payment_status: 'pending' }).eq('id', (await supabase.auth.getUser()).data.user?.id || USER_ID);
                             }
                             navigate("/subscriptions", { replace: true });
                         } else {

@@ -76,49 +76,51 @@ const Subscriptions = () => {
         const checkSubscriptionStatus = async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                if (!session?.user?.id) return;
+                const currentUserId = session?.user?.id || USER_ID;
+                if (!currentUserId) return;
 
-                // For this demo, let's assume we read either the user_subscriptions table or a custom RPC
-                // However, since we're using Razorpay checkout triggered by the frontend, let's check
-                // if they actually have a valid next_billing_date or active subscription status
                 const { data: subData } = await supabase
                     .from('user_subscriptions')
                     .select('status, current_period_end')
-                    .eq('user_id', session?.user?.id || USER_ID)
+                    .eq('user_id', currentUserId)
                     .maybeSingle();
 
                 // If they are on a paid tier but don't have an active subscription record or it's expired
+                let isActive = false;
                 if (subData) {
-                    const isActive = subData.status === 'active' && new Date(subData.current_period_end) > new Date();
-                    setIsSubscriptionActive(isActive);
-                } else {
-                    // If they are Starter, it's always "active" (free). If they are Pro+ and no sub record, it's inactive (needs renewal)
-                    // EXTRA CHECK: If payment_status is pending, it definitely needs renewal
-                    setIsSubscriptionActive(false);
+                    isActive = subData.status === 'active' && new Date(subData.current_period_end) > new Date();
+                } else if (profile?.subscription_status === 'active') {
+                    // Fallback to profile status if subscription table record is missing
+                    isActive = true;
                 }
 
-                if (paymentStatus === 'pending') {
-                    setIsSubscriptionActive(false);
+                if (paymentStatus === 'pending' || isRenewalPending) {
+                    isActive = false;
                 }
+
+                setIsSubscriptionActive(isActive);
             } catch (err) {
                 console.warn("Failed to check generic subscription status", err);
             }
         };
+
         if (walletTier !== 'Starter') {
             checkSubscriptionStatus();
         } else {
             setIsSubscriptionActive(true);
         }
-    }, [walletTier, paymentStatus]);
+    }, [walletTier, paymentStatus, isRenewalPending, profile?.subscription_status]);
 
     const currentTierConfig = tiers.find(t => t.name === walletTier);
 
     if (!currentTierConfig) return null;
 
     const isProPlus = walletTier !== 'Starter';
-    const containerHeight = scheduledDowngrade ? '155px' : (isProPlus ? '195px' : '166px');
-    const backgroundImage = isDarkMode ? subscriptionBgs[walletTier] : subscriptionBgsLight[walletTier];
-    const backgroundPosition = "top center";
+    const isStarterDowngrade = scheduledDowngrade?.tier === 'Starter';
+    const containerHeight = scheduledDowngrade ? '190px' : (isProPlus ? '195px' : '166px');
+    const displayTier = isStarterDowngrade ? 'Starter' : walletTier;
+    const backgroundImage = isDarkMode ? subscriptionBgs[displayTier] : subscriptionBgsLight[displayTier];
+    const backgroundPosition = "top calc(50% + 20px)";
     const nextTier = nextTierMap[walletTier];
     const upgradePrice = nextTier ? tierPrices[nextTier.toLowerCase()] || 0 : 0;
 

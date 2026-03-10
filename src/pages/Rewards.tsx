@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Coins, Copy, ChevronRight } from "lucide-react";
+import { Copy, ChevronRight } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -15,6 +15,9 @@ import rewardsPopup from "@/assets/rewards-popup.png";
 import detailsIcon from "@/assets/details.svg";
 import popupCloseBtnBg from "@/assets/pop-up-close-btn.png";
 import closeIcon from "@/assets/close.svg";
+import successIcon from "@/assets/success.svg";
+import failedIcon from "@/assets/failed.svg";
+import processingIcon from "@/assets/processing.svg";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
 import { supabase, USER_ID } from "@/lib/supabase";
@@ -26,9 +29,16 @@ interface RewardTransaction {
     points_amount?: number;
     transaction_type: 'credit' | 'debit';
     description: string;
-    order_id?: string;
+    reference_id?: string;
     created_at: string;
     expires_at: string;
+    // Joined order details
+    order_details?: {
+        amount: number;
+        status: string;
+        order_type: string;
+        metadata: any;
+    };
 }
 
 const POINTS_PER_RUPEE = 40;
@@ -41,7 +51,6 @@ const Rewards = () => {
     const [rewardTransactions, setRewardTransactions] = useState<RewardTransaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showHowItWorks, setShowHowItWorks] = useState(false);
-    const [isRedeeming, setIsRedeeming] = useState(false);
 
     const referralLink = "http://sdp.apl/?ref=" + Math.random().toString(36).substring(2, 7).toUpperCase();
 
@@ -49,15 +58,38 @@ const Rewards = () => {
         const loadRewards = async () => {
             if (!profile?.id) return;
             try {
-                const { data, error } = await supabase
+                // 1. Fetch earned reward transactions linked to orders
+                const { data: rewardData, error: rewardError } = await supabase
                     .from('reward_transactions')
                     .select('*')
                     .eq('user_id', profile.id)
+                    .eq('type', 'earned')
+                    .not('reference_id', 'is', null)
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
-                if (data) {
-                    setRewardTransactions(data);
+                if (rewardError) throw rewardError;
+
+                if (rewardData && rewardData.length > 0) {
+                    const orderIds = rewardData.map(rt => rt.reference_id);
+
+                    // 2. Fetch associated orders from both tables
+                    const [cashRes, fxRes] = await Promise.all([
+                        supabase.from('cash_orders').select('*').in('id', orderIds),
+                        supabase.from('fx_orders').select('*').in('id', orderIds)
+                    ]);
+
+                    const cashOrdersMap = new Map((cashRes.data || []).map(o => [o.id, { ...o, order_type: 'CASH_ORDER', amount: o.total_amount || o.item_value }]));
+                    const fxOrdersMap = new Map((fxRes.data || []).map(o => [o.id, { ...o, order_type: 'FX_EXCHANGE', amount: o.total_amount || o.amount_total }]));
+
+                    // 3. Combine
+                    const fullTransactions = rewardData.map(rt => ({
+                        ...rt,
+                        order_details: cashOrdersMap.get(rt.reference_id) || fxOrdersMap.get(rt.reference_id)
+                    }));
+
+                    setRewardTransactions(fullTransactions);
+                } else {
+                    setRewardTransactions([]);
                 }
             } catch (err) {
                 console.error("Failed to load rewards", err);
@@ -121,6 +153,46 @@ const Rewards = () => {
     const handleCopyLink = () => {
         navigator.clipboard.writeText(referralLink);
         showToaster("Referral link copied!", 'success');
+    };
+
+    const getStatusInfo = (status: string) => {
+        switch (status?.toLowerCase()) {
+            case 'processing':
+            case 'out_for_delivery':
+            case 'arrived':
+                return { text: 'Ongoing', color: '#FACC15' };
+            case 'delivered':
+            case 'success':
+                return { text: 'Completed', color: '#16B751' };
+            case 'cancelled':
+            case 'failed':
+            case 'rejected':
+                return { text: 'Rejected', color: '#FF3B30' };
+            default:
+                return { text: status || 'Pending', color: '#FACC15' };
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status?.toLowerCase()) {
+            case 'processing':
+            case 'out_for_delivery':
+            case 'arrived':
+                return processingIcon;
+            case 'delivered':
+            case 'success':
+                return successIcon;
+            case 'cancelled':
+            case 'failed':
+            case 'rejected':
+                return failedIcon;
+            default:
+                return processingIcon;
+        }
+    };
+
+    const currencySymbols: Record<string, string> = {
+        INR: '₹', USD: '$', EUR: '€', GBP: '£'
     };
 
     return (
@@ -199,21 +271,7 @@ const Rewards = () => {
                         >
                             <span className="text-white text-[11px] font-satoshi">Min. 500 points to redeem</span>
                         </div>
-
-                        <button
-                            disabled={totalPoints < 500 || isRedeeming}
-                            onClick={() => {
-                                showToaster("Redemption logic coming soon!", 'success');
-                            }}
-                            className={`h-[25px] px-4 rounded-full text-[11px] font-bold font-satoshi transition-all ${totalPoints >= 500
-                                ? 'bg-[#FFD700] text-black hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(255,215,0,0.5)]'
-                                : 'bg-white/10 text-white/40 border border-white/10 cursor-not-allowed'
-                                }`}
-                        >
-                            {isRedeeming ? 'Redeeming...' : 'REDEEM'}
-                        </button>
                     </div>
-
                     <div className="mt-auto">
                         <p className="font-satoshi font-medium text-[14px] text-[#FFFFFF] leading-none">
                             Invite Friends
@@ -258,42 +316,70 @@ const Rewards = () => {
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5260FE]"></div>
                         </div>
                     ) : rewardTransactions.length > 0 ? (
-                        <div className="flex flex-col space-y-4">
-                            <div className="flex justify-between items-center px-1">
-                                <span className="text-[#7E7E7E] text-[12px] font-medium uppercase font-satoshi">Details</span>
-                                <span className="text-[#7E7E7E] text-[12px] font-medium uppercase font-satoshi">Price</span>
+                        <div className="flex flex-col">
+                            {/* Headers - Homepage Style */}
+                            <div className="grid grid-cols-[1fr_100px_80px] gap-x-6 mb-[12px] px-0">
+                                <div>
+                                    <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">Details</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">Price</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">Status</span>
+                                </div>
                             </div>
 
-                            <div className="flex flex-col space-y-[8px]">
-                                {rewardTransactions.map((tx) => (
-                                    <div key={tx.id} className="flex items-center justify-between py-1">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                                                <Coins
-                                                    className={`w-5 h-5 ${tx.transaction_type === 'credit' ? 'text-[#FFD700]' : 'text-red-500'}`}
-                                                />
+                            <div className="flex flex-col space-y-[16px]">
+                                {rewardTransactions.map((tx) => {
+                                    const order = tx.order_details;
+                                    const status = order?.status || 'delivered';
+
+                                    return (
+                                        <div key={tx.id} className="grid grid-cols-[1fr_100px_80px] gap-x-6 items-start">
+                                            {/* Details Column */}
+                                            <div className="flex items-start">
+                                                <img src={getStatusIcon(status)} alt="Status" className="w-[26px] h-[26px]" />
+                                                <div className="ml-[7px] flex flex-col">
+                                                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}>
+                                                        {order ? (order.metadata?.isFx ? "FX Exchange" : (order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : "Cash Order")) : tx.description}
+                                                    </span>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
+                                                            {new Date(tx.created_at).toLocaleDateString('en-IN', {
+                                                                day: 'numeric', month: 'short'
+                                                            })}
+                                                        </span>
+                                                        <span className="text-[#FFD700] text-[11px] font-bold font-sans leading-none">
+                                                            +{tx.points_amount} P
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col justify-center">
-                                                <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-satoshi leading-tight`}>
-                                                    {tx.description}
-                                                </p>
-                                                <p className="text-[#7E7E7E] text-[13px] font-normal font-satoshi mt-0.5 leading-tight">
-                                                    {new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                </p>
+
+                                            {/* Price Column */}
+                                            <div className="text-right">
+                                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}>
+                                                    {order ? (
+                                                        order.metadata?.isFx
+                                                            ? `${currencySymbols[order.metadata.toCurrency as string] || ''}${Number(order.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                                                            : `₹${(order.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                                                    ) : '-'}
+                                                </span>
+                                            </div>
+
+                                            {/* Status Column */}
+                                            <div className="text-right">
+                                                <span
+                                                    className="text-[13px] font-normal font-sans capitalize"
+                                                    style={{ color: getStatusInfo(status).color }}
+                                                >
+                                                    {getStatusInfo(status).text}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className={`text-[15px] font-bold font-satoshi ${tx.transaction_type === 'credit' ? 'text-[#FFD700]' : 'text-red-500'}`}>
-                                                {tx.transaction_type === 'credit' ? '+' : '-'}{Math.abs(tx.points_amount || tx.amount || 0)} P
-                                            </p>
-                                            {tx.transaction_type === 'credit' && (
-                                                <p className="text-[10px] text-[#7E7E7E] mt-0.5">
-                                                    Exp: {new Date(tx.expires_at).toLocaleDateString()}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     ) : (

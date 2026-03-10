@@ -55,6 +55,25 @@ Deno.serve(async (req) => {
       throw new Error(orderResponse.error || "Order creation failed in database.");
     }
 
+    const orderId = orderResponse?.order_id || orderResponse?.id;
+
+    // 2. If reward points are used, redeem them
+    const rewardPointsUsed = body.reward_points || 0;
+    if (rewardPointsUsed >= 500 && orderId) {
+      const { error: redemptionError } = await supabase.rpc('redeem_reward_points', {
+        p_user_id: effectiveUserId,
+        p_points_amount: Math.floor(rewardPointsUsed),
+        p_reference_id: orderId,
+        p_description: `Redeemed for ${order_type === 'FX_EXCHANGE' ? 'FX' : 'Cash'} Order discount`
+      });
+
+      if (redemptionError) {
+        console.error("Redemption Error:", redemptionError);
+        // Note: We don't fail the whole order if redemption fails, 
+        // but in a production app you might want to rollback or alert.
+      }
+    }
+
     return new Response(JSON.stringify({ success: true, order: orderResponse }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

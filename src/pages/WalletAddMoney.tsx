@@ -21,8 +21,8 @@ const WalletAddMoney = () => {
   const { theme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { walletLimit, refreshBalance, fetchProfileData, refreshTransactions, profile, isRenewalPending } = useUser();
-  const balance = location.state?.balance || "0.00";
+  const { walletLimit, walletBalance, walletTier, refreshBalance, fetchProfileData, refreshTransactions, profile, isRenewalPending } = useUser();
+  const currentBalance = walletBalance || 0;
   const fromWallet = location.state?.from === 'wallet';
   const [amount, setAmount] = useState<string>("0.00");
   const [isLoading, setIsLoading] = useState(false);
@@ -60,27 +60,43 @@ const WalletAddMoney = () => {
   };
 
   const handlePillClick = (val: string) => {
+    if (isExceedingLimit) return;
     setAmount(val);
   };
 
-  const KeypadButton = ({ label, onClick, icon }: { label?: string; onClick?: () => void; icon?: React.ReactNode }) => (
+  const currentAmount = parseFloat(amount) || 0;
+  const isExceedingLimit = (currentAmount + currentBalance) > walletLimit || (currentBalance + 500) > walletLimit;
+
+  const getNextTier = (currentTier: string) => {
+    const tiers = ['Starter', 'Pro', 'Elite', 'Supreme'];
+    const index = tiers.indexOf(currentTier);
+    if (index >= 0 && index < tiers.length - 1) {
+      return tiers[index + 1];
+    }
+    return null;
+  };
+
+  const nextTier = getNextTier(walletTier);
+
+  const KeypadButton = ({ label, onClick, icon, disabled }: { label?: string; onClick?: () => void; icon?: React.ReactNode; disabled?: boolean }) => (
     <button
-      onClick={onClick}
-      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group bg-black text-white shadow-sm`}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group bg-black text-white shadow-sm ${disabled ? 'opacity-20 cursor-not-allowed active:bg-black active:text-white' : ''}`}
     >
       {icon ? (
-        <div className="group-active:brightness-200">
+        <div className={disabled ? "" : "group-active:brightness-200"}>
           {React.isValidElement(icon) ? (
             React.cloneElement(icon as React.ReactElement, {
-              style: { filter: 'brightness(0) saturate(100%) invert(1)' },
-              className: `${(icon as React.ReactElement).props.className || ''} group-active:filter-none`
+              style: { filter: disabled ? 'none' : 'brightness(0) saturate(100%) invert(1)' },
+              className: `${(icon as React.ReactElement).props.className || ''} ${disabled ? '' : 'group-active:filter-none'}`
             })
           ) : (
             icon
           )}
         </div>
       ) : (
-        <span className="font-bold font-sans text-[32px] group-active:text-white text-white">{label}</span>
+        <span className={`font-bold font-sans text-[32px] ${disabled ? 'text-white/20' : 'group-active:text-white text-white'}`}>{label}</span>
       )}
     </button>
   );
@@ -134,7 +150,7 @@ const WalletAddMoney = () => {
 
         {/* Balance Text */}
         <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px] mb-[17px]`}>
-          Available Balance: ₹ {balance} • Wallet Capacity: ₹ {walletLimit.toLocaleString('en-IN')}
+          Available Balance: ₹ {currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} • Wallet Capacity: ₹ {walletLimit.toLocaleString('en-IN')}
         </p>
 
         {parseFloat(amount) > 0 && Math.floor(parseFloat(amount)) < 500 && (
@@ -187,11 +203,13 @@ const WalletAddMoney = () => {
               border: isDarkMode ? "none" : "1px solid #E9EAEB",
             }}
           >
-            <p className={`text-[14px] font-medium font-sans mb-[6px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
+            <p className={`text-[14px] font-medium font-sans mb-[6px] leading-none ${isExceedingLimit ? 'text-[#FF3B30]' : (isDarkMode ? 'text-white' : 'text-black')}`}>
               Note:
             </p>
-            <p className={`text-[14px] font-normal font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
-              Minimum top-up is ₹500. UPI payments are always free.
+            <p className={`text-[14px] font-normal font-sans leading-none ${isExceedingLimit ? 'text-[#FF3B30]' : (isDarkMode ? 'text-white' : 'text-black')}`}>
+              {isExceedingLimit
+                ? "Adding this amount exceeds your maximum wallet balance, please upgrade your wallet or use the current balance."
+                : "Minimum top-up is ₹500. UPI payments are always free."}
             </p>
           </div>
           {isRenewalPending && (
@@ -231,28 +249,29 @@ const WalletAddMoney = () => {
             <div className="flex flex-col gap-[10px] items-center relative z-10">
               {/* Row 1 */}
               <div className="flex gap-[10px]">
-                <KeypadButton label="1" onClick={() => handleKeyPress("1")} />
-                <KeypadButton label="2" onClick={() => handleKeyPress("2")} />
-                <KeypadButton label="3" onClick={() => handleKeyPress("3")} />
+                <KeypadButton label="1" onClick={() => handleKeyPress("1")} disabled={isExceedingLimit} />
+                <KeypadButton label="2" onClick={() => handleKeyPress("2")} disabled={isExceedingLimit} />
+                <KeypadButton label="3" onClick={() => handleKeyPress("3")} disabled={isExceedingLimit} />
               </div>
               {/* Row 2 */}
               <div className="flex gap-[10px]">
-                <KeypadButton label="4" onClick={() => handleKeyPress("4")} />
-                <KeypadButton label="5" onClick={() => handleKeyPress("5")} />
-                <KeypadButton label="6" onClick={() => handleKeyPress("6")} />
+                <KeypadButton label="4" onClick={() => handleKeyPress("4")} disabled={isExceedingLimit} />
+                <KeypadButton label="5" onClick={() => handleKeyPress("5")} disabled={isExceedingLimit} />
+                <KeypadButton label="6" onClick={() => handleKeyPress("6")} disabled={isExceedingLimit} />
               </div>
               {/* Row 3 */}
               <div className="flex gap-[10px]">
-                <KeypadButton label="7" onClick={() => handleKeyPress("7")} />
-                <KeypadButton label="8" onClick={() => handleKeyPress("8")} />
-                <KeypadButton label="9" onClick={() => handleKeyPress("9")} />
+                <KeypadButton label="7" onClick={() => handleKeyPress("7")} disabled={isExceedingLimit} />
+                <KeypadButton label="8" onClick={() => handleKeyPress("8")} disabled={isExceedingLimit} />
+                <KeypadButton label="9" onClick={() => handleKeyPress("9")} disabled={isExceedingLimit} />
               </div>
               {/* Row 4 */}
               <div className="flex gap-[10px]">
-                <KeypadButton label="." onClick={() => handleKeyPress(".")} />
-                <KeypadButton label="0" onClick={() => handleKeyPress("0")} />
+                <KeypadButton label="." onClick={() => handleKeyPress(".")} disabled={isExceedingLimit} />
+                <KeypadButton label="0" onClick={() => handleKeyPress("0")} disabled={isExceedingLimit} />
                 <KeypadButton
                   onClick={handleBackspace}
+                  disabled={isExceedingLimit}
                   icon={<img src={backspaceIcon} alt="Backspace" className="w-[18px] h-[18px] object-contain" />}
                 />
               </div>
@@ -261,6 +280,10 @@ const WalletAddMoney = () => {
               <div className="w-full mt-[32px]">
                 <Button
                   onClick={async () => {
+                    if (isExceedingLimit && nextTier) {
+                      navigate('/subscriptions');
+                      return;
+                    }
                     const val = parseFloat(amount);
                     if (Math.floor(val) >= 500) {
                       try {
@@ -408,12 +431,12 @@ const WalletAddMoney = () => {
                     }
                   }}
                   disabled={isLoading || isRenewalPending}
-                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${Math.floor(parseFloat(amount)) >= 500 && !isLoading && !isRenewalPending
+                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${(isExceedingLimit && nextTier) || (Math.floor(parseFloat(amount)) >= 500 && !isLoading && !isRenewalPending)
                     ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
                     : "bg-[#5260FE]/50 cursor-not-allowed"
                     }`}
                 >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Add Money"}
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isExceedingLimit && nextTier ? `Upgrade to ${nextTier}` : "Add Money")}
                 </Button>
               </div>
             </div>

@@ -78,7 +78,9 @@ const WalletCreated = () => {
                             status: p.status,
                             created_at: p.created_at,
                             date: p.created_at,
-                            description: 'Wallet Withdrawal'
+                            description: 'Wallet Withdrawal',
+                            payout_method: p.payout_method,
+                            vpa: p.vpa
                         });
                     }
                 });
@@ -148,6 +150,21 @@ const WalletCreated = () => {
             }
         }
 
+        // Specific subtitle for withdrawals
+        if (tx.description?.toLowerCase().includes('withdrawal')) {
+            const method = tx.payout_method || tx.metadata?.payout_method;
+            const vpa = tx.vpa || tx.metadata?.vpa;
+
+            if (method === 'upi') {
+                return { title: "Withdrawn", subtitle: `Withdrawn to ${vpa || 'UPI'}` };
+            } else if (method === 'bank_transfer') {
+                return { title: "Withdrawn", subtitle: `Withdrawn to Bank` };
+            } else if (method === 'card') {
+                return { title: "Withdrawn", subtitle: `Withdrawn to Card` };
+            }
+            return { title: "Withdrawn", subtitle: "Withdrawn to Bank Account" };
+        }
+
         // Fallback to pattern matching
         const desc = tx.description.toLowerCase();
         if (tx.metadata?.isFx || desc.includes("fx exchange")) {
@@ -204,7 +221,9 @@ const WalletCreated = () => {
             };
             const price = priceMap[dbTier] || '0';
             const isDowngradePending = isRenewalPending || (profile as any)?.subscription_status === 'pending';
-            const showWarning = isDowngradePending || !!scheduledDowngrade;
+            const showWarning = isDowngradePending;
+            const hasScheduledDowngrade = !!scheduledDowngrade;
+            const transitionSuccess = (location.state as any)?.transitionSuccess;
 
             return (
                 <div className="mt-[16px]">
@@ -219,11 +238,13 @@ const WalletCreated = () => {
                             }}
                         />
                         <span className={`ml-[13px] text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            {isDowngradePending && scheduledDowngrade?.tier.toLowerCase() !== 'starter'
+                            {isDowngradePending
                                 ? `Downgrade Payment Pending`
-                                : (!!scheduledDowngrade
-                                    ? `Downgrade Scheduled to ${scheduledDowngrade.tier}`
-                                    : `Your wallet is active on ${dbTier} tier`)}
+                                : (transitionSuccess
+                                    ? `Your wallet has been ${transitionSuccess.type}d to ${transitionSuccess.tier} tier`
+                                    : (hasScheduledDowngrade
+                                        ? `Downgrade Scheduled to ${scheduledDowngrade.tier}`
+                                        : `Your wallet is active on ${dbTier} tier`))}
                         </span>
                     </div>
                     <p className={`mt-[10px] text-[12px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-black/80'}`}>
@@ -263,10 +284,27 @@ const WalletCreated = () => {
                 title = `Funds Returned + ₹${formattedAmount}`;
                 description = `₹${formattedAmount} was returned to your wallet for a cancelled/failed order.`;
             } else if (type === 'debit') {
+                const isWithdrawal = txDescription.includes('withdrawal');
                 statusColor = "#D33313";
                 strokeColor = "rgba(211, 51, 19, 0.17)";
-                title = `Amount debited - ₹${formattedAmount}`;
-                description = `₹${formattedAmount} was debited from your wallet after successful delivery confirmation.`;
+
+                if (isWithdrawal) {
+                    const method = latestTx.payout_method || latestTx.metadata?.payout_method;
+                    let mode = "Bank Account";
+                    if (method === 'upi') {
+                        mode = latestTx.vpa || latestTx.metadata?.vpa || "UPI";
+                    } else if (method === 'card') {
+                        mode = "Card";
+                    } else if (method === 'bank_transfer') {
+                        mode = "Bank Account";
+                    }
+
+                    title = `Amount Withdrawn - ₹${formattedAmount}`;
+                    description = `₹${formattedAmount} withdrawn to ${mode}`;
+                } else {
+                    title = `Amount debited - ₹${formattedAmount}`;
+                    description = `₹${formattedAmount} was debited from your wallet after successful delivery confirmation.`;
+                }
             } else if (isTopUp || type === 'credit' || type === 'deposit') {
                 statusColor = "#5CFF00";
                 strokeColor = "rgba(92, 255, 0, 0.17)";
@@ -524,9 +562,9 @@ const WalletCreated = () => {
             {/* Footer CTA */}
             <div className="shrink-0 px-5 pb-[30px] pt-4 w-full bg-transparent flex flex-col gap-[12px]">
                 <button
-                    disabled={isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending'}
-                    onClick={() => !isRenewalPending && !scheduledDowngrade && navigate('/wallet-add-money')}
-                    className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${(isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE]'}`}
+                    disabled={isRenewalPending || (profile as any)?.subscription_status === 'pending'}
+                    onClick={() => !isRenewalPending && (profile as any)?.subscription_status !== 'pending' && navigate('/wallet-add-money')}
+                    className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${(isRenewalPending || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE]'}`}
                 >
                     Add Money
                 </button>
@@ -534,9 +572,9 @@ const WalletCreated = () => {
                 {walletBalance > 0 && (
                     <button
                         onClick={() => navigate('/wallet-withdraw')}
-                        disabled={isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending'}
-                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${(isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : (isDarkMode ? '' : 'bg-black')}`}
-                        style={(isRenewalPending || !!scheduledDowngrade || (profile as any)?.subscription_status === 'pending') ? {} : {
+                        disabled={isRenewalPending || (profile as any)?.subscription_status === 'pending'}
+                        className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${(isRenewalPending || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : (isDarkMode ? '' : 'bg-black')}`}
+                        style={(isRenewalPending || (profile as any)?.subscription_status === 'pending') ? {} : {
                             backgroundImage: isDarkMode ? `url(${addPaymentCta})` : "none",
                             backgroundSize: "cover",
                             backgroundPosition: "center",

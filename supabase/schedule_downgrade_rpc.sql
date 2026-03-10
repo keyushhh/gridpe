@@ -31,8 +31,7 @@ BEGIN
     UPDATE profiles
     SET 
         scheduled_tier_id = v_tier_id,
-        tier_change_date = p_tier_change_date,
-        payment_status = 'pending'
+        tier_change_date = p_tier_change_date
     WHERE id = p_user_id;
 
     -- Format return JSON 
