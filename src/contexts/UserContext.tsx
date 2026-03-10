@@ -15,6 +15,7 @@ interface UserProfile {
   mpin_hash?: string | null;
   mpin_created_at?: string | null;
   reward_points?: number;
+  referral_code?: string;
   subscription_status?: string;
 }
 

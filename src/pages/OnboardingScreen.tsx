@@ -57,6 +57,15 @@ const OnboardingScreen = () => {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [generalError, setGeneralError] = useState("");
 
+  // Capture Referral Code
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('referralCode', ref);
+    }
+  }, []);
+
   // Resend timer countdown
   useEffect(() => {
     if (resendTimer > 0) {
@@ -287,6 +296,20 @@ const OnboardingScreen = () => {
         setIsAuthChecking(false);
         // If we fail to create profile on login, better show error or stay on login
         return;
+      }
+
+      // Process pending referral if it exists
+      const storedRef = localStorage.getItem('referralCode');
+      if (storedRef) {
+        try {
+          await supabase.rpc('process_new_referral', {
+            p_referred_id: user.id,
+            p_referral_code: storedRef
+          });
+          localStorage.removeItem('referralCode');
+        } catch (e) {
+          console.error('Failed to process referral code', e);
+        }
       }
 
       profileData = newProfile;

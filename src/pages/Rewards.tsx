@@ -54,7 +54,7 @@ const Rewards = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [showHowItWorks, setShowHowItWorks] = useState(false);
 
-    const referralLink = "http://sdp.apl/?ref=" + Math.random().toString(36).substring(2, 7).toUpperCase();
+    const referralLink = "http://sdp.apl/?ref=" + (profile?.referral_code || '');
 
     useEffect(() => {
         const loadRewards = async () => {
