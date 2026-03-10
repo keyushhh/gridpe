@@ -46,7 +46,7 @@ const fetchAddressesForOrders = async (orders: any[]) => {
 // Internal helper to normalize orders from different tables
 const normalizeOrder = (o: any, type: 'CASH_ORDER' | 'FX_EXCHANGE'): Order => ({
   ...o,
-  amount: type === 'CASH_ORDER' ? o.item_value : o.amount_total,
+  amount: type === 'CASH_ORDER' ? (o.total_amount || o.item_value) : (o.total_amount || o.amount_total),
   order_type: type,
   created_at: o.created_at || o.updated_at,
   // Ensure addresses field is handled
@@ -161,23 +161,16 @@ export const fetchPastOrders = async (userId: string) => {
 };
 
 export const cancelOrder = async (orderId: string) => {
-  const order = await getOrderById(orderId);
-  if (!order) throw new Error("Order not found");
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const table = order.order_type === 'FX_EXCHANGE' ? 'fx_orders' : 'cash_orders';
-  const { error } = await supabase
-    .from(table)
-    .update({
-      status: 'cancelled',
-      metadata: {
-        ...(order.metadata || {}),
-        cancelled_at: new Date().toISOString(),
-        cancelled_by: 'user'
-      }
-    })
-    .eq('id', orderId);
+  const { data, error } = await supabase.rpc('cancel_order', {
+    p_order_id: orderId,
+    p_user_id: session.user.id
+  });
 
   if (error) throw error;
+  if (data?.success === false) throw new Error(data.error || 'Failed to cancel order');
 };
 
 export const deliverOrder = async (orderId: string, userId: string, isFx: boolean = false) => {

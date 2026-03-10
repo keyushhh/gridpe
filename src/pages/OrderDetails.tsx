@@ -23,12 +23,14 @@ import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
 import { Order, dev_updateOrderStatus, getOrderById, cancelOrder as lib_cancelOrder } from "@/lib/orders";
 import { useTheme } from "next-themes";
+import { useUser } from "@/contexts/UserContext";
 
 const OrderDetails = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { orderId } = useParams<{ orderId: string }>();
     const { theme } = useTheme();
+    const { refreshBalance } = useUser();
     const isDarkMode = theme === 'dark';
 
     const [order, setOrder] = useState<Order | null>(null);
@@ -370,6 +372,7 @@ const OrderDetails = () => {
                         onClick={async () => {
                             try {
                                 await dev_updateOrderStatus(order.id, 'success', order.user_id);
+                                await refreshBalance(order.user_id);
                             } catch (e) {
                                 console.error("Dev update failed (likely RLS), proceeding with local mock", e);
                             }

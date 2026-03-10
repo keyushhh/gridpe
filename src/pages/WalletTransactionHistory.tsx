@@ -341,7 +341,8 @@ const WalletTransactionHistory = () => {
 
     const getTransactionDisplay = (tx: WalletTransaction) => {
         const txType = tx.type || tx.transaction_type;
-        let title = txType === 'credit' ? "Amount Credited" : txType === 'held' ? "Amount Held" : "Amount Debited";
+        const status = tx.status?.toLowerCase();
+        let title = status === 'held' ? "Amount Held" : (txType === 'credit' ? "Amount Credited" : "Amount Debited");
         let subtitle = tx.description;
 
         // Try mapping from metadata first (for newer transactions)
@@ -364,11 +365,10 @@ const WalletTransactionHistory = () => {
         // Fallback to pattern matching (for older or non-topup transactions)
         const desc = tx.description.toLowerCase();
         if (tx.metadata?.isFx) {
-            const txType = tx.type || tx.transaction_type;
-            title = txType === 'credit' ? "Amount Credited" : txType === 'held' ? "Amount Held" : "Amount Debited";
+            title = status === 'held' ? "Amount Held" : (txType === 'credit' ? "Amount Credited" : "Amount Debited");
             subtitle = "FX Exchange";
         } else if (desc.includes("cash order")) {
-            title = "Amount Debited";
+            title = status === 'held' ? "Amount Held" : "Amount Debited";
             subtitle = tx.metadata?.item_value ? `Ordered ₹${tx.metadata.item_value} Cash` : "Cash Order";
         } else if (desc.includes("withdrawal")) {
             title = "Withdrawal";
@@ -394,6 +394,12 @@ const WalletTransactionHistory = () => {
         } else if (tx.type === 'credit' || tx.transaction_type === 'credit') {
             const cleanDesc = tx.description.replace(/^Added via\s+/i, '');
             subtitle = `Added via ${cleanDesc}`;
+        }
+
+        // User friendly description overrides
+        if (subtitle && (subtitle.includes('Placement') || subtitle.includes('Order #'))) {
+            // Trim UUID if present
+            subtitle = subtitle.split('#')[0].trim();
         }
 
         return { title, subtitle };

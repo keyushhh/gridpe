@@ -124,6 +124,70 @@ const WalletCreated = () => {
     const dbLimit = wallet_tiers?.max_wallet_balance || walletLimit;
     const dbDailyLimit = wallet_tiers?.daily_withdraw_limit ?? dailyLimit;
 
+    const getTransactionDisplay = (tx: any) => {
+        const txType = tx.transaction_type || tx.type;
+        const status = tx.status?.toLowerCase();
+        let title = status === 'held' ? "Amount Held" : (txType === 'credit' ? "Amount Credited" : "Amount Debited");
+        let subtitle = tx.description;
+
+        const methodId = tx.metadata?.paymentMethodId as string | undefined;
+
+        // Try mapping from metadata first
+        if (methodId && (txType === 'credit')) {
+            if (['cred', 'gpay', 'phonepe', 'upi-id'].includes(methodId)) {
+                return { title, subtitle: "Added via UPI" };
+            }
+            if (methodId === 'hdfc-card') {
+                return { title, subtitle: "Added via Cards" };
+            }
+            if (methodId === 'netbanking') {
+                return { title, subtitle: "Added via Netbanking" };
+            }
+            if (methodId === 'amazon') {
+                return { title, subtitle: "Added via Amazon Wallet" };
+            }
+        }
+
+        // Fallback to pattern matching
+        const desc = tx.description.toLowerCase();
+        if (tx.metadata?.isFx || desc.includes("fx exchange")) {
+            title = status === 'held' ? "Amount Held" : (txType === 'credit' ? "Amount Credited" : "Amount Debited");
+            subtitle = "FX Exchange";
+        } else if (desc.includes("cash order") || desc.includes("cash delivery")) {
+            title = status === 'held' ? "Amount Held" : "Amount Debited";
+            subtitle = tx.metadata?.item_value ? `Ordered ₹${tx.metadata.item_value} Cash` : "Cash Order";
+        } else if (desc.includes("withdrawal")) {
+            title = "Withdrawal";
+            const methodNames: Record<string, string> = {
+                'cred': 'CRED UPI',
+                'gpay': 'Google Pay UPI',
+                'phonepe': 'PhonePe UPI',
+                'upi-id': 'UPI ID',
+                'hdfc-card': 'HDFC Card',
+                'amazon': 'Amazon Pay Wallet',
+                'netbanking': 'HDFC Netbanking'
+            };
+            const methodLabel = methodId ? (methodNames[methodId as string] || "Bank") : "Bank Transfer";
+            subtitle = `Withdrawn to ${methodLabel}`;
+        } else if (desc.includes("top-up") || desc.includes("top up")) {
+            subtitle = "Wallet Top-up";
+            if (desc.includes("upi")) subtitle = "Added via UPI";
+            else if (desc.includes("card")) subtitle = "Added via Cards";
+            else if (desc.includes("netbanking")) subtitle = "Added via Netbanking";
+        } else if (txType === 'tier_adjustment') {
+            title = "Tier Adjustment";
+            subtitle = "Balance adjusted for tier limit";
+        }
+
+        // User friendly description overrides
+        if (subtitle && (subtitle.includes('Placement') || subtitle.includes('Order #'))) {
+            // Trim UUID if present
+            subtitle = subtitle.split('#')[0].trim();
+        }
+
+        return { title, subtitle };
+    };
+
     const walletBg = useAsset("wallet-bg");
 
     // Get the latest transaction for the card status display
@@ -418,22 +482,27 @@ const WalletCreated = () => {
                                     const isMoneyIn = type === 'credit' || type === 'deposit' || desc.includes('top-up');
                                     const icon = isMoneyIn ? walletCreditedIcon : walletDebitedIcon;
 
+                                    const { title, subtitle } = getTransactionDisplay(tx);
+
                                     return (
-                                        <div key={tx.id} className="flex justify-between items-center">
-                                            <div className="flex items-center gap-[12px]">
-                                                <img src={icon} alt="" className="w-[26px] h-[26px]" />
-                                                <div className="flex flex-col">
-                                                    <span className={`text-[13px] font-normal font-sans leading-none mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                                        {tx.description}
+                                        <div key={tx.id} className="flex justify-between items-center gap-3">
+                                            <div className="flex items-center gap-[12px] flex-1 min-w-0">
+                                                <img src={icon} alt="" className="w-[26px] h-[26px] shrink-0" />
+                                                <div className="flex flex-col min-w-0 overflow-hidden">
+                                                    <span className={`text-[13px] font-medium font-sans leading-none mb-[2px] truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                                        {title}
                                                     </span>
-                                                    <span className={`text-[12px] font-normal font-sans leading-none ${isDarkMode ? 'text-[#7E7E7E]' : 'text-[#7E7E7E]'}`}>
+                                                    <span className={`text-[11px] font-normal font-sans leading-none mb-[4px] truncate ${isDarkMode ? 'text-[#7E7E7E]' : 'text-[#7E7E7E]'}`}>
+                                                        {subtitle}
+                                                    </span>
+                                                    <span className={`text-[11px] font-normal font-sans leading-none ${isDarkMode ? 'text-[#7E7E7E]/60' : 'text-[#7E7E7E]/60'}`}>
                                                         {new Date(tx.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} | {new Date(tx.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <span className={`text-[13px] font-normal font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                                    {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            <div className="text-right shrink-0">
+                                                <span className={`text-[13px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                                    {type === 'credit' ? '+' : '-'}₹{Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         </div>

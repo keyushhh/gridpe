@@ -25,7 +25,7 @@ import infoIcon from "@/assets/delivery-tip-info.svg";
 import closeIcon from "@/assets/cross-icon.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
-import { Order, dev_updateOrderStatus } from "@/lib/orders";
+import { Order, dev_updateOrderStatus, getOrderById, cancelOrder } from "@/lib/orders";
 import { useUser } from "@/contexts/UserContext";
 
 const currencySymbols: Record<string, string> = {
@@ -78,7 +78,7 @@ const FxSuccess = () => {
 
     useEffect(() => {
         const fetchOrder = async () => {
-            if (location.state?.order) {
+            if (location.state?.order && location.state.order.status) {
                 setOrder(location.state.order);
                 setLoading(false);
                 return;
@@ -86,14 +86,9 @@ const FxSuccess = () => {
 
             if (orderId) {
                 try {
-                    const { data, error } = await supabase
-                        .from('fx_orders')
-                        .select('*, addresses(*)')
-                        .eq('id', orderId)
-                        .single();
-
+                    const data = await getOrderById(orderId);
                     if (data) {
-                        setOrder(data as Order);
+                        setOrder(data);
                     }
                 } catch (e) {
                     console.error("Failed to fetch order", e);
@@ -119,7 +114,7 @@ const FxSuccess = () => {
                             filter: `id=eq.${orderId}`
                         },
                         (payload) => {
-                            setOrder(prev => prev ? { ...prev, ...payload.new } : (payload.new as Order));
+                            setOrder(prev => prev ? { ...prev, ...payload.new, amount: payload.new.amount_total } : null);
                         }
                     )
                     .subscribe();
@@ -174,19 +169,12 @@ const FxSuccess = () => {
         if (!order) return;
         try {
             const reasonText = cancelReason === 5 ? otherReason : cancelReasons[cancelReason || 0];
-            const metadata = {
-                ...(order.metadata || {}),
-                cancelled_by: 'user',
-                cancel_reason_type: reasonText,
-                cancelled_at: new Date().toISOString()
-            };
-            const { error } = await supabase
-                .from('fx_orders')
-                .update({ status: 'cancelled', metadata })
-                .eq('id', order.id);
+            await cancelOrder(order.id);
 
-            if (error) throw error;
-            setOrder({ ...order, status: 'cancelled', metadata });
+            // Re-fetch or optimistically update
+            const updatedOrder = await getOrderById(order.id);
+            if (updatedOrder) setOrder(updatedOrder);
+
             setShowCancelPopup(false);
         } catch (e) {
             console.error("Failed to cancel order", e);
@@ -228,8 +216,13 @@ const FxSuccess = () => {
         },
     };
 
-    if (loading || !order) {
-        return <div className={`h-screen w-full flex items-center justify-center font-sans ${isDarkMode ? "bg-[#0a0a12] text-white" : "bg-[#F5F5F7] text-black"}`}>Loading...</div>;
+    if (loading || !order || !order.status) {
+        return <div className={`h-screen w-full flex items-center justify-center font-sans ${isDarkMode ? "bg-[#0a0a12] text-white" : "bg-[#FFFFFF] text-black"}`}>
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm font-medium">Securing your order...</p>
+            </div>
+        </div>;
     }
 
     const getStatusConfig = (currentOrder: Order) => {
@@ -238,7 +231,7 @@ const FxSuccess = () => {
             mainIcon: isDarkMode ? checkIcon : checkIconLight,
             headerTitle: "Order Successful",
             statusTitle: "We’ll notify you once your FX cash is ready for delivery.",
-            statusAmount: isFx ? (location.state?.receiveAmount || currentOrder.metadata?.receiveAmount || currentOrder.amount) : currentOrder.amount,
+            statusAmount: isFx ? (location.state?.receiveAmount || currentOrder.metadata?.receive_amount || currentOrder.metadata?.receiveAmount || currentOrder.amount) : currentOrder.amount,
             showMap: true,
             deliveryText: "We’re assigning a delivery\npartner soon!",
             deliverySubText: "Assigning a delivery partner in the next 2 minutes.",
@@ -309,7 +302,7 @@ const FxSuccess = () => {
                 <div
                     className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0"
                     style={{
-                        backgroundColor: order?.status === 'success' || order?.status === 'delivered' || order?.status === 'processing' ? "#0D992F" : "#FF3B30",
+                        backgroundColor: ['success', 'delivered', 'processing', 'pending', 'out_for_delivery', 'arrived', 'held'].includes(order?.status || '') ? "#0D992F" : "#FF3B30",
                     }}
                 />
             )}
@@ -475,7 +468,7 @@ const FxSuccess = () => {
                     {isFx && (
                         <div className="flex justify-between items-center mb-[8px]">
                             <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Final Amount (Cash)</span>
-                            <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{currencySymbol}{(order.metadata?.receiveAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{currencySymbol}{(order.metadata?.receive_amount || order.metadata?.receiveAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     )}
 

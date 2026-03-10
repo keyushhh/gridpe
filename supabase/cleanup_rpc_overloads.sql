@@ -7,6 +7,7 @@ DROP FUNCTION IF EXISTS public.create_cash_order(UUID, UUID, NUMERIC, TEXT, NUME
 DROP FUNCTION IF EXISTS public.create_fx_order(UUID, UUID, NUMERIC, TEXT, JSONB);
 DROP FUNCTION IF EXISTS public.create_fx_order(UUID, UUID, NUMERIC, TEXT, NUMERIC, NUMERIC, NUMERIC, JSONB);
 DROP FUNCTION IF EXISTS public.create_fx_order(UUID, UUID, NUMERIC, TEXT, NUMERIC, NUMERIC, NUMERIC, NUMERIC, JSONB);
+DROP FUNCTION IF EXISTS public.create_fx_order(UUID, UUID, NUMERIC, TEXT, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, JSONB);
 
 -- FIX: Drop the problematic FK constraint on wallet_transactions
 ALTER TABLE IF EXISTS public.wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_order_id_fkey;
@@ -29,6 +30,9 @@ CREATE OR REPLACE FUNCTION create_cash_order(
 DECLARE
     v_order_id UUID;
 BEGIN
+    -- [DEFERRED DEDUCTION] Balance is no longer deducted here.
+    -- It will be deducted in complete_cash_order.
+
     INSERT INTO public.cash_orders (
         user_id, address_id, item_value, delivery_fee, platform_fee, gst, delivery_tip, total_amount, status, payment_mode, metadata
     ) VALUES (
@@ -41,7 +45,7 @@ BEGIN
         user_id, type, amount, status, description, order_id
     ) VALUES (
         p_user_id, 'debit', COALESCE(NULLIF(p_total_amount, 0), p_amount + p_delivery_fee + p_platform_fee + p_gst + p_delivery_tip), 
-        'held', 'Hold for Cash Order #' || v_order_id, v_order_id
+        'held', 'Cash Order Placement', v_order_id
     );
 
     RETURN jsonb_build_object('success', true, 'order_id', v_order_id);
@@ -53,28 +57,36 @@ END; $$;
 CREATE OR REPLACE FUNCTION create_fx_order(
     p_user_id UUID,
     p_address_id UUID,
-    p_amount NUMERIC, -- amount_total
+    p_amount NUMERIC, -- amount to receive (INR)
     p_order_type TEXT,
     p_delivery_fee NUMERIC DEFAULT 0,
     p_platform_fee NUMERIC DEFAULT 0,
     p_gst NUMERIC DEFAULT 0,
     p_delivery_tip NUMERIC DEFAULT 0,
+    p_total_amount NUMERIC DEFAULT 0, -- amount to pay/hold (INR)
     p_meta_data JSONB DEFAULT '{}'
 ) RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
     v_order_id UUID;
+    v_hold_amount NUMERIC;
 BEGIN
+    -- Determine hold amount
+    v_hold_amount := COALESCE(NULLIF(p_total_amount, 0), p_amount);
+    
+    -- [DEFERRED DEDUCTION] Balance is no longer deducted here.
+    -- It will be deducted in complete_fx_order.
+
     INSERT INTO public.fx_orders (
-        user_id, address_id, amount_total, delivery_fee, platform_fee, gst, delivery_tip, status, payment_mode, metadata
+        user_id, address_id, amount_total, delivery_fee, platform_fee, gst, delivery_tip, total_amount, status, payment_mode, metadata
     ) VALUES (
         p_user_id, p_address_id, p_amount, p_delivery_fee, p_platform_fee, p_gst, p_delivery_tip,
-        'processing', 'wallet', p_meta_data
+        v_hold_amount, 'processing', 'wallet', p_meta_data
     ) RETURNING id INTO v_order_id;
 
     INSERT INTO public.wallet_transactions (
         user_id, type, amount, status, description, order_id
     ) VALUES (
-        p_user_id, 'debit', p_amount, 'held', 'Hold for FX Order #' || v_order_id, v_order_id
+        p_user_id, 'debit', v_hold_amount, 'held', 'FX Exchange Placement', v_order_id
     );
 
     RETURN jsonb_build_object('success', true, 'order_id', v_order_id);

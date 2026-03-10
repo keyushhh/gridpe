@@ -105,13 +105,52 @@ const OrderCashSummary = () => {
     const [tipAmount, setTipAmount] = useState(0);
     const [customTipValue, setCustomTipValue] = useState("");
 
+    // Dynamic Quote State
+    const [quoteLoading, setQuoteLoading] = useState(true);
+    const [quoteData, setQuoteData] = useState<{
+        delivery_fee: number;
+        platform_fee: number;
+        gst: number;
+        gst_rate: number;
+        total_payable: number;
+    } | null>(null);
+
     // Calculations
     const parsedAmount = parseFloat((amount || "0").toString().replace(/,/g, "")) || 0;
     const parsedRewardPoints = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
-    const deliveryFee = 30;
-    const gst = parsedAmount * 0.18;
-    const platformFee = 6.60;
-    const totalAmount = parsedAmount - parsedRewardPoints + deliveryFee + gst + platformFee + tipAmount;
+
+    // Fetch Quote
+    React.useEffect(() => {
+        const fetchQuote = async () => {
+            setQuoteLoading(true);
+            try {
+                const { data, error } = await supabase.rpc('get_order_quote', {
+                    p_amount: parsedAmount,
+                    p_order_type: 'cash',
+                    p_distance_km: 1.2 // Hardcoded for now, can be dynamic later
+                });
+
+                if (error) throw error;
+                setQuoteData(data);
+            } catch (err) {
+                console.error("Failed to fetch order quote", err);
+                showToaster("Failed to calculate order fees. Please try again.", 'error');
+            } finally {
+                setQuoteLoading(false);
+            }
+        };
+
+        if (parsedAmount > 0) {
+            fetchQuote();
+        }
+    }, [parsedAmount]);
+
+    const deliveryFee = quoteData?.delivery_fee || 0;
+    const platformFee = quoteData?.platform_fee || 0;
+    const gst = quoteData?.gst || 0;
+    const baseTotal = quoteData?.total_payable || (parsedAmount + deliveryFee + platformFee + gst);
+
+    const totalAmount = baseTotal - parsedRewardPoints + tipAmount;
 
     const handleTipSelect = (option: string) => {
         setSelectedTipOption(option);
@@ -240,12 +279,15 @@ const OrderCashSummary = () => {
                         platform_fee: platformFee,
                         gst: gst,
                         delivery_tip: tipAmount,
+                        reward_points: parsedRewardPoints,
                         meta_data: {
                             item_value: parsedAmount,
                             delivery_fee: deliveryFee,
                             delivery_tip: tipAmount,
                             gst: gst,
                             platform_fee: platformFee,
+                            reward_points: parsedRewardPoints,
+                            quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK'
                         }
                     }
                 });
@@ -713,7 +755,7 @@ const OrderCashSummary = () => {
                             <div className="flex items-center gap-2">
                                 <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>To Pay</span>
                                 <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    +₹{amount}
+                                    {quoteLoading ? "Calculating..." : `+₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
                                 </span>
                             </div>
                             <img
@@ -772,7 +814,9 @@ const OrderCashSummary = () => {
                                     )}
                                 </div>
                                 <div className="flex justify-between items-center mb-[2px]">
-                                    <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>GST (18%)</span>
+                                    <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                        GST ({((quoteData?.gst_rate || 0.18) * 100).toFixed(0)}%)
+                                    </span>
                                     <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{gst.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between items-center mb-[8px]">
@@ -798,31 +842,24 @@ const OrderCashSummary = () => {
             />
 
             <div
-                className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom flex flex-col"
+                className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom flex flex-col pt-[26px] px-[20px] pb-[54px] shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
                 style={{
                     height: "255px",
-                    backgroundColor: isDarkMode ? "rgba(23, 23, 23, 0.31)" : "#FFFFFF",
                     borderTopLeftRadius: "32px",
                     borderTopRightRadius: "32px",
-                    paddingTop: "26px",
-                    paddingLeft: "20px",
-                    paddingRight: "20px",
-                    paddingBottom: "54px",
-                    backdropFilter: isDarkMode ? "blur(24px)" : "blur(25px)",
-                    WebkitBackdropFilter: isDarkMode ? "blur(24px)" : "blur(25px)",
-                    boxShadow: "none",
-                    borderTop: isDarkMode ? "none" : "1px solid #E9EAEB",
-                    borderLeft: isDarkMode ? "none" : "1px solid #E9EAEB",
-                    borderRight: isDarkMode ? "none" : "1px solid #E9EAEB",
                 }}
             >
-                <p className={`text-[18px] font-bold font-sans mb-[16px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                    Amount will be held from wallet
+                <p className={`text-[18px] font-bold font-sans mb-[16px] ${isDarkMode ? "text-white" : "text-black"}`}>
+                    {quoteLoading ? "Calculating fees..." : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} will be held from wallet`}
                 </p>
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}>
-                    {totalAmount > walletBalance ? "Insufficient funds in wallet" : "You won’t be charged unless the delivery is completed."}
+                    {quoteLoading ? "Syncing pricing..." : totalAmount > walletBalance ? "Insufficient funds in wallet" : "You won’t be charged unless the delivery is completed."}
                 </p>
-                <SlideToPay onComplete={handlePay} disabled={!savedAddress || totalAmount > walletBalance} />
+                <SlideToPay
+                    onComplete={handlePay}
+                    disabled={!savedAddress || totalAmount > walletBalance || quoteLoading}
+                    label={quoteLoading ? "Calculating..." : totalAmount > walletBalance ? "Low Balance" : "Slide to Pay"}
+                />
             </div>
 
             {/* Delivery Tip Popup */}

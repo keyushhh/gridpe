@@ -56,7 +56,7 @@ const FxExchangeSummary = () => {
     const { showToaster } = useCustomToaster();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
-    const { walletBalance } = useUser();
+    const { walletBalance, rewardPoints: availableRewardPoints } = useUser();
 
     // Accept full FX state
     const {
@@ -125,10 +125,59 @@ const FxExchangeSummary = () => {
     const [tipAmount, setTipAmount] = useState(0);
     const [customTipValue, setCustomTipValue] = useState("");
 
-    // Total amount to be held from wallet is the source amount in INR (if applicable) 
-    // or just the conversion amount. Usually FX checkout holds the source currency equivalent.
-    // For this flow, we'll use 'amount' as the value to be held if from local wallet.
-    const totalAmount = amount;
+    // Dynamic Quote State
+    const [quoteLoading, setQuoteLoading] = useState(true);
+    const [quoteData, setQuoteData] = useState<{
+        delivery_fee: number;
+        platform_fee: number;
+        gst: number;
+        gst_rate: number;
+        total_payable: number;
+    } | null>(null);
+
+    // Total amount to be held from wallet is the INR converted value (e.g., ₹923)
+    // and not the source currency amount (e.g., $10).
+    const parsedRewardPoints = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
+    const serviceAmount = (markupAmount || 0) + (flatFee || 0);
+
+    // Fetch Quote
+    React.useEffect(() => {
+        const fetchQuote = async () => {
+            setQuoteLoading(true);
+            try {
+                // For FX, p_amount is finalAmount (receive) and p_service_amount is (markup + flatFee)
+                const { data, error } = await supabase.rpc('get_order_quote', {
+                    p_amount: finalAmount,
+                    p_order_type: 'fx',
+                    p_service_amount: serviceAmount,
+                    p_distance_km: 1.2
+                });
+
+                if (error) throw error;
+                setQuoteData(data);
+            } catch (err) {
+                console.error("Failed to fetch FX order quote", err);
+                showToaster("Failed to calculate order fees. Please try again.", 'error');
+            } finally {
+                setQuoteLoading(false);
+            }
+        };
+
+        if (finalAmount > 0) {
+            fetchQuote();
+        } else {
+            setQuoteLoading(false);
+        }
+    }, [finalAmount, serviceAmount]);
+
+    const deliveryFee = quoteData?.delivery_fee || 0;
+    const platformFee = quoteData?.platform_fee || 0;
+    const gst = quoteData?.gst || 0;
+    // Total hold amount = receive amount + all fees + gst + tips - rewards
+    // Note: baseTotal from quote is receive + delivery + platform + gst. 
+    // We add markup + flatFee (serviceAmount) and tips, and subtract rewards.
+    const holdAmount = (finalAmount || 0) + serviceAmount + deliveryFee + platformFee + gst + tipAmount - parsedRewardPoints;
+    const totalAmount = holdAmount;
 
     const handleTipSelect = (option: string) => {
         setSelectedTipOption(option);
@@ -179,7 +228,7 @@ const FxExchangeSummary = () => {
     const handlePay = async () => {
         try {
             const userId = await getAuthUserId();
-            if (hasInsufficientBalance) {
+            if (totalAmount > walletBalance) {
                 showToaster("Insufficient wallet balance.", 'error');
                 return;
             }
@@ -219,19 +268,27 @@ const FxExchangeSummary = () => {
             }
 
             const receiveAmount = finalAmount - tipAmount;
-            const cleanedAmount = Math.round(receiveAmount * 100) / 100;
+            const cleanedReceiveAmount = Math.round(receiveAmount * 100) / 100;
+            const cleanedHoldAmount = Math.round(holdAmount * 100) / 100;
 
             // Call Edge Function using supabase.functions.invoke
             const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
                 body: {
                     user_id: userId,
-                    amount: cleanedAmount,
+                    amount: cleanedReceiveAmount, // What user receives
+                    total_amount: cleanedHoldAmount, // What is deducted/held from wallet
                     address_id: addressId,
                     order_type: 'FX_EXCHANGE',
                     transaction_type: 'held',
+                    delivery_fee: deliveryFee,
+                    platform_fee: platformFee,
+                    gst: gst,
+                    delivery_tip: tipAmount,
+                    reward_points: parsedRewardPoints,
                     meta_data: {
                         is_fx: true,
-                        receive_amount: cleanedAmount,
+                        receive_amount: cleanedReceiveAmount,
+                        hold_amount: cleanedHoldAmount,
                         from_currency: fromCurrency,
                         to_currency: toCurrency,
                         fx_rate: fxRate,
@@ -240,6 +297,12 @@ const FxExchangeSummary = () => {
                         source_amount: amount,
                         base_rate: fxRate,
                         markup: markupAmount,
+                        delivery_fee: deliveryFee,
+                        platform_fee: platformFee,
+                        gst: gst,
+                        delivery_tip: tipAmount,
+                        reward_points: parsedRewardPoints,
+                        quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK'
                     }
                 }
             });
@@ -292,20 +355,22 @@ const FxExchangeSummary = () => {
                     setSavedAddress(updatedAddr);
                     localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
-                    // Retry Order Creation
                     const receiveAmount = finalAmount - tipAmount;
-                    const cleanedAmount = Math.round(receiveAmount * 100) / 100;
+                    const cleanedReceiveAmount = Math.round(receiveAmount * 100) / 100;
+                    const cleanedHoldAmount = Math.round(holdAmount * 100) / 100;
 
                     const { data: retryData, error: retryInvokeError } = await supabase.functions.invoke('create-order', {
                         body: {
                             user_id: userId,
-                            amount: cleanedAmount,
+                            amount: cleanedReceiveAmount,
+                            total_amount: cleanedHoldAmount,
                             address_id: newAddressId,
                             order_type: 'FX_EXCHANGE',
                             transaction_type: 'held',
                             meta_data: {
                                 is_fx: true,
-                                receive_amount: cleanedAmount,
+                                receive_amount: cleanedReceiveAmount,
+                                hold_amount: cleanedHoldAmount,
                                 from_currency: fromCurrency,
                                 to_currency: toCurrency,
                                 fx_rate: fxRate,
@@ -517,7 +582,7 @@ const FxExchangeSummary = () => {
                     {isRewardsOpen && (
                         <div className="px-[12px] pb-[16px]">
                             <p className={`text-[14px] font-medium font-sans -mt-[7px] mb-[21px] ${isDarkMode ? "text-white" : "text-black"}`}>
-                                You have 12,000 points available
+                                You have {availableRewardPoints.toLocaleString()} points available
                             </p>
                             <div className="flex items-center gap-[12px]">
                                 <div className="relative flex-1 h-[45px]">
@@ -766,6 +831,34 @@ const FxExchangeSummary = () => {
                                     - {currencySymbols[toCurrency] || ''}{flatFee}
                                 </span>
                             </div>
+
+                            {/* Delivery & Platform Fee */}
+                            <div className="flex justify-between items-center h-[18px] mt-[8px]">
+                                <span className={`${isDarkMode ? "text-white" : "text-black"}`}>Delivery & Platform Fee</span>
+                                <span className={`font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
+                                    {currencySymbols[toCurrency] || ''}{(deliveryFee + platformFee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
+
+                            {/* GST */}
+                            <div className="flex justify-between items-center h-[18px] mt-[8px]">
+                                <span className={`${isDarkMode ? "text-white" : "text-black"}`}>
+                                    GST ({((quoteData?.gst_rate || 0.18) * 100).toFixed(0)}% on fees)
+                                </span>
+                                <span className={`font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
+                                    {currencySymbols[toCurrency] || ''}{gst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
+
+                            {/* Reward Points */}
+                            {rewardApplied && (
+                                <div className="flex justify-between items-center h-[18px] mt-[8px]">
+                                    <span className={`${isDarkMode ? "text-white" : "text-black"}`}>Reward Points Redemption</span>
+                                    <span className="text-[#FF3B30] font-bold">
+                                        - ₹{parsedRewardPoints.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Second Divider */}
@@ -799,15 +892,15 @@ const FxExchangeSummary = () => {
                 }}
             >
                 <p className={`text-[18px] font-bold font-sans mb-[16px] ${isDarkMode ? "text-white" : "text-black"}`}>
-                    Amount will be held from wallet
+                    {quoteLoading ? "Calculating fees..." : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} will be held from wallet`}
                 </p>
-                <p className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? "text-white" : "text-black"}`}>
-                    You won’t be charged unless the delivery is completed.
+                <p className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}>
+                    {quoteLoading ? "Syncing pricing..." : totalAmount > walletBalance ? "Insufficient funds in wallet" : "You won’t be charged unless the delivery is completed."}
                 </p>
                 <SlideToPay
                     onComplete={handlePay}
-                    disabled={!savedAddress || hasInsufficientBalance}
-                    label={hasInsufficientBalance ? "Low Balance" : "Slide to Pay"}
+                    disabled={!savedAddress || totalAmount > walletBalance || quoteLoading}
+                    label={quoteLoading ? "Calculating..." : totalAmount > walletBalance ? "Low Balance" : "Slide to Pay"}
                 />
             </div>
 

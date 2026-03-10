@@ -346,10 +346,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // 1. Initial Load & Visibility Changes (No userId filter needed for visibility)
   useEffect(() => {
     fetchAndCalculateBalance();
 
-    // Refresh on focus/visibility change
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         console.log('App focused, refreshing balance...');
@@ -357,24 +357,46 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
+  // 2. Dynamic Realtime Sync (Dependent on userId)
+  useEffect(() => {
     let channel: any;
+
     const setupSync = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || USER_ID;
+      const currentUserId = session?.user?.id || USER_ID;
 
-      channel = supabase.channel('user-context-wallet-sync')
+      if (!currentUserId) return;
+
+      console.log('Setting up Realtime sync for userId:', currentUserId);
+
+      channel = supabase.channel(`user-context-wallet-sync-${currentUserId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'wallets',
+            filter: `user_id=eq.${currentUserId}`
+          },
+          (payload) => {
+            console.log('Wallet table updated, refreshing balance:', payload);
+            fetchAndCalculateBalance(currentUserId);
+          }
+        )
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
             table: 'wallet_transactions',
-            filter: `user_id=eq.${userId}`
+            filter: `user_id=eq.${currentUserId}`
           },
           () => {
             console.log('Wallet transactions updated, recalculating balance...');
-            fetchAndCalculateBalance();
+            fetchAndCalculateBalance(currentUserId);
           }
         )
         .on(
@@ -383,11 +405,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             event: '*',
             schema: 'public',
             table: 'payouts',
-            filter: `user_id=eq.${userId}`
+            filter: `user_id=eq.${currentUserId}`
           },
           () => {
             console.log('Payouts updated, recalculating balance...');
-            fetchAndCalculateBalance();
+            fetchAndCalculateBalance(currentUserId);
           }
         )
         .subscribe();
@@ -396,10 +418,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setupSync();
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (channel) supabase.removeChannel(channel);
+      if (channel) {
+        console.log('Cleaning up Realtime sync...');
+        supabase.removeChannel(channel);
+      }
     };
-  }, []);
+  }, [state.profile?.id]); // Re-subscribe when profile ID changes
 
   const refreshBalance = async (userId?: string) => {
     await fetchAndCalculateBalance(userId);
