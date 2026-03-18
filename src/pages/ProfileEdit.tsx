@@ -220,8 +220,8 @@ const ProfileEdit = () => {
               <div className="flex items-center gap-4 flex-1">
                 <span className="text-black/50 dark:text-muted-foreground text-[14px]">+91</span>
                 <div className="h-4 w-px bg-black/10 dark:bg-white/10"></div>
-                <span className="text-black/50 dark:text-muted-foreground text-[14px] tracking-wide">
-                  {phoneNumber?.replace('+91', '').replace(/\s/g, '') || '9898989898'}
+                <span className="text-black/50 dark:text-muted-foreground text-[14px]">
+                  {phoneNumber?.replace('+91', '').replace(/\s/g, '') || contextEmail}
                 </span>
               </div>
               <div

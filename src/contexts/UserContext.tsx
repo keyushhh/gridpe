@@ -153,7 +153,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select(`
-          id, name, avatar_url, kyc_status, email, is_fx_enabled, 
+          id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, 
           current_tier_id, scheduled_tier_id, tier_change_date,
           payment_status, subscription_status, reward_points,
           wallet_tiers!current_tier_id(*, subscription_price),
@@ -183,6 +183,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           profileImage: profileData.avatar_url || prev.profileImage,
           kycStatus: profileData.kyc_status === 'verified' ? 'complete' : (profileData.kyc_status === 'pending' ? 'pending' : 'incomplete'),
           email: profileData.email || prev.email,
+          phoneNumber: profileData.phone || prev.phoneNumber,
           isFxEnabled: !!profileData.is_fx_enabled,
 
           // Tier Hardening: Normalize limits to whole numbers (Math.floor)

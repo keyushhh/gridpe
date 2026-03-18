@@ -19,7 +19,6 @@ import { hashMpin } from "@/utils/cryptoUtils";
 import { supabase } from "@/lib/supabase";
 import { Capacitor } from "@capacitor/core";
 import { Provider, User } from "@supabase/supabase-js";
-import { useSignIn, useUser as useClerkUser } from "@clerk/clerk-react";
 
 const OnboardingScreen = () => {
 
@@ -32,8 +31,6 @@ const OnboardingScreen = () => {
   const [showMpinLogin, setShowMpinLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
-  const { signIn } = useSignIn();
-  const { user: clerkUser, isLoaded: isClerkLoaded } = useClerkUser();
 
 
   // Validation State
@@ -86,17 +83,8 @@ const OnboardingScreen = () => {
           // App Launch: treat as Restore (isExplicitLogin = false)
           await handleSession(session.user, false);
         } else {
-          // If no Supabase session, check if Clerk is still loading
-          if (!isClerkLoaded) {
-            console.log("Onboarding: No Supabase session, waiting for Clerk...");
-            return;
-          }
-
-          // If Clerk is loaded and no user, then we can stop checking
-          if (!clerkUser) {
-            console.log("Onboarding: No active sessions found.");
-            setIsAuthChecking(false);
-          }
+          // If no session, we can stop checking
+          setIsAuthChecking(false);
         }
       } catch (e) {
         console.error("Session check failed", e);
@@ -104,7 +92,7 @@ const OnboardingScreen = () => {
       }
     };
     checkSession();
-  }, [isClerkLoaded, clerkUser]);
+  }, []);
 
   // Supabase Auth Listener (Separate from initial check)
   useEffect(() => {
@@ -121,40 +109,6 @@ const OnboardingScreen = () => {
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Clerk Session Handling
-  useEffect(() => {
-    if (isClerkLoaded && clerkUser) {
-      const handleClerkSession = async () => {
-        console.log("Clerk User found in Onboarding:", clerkUser.id, clerkUser.primaryEmailAddress?.emailAddress);
-
-        // Map Clerk User to a format similar to Supabase User for handleSession
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mappedUser: any = {
-          id: clerkUser.id,
-          email: clerkUser.primaryEmailAddress?.emailAddress,
-          user_metadata: {
-            full_name: clerkUser.fullName,
-            name: clerkUser.fullName,
-          },
-          // Clerk users might not have phone numbers if logged in via Google
-          phone: clerkUser.primaryPhoneNumber?.phoneNumber || null
-        };
-
-        console.log("Passing mapped Clerk user to handleSession...");
-        try {
-          await handleSession(mappedUser, true);
-        } catch (err) {
-          console.error("Error in handleSession for Clerk user:", err);
-          setIsAuthChecking(false);
-        }
-      };
-
-      handleClerkSession();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clerkUser, isClerkLoaded]);
-
 
   useEffect(() => {
     // Reset success/error on change
@@ -239,88 +193,55 @@ const OnboardingScreen = () => {
       return;
     }
 
-    let currentProfile = null;
-
-    // 1. Fetch existing profile
-    // Clerk IDs are not UUIDs, which might cause Supabase to error if the id column is UUID.
-    // We try to fetch the profile, but catch any "invalid input syntax for type uuid" error.
-    let initialProfileData = null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let profileError: any = null;
+    let profileData = null;
+    let profileError = null;
 
     try {
+      console.log("HandleSession: Fetching profile for", user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      initialProfileData = data;
+      profileData = data;
       profileError = error;
     } catch (err) {
-      console.error("HandleSession: Profile fetch threw an error (is user.id a UUID?)", err);
-      profileError = { code: 'UNKNOWN', message: 'Profile fetch failed' };
+      console.error("HandleSession: Fetch threw", err);
+      profileError = err;
     }
 
-
-    let profileData = initialProfileData;
     const socialName = user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.preferred_username;
+    let currentProfile = profileData;
 
-    // 2. Handle Profile Logic based on Mode
-    if (profileError && profileError.code === 'PGRST116') {
-      // Profile Not Found
-      if (!isExplicitLogin) {
-        // Restore Mode: If profile is missing, state is corrupted or incomplete.
-        // Sign out to force clean login.
-        console.warn("Restore Mode: Profile missing. Signing out to force re-auth.");
-        await supabase.auth.signOut();
-        setIsAuthChecking(false);
-        return;
-      }
-
-      // Login Mode: Create new profile (New User)
-      console.log("Login Mode: Profile not found, creating new profile...");
+    // 2. Handle Profile Logic (Social links can lead to missing profiles on first landing)
+    if (!profileData && !profileError) {
+      // Profile Not Found - Create it
+      console.log("Profile not found in handleSession. Creating new profile...");
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert({
           id: user.id,
           phone: user.phone || null,
-          name: socialName || user.email || null,
-          mpin_set: false
+          name: socialName || user.email || 'Guest User',
+          mpin_set: false,
+          kyc_status: 'incomplete'
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (createError) {
-        console.error("Error creating profile:", createError);
-        setIsAuthChecking(false);
-        // If we fail to create profile on login, better show error or stay on login
-        return;
+        console.error("Error creating profile in handleSession:", createError);
+        // Fallback to minimal object to avoid blocking the user
+        currentProfile = { id: user.id, mpin_set: false } as any;
+      } else {
+        console.log("Profile created successfully in handleSession");
+        currentProfile = newProfile;
       }
-
-      // Process pending referral if it exists
-      const storedRef = localStorage.getItem('referralCode');
-      if (storedRef) {
-        try {
-          await supabase.rpc('process_new_referral', {
-            p_referred_id: user.id,
-            p_referral_code: storedRef
-          });
-          localStorage.removeItem('referralCode');
-        } catch (e) {
-          console.error('Failed to process referral code', e);
-        }
-      }
-
-      profileData = newProfile;
-      currentProfile = newProfile;
-      setProfile(newProfile);
-      console.log('Profile created:', newProfile);
     } else if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      setIsAuthChecking(false);
-      return;
-    }
+      console.error("Non-missing-row error fetching profile:", profileError);
+      // Fallback
+      currentProfile = { id: user.id, mpin_set: false } as any;    }
 
     // Profile Exists (or just created)
     if (profileData) {
@@ -376,15 +297,12 @@ const OnboardingScreen = () => {
         setShowMpinLogin(true);
         setIsAuthChecking(false);
       } else {
-        // Invalid State (Zombie session) -> Sign Out -> Login Screen
-        console.log("Restore Mode: MPIN NOT set. Force Sign Out.");
-        resetForDemo();
-        await supabase.auth.signOut();
-        // UI is already on Login Screen (default state), so just ensure cleanup
-        setPhoneNumber("");
-        setOtp("");
+        // User is logged in but has no MPIN. 
+        // This happens after a fresh Social Login redirect.
+        // Don't sign out! Just show the MPIN setup.
+        console.log("Restore Mode: MPIN NOT set. Showing Setup instead of force-signout.");
         setShowOtpInput(false);
-        setShowMpinSetup(false);
+        setShowMpinSetup(true);
         setIsAuthChecking(false);
       }
     }
@@ -545,8 +463,28 @@ const OnboardingScreen = () => {
   };
 
   const handleSocialLogin = async (providerName: string) => {
-    // Social logins are temporarily disabled
-    console.log(`${providerName} Login clicked (disabled)`);
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: providerName as Provider,
+        options: {
+          redirectTo: Capacitor.isNativePlatform() 
+            ? 'gridpe://auth/v1/callback' 
+            : `${window.location.origin}/#/auth/v1/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) throw error;
+    } catch (err) {
+      console.error(`${providerName} login error:`, err);
+      setGeneralError(`Failed to sign in with ${providerName}.`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 
@@ -653,9 +591,13 @@ const OnboardingScreen = () => {
             </div>
 
             <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-              <div className="w-[52px] h-[52px] opacity-80">
-                <img src={iconGoogle} alt="" className="w-full h-full" />
-              </div>
+              <button 
+                onClick={() => handleSocialLogin('google')}
+                className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
+                disabled={isLoading}
+              >
+                <img src={iconGoogle} alt="Google" className="w-full h-full" />
+              </button>
               <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconApple} alt="" className="w-full h-full" />
               </div>
@@ -760,9 +702,13 @@ const OnboardingScreen = () => {
             </div>
 
             <div className="flex justify-center gap-4">
-              <div className="w-[52px] h-[52px] opacity-80">
-                <img src={iconGoogle} alt="" className="w-full h-full" />
-              </div>
+              <button 
+                onClick={() => handleSocialLogin('google')}
+                className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
+                disabled={isLoading}
+              >
+                <img src={iconGoogle} alt="Google" className="w-full h-full" />
+              </button>
               <div className="w-[52px] h-[52px] opacity-80">
                 <img src={iconApple} alt="" className="w-full h-full" />
               </div>

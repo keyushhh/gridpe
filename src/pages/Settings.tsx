@@ -87,7 +87,7 @@ const Settings = () => {
   // Ensure we have a default boolean for the switch (true for dark)
   const isDarkMode = theme === 'dark' || theme === 'system';
 
-  const { phoneNumber, kycStatus, resetForDemo, name, profileImage } = useUser();
+  const { phoneNumber, email, kycStatus, resetForDemo, name, profileImage } = useUser();
   const [pushNotifications, setPushNotifications] = useState(true);
   const [transactionAlerts, setTransactionAlerts] = useState(false);
   const [cardCount, setCardCount] = useState(0);
@@ -228,7 +228,7 @@ const Settings = () => {
                 {name || "No Name? Who are you?"}
               </h2>
               <div className="flex items-center gap-1">
-                <span className="text-black dark:text-muted-foreground text-[14px]">{phoneNumber}</span>
+                <span className="text-black dark:text-muted-foreground text-[14px]">{phoneNumber || email}</span>
                 <div
                   className="w-4 h-4 bg-[#1CB956]"
                   style={{
