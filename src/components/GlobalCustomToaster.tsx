@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { X } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import successIcon from '@/assets/success.svg';
 import failedIcon from '@/assets/failed.svg';
 import trashIcon from '@/assets/trash-delete.svg';
+import successIconLight from '@/assets/check-icon-light.svg';
+import failedIconLight from '@/assets/failed-light.svg';
 
 const GlobalCustomToaster: React.FC = () => {
   const { isVisible, message, type, hideToaster } = useCustomToaster();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   const [progress, setProgress] = useState(0);
   const duration = 4000; // 4 seconds to match loader animation spec
 
@@ -39,27 +44,33 @@ const GlobalCustomToaster: React.FC = () => {
 
   const getIcon = () => {
     switch (type) {
-      case 'success': return successIcon;
-      case 'error': return failedIcon;
+      case 'success': return isDarkMode ? successIcon : successIconLight;
+      case 'error': return isDarkMode ? failedIcon : failedIconLight;
       case 'delete': return trashIcon;
-      default: return successIcon;
+      default: return isDarkMode ? successIcon : successIconLight;
     }
   };
 
   const getRadialGradient = () => {
     if (type === 'success') {
-      return 'radial-gradient(50% 50% at 50% 50%, rgba(0, 237, 81, 0.12) 0%, rgba(0, 237, 123, 0) 100%)';
+      return isDarkMode 
+        ? 'radial-gradient(50% 50% at 50% 50%, rgba(0, 237, 81, 0.12) 0%, rgba(0, 237, 123, 0) 100%)'
+        : 'radial-gradient(50% 50% at 50% 50%, rgba(12, 126, 75, 0.1) 0%, rgba(12, 126, 75, 0) 100%)';
     }
     if (type === 'error' || type === 'delete') {
-      return 'radial-gradient(50% 50% at 50% 50%, rgba(240, 66, 72, 0.13) 0%, rgba(240, 66, 72, 0) 100%)';
+      return isDarkMode
+        ? 'radial-gradient(50% 50% at 50% 50%, rgba(240, 66, 72, 0.13) 0%, rgba(240, 66, 72, 0) 100%)'
+        : 'radial-gradient(50% 50% at 50% 50%, rgba(167, 0, 0, 0.1) 0%, rgba(167, 0, 0, 0) 100%)';
     }
-    return 'radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%)';
+    return isDarkMode
+      ? 'radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%)'
+      : 'radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0) 100%)';
   };
 
   const getLoaderColor = () => {
-    if (type === 'success') return '#00ED51';
-    if (type === 'error' || type === 'delete') return '#F04248';
-    return '#FFFFFF';
+    if (type === 'success') return isDarkMode ? '#00ED51' : '#0C7E4B';
+    if (type === 'error' || type === 'delete') return isDarkMode ? '#F04248' : '#A70000';
+    return isDarkMode ? '#FFFFFF' : '#000000';
   };
 
   return (
@@ -70,9 +81,10 @@ const GlobalCustomToaster: React.FC = () => {
           width: '362px',
           minHeight: '63px',
           borderRadius: '12px',
-          backgroundColor: '#000000',
-          border: '0.8px solid rgba(255, 255, 255, 0.16)',
+          backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
+          border: isDarkMode ? '0.8px solid rgba(255, 255, 255, 0.16)' : '0.8px solid #E9EAEB',
           padding: '12px 14px',
+          boxShadow: isDarkMode ? 'none' : '0px 8px 16px rgba(0, 0, 0, 0.05)',
         }}
       >
         {/* Radial Gradient Ellipse behind icon */}
@@ -105,14 +117,14 @@ const GlobalCustomToaster: React.FC = () => {
           </div>
 
           <div className="ml-3 flex-1">
-            <span className="text-white text-[14px] font-normal font-satoshi leading-[140%]">
+            <span className={`text-[14px] font-normal font-satoshi leading-[140%] ${isDarkMode ? 'text-white' : 'text-black'}`}>
               {message}
             </span>
           </div>
 
           <button
             onClick={hideToaster}
-            className="ml-2 flex-shrink-0 w-8 h-8 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+            className={`ml-2 flex-shrink-0 w-8 h-8 flex items-center justify-center transition-colors ${isDarkMode ? 'text-white/50 hover:text-white' : 'text-black/40 hover:text-black'}`}
           >
             <X className="w-5 h-5" />
           </button>
