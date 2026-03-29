@@ -27,6 +27,7 @@ import { supabase, USER_ID } from "@/lib/supabase";
 import { createAddress, getAuthUserId } from "@/lib/addresses";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
+import { calculateDistance, HUB_COORDS } from "@/lib/utils";
 
 interface SavedAddress {
     id?: string;
@@ -41,6 +42,8 @@ interface SavedAddress {
     state: string;
     postcode: string;
     plusCode?: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 const OrderCashSummary = () => {
@@ -125,10 +128,20 @@ const OrderCashSummary = () => {
         const fetchQuote = async () => {
             setQuoteLoading(true);
             try {
+                let distance = 1.2; // Fallback
+                if (savedAddress?.latitude && savedAddress?.longitude) {
+                    distance = calculateDistance(
+                        HUB_COORDS.CASH.lat,
+                        HUB_COORDS.CASH.lng,
+                        savedAddress.latitude,
+                        savedAddress.longitude
+                    );
+                }
+
                 const { data, error } = await supabase.rpc('get_order_quote', {
                     p_amount: parsedAmount,
                     p_order_type: 'cash',
-                    p_distance_km: 1.2 // Hardcoded for now, can be dynamic later
+                    p_distance_km: parseFloat(distance.toFixed(2))
                 });
 
                 if (error) throw error;
@@ -212,11 +225,15 @@ const OrderCashSummary = () => {
                 return;
             }
 
-            let addressId = savedAddress?.id;
+            if (!savedAddress) {
+                showToaster("Please select a valid address.", 'error');
+                return;
+            }
 
-            if (!addressId && savedAddress) {
-                // Address exists in state but not DB (e.g. from previous local storage structure or temp selection)
-                // We must create it.
+            let addressId = savedAddress.id;
+
+            // 1. Ensure address exists in DB if ID is missing from state
+            if (!addressId) {
                 try {
                     const newAddress = await createAddress({
                         user_id: userId,
@@ -227,96 +244,174 @@ const OrderCashSummary = () => {
                         city: savedAddress.city,
                         state: savedAddress.state,
                         plus_code: savedAddress.plusCode || null,
-                        latitude: 0, // Fallback if missing
-                        longitude: 0, // Fallback if missing
+                        latitude: Number(savedAddress.latitude) || 0,
+                        longitude: Number(savedAddress.longitude) || 0,
                         contact_name: savedAddress.name,
                         contact_phone: savedAddress.phone
                     });
                     addressId = newAddress.id;
 
-                    // Update local state to include the new ID to prevent re-creation
+                    // Update local state and storage
                     const updatedAddr = { ...savedAddress, id: addressId };
                     setSavedAddress(updatedAddr);
                     localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
-
-                } catch (err) {
-                    console.error("Failed to save address before order", err);
-                    showToaster("Failed to save address details. Please try again.", 'error');
+                } catch (addrErr: any) {
+                    console.error("Failed to save address before order", addrErr);
+                    showToaster(`Failed to save address: ${addrErr.message || "Please try again."}`, 'error');
                     return;
                 }
             }
+            
+            // Check Service Availability & Get Zone ID
+            const { data: zoneId, error: zoneError } = await supabase.rpc('check_service_availability', {
+                lat: Number(savedAddress.latitude) || 0,
+                lng: Number(savedAddress.longitude) || 0
+            });
 
-            if (!addressId) {
-                showToaster("Please select a valid address.", 'error');
+            if (zoneError) {
+                console.error("Zone check failed:", zoneError);
+                showToaster("Failed to verify service availability. Please try again.", 'error');
                 return;
             }
 
+            if (!zoneId) {
+                console.log("Location not served. Redirecting to Not Available screen.");
+                navigate('/not-available');
+                return;
+            }
+
+            const cleanedAmount = Math.round(totalAmount * 100) / 100;
+
+            // Calculate Dynamic Rider Earnings
+            let riderEarnings = 0; 
+            let pickupLocation = "Partner Hub"; // Generic fallback until lookup
+            
             try {
-                // VERIFICATION LOG:
-                console.log("Creating Order with payload:", {
+                let distance = 1.2;
+                if (savedAddress?.latitude && savedAddress?.longitude) {
+                    distance = calculateDistance(
+                        HUB_COORDS.CASH.lat,
+                        HUB_COORDS.CASH.lng,
+                        savedAddress.latitude,
+                        savedAddress.longitude
+                    );
+                    
+                    // NEW: Fetch nearest active hub for the user's city
+                    const { data: hubs } = await supabase
+                        .from('hubs')
+                        .select('name, latitude, longitude')
+                        .eq('city', savedAddress.city)
+                        .eq('is_active', true);
+                        
+                    if (hubs && hubs.length > 0) {
+                        let nearest = hubs[0];
+                        let minD = calculateDistance(hubs[0].latitude, hubs[0].longitude, savedAddress.latitude, savedAddress.longitude);
+                        hubs.forEach(h => {
+                            const d = calculateDistance(h.latitude, h.longitude, savedAddress.latitude, savedAddress.longitude);
+                            if (d < minD) {
+                                minD = d;
+                                nearest = h;
+                            }
+                        });
+                        pickupLocation = nearest.name;
+                    }
+                }
+
+                const { data: earnings, error: earningsError } = await supabase.rpc('calculate_rider_earning', {
+                    dist_km: parseFloat(distance.toFixed(2)),
+                    amount: parsedAmount
+                });
+
+                if (!earningsError && earnings !== null) {
+                    riderEarnings = parseFloat(earnings);
+                } else {
+                    console.error("Rider earnings RPC failed, using 0 fallback:", earningsError);
+                }
+            } catch (err) {
+                console.error("Failed to calculate dynamic data:", err);
+            }
+
+            const getOrderPayload = (aid: string) => ({
+                user_id: userId,
+                address_id: aid,
+                zone_id: zoneId, // Tagging with the zone_id from RPC
+                amount: parsedAmount, // Cash amount to be picked up
+                total_amount: cleanedAmount, // Total payable
+                payment_mode: 'CASH',
+                order_type: 'CASH_ORDER',
+                currency: 'INR',
+                status: 'pending',
+                type: 'cash',
+                rider_earnings: riderEarnings,
+                pickup_location: pickupLocation,
+                delivery_location: `POINT(${savedAddress.longitude || 0} ${savedAddress.latitude || 0})`,
+                otp_code: Math.floor(100000 + Math.random() * 900000).toString(),
+                delivery_fee: deliveryFee,
+                service_fee: platformFee, // Mapped from platformFee
+                gst: gst,
+                delivery_tip: tipAmount,
+                reward_points: rewardPointsValue,
+                meta_data: {
                     item_value: parsedAmount,
                     delivery_fee: deliveryFee,
                     delivery_tip: tipAmount,
                     gst: gst,
-                    platform_fee: platformFee,
-                    address_id: addressId,
-                });
+                    service_fee: platformFee,
+                    reward_points: rewardPointsValue,
+                    delivery_address: getAddressDisplay(), // Text version for safety
+                    quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK',
+                    client_source: 'frontend_v1'
+                }
+            });
 
-                const cleanedAmount = Math.round(totalAmount * 100) / 100;
+            const createOrderDirectly = async (aid: string) => {
+                const payload = getOrderPayload(aid);
+                console.log("Inserting order directly:", payload);
 
-                if (isNaN(cleanedAmount)) {
-                    throw new Error("Invalid total amount calculated. Please check your inputs.");
+                console.log("FINAL ORDER PAYLOAD (CASH):", getOrderPayload(aid));
+
+            const { data, error } = await supabase
+                    .from('orders')
+                    .insert([payload])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Supabase Insert Error:', error);
+                    throw new Error(`Database error: ${error.message || "Failed to insert order"}`);
                 }
 
-                const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
-                    body: {
-                        user_id: userId,
-                        amount: parsedAmount, // item_value
-                        total_amount: cleanedAmount, // total payable
-                        address_id: addressId,
-                        order_type: 'CASH_ORDER',
-                        transaction_type: 'held',
-                        delivery_fee: deliveryFee,
-                        platform_fee: platformFee,
-                        gst: gst,
-                        delivery_tip: tipAmount,
-                        reward_points: rewardPointsValue,
-                        meta_data: {
-                            item_value: parsedAmount,
-                            delivery_fee: deliveryFee,
-                            delivery_tip: tipAmount,
-                            gst: gst,
-                            platform_fee: platformFee,
-                            reward_points: rewardPointsValue,
-                            quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK'
-                        }
-                    }
-                });
-
-                if (invokeError) throw invokeError;
-                if (orderData?.error) throw new Error(orderData.error);
-
-                const orderId = orderData?.order?.order_id || orderData?.order?.id || orderData?.order_id || orderData?.id;
-
-                if (!orderId) {
-                    console.error("Order creation returned success but no ID:", orderData);
-                    throw new Error("Failed to retrieve Order ID from server.");
+                if (!data) {
+                    throw new Error("Order creation failed: No data returned from database.");
                 }
 
-                const orderStub = { id: orderId };
+                return data;
+            };
 
-                navigate(`/order-details/${orderStub.id}`, {
+            try {
+                // VERIFICATION LOG:
+                console.log("Explicitly creating order with address_id:", addressId);
+
+                const orderData = await createOrderDirectly(addressId!);
+                const orderId = orderData.id;
+
+                navigate(`/order-details/${orderId}`, {
                     state: {
                         totalAmount: totalAmount,
                         savedAddress: savedAddress,
-                        order: orderStub
+                        order: orderData
                     }
                 });
             } catch (orderError: any) {
-                // Retry Logic: If address ID is invalid (FK violation), try to create a new address record
-                // Error code 23503 is foreign_key_violation in Postgres
-                if (orderError?.code === '23503' || orderError?.message?.includes('foreign key constraint')) {
-                    console.log("Stale address ID detected. Creating new address record...");
+                console.error("First order attempt failed:", orderError);
+
+                // Handle Stale Address ID (Foreign Key Violation)
+                const isAddressError = orderError.message?.toLowerCase().includes('foreign key') ||
+                    orderError.message?.toLowerCase().includes('address_id') ||
+                    orderError.code === '23503';
+
+                if (isAddressError && savedAddress) {
+                    console.log("Possible address issue detected. Syncing address to DB...");
                     try {
                         const newAddress = await createAddress({
                             user_id: userId,
@@ -334,55 +429,37 @@ const OrderCashSummary = () => {
                         });
 
                         const newAddressId = newAddress.id;
-                        // Update local state
                         const updatedAddr = { ...savedAddress, id: newAddressId };
                         setSavedAddress(updatedAddr);
                         localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
-                        // Retry Order Creation
-                        const cleanedRetryAmount = Math.round(totalAmount * 100) / 100;
+                        console.log("Retrying order with new address_id:", newAddressId);
+                        const retryData = await createOrderDirectly(newAddressId);
+                        const retryOrderId = retryData.id;
 
-                        const { data: retryData, error: retryInvokeError } = await supabase.functions.invoke('create-order', {
-                            body: {
-                                amount: cleanedRetryAmount,
-                                address_id: newAddressId,
-                                order_type: 'CASH_ORDER',
-                                transaction_type: 'held',
-                                meta_data: {
-                                    item_value: parsedAmount,
-                                    delivery_fee: deliveryFee,
-                                    delivery_tip: tipAmount,
-                                    gst: gst,
-                                    platform_fee: platformFee,
+                        if (retryOrderId) {
+                            navigate(`/order-details/${retryOrderId}`, {
+                                state: {
+                                    totalAmount: totalAmount,
+                                    savedAddress: updatedAddr,
+                                    order: retryData
                                 }
-                            }
-                        });
-
-                        if (retryInvokeError) throw retryInvokeError;
-                        if (retryData?.error) throw new Error(retryData.error);
-
-                        const retryOrderId = retryData?.order?.order_id || retryData?.order?.id || retryData?.order_id || retryData?.id;
-                        const retryOrderStub = { id: retryOrderId };
-
-                        navigate(`/order-details/${retryOrderStub.id}`, {
-                            state: {
-                                totalAmount: totalAmount,
-                                savedAddress: updatedAddr,
-                                order: retryOrderStub
-                            }
-                        });
-                        return; // Success after retry
-                    } catch (retryError) {
-                        console.error("Retry failed", retryError);
-                        // Fall through to generic error
+                            });
+                            return; // Success on retry!
+                        }
+                    } catch (retryErr: any) {
+                        console.error("Retry attempt failed:", retryErr);
+                        throw new Error(`Retry failed: ${retryErr.message}`);
                     }
                 }
 
-                throw orderError; // Re-throw if not recoverable or retry failed
+                // If not address issue, or retry failed, propagate original error
+                throw orderError;
             }
+
         } catch (error: any) {
-            console.error("Failed to create order", error);
-            showToaster(`Failed to place order: ${error.message || "Please try again."}`, 'error');
+            console.error("Final catch in handlePay:", error);
+            showToaster(`Order Failed: ${error.message || "Please try again."}`, 'error');
         }
     };
 

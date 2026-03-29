@@ -12,6 +12,11 @@ export interface Order {
   updated_at?: string;
   transaction_number?: string;
   order_type?: 'CASH_ORDER' | 'FX_EXCHANGE';
+  rider_id?: string | null;
+  otp_code?: string | null;
+  service_fee?: number;
+  total_amount?: number;
+  delivery_fee?: number;
   metadata?: {
     failure_reason?: string;
     cancelled_by?: string;
@@ -54,32 +59,34 @@ const normalizeOrder = (o: any, type: 'CASH_ORDER' | 'FX_EXCHANGE'): Order => ({
 });
 
 export const fetchRecentOrders = async (userId: string) => {
-  const [cashRes, fxRes] = await Promise.all([
-    supabase.from('cash_orders').select('*').eq('user_id', userId).order('updated_at', { ascending: false }).limit(5),
-    supabase.from('fx_orders').select('*').eq('user_id', userId).order('updated_at', { ascending: false }).limit(5)
-  ]);
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .limit(5);
 
-  const orders = [
-    ...(cashRes.data || []).map(o => normalizeOrder(o, 'CASH_ORDER')),
-    ...(fxRes.data || []).map(o => normalizeOrder(o, 'FX_EXCHANGE'))
-  ];
+  if (error || !data) return [];
 
-  const ordersWithAddresses = await fetchAddressesForOrders(orders);
-  return ordersWithAddresses.sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime()).slice(0, 5);
+  const ordersWithAddresses = await fetchAddressesForOrders(data);
+  return ordersWithAddresses;
 };
 
 export const getOrderById = async (orderId: string) => {
-  const [cash, fx] = await Promise.all([
-    supabase.from('cash_orders').select('*').eq('id', orderId).maybeSingle(),
-    supabase.from('fx_orders').select('*').eq('id', orderId).maybeSingle()
-  ]);
+  const { data: orderData, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', orderId)
+    .maybeSingle();
 
-  let orderData = null;
-  if (cash.data) orderData = normalizeOrder(cash.data, 'CASH_ORDER');
-  else if (fx.data) orderData = normalizeOrder(fx.data, 'FX_EXCHANGE');
+  if (error || !orderData) return null;
 
-  if (orderData && orderData.address_id) {
-    const { data: addr } = await supabase.from('addresses').select('*').eq('id', orderData.address_id).maybeSingle();
+  if (orderData.address_id) {
+    const { data: addr } = await supabase
+      .from('addresses')
+      .select('*')
+      .eq('id', orderData.address_id)
+      .maybeSingle();
     if (addr) orderData.addresses = addr;
   }
 
@@ -89,75 +96,40 @@ export const getOrderById = async (orderId: string) => {
 export const dev_updateOrderStatus = async (orderId: string, status: 'success' | 'failed' | 'cancelled', userId?: string) => {
   if (!import.meta.env.DEV) return;
 
-  const order = await getOrderById(orderId);
-  if (!order) throw new Error("Order not found");
-
-  if (status === 'success') {
-    const { data: { session } } = await supabase.auth.getSession();
-    const uid = userId || session?.user?.id || '00000000-0000-0000-0000-000000000000';
-    const rpcName = order.order_type === 'FX_EXCHANGE' ? 'complete_fx_order' : 'complete_cash_order';
-    
-    const { data, error } = await supabase.rpc(rpcName, {
-      p_order_id: orderId,
-      p_user_id: uid
-    });
-    if (error) {
-      alert(`RPC Network Error: ${error.message}`);
-      throw error;
-    }
-    if (data && data.success === false) {
-      alert(`RPC Database Error: ${data.error}`);
-      throw new Error(data.error || 'RPC failed silently');
-    }
-    return;
-  }
-
-  let metadata: any = order.metadata || {};
-  if (status === 'failed') {
-    metadata.failure_reason = "Simulated dev failure";
-  } else if (status === 'cancelled') {
-    metadata.cancelled_by = "dev";
-    metadata.cancel_reason_type = "Simulated dev cancellation";
-    metadata.cancelled_at = new Date().toISOString();
-  }
-
-  const table = order.order_type === 'FX_EXCHANGE' ? 'fx_orders' : 'cash_orders';
   const { error } = await supabase
-    .from(table)
-    .update({ status, metadata, updated_at: new Date().toISOString() })
+    .from('orders')
+    .update({ status, updated_at: new Date().toISOString() })
     .eq('id', orderId);
 
   if (error) throw error;
 };
 
 export const fetchActiveOrders = async (userId: string) => {
-  const [cashRes, fxRes] = await Promise.all([
-    supabase.from('cash_orders').select('*').eq('user_id', userId).in('status', ['processing', 'out_for_delivery', 'arrived', 'pending']).order('updated_at', { ascending: false }),
-    supabase.from('fx_orders').select('*').eq('user_id', userId).in('status', ['processing', 'out_for_delivery', 'arrived', 'pending']).order('updated_at', { ascending: false })
-  ]);
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
+    .in('status', ['processing', 'out_for_delivery', 'arrived', 'pending', 'accepted', 'picked_up'])
+    .order('updated_at', { ascending: false });
 
-  const orders = [
-    ...(cashRes.data || []).map(o => normalizeOrder(o, 'CASH_ORDER')),
-    ...(fxRes.data || []).map(o => normalizeOrder(o, 'FX_EXCHANGE'))
-  ];
+  if (error || !data) return [];
 
-  const ordersWithAddresses = await fetchAddressesForOrders(orders);
-  return ordersWithAddresses.sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
+  const ordersWithAddresses = await fetchAddressesForOrders(data);
+  return ordersWithAddresses;
 };
 
 export const fetchPastOrders = async (userId: string) => {
-  const [cashRes, fxRes] = await Promise.all([
-    supabase.from('cash_orders').select('*').eq('user_id', userId).in('status', ['delivered', 'success', 'failed', 'cancelled']).order('updated_at', { ascending: false }),
-    supabase.from('fx_orders').select('*').eq('user_id', userId).in('status', ['delivered', 'success', 'failed', 'cancelled']).order('updated_at', { ascending: false })
-  ]);
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
+    .in('status', ['delivered', 'success', 'failed', 'cancelled'])
+    .order('updated_at', { ascending: false });
 
-  const orders = [
-    ...(cashRes.data || []).map(o => normalizeOrder(o, 'CASH_ORDER')),
-    ...(fxRes.data || []).map(o => normalizeOrder(o, 'FX_EXCHANGE'))
-  ];
+  if (error || !data) return [];
 
-  const ordersWithAddresses = await fetchAddressesForOrders(orders);
-  return ordersWithAddresses.sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
+  const ordersWithAddresses = await fetchAddressesForOrders(data);
+  return ordersWithAddresses;
 };
 
 export const cancelOrder = async (orderId: string) => {
@@ -195,25 +167,29 @@ export const dev_seedMockOrders = async (userId: string) => {
 
   const addressId = addrData?.[0]?.id || null;
 
-  // For seeding, we'll just insert into cash_orders as a demonstration
+  // For seeding, we'll insert into the unified orders table
   const mockOrders = [
     {
       user_id: userId,
-      item_value: 1250.50,
+      amount: 1250.50,
+      total_amount: 1350.00,
       status: 'delivered',
+      type: 'cash',
       payment_mode: 'wallet',
       address_id: addressId,
       created_at: new Date(Date.now() - 3600000).toISOString(),
-      metadata: {}
+      meta_data: { item_value: 1250.50 }
     },
     {
       user_id: userId,
-      item_value: 840.00,
+      amount: 840.00,
+      total_amount: 940.00,
       status: 'cancelled',
+      type: 'cash',
       payment_mode: 'wallet',
       address_id: addressId,
       created_at: new Date(Date.now() - 86400000).toISOString(),
-      metadata: {
+      meta_data: {
         cancelled_by: 'user',
         cancel_reason_type: 'I changed my mind',
         cancelled_at: new Date(Date.now() - 86300000).toISOString()
@@ -221,6 +197,6 @@ export const dev_seedMockOrders = async (userId: string) => {
     }
   ];
 
-  const { error } = await supabase.from('cash_orders').insert(mockOrders);
+  const { error } = await supabase.from('orders').insert(mockOrders);
   if (error) throw error;
 };

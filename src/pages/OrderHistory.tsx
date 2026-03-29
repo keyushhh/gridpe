@@ -94,26 +94,13 @@ const OrderHistory = () => {
                     .on(
                         'postgres_changes',
                         {
-                            event: 'UPDATE',
+                            event: '*',
                             schema: 'public',
-                            table: 'cash_orders',
+                            table: 'orders',
                             filter: `user_id=eq.${session.user.id}`
                         },
                         (payload) => {
-                            console.log('Real-time cash order update:', payload);
-                            loadOrders();
-                        }
-                    )
-                    .on(
-                        'postgres_changes',
-                        {
-                            event: 'UPDATE',
-                            schema: 'public',
-                            table: 'fx_orders',
-                            filter: `user_id=eq.${session.user.id}`
-                        },
-                        (payload) => {
-                            console.log('Real-time fx order update:', payload);
+                            console.log('Real-time order update:', payload);
                             loadOrders();
                         }
                     )

@@ -105,25 +105,12 @@ const OrderDetails = () => {
                         {
                             event: 'UPDATE',
                             schema: 'public',
-                            table: 'cash_orders',
+                            table: 'orders',
                             filter: `id=eq.${orderId}`
                         },
                         (payload) => {
-                            console.log('Cash order real-time update:', payload);
-                            setOrder(prev => prev ? { ...prev, ...payload.new, amount: payload.new.item_value } : null);
-                        }
-                    )
-                    .on(
-                        'postgres_changes',
-                        {
-                            event: 'UPDATE',
-                            schema: 'public',
-                            table: 'fx_orders',
-                            filter: `id=eq.${orderId}`
-                        },
-                        (payload) => {
-                            console.log('FX order real-time update:', payload);
-                            setOrder(prev => prev ? { ...prev, ...payload.new, amount: payload.new.amount_total } : null);
+                            console.log('Order real-time update:', payload);
+                            setOrder(prev => prev ? { ...prev, ...payload.new } : null);
                         }
                     )
                     .subscribe();
@@ -291,7 +278,7 @@ const OrderDetails = () => {
             mainIcon: isDarkMode ? checkIcon : checkIconLight,
             headerTitle: "Order Successful",
             statusTitle: "Your order is being processed!",
-            statusAmount: currentOrder.amount,
+            statusAmount: currentOrder.total_amount || currentOrder.amount,
             showMap: true,
             deliveryText: "We’re assigning a delivery\npartner soon!",
             deliverySubText: "Assigning a delivery partner in the next 2 minutes.",
@@ -305,7 +292,7 @@ const OrderDetails = () => {
                 mainIcon: isDarkMode ? checkIcon : checkIconLight,
                 headerTitle: "Order Delivered",
                 statusTitle: "Order delivered successfully!",
-                statusAmount: currentOrder.amount,
+                statusAmount: currentOrder.total_amount || currentOrder.amount,
                 showMap: true,
                 deliveryText: "Order Delivered",
                 deliverySubText: "Your package has arrived.",
@@ -318,7 +305,7 @@ const OrderDetails = () => {
                 mainIcon: isDarkMode ? crossIcon : failedIconLight,
                 headerTitle: "Order Failed",
                 statusTitle: "Order could not be processed",
-                statusAmount: currentOrder.amount,
+                statusAmount: currentOrder.total_amount || currentOrder.amount,
                 showMap: false,
                 deliveryText: "Payment Failed",
                 // @ts-ignore
@@ -332,7 +319,7 @@ const OrderDetails = () => {
                 mainIcon: isDarkMode ? cancelIcon : failedIconLight,
                 headerTitle: "Order Cancelled",
                 statusTitle: "Order Cancelled",
-                statusAmount: currentOrder.amount,
+                statusAmount: currentOrder.total_amount || currentOrder.amount,
                 showMap: false,
                 deliveryText: "Order Cancelled",
                 // @ts-ignore

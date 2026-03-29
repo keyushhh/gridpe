@@ -264,26 +264,13 @@ const Homepage = () => {
           .on(
             'postgres_changes',
             {
-              event: 'UPDATE',
+              event: '*',
               schema: 'public',
-              table: 'cash_orders',
+              table: 'orders',
               filter: `user_id=eq.${session.user.id}`
             },
             (payload) => {
-              console.log('Homepage cash order real-time update:', payload);
-              loadData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'fx_orders',
-              filter: `user_id=eq.${session.user.id}`
-            },
-            (payload) => {
-              console.log('Homepage fx order real-time update:', payload);
+              console.log('Homepage order real-time update:', payload);
               loadData();
             }
           )

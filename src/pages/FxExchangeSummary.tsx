@@ -34,6 +34,7 @@ import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import Map, { Marker } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { calculateDistance, HUB_COORDS } from "@/lib/utils";
 
 interface SavedAddress {
     id?: string;
@@ -48,6 +49,8 @@ interface SavedAddress {
     state: string;
     postcode: string;
     plusCode?: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 const FxExchangeSummary = () => {
@@ -146,12 +149,22 @@ const FxExchangeSummary = () => {
         const fetchQuote = async () => {
             setQuoteLoading(true);
             try {
+                let distance = 1.2; // Fallback
+                if (savedAddress?.latitude && savedAddress?.longitude) {
+                    distance = calculateDistance(
+                        HUB_COORDS.FX.lat,
+                        HUB_COORDS.FX.lng,
+                        savedAddress.latitude,
+                        savedAddress.longitude
+                    );
+                }
+
                 // For FX, p_amount is finalAmount (receive) and p_service_amount is (markup + flatFee)
                 const { data, error } = await supabase.rpc('get_order_quote', {
                     p_amount: finalAmount,
                     p_order_type: 'fx',
                     p_service_amount: serviceAmount,
-                    p_distance_km: 1.2
+                    p_distance_km: parseFloat(distance.toFixed(2))
                 });
 
                 if (error) throw error;
@@ -247,8 +260,8 @@ const FxExchangeSummary = () => {
                         city: savedAddress.city,
                         state: savedAddress.state,
                         plus_code: savedAddress.plusCode || null,
-                        latitude: 0,
-                        longitude: 0,
+                        latitude: Number(savedAddress.latitude) || 0,
+                        longitude: Number(savedAddress.longitude) || 0,
                         contact_name: savedAddress.name,
                         contact_phone: savedAddress.phone
                     });
@@ -268,28 +281,102 @@ const FxExchangeSummary = () => {
                 return;
             }
 
+            // Check Service Availability & Get Zone ID
+            const { data: zoneId, error: zoneError } = await supabase.rpc('check_service_availability', {
+                lat: Number(savedAddress?.latitude) || 0,
+                lng: Number(savedAddress?.longitude) || 0
+            });
+
+            if (zoneError) {
+                console.error("Zone check failed:", zoneError);
+                showToaster("Failed to verify service availability. Please try again.", 'error');
+                return;
+            }
+
+            if (!zoneId) {
+                console.log("Location not served. Redirecting to Not Available screen.");
+                navigate('/not-available');
+                return;
+            }
+
             const receiveAmount = finalAmount - tipAmount;
             const cleanedReceiveAmount = Math.round(receiveAmount * 100) / 100;
             const cleanedHoldAmount = Math.round(holdAmount * 100) / 100;
 
-            // Call Edge Function using supabase.functions.invoke
-            const { data: orderData, error: invokeError } = await supabase.functions.invoke('create-order', {
-                body: {
+            // Calculate Dynamic Rider Earnings
+            let riderEarnings = 0;
+            let pickupLocation = "Exchange Hub"; // Generic fallback
+
+            try {
+                let distance = 1.2;
+                if (savedAddress?.latitude && savedAddress?.longitude) {
+                    distance = calculateDistance(
+                        HUB_COORDS.FX.lat,
+                        HUB_COORDS.FX.lng,
+                        savedAddress.latitude,
+                        savedAddress.longitude
+                    );
+
+                    // NEW: Fetch nearest active hub for the user's city
+                    const { data: hubs } = await supabase
+                        .from('hubs')
+                        .select('name, latitude, longitude')
+                        .eq('city', savedAddress.city)
+                        .eq('is_active', true);
+
+                    if (hubs && hubs.length > 0) {
+                        let nearest = hubs[0];
+                        let minD = calculateDistance(hubs[0].latitude, hubs[0].longitude, savedAddress.latitude, savedAddress.longitude);
+                        hubs.forEach(h => {
+                            const d = calculateDistance(h.latitude, h.longitude, savedAddress.latitude, savedAddress.longitude);
+                            if (d < minD) {
+                                minD = d;
+                                nearest = h;
+                            }
+                        });
+                        pickupLocation = nearest.name;
+                    }
+                }
+
+                const { data: earnings, error: earningsError } = await supabase.rpc('calculate_rider_earning', {
+                    dist_km: parseFloat(distance.toFixed(2)),
+                    amount: finalAmount
+                });
+
+                if (!earningsError && earnings !== null) {
+                    riderEarnings = parseFloat(earnings);
+                } else {
+                    console.error("Rider earnings RPC failed, using 0 fallback:", earningsError);
+                }
+            } catch (err) {
+                console.error("Failed to calculate dynamic data:", err);
+            }
+
+            const createOrderDirectly = async (aid: string, rcvAmt: number, hldAmt: number) => {
+                const payload = {
                     user_id: userId,
-                    amount: cleanedReceiveAmount, // What user receives
-                    total_amount: cleanedHoldAmount, // What is deducted/held from wallet
-                    address_id: addressId,
+                    address_id: aid,
+                    zone_id: zoneId, // Tagging with the zone_id from RPC
+                    amount: rcvAmt, // What user receives
+                    total_amount: hldAmt, // What is deducted/held from wallet
+                    payment_mode: 'WALLET',
                     order_type: 'FX_EXCHANGE',
-                    transaction_type: 'held',
+                    currency: 'INR',
+                    status: 'pending',
+                    type: 'fx',
+                    rider_earnings: riderEarnings,
+                    pickup_location: pickupLocation,
+                    delivery_location: `POINT(${savedAddress?.longitude || 0} ${savedAddress?.latitude || 0})`,
+                    otp_code: Math.floor(100000 + Math.random() * 900000).toString(),
                     delivery_fee: deliveryFee,
-                    platform_fee: platformFee,
+                    service_fee: platformFee, // Mapped from platformFee
                     gst: gst,
                     delivery_tip: tipAmount,
                     reward_points: rewardPointsValue,
                     meta_data: {
                         is_fx: true,
-                        receive_amount: cleanedReceiveAmount,
-                        hold_amount: cleanedHoldAmount,
+                        receive_amount: rcvAmt,
+                        hold_amount: hldAmt,
                         from_currency: fromCurrency,
                         to_currency: toCurrency,
                         fx_rate: fxRate,
@@ -299,113 +386,108 @@ const FxExchangeSummary = () => {
                         base_rate: fxRate,
                         markup: markupAmount,
                         delivery_fee: deliveryFee,
-                        platform_fee: platformFee,
+                        service_fee: platformFee,
                         gst: gst,
                         delivery_tip: tipAmount,
                         reward_points: rewardPointsValue,
-                        quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK'
+                        delivery_address: getAddressDisplay(), // Text version for safety
+                        quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK',
+                        client_source: 'frontend_v1'
+                    }
+                };
+
+                console.log("Inserting FX order directly:", payload);
+
+                console.log("FINAL ORDER PAYLOAD (FX):", payload);
+
+                const { data, error } = await supabase
+                    .from('orders')
+                    .insert([payload])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Supabase FX Insert Error:', error);
+                    throw new Error(`Database error: ${error.message || "Failed to insert order"}`);
+                }
+
+                if (!data) {
+                    throw new Error("FX Order creation failed: No data returned from database.");
+                }
+
+                return data;
+            };
+
+            try {
+                const orderData = await createOrderDirectly(addressId, cleanedReceiveAmount, cleanedHoldAmount);
+                const finalOrderId = orderData.id;
+
+                navigate(`/fx-success/${finalOrderId}`, {
+                    state: {
+                        totalAmount: amount,
+                        receiveAmount: receiveAmount,
+                        savedAddress: savedAddress,
+                        order: orderData,
+                        isFx: true
+                    }
+                });
+            } catch (orderError: any) {
+                console.error("First FX order attempt failed:", orderError);
+
+                // Handle Stale Address ID (Foreign Key Violation)
+                const isAddressError = orderError.message?.toLowerCase().includes('foreign key') ||
+                    orderError.message?.toLowerCase().includes('address_id') ||
+                    orderError.code === '23503';
+
+                if (isAddressError && savedAddress) {
+                    console.log("Stale address ID detected. Creating new address record...");
+                    try {
+                        const newAddress = await createAddress({
+                            user_id: userId,
+                            label: savedAddress.tag,
+                            apartment: savedAddress.house,
+                            area: savedAddress.area,
+                            landmark: savedAddress.landmark || "",
+                            city: savedAddress.city,
+                            state: savedAddress.state,
+                            plus_code: savedAddress.plusCode || null,
+                            latitude: 0,
+                            longitude: 0,
+                            contact_name: savedAddress.name,
+                            contact_phone: savedAddress.phone
+                        });
+
+                        const newAddressId = newAddress.id;
+                        const updatedAddr = { ...savedAddress, id: newAddressId };
+                        setSavedAddress(updatedAddr);
+                        localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
+
+                        const retryData = await createOrderDirectly(newAddressId, cleanedReceiveAmount, cleanedHoldAmount);
+                        const finalRetryOrderId = retryData.id;
+
+                        if (finalRetryOrderId) {
+                            navigate(`/fx-success/${finalRetryOrderId}`, {
+                                state: {
+                                    totalAmount: amount,
+                                    receiveAmount: receiveAmount,
+                                    savedAddress: updatedAddr,
+                                    order: retryData,
+                                    isFx: true
+                                }
+                            });
+                            return; // Success after retry
+                        }
+                    } catch (retryErr: any) {
+                        console.error("Retry failed", retryErr);
+                        throw new Error(`Retry failed: ${retryErr.message}`);
                     }
                 }
-            });
 
-            if (invokeError) {
-                throw new Error(invokeError.message || 'Failed to place order');
+                throw orderError;
             }
-
-            if (!orderData?.success) {
-                throw new Error(orderData?.error || 'Failed to place order');
-            }
-
-            const finalOrderId = orderData?.order?.order_id || orderData?.order?.id || orderData?.order_id || orderData?.id;
-
-            // Using orderData.order_id as returned by the Edge Function
-            navigate(`/fx-success/${finalOrderId}`, {
-                state: {
-                    totalAmount: amount,
-                    receiveAmount: receiveAmount,
-                    savedAddress: savedAddress,
-                    order: { id: finalOrderId, ...orderData }, // Pass basic info, FxSuccess will fetch full details
-                    isFx: true
-                }
-            });
         } catch (error: any) {
-            // Retry Logic: If address ID is invalid (FK violation), try to create a new address record
-            if (error?.code === '23503' || error?.message?.includes('foreign key constraint') || error?.message?.includes('Address not found') || error?.message?.includes('Invalid request')) {
-                console.log("Stale address ID detected. Creating new address record...");
-                try {
-                    const userId = await getAuthUserId();
-                    if (!savedAddress) throw new Error("No address data to recreate.");
-
-                    const newAddress = await createAddress({
-                        user_id: userId,
-                        label: savedAddress.tag,
-                        apartment: savedAddress.house,
-                        area: savedAddress.area,
-                        landmark: savedAddress.landmark || "",
-                        city: savedAddress.city,
-                        state: savedAddress.state,
-                        plus_code: savedAddress.plusCode || null,
-                        latitude: 0,
-                        longitude: 0,
-                        contact_name: savedAddress.name,
-                        contact_phone: savedAddress.phone
-                    });
-
-                    const newAddressId = newAddress.id;
-                    const updatedAddr = { ...savedAddress, id: newAddressId };
-                    setSavedAddress(updatedAddr);
-                    localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
-
-                    const receiveAmount = finalAmount - tipAmount;
-                    const cleanedReceiveAmount = Math.round(receiveAmount * 100) / 100;
-                    const cleanedHoldAmount = Math.round(holdAmount * 100) / 100;
-
-                    const { data: retryData, error: retryInvokeError } = await supabase.functions.invoke('create-order', {
-                        body: {
-                            user_id: userId,
-                            amount: cleanedReceiveAmount,
-                            total_amount: cleanedHoldAmount,
-                            address_id: newAddressId,
-                            order_type: 'FX_EXCHANGE',
-                            transaction_type: 'held',
-                            meta_data: {
-                                is_fx: true,
-                                receive_amount: cleanedReceiveAmount,
-                                hold_amount: cleanedHoldAmount,
-                                from_currency: fromCurrency,
-                                to_currency: toCurrency,
-                                fx_rate: fxRate,
-                                markup_amount: markupAmount,
-                                flat_fee: flatFee,
-                                source_amount: amount,
-                                base_rate: fxRate,
-                                markup: markupAmount,
-                            }
-                        }
-                    });
-
-                    if (retryInvokeError) throw retryInvokeError;
-                    if (retryData?.error) throw new Error(retryData.error);
-
-                    const finalRetryOrderId = retryData?.order?.order_id || retryData?.order?.id || retryData?.order_id || retryData?.id;
-
-                    navigate(`/fx-success/${finalRetryOrderId}`, {
-                        state: {
-                            totalAmount: amount,
-                            receiveAmount: receiveAmount,
-                            savedAddress: updatedAddr,
-                            order: { id: finalRetryOrderId, ...retryData },
-                            isFx: true
-                        }
-                    });
-                    return; // Success after retry
-                } catch (retryError) {
-                    console.error("Retry failed", retryError);
-                }
-            }
-
-            console.error("Failed to create order", error);
-            showToaster(`Failed to place order: ${error.message || "Please try again."} `, 'error');
+            console.error("Final catch in handlePay (FX):", error);
+            showToaster(`Failed to place order: ${error.message || "Please try again."}`, 'error');
         }
     };
 
