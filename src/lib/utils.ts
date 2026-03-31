@@ -24,3 +24,22 @@ export const HUB_COORDS = {
   CASH: { lat: 12.9345, lng: 77.6101 }, // Koramangala Hub
   FX: { lat: 12.9784, lng: 77.6408 }    // Currency Hub
 };
+
+/**
+ * Normalizes locality names to their respective city names
+ */
+export const normalizeCity = (city: string): string => {
+  const cityMap: Record<string, string> = {
+    'Dispur': 'Guwahati',
+    'Khanapara': 'Guwahati',
+    'Jalukbari': 'Guwahati',
+    'Laban': 'Shillong',
+    'Mawlai': 'Shillong',
+    'Whitefield': 'Bangalore',
+    'Koramangala': 'Bangalore',
+    'Indiranagar': 'Bangalore',
+    'Electronic City': 'Bangalore',
+  }
+  return cityMap[city] || city
+}
+

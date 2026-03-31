@@ -27,6 +27,18 @@ export interface Order {
   // Join fields
   addresses?: Address;
   address?: Address; // Fallback for some components
+  rider?: {
+    id: string;
+    full_name: string;
+    email?: string;
+    phone_number?: string;
+    kyc_dob?: string;
+    kyc_gender?: string;
+    kyc_type?: string; 
+    kyc_number?: string;
+    kyc_photo?: string;
+    kyc_id_url?: string;
+  };
 }
 
 // Internal helper to fetch addresses for a list of orders
@@ -61,7 +73,7 @@ const normalizeOrder = (o: any, type: 'CASH_ORDER' | 'FX_EXCHANGE'): Order => ({
 export const fetchRecentOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
-    .select('*')
+    .select('*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(5);
@@ -75,7 +87,7 @@ export const fetchRecentOrders = async (userId: string) => {
 export const getOrderById = async (orderId: string) => {
   const { data: orderData, error } = await supabase
     .from('orders')
-    .select('*')
+    .select('*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -93,21 +105,12 @@ export const getOrderById = async (orderId: string) => {
   return orderData;
 };
 
-export const dev_updateOrderStatus = async (orderId: string, status: 'success' | 'failed' | 'cancelled', userId?: string) => {
-  if (!import.meta.env.DEV) return;
 
-  const { error } = await supabase
-    .from('orders')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', orderId);
-
-  if (error) throw error;
-};
 
 export const fetchActiveOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
-    .select('*')
+    .select('*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)')
     .eq('user_id', userId)
     .in('status', ['processing', 'out_for_delivery', 'arrived', 'pending', 'accepted', 'picked_up'])
     .order('updated_at', { ascending: false });
@@ -132,17 +135,65 @@ export const fetchPastOrders = async (userId: string) => {
   return ordersWithAddresses;
 };
 
-export const cancelOrder = async (orderId: string) => {
+export const cancelOrder = async (orderId: string, reasonType: string, reasonText: string) => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  const userId = session.user.id;
 
-  const { data, error } = await supabase.rpc('cancel_order', {
-    p_order_id: orderId,
-    p_user_id: session.user.id
+  console.log('Attempting to cancel orderId:', orderId);
+
+  // 1. Fetch order details for refund calculation (Total Payable)
+  const { data: order, error: fetchError } = await supabase
+    .from('orders')
+    .select('id, user_id, status, total_amount, amount') // Using total_amount as fallback if total_payable isn't found
+    .eq('id', orderId)
+    .single();
+
+  if (fetchError || !order) throw new Error("Order not found");
+  if (order.status === 'delivered' || order.status === 'picked_up') {
+    throw new Error("This order cannot be cancelled anymore.");
+  }
+
+  // 2. Perform cancellation update
+  const { data: updatedOrder, error: updateError } = await supabase
+    .from('orders')
+    .update({ 
+      status: 'cancelled',
+      cancelled_by: 'user',
+      cancelled_at: new Date().toISOString(),
+      cancel_reason_type: reasonType,
+      cancel_reason_text: reasonText
+    })
+    .eq('id', orderId)
+    .select()
+    .single();
+
+  if (updateError) throw updateError;
+
+  // 3. Process Refund (Total Payable: total_amount)
+  const refundAmount = order.total_amount || order.amount;
+  
+  // Update wallet balance
+  const { error: walletError } = await supabase.rpc('increment_wallet_balance', {
+    p_user_id: userId,
+    p_amount: refundAmount
   });
 
-  if (error) throw error;
-  if (data?.success === false) throw new Error(data.error || 'Failed to cancel order');
+  if (walletError) {
+    console.error("Wallet refund failed, but order was cancelled. Manual intervention required:", walletError);
+  } else {
+    // 4. Create single transaction record
+    await supabase.from('wallet_transactions').insert({
+      user_id: userId,
+      order_id: orderId,
+      amount: refundAmount,
+      type: 'refund',
+      description: `Refund for Order #${orderId.slice(0, 8).toUpperCase()}: +₹${refundAmount}`,
+      status: 'success'
+    });
+  }
+
+  return updatedOrder;
 };
 
 export const deliverOrder = async (orderId: string, userId: string, isFx: boolean = false) => {

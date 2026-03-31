@@ -34,7 +34,7 @@ import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import Map, { Marker } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { calculateDistance, HUB_COORDS } from "@/lib/utils";
+import { calculateDistance, HUB_COORDS, normalizeCity } from "@/lib/utils";
 
 interface SavedAddress {
     id?: string;
@@ -59,7 +59,7 @@ const FxExchangeSummary = () => {
     const { showToaster } = useCustomToaster();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
-    const { walletBalance, rewardPoints: availableRewardPoints } = useUser();
+    const { walletBalance, rewardPoints: availableRewardPoints, refreshBalance } = useUser();
 
     // Accept full FX state
     const {
@@ -299,13 +299,28 @@ const FxExchangeSummary = () => {
                 return;
             }
 
+            // NEW: Wallet Hold - Moves available_balance -> held_balance before order insert
+            const { error: holdError } = await supabase.rpc('wallet_hold', {
+                p_user_id: userId,
+                p_amount: totalAmount,
+                p_order_id: null,
+                p_description: 'Order Placement Hold (FX)'
+            });
+
+            if (holdError) {
+                console.error("Wallet hold failed:", holdError);
+                showToaster(holdError.message || "Failed to secure funds. Please check your balance.", 'error');
+                return;
+            }
+
+
             const receiveAmount = finalAmount - tipAmount;
             const cleanedReceiveAmount = Math.round(receiveAmount * 100) / 100;
             const cleanedHoldAmount = Math.round(holdAmount * 100) / 100;
 
             // Calculate Dynamic Rider Earnings
             let riderEarnings = 0;
-            let pickupLocation = "Exchange Hub"; // Generic fallback
+            let pickupLocation: string | null = null; // Changed to null by default, expecting UUID
 
             try {
                 let distance = 1.2;
@@ -320,8 +335,8 @@ const FxExchangeSummary = () => {
                     // NEW: Fetch nearest active hub for the user's city
                     const { data: hubs } = await supabase
                         .from('hubs')
-                        .select('name, latitude, longitude')
-                        .eq('city', savedAddress.city)
+                        .select('id, location_name, latitude, longitude')
+                        .eq('city', normalizeCity(savedAddress.city))
                         .eq('is_active', true);
 
                     if (hubs && hubs.length > 0) {
@@ -334,13 +349,13 @@ const FxExchangeSummary = () => {
                                 nearest = h;
                             }
                         });
-                        pickupLocation = nearest.name;
+                        pickupLocation = nearest.id;
                     }
                 }
 
                 const { data: earnings, error: earningsError } = await supabase.rpc('calculate_rider_earning', {
                     dist_km: parseFloat(distance.toFixed(2)),
-                    amount: finalAmount
+                    cash_amount: finalAmount
                 });
 
                 if (!earningsError && earnings !== null) {
@@ -421,6 +436,9 @@ const FxExchangeSummary = () => {
             try {
                 const orderData = await createOrderDirectly(addressId, cleanedReceiveAmount, cleanedHoldAmount);
                 const finalOrderId = orderData.id;
+
+                // Refresh balance after successful order & hold
+                await refreshBalance();
 
                 navigate(`/fx-success/${finalOrderId}`, {
                     state: {

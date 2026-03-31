@@ -27,7 +27,7 @@ import { supabase, USER_ID } from "@/lib/supabase";
 import { createAddress, getAuthUserId } from "@/lib/addresses";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
-import { calculateDistance, HUB_COORDS } from "@/lib/utils";
+import { calculateDistance, HUB_COORDS, normalizeCity } from "@/lib/utils";
 
 interface SavedAddress {
     id?: string;
@@ -53,7 +53,7 @@ const OrderCashSummary = () => {
     const { amount } = location.state || { amount: "0.00" };
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { walletBalance, rewardPoints: rewardPointsData } = useUser();
+    const { walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isPayOpen, setIsPayOpen] = useState(false);
     const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
@@ -280,11 +280,26 @@ const OrderCashSummary = () => {
                 return;
             }
 
+            // NEW: Wallet Hold - Moves available_balance -> held_balance before order insert
+            const { error: holdError } = await supabase.rpc('wallet_hold', {
+                p_user_id: userId,
+                p_amount: totalAmount,
+                p_order_id: null,
+                p_description: 'Order Placement Hold'
+            });
+
+            if (holdError) {
+                console.error("Wallet hold failed:", holdError);
+                showToaster(holdError.message || "Failed to secure funds. Please check your balance.", 'error');
+                return;
+            }
+
+
             const cleanedAmount = Math.round(totalAmount * 100) / 100;
 
             // Calculate Dynamic Rider Earnings
             let riderEarnings = 0; 
-            let pickupLocation = "Partner Hub"; // Generic fallback until lookup
+            let pickupLocation: string | null = null; // Changed to null by default, expecting UUID
             
             try {
                 let distance = 1.2;
@@ -299,8 +314,8 @@ const OrderCashSummary = () => {
                     // NEW: Fetch nearest active hub for the user's city
                     const { data: hubs } = await supabase
                         .from('hubs')
-                        .select('name, latitude, longitude')
-                        .eq('city', savedAddress.city)
+                        .select('id, location_name, latitude, longitude')
+                        .eq('city', normalizeCity(savedAddress.city))
                         .eq('is_active', true);
                         
                     if (hubs && hubs.length > 0) {
@@ -313,13 +328,13 @@ const OrderCashSummary = () => {
                                 nearest = h;
                             }
                         });
-                        pickupLocation = nearest.name;
+                        pickupLocation = nearest.id;
                     }
                 }
 
                 const { data: earnings, error: earningsError } = await supabase.rpc('calculate_rider_earning', {
                     dist_km: parseFloat(distance.toFixed(2)),
-                    amount: parsedAmount
+                    cash_amount: parsedAmount
                 });
 
                 if (!earningsError && earnings !== null) {
@@ -337,7 +352,7 @@ const OrderCashSummary = () => {
                 zone_id: zoneId, // Tagging with the zone_id from RPC
                 amount: parsedAmount, // Cash amount to be picked up
                 total_amount: cleanedAmount, // Total payable
-                payment_mode: 'CASH',
+                payment_mode: 'WALLET',
                 order_type: 'CASH_ORDER',
                 currency: 'INR',
                 status: 'pending',
@@ -394,6 +409,9 @@ const OrderCashSummary = () => {
 
                 const orderData = await createOrderDirectly(addressId!);
                 const orderId = orderData.id;
+
+                // Refresh balance after successful order & hold
+                await refreshBalance();
 
                 navigate(`/order-details/${orderId}`, {
                     state: {

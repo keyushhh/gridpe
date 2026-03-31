@@ -5,7 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { ChevronLeft, Bike } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { OpenLocationCode } from "open-location-code";
-import { Order, dev_updateOrderStatus } from "@/lib/orders";
+import { Order } from "@/lib/orders";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -82,10 +82,15 @@ const OrderTracking = () => {
 
         // Fetch rider details if assigned
         if (order.rider_id) {
+            // Check if we already have the rider info from the joined order
+            if (order.rider?.full_name) {
+                setRiderName(order.rider.full_name);
+            }
+
             const fetchRider = async () => {
                 const { data, error } = await supabase
                     .from('riders')
-                    .select('full_name')
+                    .select('full_name, phone_number')
                     .eq('id', order.rider_id)
                     .single();
 
@@ -224,50 +229,7 @@ const OrderTracking = () => {
             {!isDarkMode && (
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
-            {/* DEV CONTROLS */}
-            {import.meta.env.DEV && (
-                <div className="fixed top-24 right-4 z-[9999] flex flex-col gap-2 bg-black/90 p-2 rounded-lg border border-red-500/50 shadow-xl pointer-events-auto">
-                    <span className="text-white text-[10px] font-bold text-center border-b border-white/20 pb-1">DEV CONTROLS</span>
-                    <button
-                        onClick={async () => {
-                            if (!order) return;
-                            try {
-                                await dev_updateOrderStatus(order.id, 'success');
-                            } catch (e) {
-                                console.error("Dev update failed", e);
-                            }
-                            setOrder({ ...order, status: 'success' });
-                            navigate('/order-delivered', { state: { order: { ...order, status: 'success' } } });
-                        }}
-                        className="px-2 py-1 bg-green-600 text-white text-[10px] rounded hover:bg-green-500"
-                    >
-                        Set Success & End
-                    </button>
-                    <button
-                        onClick={async () => {
-                            if (!order) return;
-                            try {
-                                await dev_updateOrderStatus(order.id, 'cancelled');
-                            } catch (e) {
-                                console.error("Dev update failed", e);
-                            }
-                            setOrder({ ...order, status: 'cancelled' });
-                            navigate(`/order-details/${order.id}`, { state: { order: { ...order, status: 'cancelled' } } });
-                        }}
-                        className="px-2 py-1 bg-gray-600 text-white text-[10px] rounded hover:bg-gray-500"
-                    >
-                        Set Cancelled
-                    </button>
-                    <button
-                        onClick={() => {
-                            navigate('/delivery-caution', { state: { order } });
-                        }}
-                        className="px-2 py-1 bg-yellow-600 text-white text-[10px] rounded hover:bg-yellow-500"
-                    >
-                        Trigger Caution
-                    </button>
-                </div>
-            )}
+
 
             {/* Header Overlay */}
             <div className="fixed top-0 left-0 right-0 z-10 pointer-events-none">
@@ -321,9 +283,7 @@ const OrderTracking = () => {
                     </Marker>
 
                     <Marker latitude={riderLat} longitude={riderLng}>
-                        <div className="bg-[#5260FE] p-2 rounded-full border-2 border-white shadow-lg transform -rotate-[30deg]">
-                            <Bike className="w-5 h-5 text-white" />
-                        </div>
+                        <img src={riderIcon} alt="Rider" className="w-8 h-8 drop-shadow-md" />
                     </Marker>
                 </Map>
             </div>
@@ -393,7 +353,7 @@ const OrderTracking = () => {
                 <div
                     className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[9px] overflow-hidden"
                     style={{
-                        height: "370px",
+                        height: "340px",
                         maxWidth: "362px",
                         backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
                         backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
@@ -420,7 +380,7 @@ const OrderTracking = () => {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        Hi, I’m {riderName || (order?.rider_id ? 'Assigning...' : 'Partner')},<br />
+                                        Hi, I’m {riderName || order?.rider?.full_name || (order?.rider_id ? 'Assigning...' : 'Partner')},<br />
                                         your delivery partner
                                     </p>
                                 </div>

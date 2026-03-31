@@ -133,13 +133,6 @@ const OrderCash = () => {
           </p>
         )}
 
-        {/* Wallet Limit Reached Message */}
-        {isWalletLimitReached && (
-          <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px] text-center px-10">
-            Wallet limit reached. Please upgrade your wallet to continue.
-          </p>
-        )}
-
         {/* Pills */}
         <div className="flex gap-4 mb-8">
           {["500", "1000", "1500"].map((val) => (
@@ -244,10 +237,10 @@ const OrderCash = () => {
               <div className="w-full mt-[32px]">
                 <Button
                   onClick={() => navigate("/order-cash-summary", { state: { amount } })}
-                  disabled={parseFloat(amount) < 500 || parseFloat(amount) > walletBalance || isWalletLimitReached}
+                  disabled={parseFloat(amount) < 500 || parseFloat(amount) > walletBalance}
                   className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isWalletLimitReached ? "Wallet Locked" : parseFloat(amount) > walletBalance ? "Insufficient Balance" : "Place Order"}
+                  {parseFloat(amount) > walletBalance ? "Insufficient Balance" : "Place Order"}
                 </Button>
               </div>
             </div>

@@ -21,7 +21,7 @@ import closeIcon from "@/assets/cross-icon.svg";
 import cancelIcon from "@/assets/cancel-ico.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
-import { Order, dev_updateOrderStatus, getOrderById, cancelOrder as lib_cancelOrder } from "@/lib/orders";
+import { Order, getOrderById, cancelOrder as lib_cancelOrder } from "@/lib/orders";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 
@@ -200,22 +200,22 @@ const OrderDetails = () => {
         if (!order) return;
 
         try {
-            const reasonText = cancelReason === 5 ? otherReason : cancelReasons[cancelReason || 0];
+            const reasonType = cancelReasons[cancelReason || 0];
+            const reasonText = cancelReason === 5 ? otherReason : reasonType;
 
-            const metadata = {
-                ...(order.metadata || {}),
-                cancelled_by: 'user',
-                cancel_reason_type: reasonText,
-                cancelled_at: new Date().toISOString()
-            };
-
-            await lib_cancelOrder(order.id);
+            await lib_cancelOrder(order.id, reasonType, reasonText);
 
             // Optimistic update
             setOrder({
                 ...order,
                 status: 'cancelled',
-                metadata
+                metadata: {
+                    ...(order.metadata || {}),
+                    cancelled_by: 'user',
+                    cancel_reason_type: reasonType,
+                    cancel_reason_text: reasonText,
+                    cancelled_at: new Date().toISOString()
+                }
             });
             setShowCancelPopup(false);
 
@@ -351,52 +351,7 @@ const OrderDetails = () => {
                 <div className={`absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0 ${['success', 'delivered', 'processing', 'pending', 'out_for_delivery', 'arrived'].includes(order?.status || '') ? 'bg-[#0D992F]' : 'bg-[#FF3B30]'}`} />
                 // Using Red for failed/cancelled to be semantic, Green for success/processing/pending/etc.
             )}
-            {/* DEV CONTROLS */}
-            {import.meta.env.DEV && (
-                <div className="fixed top-24 right-4 z-[9999] flex flex-col gap-2 bg-black/90 p-2 rounded-lg border border-red-500/50 shadow-xl pointer-events-auto">
-                    <span className="text-white text-[10px] font-bold text-center border-b border-white/20 pb-1">DEV CONTROLS</span>
-                    <button
-                        onClick={async () => {
-                            try {
-                                await dev_updateOrderStatus(order.id, 'success', order.user_id);
-                                await refreshBalance(order.user_id);
-                            } catch (e) {
-                                console.error("Dev update failed (likely RLS), proceeding with local mock", e);
-                            }
-                            setOrder({ ...order, status: 'success' });
-                        }}
-                        className="px-2 py-1 bg-green-600 text-white text-[10px] rounded hover:bg-green-500"
-                    >
-                        Set Success
-                    </button>
-                    <button
-                        onClick={async () => {
-                            try {
-                                await dev_updateOrderStatus(order.id, 'failed');
-                            } catch (e) {
-                                console.error("Dev update failed (likely RLS), proceeding with local mock", e);
-                            }
-                            setOrder({ ...order, status: 'failed' });
-                        }}
-                        className="px-2 py-1 bg-red-600 text-white text-[10px] rounded hover:bg-red-500"
-                    >
-                        Set Failed
-                    </button>
-                    <button
-                        onClick={async () => {
-                            try {
-                                await dev_updateOrderStatus(order.id, 'cancelled');
-                            } catch (e) {
-                                console.error("Dev update failed (likely RLS), proceeding with local mock", e);
-                            }
-                            setOrder({ ...order, status: 'cancelled', metadata: { ...order.metadata, cancel_reason_type: 'Simulated dev cancellation' } as any });
-                        }}
-                        className="px-2 py-1 bg-gray-600 text-white text-[10px] rounded hover:bg-gray-500"
-                    >
-                        Set Cancelled
-                    </button>
-                </div>
-            )}
+
 
             {/* Header */}
             <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-[21px] relative">

@@ -420,12 +420,11 @@ const FxExchange = () => {
                     </span>
 
                     <p className={`absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi w-[85%] leading-tight ${isDarkMode ? "text-white" : "text-black"}`}>
-                        {isWalletLimitReached
-                            ? "Wallet limit reached. Please upgrade your wallet to continue with cash/FX orders."
-                            : hasInsufficientFunds
-                                ? "Note: Your wallet has insufficient funds for this transaction. Please add money to continue."
-                                : "Note: Your wallet balance must cover the converted amount to proceed."}
+                        {hasInsufficientFunds
+                            ? "Note: Your wallet has insufficient funds for this transaction. Please add money to continue."
+                            : "Note: Your wallet balance must cover the converted amount to proceed."}
                     </p>
+
                 </div>
             </div>
 
@@ -436,7 +435,7 @@ const FxExchange = () => {
                 </p>
                 <button
                     className={`w-full h-[48px] bg-[#5260FE] rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? "shadow-[#5260FE]/20 text-white" : "shadow-[#5260FE]/30 text-white"} disabled:opacity-50 disabled:cursor-not-allowed`}
-                    disabled={isWalletLimitReached}
+                    disabled={false}
                     onClick={() => {
                         if (hasInsufficientFunds) {
                             navigate('/wallet-add-money');
@@ -458,8 +457,9 @@ const FxExchange = () => {
                         }
                     }}
                 >
-                    {isWalletLimitReached ? "Wallet Locked" : hasInsufficientFunds ? "Add Money to Wallet" : "Proceed to Order"}
+                    {hasInsufficientFunds ? "Add Money to Wallet" : "Proceed to Order"}
                 </button>
+
             </div>
 
             {/* Modals */}

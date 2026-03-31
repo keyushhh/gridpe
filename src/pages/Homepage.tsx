@@ -72,8 +72,8 @@ const Homepage = () => {
   const orderCashBg = useAsset("order-cash-bg");
   const circleButtonBg = useAsset("circle-button-bg");
   const bannerBg = useAsset("banner-bg");
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === 'dark';
   const [showBalance, setShowBalance] = useState(false);
   const { walletBalance, walletTier, isPassportVerified, profileImage, name, scheduledDowngrade } = useUser();
   const [balanceAlert, setBalanceAlert] = useState<{ days: number; excess: number; targetTier: string } | null>(null);
@@ -388,7 +388,18 @@ const Homepage = () => {
 
   const getActiveOrderBannerContent = () => {
     if (!activeOrder) return { title: "", sub: "" };
-    switch (activeOrder.status) {
+    switch (activeOrder.status.toLowerCase()) {
+      case 'pending':
+        return {
+          title: <>We’re assigning a delivery<br />partner soon!</>,
+          sub: "Assigning a delivery partner in the next 2 minutes."
+        };
+      case 'accepted':
+        const riderName = (activeOrder as any).rider?.full_name || "Rider";
+        return {
+          title: <>Rider is on the way to pickup!</>,
+          sub: `${riderName} is heading to the store.`
+        };
       case 'processing':
         return isRiderAssigned ? {
           title: <>Rider Assigned</>,
@@ -398,6 +409,7 @@ const Homepage = () => {
           sub: "Assigning a delivery partner in the next 2 minutes."
         };
       case 'out_for_delivery':
+      case 'picked_up':
         return {
           title: <>Partner is on the way!</>,
           sub: "Your delivery partner has picked up your order."
@@ -451,14 +463,18 @@ const Homepage = () => {
     }
   };
 
+  const hasValidCoords = Boolean(activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude);
+  const mapCenterLat = Number(activeOrder?.addresses?.latitude || 12.9716);
+  const mapCenterLng = Number(activeOrder?.addresses?.longitude || 77.5946);
+
   const routeGeoJson = {
     type: "Feature" as const,
     properties: {},
     geometry: {
       type: "LineString" as const,
       coordinates: [
-        [viewState.longitude, viewState.latitude],
-        [viewState.longitude + 0.002, viewState.latitude + 0.002],
+        [mapCenterLng, mapCenterLat],
+        [mapCenterLng + 0.002, mapCenterLat + 0.002],
       ],
     },
   };
@@ -656,81 +672,67 @@ const Homepage = () => {
             </div>
 
             {/* Active Order OR Referral Banner */}
-            {activeOrder ? (
-              <div
-                className="mx-5 mt-6 mb-[16px] relative rounded-[13px] overflow-hidden flex flex-col"
-                style={{
-                  background: 'linear-gradient(#000000, #000000) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box',
-                  border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
-                  paddingTop: '8px',
-                }}
-              >
-                <div className="w-full px-[16px] flex justify-between items-start mb-2 z-10 shrink-0">
-                  <span className="text-white text-[12px] font-medium font-satoshi whitespace-nowrap mr-2">
-                    Delivering to - {activeOrder.addresses?.label || "Home"}
-                  </span>
-                  <span className="text-white text-[12px] font-medium font-satoshi text-right leading-tight truncate">
-                    {getActiveOrderAddressDisplay()}
-                  </span>
-                </div>
+             {activeOrder ? (
+               <div className="mx-5 mt-6 mb-[16px] flex flex-col gap-0 animate-in fade-in slide-in-from-top-4 duration-500">
+                 {/* Header: Delivering To */}
+                 <div className="bg-black py-[10px] px-[16px] rounded-t-[13px] flex justify-between items-center z-10">
+                   <p className="text-white text-[12px] font-medium font-satoshi tracking-wider">
+                     Delivering to - {activeOrder.addresses?.label || "Home"}
+                   </p>
+                   <p className="text-white/70 text-[11px] font-medium font-satoshi truncate ml-4">
+                     {getActiveOrderAddressDisplay()}
+                   </p>
+                 </div>
 
-                <div
-                  className={`w-full relative flex cursor-pointer p-[14px] items-center ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}
-                  onClick={() => navigate(`/order-tracking`, { state: { order: activeOrder } })}
-                >
-                  <div className="flex-1 flex flex-col justify-start pr-2">
-                    <p className={`text-[14px] font-medium font-satoshi leading-tight mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                      {getActiveOrderBannerContent().title}
-                    </p>
-                    <p className={`text-[12px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#7E7E7E]'}`}>
-                      {getActiveOrderBannerContent().sub}
-                    </p>
-                  </div>
+                 {/* Body: Order Details & Map */}
+                 <div
+                   className={`p-[16px] flex items-center justify-between rounded-b-[13px] border-x border-b ${isDarkMode ? 'bg-[#121212] border-white/10' : 'bg-white border-[#E9EAEB]'} cursor-pointer active:scale-[0.99] transition-all`}
+                   onClick={() => navigate(`/order-tracking`, { state: { order: activeOrder } })}
+                 >
+                   <div className="flex-1 pr-4">
+                     <h4 className={`text-[15px] font-bold font-satoshi leading-tight mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                       {getActiveOrderBannerContent().title}
+                     </h4>
+                     <p className={`text-[12px] font-medium font-satoshi leading-snug ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
+                       {getActiveOrderBannerContent().sub}
+                     </p>
+                   </div>
 
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/order-tracking', { state: { order: activeOrder } });
-                    }}
-                    className="shrink-0 relative rounded-[6px] overflow-hidden cursor-pointer active:scale-95 transition-transform"
-                    style={{
-                      width: "98px",
-                      height: "68px",
-                      backgroundColor: "#1A1A1A"
-                    }}
-                  >
-                    <Map
-                      {...viewState}
-                      style={{ width: "100%", height: "100%" }}
-                      mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-                      attributionControl={false}
-                      interactive={false}
-                    >
-                      {isRiderAssigned && (
-                        <Source id="route" type="geojson" data={routeGeoJson}>
-                          <Layer {...routeLayer} />
-                        </Source>
-                      )}
+                   {/* Map Preview */}
+                   <div 
+                     className="shrink-0 w-[96px] h-[64px] rounded-[8px] overflow-hidden relative border border-black/5"
+                     style={{ backgroundColor: isDarkMode ? '#1a1a1a' : '#f0f0f0' }}
+                   >
+                     <Map
+                       initialViewState={{
+                         latitude: mapCenterLat,
+                         longitude: mapCenterLng,
+                         zoom: 14,
+                       }}
+                       style={{ width: '100%', height: '100%' }}
+                       mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+                       attributionControl={false}
+                       interactive={false}
+                     >
+                       <Marker latitude={mapCenterLat} longitude={mapCenterLng}>
+                         <div className="animate-pulse">
+                           <img src={currentLocationIcon} alt="User" className="w-4 h-4" />
+                         </div>
+                       </Marker>
 
-                      <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
-                        <div className="animate-pulse">
-                          <img src={currentLocationIcon} alt="User" className="w-4 h-4" />
-                        </div>
-                      </Marker>
-
-                      {isRiderAssigned && (
-                        <Marker
-                          latitude={viewState.latitude + 0.002}
-                          longitude={viewState.longitude + 0.002}
-                        >
-                          <img src={deliveryRiderIcon} alt="Rider" className="w-6 h-6" />
-                        </Marker>
-                      )}
-                    </Map>
-                  </div>
-                </div>
-              </div>
-            ) : (
+                       {activeOrder?.status?.toLowerCase() === 'processing' && isRiderAssigned && (
+                         <Marker
+                           latitude={mapCenterLat + 0.002}
+                           longitude={mapCenterLng + 0.002}
+                         >
+                           <img src={deliveryRiderIcon} alt="Rider" className="w-5 h-5" />
+                         </Marker>
+                       )}
+                     </Map>
+                   </div>
+                 </div>
+               </div>
+             ) : (
               <div className="mx-5 mt-6">
                 <div className="overflow-hidden" ref={emblaRef}>
                   <div className="flex gap-3">

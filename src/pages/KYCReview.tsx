@@ -109,13 +109,13 @@ const KYCReview = () => {
         .from('kyc_submissions')
         .insert({
           user_id: USER_ID,
-          document_type: documentType,
-          document_number: documentNumber,
+          kyc_type: documentType,
+          kyc_number: documentNumber,
           full_name: fullName,
-          dob: dob,
-          front_image_url: frontUrl,
+          kyc_dob: dob,
+          kyc_id_url: frontUrl,
           back_image_url: backUrl,
-          selfie_url: selfieUrl,
+          kyc_photo: selfieUrl,
           address_proof_url: addressProofUrl,
           verification_tier: verificationTier,
           status: 'pending'

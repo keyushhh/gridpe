@@ -1,22 +1,62 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import darkbgCta from "@/assets/darkbg-cta.png";
-import riderKycImg from "@/assets/rider-kyc.png";
 import hideKycImg from "@/assets/hide-kyc.png";
 import lightmodeKycCoverImg from "@/assets/lightmode-kyc-cover.png";
 import closeIcon from "@/assets/close.svg";
 import popupCloseBtnBg from "@/assets/pop-up-close-btn.png";
+import verifiedIcon from "@/assets/verified.svg";
+
+// KYC Backgrounds
+import aadharBG from "@/assets/kyc_cards_riders/aadhar_bg.png";
+import panBG from "@/assets/kyc_cards_riders/pan_bg.png";
+import driversBG from "@/assets/kyc_cards_riders/drivers_bg.png";
+import votersBG from "@/assets/kyc_cards_riders/voters_bg.png";
 
 const ViewRiderKyc = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const [isRevealed, setIsRevealed] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [rotation, setRotation] = useState(0);
+
+    const order = location.state?.order;
+    const rider = order?.rider;
+
+    if (!rider) {
+        return (
+            <div className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-4 border-t-[#5260FE] border-r-transparent border-b-[#5260FE] border-l-transparent rounded-full animate-spin"></div>
+                    <p className={`text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                        Loading Identity Data...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    const formatDate = (dateString: string | undefined) => {
+        if (!dateString) return "Not Available";
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString; // Return as-is if already formatted
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }).replace(/\//g, '/');
+        } catch (e) {
+            return "Not Available";
+        }
+    };
 
     const toggleReveal = () => {
         if (isAnimating) return;
@@ -71,29 +111,90 @@ const ViewRiderKyc = () => {
                     style={{
                         width: "316px",
                         height: "402px",
-                        backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
-                        backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
-                        border: isDarkMode ? "0.63px solid rgba(255, 255, 255, 0.12)" : "1px solid #E9EAEB",
+                        backgroundColor: isDarkMode ? "#121212" : "#FFFFFF",
+                        border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid #E9EAEB",
                         perspective: '1000px',
                         transform: `rotateY(${rotation}deg)`
                     }}
                 >
-                    {/* Main KYC Image */}
-                    <img
-                        src={riderKycImg}
-                        alt="Rider KYC"
-                        className={`w-full h-full object-cover transition-all duration-300 ${!isRevealed ? `blur-[20px] ${isDarkMode ? 'brightness-[0.25]' : 'brightness-[0.9]'}` : 'blur-0 brightness-100'}`}
-                    />
+                    {/* Dynamic KYC Card Layer */}
+                    <div className={`absolute inset-0 w-full h-full transition-all duration-300 ${!isRevealed ? `blur-[20px] ${isDarkMode ? 'brightness-[0.25]' : 'brightness-[0.9]'}` : 'blur-0 brightness-100'}`}>
+                        {/* Background */}
+                        <img
+                            src={
+                                rider?.kyc_type === 'pan' ? panBG :
+                                rider?.kyc_type === 'drivers' ? driversBG :
+                                rider?.kyc_type === 'voters' ? votersBG :
+                                aadharBG
+                            }
+                            alt="Background"
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
 
-                    {/* Overlay */}
+                        {/* Card Content Overlay */}
+                        <div className="absolute inset-0 z-10 p-5 pt-[90px] font-satoshi text-black flex flex-col">
+                            {/* Photo & Main Info Block */}
+                            <div className="flex gap-4 mb-2">
+                                {/* Rider Photo - Fixed 72x80px */}
+                                <div className="w-[72px] h-[80px] rounded-[4px] overflow-hidden border border-black/5 shrink-0 shadow-sm">
+                                    <img 
+                                        src={rider?.kyc_photo || rider?.kyc_id_url || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"} 
+                                        alt="Rider" 
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+
+                                {/* Text Details */}
+                                <div className="flex-1 flex flex-col justify-center">
+                                    <p className="text-[18px] font-bold leading-tight mb-1">{rider?.full_name || "Verification Pending"}</p>
+                                    <p className="text-[12px] font-medium opacity-80">DOB: {rider?.kyc_dob ? formatDate(rider.kyc_dob) : "Not Available"}</p>
+                                    <p className="text-[12px] font-medium opacity-80">{rider?.kyc_gender || ""}</p>
+                                </div>
+                            </div>
+
+                            {/* Spacing & Warning Box - Vertically Centered */}
+                            <div className="flex-1 flex flex-col justify-center">
+                                <div className="flex justify-between items-end gap-3">
+                                    <div className="flex-1 border border-red-500/40 bg-white/50 p-3 rounded-[4px] min-h-[95px] flex items-center">
+                                        <p className="text-[13px] font-medium leading-tight">
+                                            Please report any issues if you face while validating the KYC with the Delivery Partner.
+                                        </p>
+                                    </div>
+
+                                    {/* DYNAMIC QR CODE - Functional & Scalable */}
+                                    <div className="shrink-0 flex flex-col items-center justify-center p-[4px] bg-white rounded-[12px] shadow-sm border border-black/5 align-self-center overflow-hidden w-[80px] h-[80px]">
+                                        <QRCodeSVG
+                                            value={`https://grid.pe/report-kyc/${rider?.id || 'null'}`}
+                                            size={72}
+                                            level="H"
+                                            includeMargin={false}
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ID NUMBER - Footer Positioning */}
+                            <div className={`mt-auto pb-4 transition-all ${
+                                rider?.kyc_type === 'aadhar' 
+                                ? 'flex justify-center w-full' 
+                                : 'flex justify-start text-left'
+                            }`}>
+                                <p className={`font-bold tracking-[0.15em] ${rider?.kyc_type === 'aadhar' ? 'text-[24px] mb-[-5px]' : 'text-[18px]'}`}>
+                                    {rider?.kyc_number || "PENDING"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Reveal Overlay */}
                     {!isRevealed && !isAnimating && (
-                        <div className="absolute inset-0 z-10 transition-opacity duration-300">
+                        <div className="absolute inset-0 z-20 transition-opacity duration-300">
                             <img
                                 src={isDarkMode ? hideKycImg : lightmodeKycCoverImg}
                                 alt=""
                                 className="w-full h-full object-cover"
                             />
-                            {/* Text Overlay */}
                             <div className="absolute inset-0 flex flex-col items-center">
                                 <p className="mt-[162px] text-[18px] font-bold font-satoshi text-center flex items-center justify-center h-[22px] text-white">
                                     Tap to view verified KYC ID
