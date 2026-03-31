@@ -318,27 +318,16 @@ const Homepage = () => {
       setIsCheckingAvailability(true);
       try {
         const { data, error } = await supabase.rpc('check_service_availability', {
-          lat: Number(savedAddress.latitude) || 0,
-          lng: Number(savedAddress.longitude) || 0
+          p_lat: Number(savedAddress.latitude) || 0,
+          p_lng: Number(savedAddress.longitude) || 0
         });
 
         if (error) {
-           console.error("RPC Error (lat/lng) checking availability:", error);
-           const { data: retryData, error: retryError } = await supabase.rpc('check_service_availability', {
-             p_lat: Number(savedAddress.latitude) || 0,
-             p_lng: Number(savedAddress.longitude) || 0
-           });
-
-           if (retryError) {
-             console.error("RPC Error (p_lat/p_lng) checking availability:", retryError);
-             setIsUnserviceable(true);
-           } else {
-             setIsUnserviceable(!retryData);
-             setCurrentZoneId(retryData);
-           }
+          console.error("RPC Error checking availability:", error);
+          setIsUnserviceable(true);
         } else {
-           setIsUnserviceable(!data);
-           setCurrentZoneId(data);
+          setIsUnserviceable(!data);
+          setCurrentZoneId(data);
         }
       } catch (err) {
         console.error("Failed to check service availability:", err);

@@ -283,8 +283,8 @@ const FxExchangeSummary = () => {
 
             // Check Service Availability & Get Zone ID
             const { data: zoneId, error: zoneError } = await supabase.rpc('check_service_availability', {
-                lat: Number(savedAddress?.latitude) || 0,
-                lng: Number(savedAddress?.longitude) || 0
+                p_lat: Number(savedAddress?.latitude) || 0,
+                p_lng: Number(savedAddress?.longitude) || 0
             });
 
             if (zoneError) {
