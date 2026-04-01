@@ -124,7 +124,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
     const getStatusConfig = (status: string) => {
         const s = status.toLowerCase();
-        if (s === 'processing' || s === 'out_for_delivery' || s === 'arrived') {
+                if (s === 'processing' || s === 'out_for_delivery' || s === 'arrived' || s === 'accepted' || s === 'picked_up' || s === 'at_store') {
             return {
                 color: isDarkMode ? '#FACC15' : '#C09A00',
                 bgColor: '#FACC15',
@@ -158,7 +158,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
     const config = getStatusConfig(order.status);
     const s = order.status.toLowerCase();
-    const isProcessing = ['processing', 'out_for_delivery', 'arrived'].includes(s);
+        const isProcessing = ['processing', 'out_for_delivery', 'arrived', 'accepted', 'picked_up', 'at_store', 'pending'].includes(s);
     const isSuccess = ['success', 'delivered'].includes(s);
     const isFailed = ['failed', 'cancelled'].includes(s);
 

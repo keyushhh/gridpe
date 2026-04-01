@@ -241,7 +241,8 @@ const OnboardingScreen = () => {
     } else if (profileError) {
       console.error("Non-missing-row error fetching profile:", profileError);
       // Fallback
-      currentProfile = { id: user.id, mpin_set: false } as any;    }
+      currentProfile = { id: user.id, mpin_set: false } as any;
+    }
 
     // Profile Exists (or just created)
     if (profileData) {

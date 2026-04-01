@@ -41,6 +41,21 @@ const OrderTracking = () => {
     const [riderLocation, setRiderLocation] = useState<{ lat: number, lng: number } | null>(null);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
 
+    // Initial check for terminal order status
+    useEffect(() => {
+        if (order?.status === 'delivered') {
+            navigate('/order-delivered', {
+                replace: true,
+                state: { order }
+            });
+        } else if (order?.status === 'cancelled') {
+            navigate('/order-cancelled', {
+                replace: true,
+                state: { order }
+            });
+        }
+    }, [order?.status, navigate]);
+
     useEffect(() => {
         const activeOrder = order;
         if (activeOrder?.addresses?.plus_code) {
@@ -137,7 +152,24 @@ const OrderTracking = () => {
                     (payload: any) => {
                         console.log('Order status update:', payload);
                         if (payload.new) {
+                            const newStatus = payload.new.status;
                             setOrder(payload.new);
+
+                            // Navigate to delivered screen when order is complete
+                            if (newStatus === 'delivered') {
+                                navigate('/order-delivered', {
+                                    replace: true,
+                                    state: { order: payload.new }
+                                });
+                            }
+
+                            // Navigate to cancelled screen if cancelled
+                            if (newStatus === 'cancelled') {
+                                navigate('/order-cancelled', {
+                                    replace: true,
+                                    state: { order: payload.new }
+                                });
+                            }
                         }
                     }
                 )
@@ -190,25 +222,15 @@ const OrderTracking = () => {
     };
 
     const getStatusText = () => {
-        if (!order) return "Your order is being processed!";
+        if (!order) return "Processing...";
         switch (order.status) {
-            case 'accepted':
-                return "Rider Assigned";
-            case 'at_store':
-                return "Rider at Store";
-            case 'picked_up':
-                return "Rider arriving";
-            case 'processing':
-                return "Your order is packed and is ready to pickup!";
-            case 'out_for_delivery':
-                return "Partner is on the way to pick up your order.";
-            case 'arrived':
-                return "Partner has arrived at your location!";
+            case 'pending': return 'Looking for a rider...';
+            case 'accepted': return 'Rider is on the way to pick up your order';
+            case 'picked_up': return 'Out for Delivery';
             case 'success':
-            case 'delivered':
-                return "Order Delivered Successfully!";
-            default:
-                return "Your order is being processed!";
+            case 'delivered': return 'Delivered!';
+            case 'cancelled': return 'Order Cancelled';
+            default: return 'Processing...';
         }
     };
 
@@ -340,9 +362,13 @@ const OrderTracking = () => {
                         <p className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
                             {isDelivered
                                 ? "Your package has been handed over successfully."
-                                : order?.status === 'processing'
-                                    ? "We're assigning a partner to your request."
-                                    : "Your delivery partner and order are tracked in real-time."}
+                                : order?.status === 'accepted'
+                                    ? "Your rider is heading to the pickup hub"
+                                    : order?.status === 'picked_up'
+                                        ? "Your rider is on the way to you!"
+                                        : order?.status === 'processing'
+                                            ? "We're assigning a partner to your request."
+                                            : "Your delivery partner and order are tracked in real-time."}
                         </p>
                     </div>
                 </div>

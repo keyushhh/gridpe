@@ -320,7 +320,8 @@ const FxExchangeSummary = () => {
 
             // Calculate Dynamic Rider Earnings
             let riderEarnings = 0;
-            let pickupLocation: string | null = null; // Changed to null by default, expecting UUID
+            let pickupLocation: string | null = null; // Hub UUID
+            let pickupAddress: string | null = null; // Human-readable hub address
 
             try {
                 let distance = 1.2;
@@ -332,26 +333,41 @@ const FxExchangeSummary = () => {
                         savedAddress.longitude
                     );
 
-                    // NEW: Fetch nearest active hub for the user's city
-                    const { data: hubs } = await supabase
+                    // NEW: Fetch active hubs for the user's city
+                    const { data: hubs, error: hubsError } = await supabase
                         .from('hubs')
-                        .select('id, location_name, latitude, longitude')
-                        .eq('city', normalizeCity(savedAddress.city))
-                        .eq('is_active', true);
+                        .select('id, location_name, city')
+                        .eq('city', normalizeCity(savedAddress.city));
+
+                    console.log('HUB FETCH - City:', normalizeCity(savedAddress.city));
+                    console.log('HUB FETCH - result:', hubs);
+                    console.log('HUB FETCH - error:', hubsError);
 
                     if (hubs && hubs.length > 0) {
-                        let nearest = hubs[0];
-                        let minD = calculateDistance(hubs[0].latitude, hubs[0].longitude, savedAddress.latitude, savedAddress.longitude);
-                        hubs.forEach(h => {
-                            const d = calculateDistance(h.latitude, h.longitude, savedAddress.latitude, savedAddress.longitude);
-                            if (d < minD) {
-                                minD = d;
-                                nearest = h;
-                            }
-                        });
+                        // Use the first active hub for the city as coordinates are missing for individual hubs
+                        const nearest = hubs[0];
                         pickupLocation = nearest.id;
+                        pickupAddress = `${nearest.location_name}, ${nearest.city}`;
+                    } else {
+                        console.error('HUB FETCH FAILED: No active hubs found for city:', normalizeCity(savedAddress.city));
                     }
                 }
+
+                console.log('Selected hub ID value:', pickupLocation, typeof pickupLocation);
+
+                // Fetch customer's phone number from profiles table
+                const { data: userProfile } = await supabase
+                    .from('profiles')
+                    .select('phone')
+                    .eq('id', userId)
+                    .single();
+
+                const customerPhoneNumber = userProfile?.phone || null;
+
+                const deliveryAddressText = (savedAddress as any).address_line 
+                    || (savedAddress as any).full_address 
+                    || savedAddress?.tag 
+                    || getAddressDisplay();
 
                 const { data: earnings, error: earningsError } = await supabase.rpc('calculate_rider_earning', {
                     dist_km: parseFloat(distance.toFixed(2)),
@@ -367,7 +383,7 @@ const FxExchangeSummary = () => {
                 console.error("Failed to calculate dynamic data:", err);
             }
 
-            const createOrderDirectly = async (aid: string, rcvAmt: number, hldAmt: number) => {
+            const createOrderDirectly = async (aid: string, rcvAmt: number, hldAmt: number, phone: string | null, pAddress: string | null, dAddressText: string) => {
                 const payload = {
                     user_id: userId,
                     address_id: aid,
@@ -380,7 +396,10 @@ const FxExchangeSummary = () => {
                     status: 'pending',
                     type: 'fx',
                     rider_earnings: riderEarnings,
-                    pickup_location: pickupLocation,
+                    hub_id: pickupLocation, // Hub UUID
+                    pickup_location: pAddress, // Human-readable Hub Address
+                    delivery_address_text: dAddressText,
+                    customer_phone_number: phone,
                     delivery_location: `POINT(${savedAddress?.longitude || 0} ${savedAddress?.latitude || 0})`,
                     otp_code: Math.floor(100000 + Math.random() * 900000).toString(),
                     delivery_fee: deliveryFee,
@@ -405,11 +424,25 @@ const FxExchangeSummary = () => {
                         gst: gst,
                         delivery_tip: tipAmount,
                         reward_points: rewardPointsValue,
-                        delivery_address: getAddressDisplay(), // Text version for safety
+                        delivery_address: dAddressText,
                         quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK',
                         client_source: 'frontend_v1'
                     }
                 };
+
+                console.log('ORDER PAYLOAD CHECK (FX):', {
+                    pickup_location: payload.pickup_location,
+                    delivery_address_text: payload.delivery_address_text,
+                    customer_phone_number: payload.customer_phone_number,
+                    hub_id: payload.hub_id,
+                    selectedHubId: pickupLocation
+                });
+
+                if (!payload.hub_id) console.error("DEBUG: hub_id is NULL");
+
+                if (!payload.customer_phone_number) console.error("DEBUG: (FX) customer_phone_number fetch failed or is NULL");
+                if (!payload.pickup_location) console.error("DEBUG: (FX) pickup_location (hub address) fetch failed or is NULL");
+                if (!payload.delivery_address_text) console.error("DEBUG: (FX) delivery_address_text is NULL");
 
                 console.log("Inserting FX order directly:", payload);
 
@@ -434,7 +467,20 @@ const FxExchangeSummary = () => {
             };
 
             try {
-                const orderData = await createOrderDirectly(addressId, cleanedReceiveAmount, cleanedHoldAmount);
+                // Fetch context variables from profiles table
+                const { data: userProfile } = await supabase
+                    .from('profiles')
+                    .select('phone')
+                    .eq('id', userId)
+                    .single();
+                const customerPhoneNumber = userProfile?.phone || null;
+
+                const dAddressText = (savedAddress as any).address_line 
+                    || (savedAddress as any).full_address 
+                    || savedAddress?.tag 
+                    || getAddressDisplay();
+
+                const orderData = await createOrderDirectly(addressId, cleanedReceiveAmount, cleanedHoldAmount, customerPhoneNumber, pickupAddress, dAddressText);
                 const finalOrderId = orderData.id;
 
                 // Refresh balance after successful order & hold
@@ -480,7 +526,19 @@ const FxExchangeSummary = () => {
                         setSavedAddress(updatedAddr);
                         localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
-                        const retryData = await createOrderDirectly(newAddressId, cleanedReceiveAmount, cleanedHoldAmount);
+                        // Re-fetch context for retry from profiles table
+                        const { data: retryProfile } = await supabase
+                            .from('profiles')
+                            .select('phone')
+                            .eq('id', userId)
+                            .single();
+                        const retryPhone = retryProfile?.phone || null;
+                        const retryDAddressText = (updatedAddr as any).address_line 
+                            || (updatedAddr as any).full_address 
+                            || updatedAddr?.tag 
+                            || getAddressDisplay();
+
+                        const retryData = await createOrderDirectly(newAddressId, cleanedReceiveAmount, cleanedHoldAmount, retryPhone, pickupAddress, retryDAddressText);
                         const finalRetryOrderId = retryData.id;
 
                         if (finalRetryOrderId) {

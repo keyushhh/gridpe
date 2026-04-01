@@ -25,7 +25,7 @@ import infoIcon from "@/assets/delivery-tip-info.svg";
 import closeIcon from "@/assets/cross-icon.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
-import { Order, dev_updateOrderStatus, getOrderById, cancelOrder } from "@/lib/orders";
+import { Order, getOrderById, cancelOrder } from "@/lib/orders";
 import { useUser } from "@/contexts/UserContext";
 
 const currencySymbols: Record<string, string> = {
@@ -169,7 +169,7 @@ const FxSuccess = () => {
         if (!order) return;
         try {
             const reasonText = cancelReason === 5 ? otherReason : cancelReasons[cancelReason || 0];
-            await cancelOrder(order.id);
+                        await cancelOrder(order.id, cancelReasons[cancelReason || 0], reasonText);
 
             // Re-fetch or optimistically update
             const updatedOrder = await getOrderById(order.id);
@@ -302,7 +302,7 @@ const FxSuccess = () => {
                 <div
                     className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0"
                     style={{
-                        backgroundColor: ['success', 'delivered', 'processing', 'pending', 'out_for_delivery', 'arrived', 'held'].includes(order?.status || '') ? "#0D992F" : "#FF3B30",
+                                                backgroundColor: ['success', 'delivered', 'processing', 'pending', 'out_for_delivery', 'arrived', 'held', 'accepted', 'picked_up'].includes(order?.status || '') ? "#0D992F" : "#FF3B30",
                     }}
                 />
             )}

@@ -222,7 +222,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           .from('profiles')
           .insert({
             id: userId,
-            name: session?.user?.user_metadata?.full_name || 'Guest User',
+            name: session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || 'Guest User',
             email: session?.user?.email || null,
             kyc_status: 'incomplete',
             mpin_set: false

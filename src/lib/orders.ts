@@ -24,7 +24,6 @@ export interface Order {
     cancelled_at?: string;
     [key: string]: any;
   };
-  // Join fields
   addresses?: Address;
   address?: Address; // Fallback for some components
   rider?: {
@@ -40,6 +39,26 @@ export interface Order {
     kyc_id_url?: string;
   };
 }
+
+// Security: Explicitly exclude sensitive financial data for rider-facing views.
+export const RIDER_ORDER_SELECT = `
+  id, 
+  user_id, 
+  status, 
+  rider_earnings, 
+  delivery_tip, 
+  delivery_fee, 
+  pickup_location, 
+  delivery_address_text, 
+  customer_phone_number, 
+  otp_code, 
+  delivery_location, 
+  created_at, 
+  accepted_at, 
+  city, 
+  zone_id, 
+  hub_id
+`.replace(/\s+/g, '');
 
 // Internal helper to fetch addresses for a list of orders
 const fetchAddressesForOrders = async (orders: any[]) => {
@@ -142,58 +161,33 @@ export const cancelOrder = async (orderId: string, reasonType: string, reasonTex
 
   console.log('Attempting to cancel orderId:', orderId);
 
-  // 1. Fetch order details for refund calculation (Total Payable)
+  // 1. Fetch order details for diagnostic logging
   const { data: order, error: fetchError } = await supabase
     .from('orders')
-    .select('id, user_id, status, total_amount, amount') // Using total_amount as fallback if total_payable isn't found
+    .select('id, user_id, status, total_amount, amount')
     .eq('id', orderId)
     .single();
 
   if (fetchError || !order) throw new Error("Order not found");
-  if (order.status === 'delivered' || order.status === 'picked_up') {
-    throw new Error("This order cannot be cancelled anymore.");
-  }
 
-  // 2. Perform cancellation update
-  const { data: updatedOrder, error: updateError } = await supabase
-    .from('orders')
-    .update({ 
-      status: 'cancelled',
-      cancelled_by: 'user',
-      cancelled_at: new Date().toISOString(),
-      cancel_reason_type: reasonType,
-      cancel_reason_text: reasonText
-    })
-    .eq('id', orderId)
-    .select()
-    .single();
+  // Add requested log for confirmation
+  console.log('Refund amount:', order.total_amount, 'vs item value:', order.amount);
 
-  if (updateError) throw updateError;
-
-  // 3. Process Refund (Total Payable: total_amount)
-  const refundAmount = order.total_amount || order.amount;
-  
-  // Update wallet balance
-  const { error: walletError } = await supabase.rpc('increment_wallet_balance', {
+  // 2. Perform atomic cancellation update via RPC
+  // This RPC handles: Order status update, FULL total_amount refund, and transaction record.
+  const { data, error: rpcError } = await supabase.rpc('cancel_order', {
+    p_order_id: orderId,
     p_user_id: userId,
-    p_amount: refundAmount
+    p_cancel_reason_type: reasonType,
+    p_cancel_reason_text: reasonText
   });
 
-  if (walletError) {
-    console.error("Wallet refund failed, but order was cancelled. Manual intervention required:", walletError);
-  } else {
-    // 4. Create single transaction record
-    await supabase.from('wallet_transactions').insert({
-      user_id: userId,
-      order_id: orderId,
-      amount: refundAmount,
-      type: 'refund',
-      description: `Refund for Order #${orderId.slice(0, 8).toUpperCase()}: +₹${refundAmount}`,
-      status: 'success'
-    });
+  if (rpcError) throw rpcError;
+  if (!data || data.success === false) {
+    throw new Error(data?.error || "Failed to cancel order");
   }
 
-  return updatedOrder;
+  return data;
 };
 
 export const deliverOrder = async (orderId: string, userId: string, isFx: boolean = false) => {
@@ -250,4 +244,46 @@ export const dev_seedMockOrders = async (userId: string) => {
 
   const { error } = await supabase.from('orders').insert(mockOrders);
   if (error) throw error;
+};
+
+/** 
+ * RIDER-SPECIFIC HELPERS (Secure)
+ * These utilize RIDER_ORDER_SELECT to ensure sensitive financial data 
+ * is never sent to rider-facing application components.
+ */
+
+export const getRiderOrderById = async (orderId: string) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(RIDER_ORDER_SELECT)
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+};
+
+export const fetchAvailableOrders = async (city: string) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(RIDER_ORDER_SELECT)
+    .eq('status', 'pending')
+    .eq('city', city)
+    .is('rider_id', null)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const fetchRiderActiveOrders = async (riderId: string) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(RIDER_ORDER_SELECT)
+    .eq('rider_id', riderId)
+    .in('status', ['accepted', 'picked_up', 'arrived'])
+    .order('updated_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
 };
