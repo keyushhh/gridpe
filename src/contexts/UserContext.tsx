@@ -27,7 +27,7 @@ interface UserState {
   email: string;
   emailVerified: boolean;
   profileImage: string | null;
-  kycStatus: 'incomplete' | 'pending' | 'complete';
+  kycStatus: 'incomplete' | 'pending' | 'in_review' | 'verified';
   kycSubmittedAt: number | null;
   mpin: string | null;
   biometricEnabled: boolean;
@@ -65,7 +65,7 @@ interface UserContextType extends UserState {
   setEmail: (email: string) => void;
   setEmailVerified: (verified: boolean) => void;
   setProfileImage: (image: string | null) => void;
-  setKycStatus: (status: 'incomplete' | 'pending' | 'complete') => void;
+  setKycStatus: (status: 'incomplete' | 'pending' | 'in_review' | 'verified') => void;
   setMpin: (mpin: string) => void;
   setBiometricEnabled: (enabled: boolean) => void;
   setProfile: (profile: UserProfile | null) => void;
@@ -181,7 +181,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           ...prev,
           name: profileData.name || prev.name,
           profileImage: profileData.avatar_url || prev.profileImage,
-          kycStatus: profileData.kyc_status === 'verified' ? 'complete' : (profileData.kyc_status === 'pending' ? 'pending' : 'incomplete'),
+          kycStatus: profileData.kyc_status as 'incomplete' | 'pending' | 'in_review' | 'verified',
           email: profileData.email || prev.email,
           phoneNumber: profileData.phone || prev.phoneNumber,
           isFxEnabled: !!profileData.is_fx_enabled,
@@ -266,40 +266,43 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [fetchProfileData]);
 
-  /* Mock-to-Real KYC Verification Timer (120 seconds) */
+  /* Real-time KYC Status Subscription */
   useEffect(() => {
-    if (state.kycStatus !== 'pending' || !state.kycSubmittedAt) return;
+    let channel: any;
 
-    const checkVerification = async () => {
-      const elapsed = Date.now() - state.kycSubmittedAt;
-      const remaining = 120000 - elapsed;
+    const setupKycSubscription = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUserId = session?.user?.id || USER_ID;
 
-      if (remaining <= 0) {
-        console.log('Verification timer hit zero. Updating database...');
-        try {
-          // 1. Update database status to 'verified'
-          const { error } = await supabase
-            .from('profiles')
-            .update({ kyc_status: 'verified' })
-            .eq('id', USER_ID);
+      if (!currentUserId) return;
 
-          if (error) throw error;
+      console.log('Setting up KYC Realtime sync for userId:', currentUserId);
 
-          // 2. Refetch profile to update UI instantly
-          await fetchProfileData();
-          console.log('KYC Status verified and UI updated.');
-        } catch (error) {
-          console.error('Failed to update kyc_status persistently:', error);
-        }
-      } else {
-        // Schedule the next check
-        const timer = setTimeout(checkVerification, remaining);
-        return () => clearTimeout(timer);
-      }
+      channel = supabase.channel(`kyc-status-sync-${currentUserId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${currentUserId}`
+          },
+          (payload) => {
+            console.log('Profile updated, refreshing all data:', payload);
+            fetchProfileData(currentUserId);
+          }
+        )
+        .subscribe();
     };
 
-    checkVerification();
-  }, [state.kycStatus, state.kycSubmittedAt, fetchProfileData]);
+    setupKycSubscription();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [state.profile?.id]);
 
   /* Real-time Wallet Balance Reading */
   const fetchAndCalculateBalance = async (overrideUserId?: string) => {
@@ -456,7 +459,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, profileImage: image }));
   };
 
-  const setKycStatus = (status: 'incomplete' | 'pending' | 'complete') => {
+  const setKycStatus = (status: 'incomplete' | 'pending' | 'in_review' | 'verified') => {
     setState(prev => ({ ...prev, kycStatus: status }));
   };
 

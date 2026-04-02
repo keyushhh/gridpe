@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import darkbgCta from "@/assets/darkbg-cta.png";
 
-type SecurityStatus = "incomplete" | "pending" | "complete";
+type SecurityStatus = "verified" | "in_review" | "pending" | "incomplete";
 
 const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, pending: string, incomplete: string }, isDarkMode: boolean) => {
   // Base styles for the frame (Light Mode Only)
@@ -32,9 +32,9 @@ const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, p
   if (isDarkMode) {
     // In Dark Mode, no frame styling (transparent/default)
     return {
-      bg: assets[status], // Use the asset corresponding to status (though logic below might use specific assets)
-      label: status === "complete" ? "Account secured" : status === "pending" ? "Pending" : "Incomplete",
-      textColor: status === "complete" ? "text-green-500" : status === "pending" ? "text-yellow-500" : "text-red-400",
+      bg: status === "verified" ? assets.complete : (status === "in_review" || status === "pending" ? assets.pending : assets.incomplete),
+      label: status === "verified" ? "Account secured" : (status === "in_review" || status === "pending" ? "Pending" : "Incomplete"),
+      textColor: status === "verified" ? "text-green-500" : (status === "in_review" || status === "pending" ? "text-yellow-500" : "text-red-400"),
       frameClass: "w-10 h-10 flex items-center justify-center", // No border/bg
       frameStyle: {},
       blobColor: null
@@ -43,7 +43,7 @@ const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, p
 
   // Light Mode Styles
   switch (status) {
-    case "complete":
+    case "verified":
       return {
         bg: assets.complete,
         label: "Account secured",
@@ -52,6 +52,7 @@ const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, p
         frameStyle: { backgroundColor: "rgba(28, 185, 86, 0.21)" }, // #1CB956 @ 21%
         blobColor: "#1CB956"
       };
+    case "in_review":
     case "pending":
       return {
         bg: assets.pending,
@@ -152,6 +153,12 @@ const Settings = () => {
   };
 
   const handleLogout = () => {
+    // Purge Didit Cache & Destroy Instances securely
+    const { DiditSDK } = window as any;
+    if (DiditSDK?.DiditSdk?.shared?.destroy) {
+      DiditSDK.DiditSdk.shared.destroy();
+    }
+    
     // Clear session/state
     localStorage.clear();
     // Navigate to authentication screen (Index)

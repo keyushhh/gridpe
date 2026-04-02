@@ -13,21 +13,42 @@ import iconVoter from "@/assets/icon-voter.png";
 import radioOn from "@/assets/radio-on.png";
 import radioOff from "@/assets/radio-off.png";
 import { Button } from "@/components/ui/button";
+import { supabase, USER_ID } from "@/lib/supabase";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { useUser } from "@/contexts/UserContext";
 
 const KYCForm = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
+  const { showToaster } = useCustomToaster();
   const [searchParams] = useSearchParams();
   const flow = searchParams.get("flow");
   const isFxFlow = flow === "fx";
 
   const [selectedDoc, setSelectedDoc] = useState<string | null>(isFxFlow ? "passport" : null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { fetchProfileData, kycStatus } = useUser();
+
+  // Cleanup SDK instance firmly on unmount so camera/socket drops
+  useEffect(() => {
+    return () => {
+      const { DiditSDK } = window as any;
+      if (DiditSDK?.DiditSdk?.shared) {
+        try {
+          if (typeof DiditSDK.DiditSdk.shared.close === 'function') DiditSDK.DiditSdk.shared.close();
+          if (typeof DiditSDK.DiditSdk.shared.destroy === 'function') DiditSDK.DiditSdk.shared.destroy();
+        } catch (e) {
+          console.warn('Didit SDK cleanup warning:', e);
+        }
+      }
+    };
+  }, []);
 
   const documents = [
     { id: "aadhar", name: "Aadhar Card", icon: iconAadhar },
     { id: "pan", name: "PAN Card", icon: iconPan },
-    { id: "passport", name: "Passport", icon: iconPassport },
+    { id: "dl", name: "Driving License", icon: iconPan }, // using pan icon as instructed
     { id: "voter", name: "Voter ID", icon: iconVoter },
   ];
 
@@ -41,6 +62,62 @@ const KYCForm = () => {
     { text: "Readable, well-lit, coloured images", valid: true },
     { text: "No black and white images", valid: false },
   ];
+
+  const handleContinue = async () => {
+    // 0. Persistence Gate - Block repeat launches
+    if (kycStatus === 'verified') {
+      showToaster("Account already secured!", "success");
+      navigate("/home", { replace: true });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // 1. Defensively destroy any lingering SDK traces
+      const { DiditSDK } = window as any;
+      if (DiditSDK?.DiditSdk?.shared?.destroy) {
+        DiditSDK.DiditSdk.shared.destroy();
+      }
+
+      // 2. Set preliminary pending status in database
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ kyc_status: 'pending' })
+        .eq('id', USER_ID);
+
+      if (profileError) throw profileError;
+
+      // 3. Resolve real customer UUID from auth session
+      const { data: { user } } = await supabase.auth.getUser();
+      const rawUuid = user?.id || USER_ID;
+
+      // 4. Bypass Sticky Sessions by making vendor_data strictly unique per attempt
+      const customerUuid = `${rawUuid}_${Date.now()}`;
+
+      // 3. Launch Didit using the explicit UniLink URL
+      const DIDIT_UNI_LINK = 'https://verify.didit.me/u/rIUXDqkBQ0Ger_cQiQMbrA';
+      const metaFlow = isFxFlow ? 'fx_passport' : 'standard';
+      const finalUrl = `${DIDIT_UNI_LINK}?vendor_data=${customerUuid}&metadata=${encodeURIComponent(JSON.stringify({ user_type: 'customer', flow: metaFlow }))}`;
+
+      console.log("Launching Didit URL via new tab:", finalUrl);
+      window.open(finalUrl, '_blank');
+      
+      // Navigate to Success Screen in the background (active when user returns)
+      navigate(isFxFlow ? "/fx-kyc-success" : "/kyc-success", {
+        state: {
+          flow: isFxFlow ? 'fx' : 'standard',
+          isWaitingForRealtime: true
+        },
+        replace: true
+      });
+
+    } catch (error) {
+      console.error("KYC Submission error:", error);
+      showToaster("Failed to start verification. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div
@@ -133,6 +210,7 @@ const KYCForm = () => {
                     src={doc.icon}
                     alt={doc.name}
                     className={`w-8 h-8 object-contain ${!isDarkMode && (doc.id === 'pan' || doc.id === 'passport') ? 'filter brightness-0' : ''}`}
+                    style={doc.id === 'dl' ? { opacity: 1, filter: 'none' } : undefined}
                   />
                   <img
                     src={selectedDoc === doc.id ? radioOn : radioOff}
@@ -167,20 +245,18 @@ const KYCForm = () => {
       </div>
 
       {/* Footer - Constrained container */}
-      <div className={`mt-auto pb-8 pt-4 max-w-[362px] mx-auto w-full ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
-        <p className={`${isDarkMode ? 'text-[#7E7E7E]/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed px-5`}>
+      <div className={`mt-auto pb-8 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
+        <p className={`${isDarkMode ? 'text-[#7E7E7E]/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}>
           This information is used for identity verification only, and will be kept secure by Didit
         </p>
-        <div className="px-5">
-          <Button
-            variant="gradient"
-            className="w-full h-[48px] rounded-full text-white font-semibold text-[16px]"
-            disabled={!selectedDoc}
-            onClick={() => navigate(`/kyc-upload?doc=${selectedDoc}${isFxFlow ? '&flow=fx' : ''}`)}
-          >
-            Continue
-          </Button>
-        </div>
+        <Button
+          variant="gradient"
+          className="w-[362px] h-[48px] rounded-full text-white font-medium text-[16px] font-sans flex items-center justify-center p-0 m-0"
+          disabled={!selectedDoc || isSubmitting}
+          onClick={handleContinue}
+        >
+          {isSubmitting ? "Starting..." : "Continue"}
+        </Button>
       </div>
     </div>
   );

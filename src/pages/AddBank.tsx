@@ -518,7 +518,7 @@ const AddBank = () => {
       <div className="absolute bottom-10 left-0 w-full px-5 flex justify-center z-20">
         <Button
           variant="gradient"
-          className="w-full h-[48px] rounded-full text-[18px] font-medium transition-all duration-200"
+          className="w-full h-[48px] rounded-full text-[16px] font-sans font-medium transition-all duration-200"
           onClick={handleButtonClick}
           disabled={isButtonDisabled()}
         >

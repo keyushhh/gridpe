@@ -168,7 +168,7 @@ const ForgotMpin = () => {
         <Button
           onClick={step === 'REQUEST' ? handleRequestOTP : handleSubmit}
           disabled={isLoading || (step === 'VERIFY' && otp.length < 6)}
-          className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium"
+          className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans"
         >
           {isLoading ? (
             <span className="flex items-center gap-2">

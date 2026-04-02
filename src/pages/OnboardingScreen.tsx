@@ -571,7 +571,7 @@ const OnboardingScreen = () => {
             <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
               <Button
                 variant="gradient"
-                className="w-full h-[48px] rounded-full text-[18px] font-medium"
+                className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans"
                 onClick={handleRequestOTP}
                 disabled={isLoading || phoneNumber.length === 0}
               >
@@ -683,7 +683,7 @@ const OnboardingScreen = () => {
 
             <Button
               variant="gradient"
-              className="w-full h-[48px] text-[18px] font-medium rounded-full"
+              className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
               onClick={handleVerifyOTP}
               disabled={isLoading || otp.length < 6}
             >
@@ -773,7 +773,7 @@ const OnboardingScreen = () => {
             {/* Unlock Button */}
             <Button
               variant="gradient"
-              className="w-full h-[48px] text-[18px] font-medium rounded-full"
+              className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
               onClick={handleLoginMpinVerification}
               disabled={isLoading || mpin.length < 4}
             >
@@ -926,7 +926,7 @@ const OnboardingScreen = () => {
             {/* Setup Button */}
             <Button
               variant="gradient"
-              className="w-full h-[48px] text-[18px] font-medium rounded-full"
+              className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
               onClick={handleSetupMpin}
               disabled={isLoading || mpin.length < 4 || confirmMpin.length < 4 || !!mpinError || !mpinSuccess}
             >

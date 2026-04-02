@@ -148,7 +148,7 @@ const DeleteAccountMobile = () => {
         <Button
           onClick={handleRequestOtp}
           disabled={!isValid}
-          className="w-full h-[48px] rounded-full text-[16px] font-medium bg-[#5260FE] hover:bg-[#5260FE]/90 text-white border-none disabled:opacity-50"
+          className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans bg-[#5260FE] hover:bg-[#5260FE]/90 text-white border-none disabled:opacity-50"
         >
           Request OTP
         </Button>
@@ -167,7 +167,7 @@ const DeleteAccountMobile = () => {
           ) : (
             <div className="absolute inset-0 w-full h-full rounded-full pointer-events-none" style={{ backgroundColor: '#EBEBEB' }} />
           )}
-          <span className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-semibold font-sans`}>
+          <span className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium font-sans`}>
             Cancel
           </span>
         </button>

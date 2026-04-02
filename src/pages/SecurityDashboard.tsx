@@ -56,27 +56,32 @@ const SecurityDashboard = () => {
 
     const statusLabel = {
       incomplete: "Security Breach-ish.",
-      pending: "In Progress…",
-      complete: "Looks Good!"
+      pending: "Security Breach-ish.",
+      in_review: "In Progress…",
+      verified: "Looks Good!"
     };
 
     const statusSubtext = {
       incomplete: "Some settings need your attention. Give ‘em a tap.",
-      pending: "We’re working our magic. Check back soon.",
-      complete: "Your security setup looks good and completed."
+      pending: "Some settings need your attention. Give ‘em a tap.",
+      in_review: "We’re working our magic. Check back soon.",
+      verified: "Your security setup looks good and completed."
     };
 
     const statusColor = {
       incomplete: "#FF1E1E",
-      pending: "#FACC15",
-      complete: "#1CB956"
+      pending: "#FF1E1E",
+      in_review: "#FACC15",
+      verified: "#1CB956"
     };
+
+    const currentBannerAsset = kycStatus === 'verified' ? securityCompleteAsset : (kycStatus === 'in_review' ? securityPendingAsset : securityIncompleteAsset);
 
     return (
       <div
         className={commonClasses}
-        style={bgStyle(bannerAssets[kycStatus])}
-        onClick={kycStatus === 'incomplete' ? () => navigate("/kyc-intro") : undefined}
+        style={bgStyle(currentBannerAsset)}
+        onClick={kycStatus !== 'verified' ? () => navigate("/kyc-intro") : undefined}
       >
         <div className="flex flex-col justify-center w-full h-full">
           <div className="flex items-center gap-2">
@@ -128,28 +133,28 @@ const SecurityDashboard = () => {
 
     // Override for light mode KYC
     if (!isDarkMode) {
-      if (kycStatus === "incomplete") {
+      if (kycStatus === "incomplete" || kycStatus === "pending") {
         kycBg = "rgba(255, 30, 30, 0.15)";
         kycBorder = "none";
-      } else if (kycStatus === "pending") {
+      } else if (kycStatus === "in_review") {
         kycBg = "rgba(250, 204, 21, 0.15)";
         kycBorder = "none";
       }
     } else {
       // Dark Mode logic
-      if (kycStatus === "incomplete") {
+      if (kycStatus === "incomplete" || kycStatus === "pending") {
         kycBg = "rgba(255, 30, 30, 0.12)";
         kycIcon = kycAlertIcon;
-      } else if (kycStatus === "pending") {
+      } else if (kycStatus === "in_review") {
         kycBg = "rgba(250, 204, 21, 0.12)";
       }
     }
 
     const handleKycClick = () => {
-      if (kycStatus === 'incomplete' || kycStatus === 'pending') {
+      if (kycStatus !== 'verified') {
         navigate("/kyc-intro");
-      } else if (kycStatus === 'complete') {
-        navigate("/kyc-status-complete");
+      } else {
+        navigate("/kyc-status-complete"); // assuming this route still exists, although User requested to redirect to Home/FX on Success. This is just for the menu.
       }
     };
 
@@ -237,9 +242,9 @@ const SecurityDashboard = () => {
     switch (kycStatus) {
       case "incomplete":
         return errorRadarAnimation;
-      case "pending":
+      case "in_review":
         return inProgressRadarAnimation;
-      case "complete":
+      case "verified":
         return gridpeRadarAnimation;
       default:
         return gridpeRadarAnimation;
@@ -263,7 +268,7 @@ const SecurityDashboard = () => {
         <div
           className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
           style={{
-            backgroundColor: kycStatus === "complete" ? "#1CB956" : kycStatus === "pending" ? "#FACC15" : "#FF1E1E",
+            backgroundColor: kycStatus === "verified" ? "#1CB956" : kycStatus === "in_review" ? "#FACC15" : "#FF1E1E",
             filter: "blur(60px)",
             opacity: 0.8,
             mixBlendMode: "normal"
@@ -279,12 +284,7 @@ const SecurityDashboard = () => {
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>Security & Kyc</h1>
-        <button
-          onClick={() => setKycStatus('incomplete')}
-          className="text-[10px] px-2 py-1 rounded bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 transition-colors uppercase font-bold tracking-wider"
-        >
-          Reset KYC
-        </button>
+        <div className="w-10 h-10" /> {/* Spacer for centering */}
       </div>
 
       {/* Scrollable Content */}

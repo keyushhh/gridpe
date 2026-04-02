@@ -91,10 +91,10 @@ const KYCIntro = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="px-5 pb-8 space-y-4 relative z-10">
+      <div className="pb-8 space-y-4 relative z-10 flex flex-col items-center">
         <button
           onClick={() => navigate('/kyc-form')}
-          className="w-full py-4 rounded-full text-white font-semibold text-[16px] btn-gradient"
+          className="w-[362px] h-[48px] rounded-full text-white font-medium text-[16px] btn-gradient font-sans flex items-center justify-center"
         >
           Start KYC
         </button>

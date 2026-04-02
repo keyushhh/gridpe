@@ -5,8 +5,8 @@ import { useUser } from "@/contexts/UserContext";
 import successBg from "@/assets/success-bg.png";
 import checkIconSvg from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
-import buttonPrimaryWide from "@/assets/button-primary-wide.png";
 import darkBgCta from "@/assets/darkbg-cta.png";
+import confetti from "canvas-confetti";
 
 const SuccessScreen = () => {
   const navigate = useNavigate();
@@ -17,30 +17,54 @@ const SuccessScreen = () => {
   const state = location.state || {};
 
   const isFxFlow = searchParams.get("flow") === "fx" || state.flow === "fx";
-  const docType = searchParams.get("doc") || (state.doc ? 'passport' : null);
-  const { submitKyc } = useUser();
+  const { kycStatus, fetchProfileData } = useUser();
+  const isWaitingForRealtime = state.isWaitingForRealtime;
 
-  const [countdown, setCountdown] = useState(30);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasCelebrated, setHasCelebrated] = useState(false);
 
-  // Set KYC status to pending on mount
+  // Success Animation Trigger
   useEffect(() => {
-    submitKyc(docType === 'passport');
-  }, [submitKyc, docType]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          navigate(isFxFlow ? "/fx-exchange" : "/home");
-          return 0;
-        }
-        return prev - 1;
+    if (kycStatus === 'verified' && !hasCelebrated) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#5260FE', '#0C7E4B', '#FFFFFF']
       });
-    }, 1000);
+      setHasCelebrated(true);
+    }
+  }, [kycStatus, hasCelebrated]);
 
-    return () => clearInterval(timer);
-  }, [navigate, isFxFlow]);
+  // Handle Redirect after verification
+  useEffect(() => {
+    if (kycStatus === 'verified') {
+      const timer = setTimeout(() => {
+        // Immediate navigation after short celebration
+        navigate(isFxFlow ? "/fx-exchange" : "/home", { replace: true });
+      }, 2500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [kycStatus, navigate, isFxFlow]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchProfileData();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
+  const getHeading = () => {
+    if (kycStatus === 'verified') return "Verification Successful!";
+    if ((kycStatus === 'pending' || kycStatus === 'in_review') && isWaitingForRealtime) return "Finalizing verification with Didit...";
+    return "Your KYC details has been submitted successfully!";
+  };
+
+  const getBodyText = () => {
+    if (kycStatus === 'verified') return "You're all set! Your account is now verified and all features are unlocked.";
+    if ((kycStatus === 'pending' || kycStatus === 'in_review') && isWaitingForRealtime) return "We're just wrapping things up. This usually takes a few seconds.";
+    return "We've received your KYC details. Verification typically takes under 30 minutes.";
+  };
 
   return (
     <div
@@ -72,11 +96,15 @@ const SuccessScreen = () => {
 
       {/* Check Icon — 22px below header */}
       <div className="mt-[22px]">
-        <img
-          src={isDarkMode ? checkIconSvg : checkIconLight}
-          alt="Success"
-          className="w-[62px] h-[62px] object-contain"
-        />
+        {kycStatus === 'verified' ? (
+          <img
+            src={isDarkMode ? checkIconSvg : checkIconLight}
+            alt="Success"
+            className="w-[62px] h-[62px] object-contain animate-bounce"
+          />
+        ) : (
+          <div className="w-[62px] h-[62px] border-4 border-[#5260FE] border-t-transparent rounded-full animate-spin" />
+        )}
       </div>
 
       {/* Sub-heading — 35px below check icon */}
@@ -84,7 +112,7 @@ const SuccessScreen = () => {
         className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold text-center leading-tight font-sans mt-[35px]`}
         style={{ width: '310px' }}
       >
-        Your KYC details has been submitted successfully!
+        {getHeading()}
       </h2>
 
       {/* Body text — 14px below sub-heading */}
@@ -92,14 +120,21 @@ const SuccessScreen = () => {
         className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[16px] font-normal text-center leading-relaxed font-sans mt-[14px]`}
         style={{ maxWidth: '320px' }}
       >
-        We've received your KYC details. Verification typically takes under 30 minutes.
+        {getBodyText()}
       </p>
 
       {/* CTA — 210px below body text */}
       <div className="mt-[210px] flex flex-col items-center">
         <button
-          onClick={() => navigate(isFxFlow ? "/fx-exchange" : "/home")}
-          className={`flex items-center justify-center text-[16px] font-medium transition-transform active:scale-95 rounded-full font-sans`}
+          onClick={() => {
+            if (kycStatus === 'verified') {
+              navigate(isFxFlow ? "/fx-exchange" : "/home", { replace: true });
+            } else {
+              handleManualRefresh();
+            }
+          }}
+          disabled={isRefreshing && kycStatus !== 'verified'}
+          className={`flex items-center justify-center text-[16px] font-medium transition-transform active:scale-95 rounded-full font-sans disabled:opacity-50`}
           style={{
             backgroundImage: isDarkMode ? `url(${darkBgCta})` : 'none',
             backgroundColor: isDarkMode ? 'transparent' : '#000000',
@@ -110,19 +145,28 @@ const SuccessScreen = () => {
             height: '48px'
           }}
         >
-          {isFxFlow ? "Go to FX Exchange" : `Redirecting Home in ${countdown}s...`}
+          {kycStatus === 'verified' 
+            ? (isFxFlow ? "Go to FX Exchange" : "Verification Complete. Redirecting...")
+            : (isRefreshing ? "Checking database..." : "Waiting... Tap to Refresh")
+          }
         </button>
 
         {/* Disclaimer — 12px below CTA */}
         <p className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] text-center font-sans mt-[12px]`}>
-          (Because refreshing the screen won't make it go faster.)
+          {kycStatus === 'verified' 
+            ? "(You're officially part of the elite now.)"
+            : "(Because refreshing the screen won't make it go faster.)"
+          }
         </p>
       </div>
 
       {/* Footer Text — pushed to bottom */}
       <div className="mt-auto pb-10 px-4">
         <p className={`${isDarkMode ? 'text-white' : 'text-black/60'} text-[13px] text-center leading-snug font-sans`}>
-          If accepted, you'll officially be one of us. If rejected... it's probably your lighting.
+          {kycStatus === 'verified'
+            ? "Your account features have been fully unlocked."
+            : "If accepted, you'll officially be one of us. If rejected... it's probably your lighting."
+          }
         </p>
       </div>
     </div>
