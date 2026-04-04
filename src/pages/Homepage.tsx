@@ -498,7 +498,7 @@ const Homepage = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="flex-1 w-full overflow-y-auto overscroll-y-contain scrollbar-hide flex flex-col">
+      <div className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col">
         {/* Header Fixed Area (Top Section always visible) */}
         <div className="shrink-0 flex flex-col safe-area-top z-50 relative pointer-events-none">
           {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
@@ -741,7 +741,7 @@ const Homepage = () => {
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         height: '104px',
-                        width: '362px'
+                        width: '100%'
                       }}>
                         <div className="flex-1 flex flex-col justify-start relative z-10 pt-[14px] pl-[14px]">
                           <div className="mb-[4px]">
@@ -773,7 +773,7 @@ const Homepage = () => {
                       }}
                     >
                       <div
-                        className="shrink-0 w-[362px] h-[104px] rounded-[16px] flex relative overflow-hidden bg-white dark:bg-black border-[#E9EAEB] dark:border-transparent border"
+                        className="shrink-0 w-full h-[104px] rounded-[16px] flex relative overflow-hidden bg-white dark:bg-black border-[#E9EAEB] dark:border-transparent border"
                         style={{
                           backgroundImage: (isDarkMode && bannerBg) ? `url(${bannerBg})` : 'none',
                           backgroundSize: "cover",
@@ -879,7 +879,7 @@ const Homepage = () => {
                 </button>
               </div>
 
-              <div className="mx-5 pb-[100px]">
+              <div className="mx-5 pb-[160px]">
                 <div className="border-t border-black/6 dark:border-white/10 pt-[14px] min-h-[100px]">
                   {transactionHistory.length > 0 ? (
                     <div className="w-full">
