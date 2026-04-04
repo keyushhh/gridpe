@@ -50,8 +50,8 @@ const DeliveryCaution = () => {
             setStep('verification_progress');
         } else if (step === 'verification_success') {
             // "Get OTP" action -> Update status to delivered and show OTP Display
-            if (order?.id) {
-                deliverOrder(order.id).catch(err => console.error("Failed to mark order as delivered:", err));
+            if (order?.id && order.user_id) {
+                deliverOrder(order.id, order.user_id, order.metadata?.isFx || false).catch(err => console.error("Failed to mark order as delivered:", err));
             }
             setStep('otp_display');
         } else if (step === 'otp_display') {
@@ -79,7 +79,7 @@ const DeliveryCaution = () => {
     const handleCancel = () => {
         console.log("Cancelling delivery for order:", order?.id);
         if (order?.id) {
-            cancelOrder(order.id).catch(err => console.error("Failed to cancel order:", err));
+            cancelOrder(order.id, 'Identity Mismatch', 'User chose not to proceed due to identity mismatch').catch(err => console.error("Failed to cancel order:", err));
         }
         navigate('/order-cancelled');
     };

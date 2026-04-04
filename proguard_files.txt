@@ -1,0 +1,3 @@
+C:\Users\Biradhwaj\Desktop\gridpe\node_modules\@capacitor\android\capacitor\build.gradle
+C:\Users\Biradhwaj\Desktop\gridpe\node_modules\@capacitor\app\android\build.gradle
+C:\Users\Biradhwaj\Desktop\gridpe\node_modules\@capacitor\geolocation\android\build.gradle

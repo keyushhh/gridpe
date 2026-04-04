@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Optimization is enabled by default in proguard-android-optimize.txt.
+# We add -dontoptimize here to maintain the same behavior as proguard-android.txt
+# while fixing the sync error.
+-dontoptimize

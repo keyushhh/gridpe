@@ -18,6 +18,7 @@ import walletStarterBgLight from "@/assets/light-cards/fx-wallet-starter-light.p
 import walletProBgLight from "@/assets/light-cards/fx-wallet-pro-light.png";
 import walletEliteBgLight from "@/assets/light-cards/fx-wallet-elite-light.png";
 import walletSupremeBgLight from "@/assets/light-cards/fx-wallet-supreme-light.png";
+import iconPassport from "@/assets/icon-passport.png";
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import bgLight from "@/assets/bg-light.png";
@@ -131,7 +132,45 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
     );
 };
 
+const PassportUpgradeModal = ({ isOpen }: { isOpen: boolean }) => {
+    const navigate = useNavigate();
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme === "dark";
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6 transition-all duration-500 animate-in fade-in">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+            <div className={`relative w-full max-w-sm ${isDarkMode ? "bg-[#1C1C1E]" : "bg-white"} rounded-[32px] p-8 shadow-2xl border ${isDarkMode ? "border-white/10" : "border-black/5"} flex flex-col items-center text-center transform transition-all duration-500 animate-in zoom-in-95`}>
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${isDarkMode ? "bg-[#5260FE]/10" : "bg-[#5260FE]/5"}`}>
+                    <img src={iconPassport} alt="Passport" className="w-10 h-10 object-contain" />
+                </div>
+                <h3 className={`text-[22px] font-bold mb-3 ${isDarkMode ? "text-white" : "text-black"}`}>Passport Upgrade Required</h3>
+                <p className={`text-[15px] mb-8 leading-relaxed ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                    In compliance with international regulations, FX transactions require a valid Passport verification.
+                </p>
+                <div className="w-full space-y-3">
+                    <button
+                        onClick={() => navigate('/kyc-form?flow=fx_upgrade')}
+                        className="w-full h-[52px] bg-[#5260FE] text-white rounded-full font-bold text-[16px] shadow-lg shadow-[#5260FE]/30 active:scale-95 transition-all"
+                    >
+                        Upgrade Now
+                    </button>
+                    <button
+                        onClick={() => navigate('/home')}
+                        className={`w-full h-[52px] rounded-full font-medium text-[15px] active:scale-95 transition-all ${isDarkMode ? "text-white/40 border border-white/10" : "text-black/40 border border-black/5"}`}
+                    >
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const FxExchange = () => {
+    const { profile, isPassportVerified, kycStatus } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
     const { walletTier, walletLimit, walletBalance } = useUser();
@@ -157,19 +196,38 @@ const FxExchange = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                // Fetch Currencies
-                const cRes = await fetch('https://api.frankfurter.app/currencies');
-                const cData = await cRes.json();
-                setCurCurrencies(cData);
+                // Fetch Currencies - Use static list as requested to avoid Frankfurter CORS
+                const fallbackCurrencies = {
+                    USD: "United States Dollar",
+                    INR: "Indian Rupee",
+                    EUR: "Euro",
+                    GBP: "British Pound",
+                    AED: "United Arab Emirates Dirham"
+                };
+                setCurCurrencies(fallbackCurrencies);
 
-                // Fetch Initial Rate
-                const rRes = await fetch(`https://api.frankfurter.app/latest?from=${fromCurrency}&to=${toCurrency}`);
-                const rData = await rRes.json();
-                if (rData.rates && rData.rates[toCurrency]) {
-                    setFxRate(rData.rates[toCurrency]);
+                // Fetch Initial Rate from secure Edge Function
+                const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates?from=${fromCurrency}&to=${toCurrency}`, {
+                    headers: {
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.rates && data.rates[toCurrency]) {
+                        setFxRate(data.rates[toCurrency]);
+                    } else if (toCurrency === 'INR') {
+                        setFxRate(83.45); // Fallback for INR
+                    }
+                } else {
+                    throw new Error('Edge function returned error');
                 }
             } catch (error) {
                 console.error("Failed to fetch FX data:", error);
+                if (toCurrency === 'INR') {
+                    setFxRate(83.45);
+                }
             }
         };
         init();
@@ -478,6 +536,9 @@ const FxExchange = () => {
                 current={currentTo}
                 currencies={currencies}
                 type="to"
+            />
+            <PassportUpgradeModal 
+                isOpen={kycStatus === 'verified' && !isPassportVerified} 
             />
         </div>
     );

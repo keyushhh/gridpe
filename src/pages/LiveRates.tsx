@@ -121,13 +121,15 @@ const LiveRates = () => {
 
     useEffect(() => {
         const fetchCurrencies = async () => {
-            try {
-                const res = await fetch('https://api.frankfurter.app/currencies');
-                const data = await res.json();
-                setCurrencies(data);
-            } catch (err) {
-                console.error("Error fetching currencies:", err);
-            }
+            // Use static list as requested to avoid Frankfurter CORS
+            const fallbackCurrencies = {
+                USD: "United States Dollar",
+                INR: "Indian Rupee",
+                EUR: "Euro",
+                GBP: "British Pound",
+                AED: "United Arab Emirates Dirham"
+            };
+            setCurrencies(fallbackCurrencies);
         };
         fetchCurrencies();
     }, []);
@@ -135,37 +137,33 @@ const LiveRates = () => {
     useEffect(() => {
         const fetchRates = async () => {
             try {
-                const res = await fetch(`https://api.frankfurter.app/latest?from=${currentFrom}&to=${currentTo}`);
-                const data = await res.json();
-                if (data.rates && data.rates[currentTo]) {
-                    setFxRate(data.rates[currentTo]);
-                    const now = new Date();
-                    const options: any = { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true, timeZoneName: 'short' };
-                    setTimestamp(now.toLocaleDateString('en-GB', options).replace(',', ''));
+                const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates?from=${currentFrom}&to=${currentTo}`, {
+                    headers: {
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.rates && data.rates[currentTo]) {
+                        setFxRate(data.rates[currentTo]);
+                        const now = new Date();
+                        const options: any = { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true, timeZoneName: 'short' };
+                        setTimestamp(now.toLocaleDateString('en-GB', options).replace(',', ''));
+                    } else if (currentTo === 'INR') {
+                        setFxRate(83.45);
+                    }
+                } else {
+                    throw new Error('Edge function error');
                 }
 
-                // Fetch Historical Data
-                let startDate = new Date();
-                if (activeRange === '1D') startDate.setDate(startDate.getDate() - 1);
-                else if (activeRange === '5D') startDate.setDate(startDate.getDate() - 5);
-                else if (activeRange === '1M') startDate.setMonth(startDate.getMonth() - 1);
-                else if (activeRange === '1Y') startDate.setFullYear(startDate.getFullYear() - 1);
-                else if (activeRange === '5Y') startDate.setFullYear(startDate.getFullYear() - 5);
-                else startDate.setFullYear(startDate.getFullYear() - 10);
-
-                const startStr = startDate.toISOString().split('T')[0];
-                const histRes = await fetch(`https://api.frankfurter.app/${startStr}..?from=${currentFrom}&to=${currentTo}`);
-                const histData = await histRes.json();
-
-                if (histData.rates) {
-                    const formatted = Object.entries(histData.rates).map(([date, rates]: [string, any]) => ({
-                        date,
-                        rate: rates[currentTo]
-                    }));
-                    setHistory(formatted);
-                }
+                // Historical Data is temporarily unavailable via Edge Function
+                setHistory([]);
             } catch (err) {
                 console.error("Error fetching rates:", err);
+                if (currentTo === 'INR') {
+                    setFxRate(83.45);
+                }
             }
         };
         fetchRates();
@@ -311,57 +309,73 @@ const LiveRates = () => {
                     </div>
 
                     {/* Chart */}
-                    <div className="flex-1 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={history} margin={{ top: 10, right: 13, left: 14, bottom: 24 }}>
-                                <defs>
-                                    <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#22C55E" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid vertical={false} stroke={isDarkMode ? "rgba(255,255,255,0.05)" : "#E6E8EB"} />
-                                <XAxis
-                                    dataKey="date"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 500 }}
-                                    dy={15}
-                                    ticks={history.length > 2 ? [history[Math.floor(history.length * 0.25)].date, history[history.length - 1].date] : []}
-                                    tickFormatter={(val) => {
-                                        const d = new Date(val);
-                                        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-                                    }}
-                                />
-                                <YAxis
-                                    orientation="left"
-                                    domain={['dataMin', 'dataMax']}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 500 }}
-                                    width={30}
-                                    dx={0}
-                                    ticks={getYTickValues()}
-                                    tickFormatter={(val) => val.toFixed(1)}
-                                />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF', border: isDarkMode ? 'none' : '1px solid #E6E8EB', borderRadius: '8px', fontSize: '12px' }}
-                                    itemStyle={{ color: '#22C55E' }}
-                                    labelClassName="hidden"
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="rate"
-                                    stroke="#22C55E"
-                                    fillOpacity={1}
-                                    fill="url(#colorRate)"
-                                    strokeWidth={2}
-                                    animationDuration={1100}
-                                    animationEasing="ease-in-out"
-                                    isAnimationActive={true}
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="flex-1 w-full relative">
+                        {history.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={history} margin={{ top: 10, right: 13, left: 14, bottom: 24 }}>
+                                    <defs>
+                                        <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#22C55E" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid vertical={false} stroke={isDarkMode ? "rgba(255,255,255,0.05)" : "#E6E8EB"} />
+                                    <XAxis
+                                        dataKey="date"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 500 }}
+                                        dy={15}
+                                        ticks={history.length > 2 ? [history[Math.floor(history.length * 0.25)].date, history[history.length - 1].date] : []}
+                                        tickFormatter={(val) => {
+                                            const d = new Date(val);
+                                            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                                        }}
+                                    />
+                                    <YAxis
+                                        orientation="left"
+                                        domain={['dataMin', 'dataMax']}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 500 }}
+                                        width={30}
+                                        dx={0}
+                                        ticks={getYTickValues()}
+                                        tickFormatter={(val) => val.toFixed(1)}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF', border: isDarkMode ? 'none' : '1px solid #E6E8EB', borderRadius: '8px', fontSize: '12px' }}
+                                        itemStyle={{ color: '#22C55E' }}
+                                        labelClassName="hidden"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="rate"
+                                        stroke="#22C55E"
+                                        fillOpacity={1}
+                                        fill="url(#colorRate)"
+                                        strokeWidth={2}
+                                        animationDuration={1100}
+                                        animationEasing="ease-in-out"
+                                        isAnimationActive={true}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                                <div className={`w-12 h-12 mb-4 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                                    <svg className={`w-6 h-6 ${isDarkMode ? 'text-white/20' : 'text-black/20'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <p className={`text-[14px] font-medium leading-snug ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                                    Historical Data Temporarily Unavailable
+                                </p>
+                                <p className={`text-[12px] mt-1 ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
+                                    We're updating our secure data feeds. Check back soon!
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

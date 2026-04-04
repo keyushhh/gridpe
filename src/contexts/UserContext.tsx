@@ -17,6 +17,7 @@ interface UserProfile {
   reward_points?: number;
   referral_code?: string;
   subscription_status?: string;
+  is_passport_verified?: boolean;
 }
 
 export interface WalletTransaction extends LibWalletTransaction { }
@@ -153,7 +154,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select(`
-          id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, 
+          id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
           current_tier_id, scheduled_tier_id, tier_change_date,
           payment_status, subscription_status, reward_points,
           wallet_tiers!current_tier_id(*, subscription_price),
@@ -209,9 +210,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             id: profileData.id,
             name: profileData.name,
             subscription_status: profileData.subscription_status,
-            reward_points: profileData.reward_points
+            reward_points: profileData.reward_points,
+            is_passport_verified: !!profileData.is_passport_verified
           } as any,
           rewardPoints: Number(profileData.reward_points || 0),
+          isPassportVerified: !!profileData.is_passport_verified
         }));
         console.log('Profile and tier data refreshed via JOIN from Supabase');
       } else {

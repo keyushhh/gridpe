@@ -207,7 +207,7 @@ const OrderHistory = () => {
 
     const handleCancelOrder = async (orderId: string) => {
         try {
-            await cancelOrder(orderId);
+            await cancelOrder(orderId, 'User Request', 'Cancelled from history');
             setIsSheetOpen(false);
             // Refresh counts
             loadOrders();

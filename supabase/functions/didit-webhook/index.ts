@@ -1,7 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from '@supabase/supabase-js'
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   try {
     const payload = await req.json();
     const { event, data } = payload;
@@ -37,7 +36,13 @@ serve(async (req) => {
 
       const updatePayload: any = { kyc_status: status };
 
-      if (userType === 'customer' && metadata?.flow === 'fx_passport' && status === 'verified') {
+      const isPassportDetected = 
+        rawVendorData.includes('_passport') || 
+        ['fx_passport', 'fx_upgrade'].includes(metadata?.flow) ||
+        data.extraction?.document_type?.toLowerCase() === 'passport' ||
+        data.document_type?.toLowerCase() === 'passport';
+
+      if (userType === 'customer' && isPassportDetected && status === 'verified') {
         updatePayload.is_passport_verified = true;
       }
 
@@ -49,8 +54,12 @@ serve(async (req) => {
       if (error) throw error;
     }
 
-    return new Response(JSON.stringify({ received: true }), { status: 200 });
-  } catch (err) {
+    return new Response(JSON.stringify({ received: true }), { 
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (err: any) {
+    console.error('Webhook Error:', err.message);
     return new Response(err.message, { status: 400 });
   }
-})
+})

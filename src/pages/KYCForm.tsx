@@ -24,11 +24,17 @@ const KYCForm = () => {
   const { showToaster } = useCustomToaster();
   const [searchParams] = useSearchParams();
   const flow = searchParams.get("flow");
-  const isFxFlow = flow === "fx";
+  const isFxFlow = flow === "fx" || flow === "fx_upgrade";
+  const isUpgradeFlow = flow === "fx_upgrade";
 
   const [selectedDoc, setSelectedDoc] = useState<string | null>(isFxFlow ? "passport" : null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { fetchProfileData, kycStatus } = useUser();
+  const { fetchProfileData, kycStatus, isPassportVerified, profile } = useUser();
+
+  // DEBUG: Log status on mount to catch aggressive redirects
+  useEffect(() => {
+    console.log("KYCForm MOUNTED. Status:", kycStatus, "Flow:", flow);
+  }, [kycStatus, flow]);
 
   // Cleanup SDK instance firmly on unmount so camera/socket drops
   useEffect(() => {
@@ -50,6 +56,7 @@ const KYCForm = () => {
     { id: "pan", name: "PAN Card", icon: iconPan },
     { id: "dl", name: "Driving License", icon: iconPan }, // using pan icon as instructed
     { id: "voter", name: "Voter ID", icon: iconVoter },
+    { id: "passport", name: "Passport", icon: iconPassport },
   ];
 
   const filteredDocuments = isFxFlow
@@ -64,12 +71,13 @@ const KYCForm = () => {
   ];
 
   const handleContinue = async () => {
-    // 0. Persistence Gate - Block repeat launches
-    if (kycStatus === 'verified') {
-      showToaster("Account already secured!", "success");
-      navigate("/home", { replace: true });
-      return;
-    }
+    // Console logs to debug the redirection logic
+    console.log('Current KYC Status:', kycStatus);
+    console.log('Is Upgrade Flow:', isUpgradeFlow);
+    console.log('Is Passport Verified:', isPassportVerified);
+
+    // 0. Persistence Gate - DISABLED per user request to break the redirect loop
+    console.log("Attempting to trigger Didit for User:", profile?.id);
 
     setIsSubmitting(true);
     try {
@@ -79,27 +87,31 @@ const KYCForm = () => {
         DiditSDK.DiditSdk.shared.destroy();
       }
 
-      // 2. Set preliminary pending status in database
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ kyc_status: 'pending' })
-        .eq('id', USER_ID);
+      // 2. Set preliminary pending status in database (ONLY if not already verified)
+      // This prevents verified users from losing access to basic features while upgrading to Passport KYC.
+      const rawUuid = profile?.id || USER_ID;
+      if (kycStatus !== 'verified') {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ kyc_status: 'pending' })
+          .eq('id', rawUuid);
 
-      if (profileError) throw profileError;
+        if (profileError) throw profileError;
+      }
 
-      // 3. Resolve real customer UUID from auth session
-      const { data: { user } } = await supabase.auth.getUser();
-      const rawUuid = user?.id || USER_ID;
 
       // 4. Bypass Sticky Sessions by making vendor_data strictly unique per attempt
-      const customerUuid = `${rawUuid}_${Date.now()}`;
+      // For upgrades, we append _passport to signal the webhook
+      const customerUuid = isUpgradeFlow ? `${rawUuid}_passport_${Date.now()}` : `${rawUuid}_${Date.now()}`;
 
       // 3. Launch Didit using the explicit UniLink URL
       const DIDIT_UNI_LINK = 'https://verify.didit.me/u/rIUXDqkBQ0Ger_cQiQMbrA';
-      const metaFlow = isFxFlow ? 'fx_passport' : 'standard';
-      const finalUrl = `${DIDIT_UNI_LINK}?vendor_data=${customerUuid}&metadata=${encodeURIComponent(JSON.stringify({ user_type: 'customer', flow: metaFlow }))}`;
+      const metaFlow = isUpgradeFlow ? 'fx_upgrade' : (isFxFlow ? 'fx_passport' : 'standard');
+      const finalUrl = `${DIDIT_UNI_LINK}?vendor_data=${customerUuid}&reverify=true&metadata=${encodeURIComponent(JSON.stringify({ user_type: 'customer', flow: metaFlow }))}`;
 
-      console.log("Launching Didit URL via new tab:", finalUrl);
+      console.log("CRITICAL: Attempting to trigger Didit for User:", profile?.id);
+      console.log("Final URL:", finalUrl);
+      
       window.open(finalUrl, '_blank');
       
       // Navigate to Success Screen in the background (active when user returns)

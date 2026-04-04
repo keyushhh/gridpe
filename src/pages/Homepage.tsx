@@ -132,25 +132,29 @@ const Homepage = () => {
 
   // Fetch Live FX Data
   useEffect(() => {
-    const fetchFxData = async () => {
+    const fetchFxData = async (from = "USD", to = "INR", date?: string) => {
       try {
         setIsLoadingFx(true);
-        const end = new Date();
-        const start = new Date();
-        start.setDate(start.getDate() - 30);
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-        const startStr = start.toISOString().split('T')[0];
+        const params = new URLSearchParams({ from, to });
+        if (date) params.set("date", date);
 
-        const [latestRes, historyRes] = await Promise.all([
-          fetch('https://api.frankfurter.app/latest?from=USD&to=INR'),
-          fetch(`https://api.frankfurter.app/${startStr}..?from=USD&to=INR`)
-        ]);
+        const res = await fetch(
+          `${supabaseUrl}/functions/v1/fx-rates?${params.toString()}`,
+          {
+            headers: {
+              apikey: supabaseAnonKey,
+            },
+          }
+        );
 
-        const latestData = await latestRes.json();
-        const historyData = await historyRes.json();
+        if (!res.ok) throw new Error(`FX fetch failed: ${res.status}`);
+        const data = await res.json();
 
-        if (latestData.rates && latestData.rates.INR) {
-          setFxRate(latestData.rates.INR);
+        if (data.rates && data.rates.INR) {
+          setFxRate(data.rates.INR);
           const now = new Date();
           const options: Intl.DateTimeFormatOptions = {
             day: 'numeric',
@@ -162,16 +166,11 @@ const Homepage = () => {
           };
           setLastUpdated(now.toLocaleString('en-GB', options).replace(',', ''));
         }
-
-        if (historyData.rates) {
-          const formattedHistory = Object.entries(historyData.rates).map(([date, rates]: [string, any]) => ({
-            date: new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-            rate: rates.INR
-          }));
-          setFxHistory(formattedHistory);
-        }
       } catch (error) {
-        console.error("Failed to fetch FX data:", error);
+        console.error("Failed to fetch FX data from Edge Function, using fallback:", error);
+        // Fallback to hardcoded rate of 83.45 as requested so the UI never breaks
+        setFxRate(83.45);
+        setLastUpdated("Fallback Live Rate");
       } finally {
         setIsLoadingFx(false);
       }
@@ -349,7 +348,7 @@ const Homepage = () => {
 
   const handleCancelOrder = async (orderId: string) => {
     try {
-      await cancelOrder(orderId);
+      await cancelOrder(orderId, 'User Request', 'Cancelled from homepage');
       setIsSheetOpen(false);
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
