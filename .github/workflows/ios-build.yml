@@ -1,10 +1,12 @@
-name: Build iOS IPA (Sideload Ready)
+name: Grid.Pe Customer App
+
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -15,24 +17,38 @@ jobs:
           node-version: 22
 
       - name: Install Dependencies
-        run: |
-          npm install --legacy-peer-deps
-          npm install @capacitor/cli @capacitor/core @capacitor/ios
+        run: npm install --legacy-peer-deps
 
       - name: Build Web Project
         run: npm run build
 
+      - name: Verify Build Output
+        run: |
+          echo "=== dist/ contents ==="
+          ls -la dist/
+          echo "=== index.html check ==="
+          cat dist/index.html
+
+      - name: Install Capacitor CLI
+        run: npm install -g @capacitor/cli
+
       - name: Sync iOS Platform
         run: |
-          # If the ios folder doesn't exist, add it. If it does, just sync it.
-          npx cap add ios || true 
+          npx cap add ios || true
           npx cap sync ios
+
+      - name: Verify iOS Web Assets
+        run: |
+          echo "=== iOS public folder ==="
+          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING"
+          echo "=== index.html in bundle ==="
+          cat ios/App/App/public/index.html || echo "❌ INDEX.HTML MISSING"
 
       - name: Build Xcode Project
         run: |
           xcodebuild -project ios/App/App.xcodeproj \
                      -scheme App \
-                     -configuration Debug \
+                     -configuration Release \
                      -sdk iphoneos \
                      -derivedDataPath build \
                      CODE_SIGNING_ALLOWED=NO \
@@ -42,11 +58,11 @@ jobs:
       - name: Package IPA
         run: |
           mkdir -p Payload
-          cp -R build/Build/Products/Debug-iphoneos/App.app Payload/
-          zip -r GridPeRider.ipa Payload
-      
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -r GridPeCustomer.ipa Payload
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GridPeRider-IPA
-          path: GridPeRider.ipa
+          name: GridPeCustomer-IPA
+          path: GridPeCustomer.ipa
