@@ -1,72 +1,218 @@
-name: Grid.Pe Customer App
+# =============================================================================
+# Grid.Pe Customer App — iOS IPA Build (Unsigned, for SideStore)
+# =============================================================================
+# Manually trigger via Actions → "Build iOS IPA" → Run workflow
+# Downloads an unsigned .ipa you can sideload with SideStore / AltStore.
+#
+# WHITE-SCREEN FIX CHECKLIST (all handled below):
+#   1. Vite builds in production mode  → no dev-server references in JS
+#   2. capacitor.config.json has NO "server.url" override
+#   3. Info.plist CAPACITOR_DEBUG is forced to "false"
+#   4. Xcode build uses --configuration Release
+#   5. Web assets are verified inside the .app bundle before packaging
+# =============================================================================
+
+name: Build iOS IPA
 
 on:
   workflow_dispatch:
 
+env:
+  # ── Vite env vars (mirror your .env) ──────────────────────────────────────
+  # Add these as GitHub repository secrets so the production build can
+  # inline them. Any VITE_* variable referenced in your app must be here.
+  VITE_SUPABASE_URL: https://xxvbmvnrggsgetqswmjs.supabase.co
+  VITE_SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dmJtdm5yZ2dzZ2V0cXN3bWpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1Mjc0ODgsImV4cCI6MjA4NDEwMzQ4OH0.qxwDinews3GPFuPQxZaHB0wgSyM_S1PxuKvby3fhJAk
+  VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dmJtdm5yZ2dzZ2V0cXN3bWpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1Mjc0ODgsImV4cCI6MjA4NDEwMzQ4OH0.qxwDinews3GPFuPQxZaHB0wgSyM_S1PxuKvby3fhJAk
+  VITE_MAPBOX_TOKEN: pk.placeholder_mapbox_token
+  VITE_MAPS_API_KEY: 0YKHj47EEuldJryzAxYNLIx2dWRuvTlgbLmHWFSa
+  VITE_CLERK_PUBLISHABLE_KEY: pk_test_b3JpZW50ZWQtb3gtODAuY2xlcmsuYWNjb3VudHMuZGV2JA
+  VITE_RAZORPAY_KEY_ID: rzp_test_SKrtRmVWXS3WSn
+  VITE_CORBADO_PROJECT_ID: pro-5247868208405285450
+  VITE_CORBADO_API_SECRET: corbado1_k8x8zdAbfffGtWEteJPSREV54BQRbT
+
 jobs:
-  build:
+  build-ios:
+    name: Build Unsigned IPA
     runs-on: macos-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout Code
+      # ─────────────────────────────────────────────────────────────────────
+      # 1. Checkout
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # ─────────────────────────────────────────────────────────────────────
+      # 2. Node.js + npm
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+      - name: Install npm dependencies
+        run: npm ci --legacy-peer-deps
 
-      - name: Install Capacitor Packages
-        run: npm install @capacitor/cli @capacitor/core @capacitor/ios --legacy-peer-deps
-
-      - name: Build Web Project
+      # ─────────────────────────────────────────────────────────────────────
+      # 3. Production web build (Vite)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Build web app (production)
         run: npm run build
+        # npm run build → vite build → mode=production by default
+        # This outputs to ./dist with relative asset paths (base: "./")
 
-      - name: Setup iOS Platform
+      - name: Verify dist output
         run: |
-          rm -rf ios
-          npx cap add ios
-          npx cap sync ios
+          echo "=== dist/ contents ==="
+          ls -la dist/
+          echo "=== Checking for dev-server references ==="
+          if grep -r "localhost" dist/ --include="*.js" --include="*.html"; then
+            echo "⚠️  WARNING: Found localhost references in production build!"
+          else
+            echo "✅ No localhost references found — good!"
+          fi
 
-      - name: Verify iOS Web Assets
-        run: |
-          echo "=== iOS public folder ==="
-          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING"
-          echo "=== index.html ==="
-          cat ios/App/App/public/index.html || echo "❌ INDEX.HTML MISSING"
+      # ─────────────────────────────────────────────────────────────────────
+      # 4. Capacitor sync (copies dist → ios/App/App/public)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
 
-      - name: Build Xcode Project
+      # ─────────────────────────────────────────────────────────────────────
+      # 5. Patch capacitor.config.json — remove any server.url override
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Ensure no dev-server URL in Capacitor config
         run: |
-          xcodebuild -project ios/App/App.xcodeproj \
+          CONFIG="ios/App/App/capacitor.config.json"
+          echo "=== Before ==="
+          cat "$CONFIG"
+          # Remove any "server" key that might point to a local dev server
+          python3 -c "
+          import json, sys
+          with open('$CONFIG') as f:
+              cfg = json.load(f)
+          cfg.pop('server', None)
+          with open('$CONFIG', 'w') as f:
+              json.dump(cfg, f, indent=2)
+          "
+          echo ""
+          echo "=== After ==="
+          cat "$CONFIG"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 6. Patch Info.plist — display name + kill CAPACITOR_DEBUG
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Set app display name & disable debug mode
+        run: |
+          PLIST="ios/App/App/Info.plist"
+
+          # Set display name to "Grid.Pe Customer App"
+          plutil -replace CFBundleDisplayName -string "Grid.Pe Customer App" "$PLIST"
+
+          # Set internal bundle name
+          plutil -replace CFBundleName -string "GridPeCustomer" "$PLIST"
+
+          # Force CAPACITOR_DEBUG to false so the WebView loads local files,
+          # NOT a dev-server URL. This is the #1 white-screen fix.
+          plutil -replace CAPACITOR_DEBUG -string "false" "$PLIST"
+
+          echo "=== Patched Info.plist ==="
+          plutil -p "$PLIST"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 7. Verify web assets landed in the iOS project
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Verify iOS web assets
+        run: |
+          echo "=== ios/App/App/public/ ==="
+          ls -la ios/App/App/public/
+          echo ""
+          echo "=== index.html head (first 30 lines) ==="
+          head -30 ios/App/App/public/index.html
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 8. Resolve SPM dependencies
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Resolve Swift Package Manager dependencies
+        working-directory: ios/App
+        run: |
+          xcodebuild -project App.xcodeproj \
                      -scheme App \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     -derivedDataPath build \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO \
-                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
-                     ENABLE_BITCODE=NO
+                     -resolvePackageDependencies \
+                     -clonedSourcePackagesDirPath ../../.spm-cache
 
+      # ─────────────────────────────────────────────────────────────────────
+      # 9. Build with xcodebuild (Release, no code-signing)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Build Xcode project (Release)
+        working-directory: ios/App
+        run: |
+          xcodebuild build \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ../../build \
+            -clonedSourcePackagesDirPath ../../.spm-cache \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            ENABLE_BITCODE=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            | tee ../../xcodebuild.log \
+            | tail -50
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 10. Verify the built .app bundle
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Verify .app bundle contents
+        run: |
+          APP_PATH="build/Build/Products/Release-iphoneos/App.app"
+          echo "=== App.app root ==="
+          ls -la "$APP_PATH/"
+          echo ""
+          echo "=== public/ inside .app ==="
+          ls -la "$APP_PATH/public/" || echo "❌ NO public/ FOLDER IN APP"
+          echo ""
+          echo "=== index.html inside .app ==="
+          head -10 "$APP_PATH/public/index.html" || echo "❌ NO index.html IN APP"
+          echo ""
+          echo "=== capacitor.config.json inside .app ==="
+          cat "$APP_PATH/capacitor.config.json" || echo "❌ NO capacitor.config.json IN APP"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 11. Package into IPA
+      # ─────────────────────────────────────────────────────────────────────
       - name: Package IPA
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/App.app Payload/
-          zip -r GridPeCustomer.ipa Payload
+          zip -r -9 GridPeCustomer.ipa Payload
+          echo ""
+          echo "=== IPA size ==="
+          ls -lh GridPeCustomer.ipa
 
-      - name: Debug IPA Contents
-        run: |
-          echo "=== App.app root ==="
-          ls -la Payload/App.app/
-          echo "=== public folder inside app ==="
-          ls -la Payload/App.app/public/ || echo "❌ NO PUBLIC FOLDER IN APP"
-          echo "=== index.html inside app ==="
-          cat Payload/App.app/public/index.html || echo "❌ NO INDEX.HTML IN APP"
-
-      - name: Upload Artifact
+      # ─────────────────────────────────────────────────────────────────────
+      # 12. Upload artifact
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: GridPeCustomer-IPA
           path: GridPeCustomer.ipa
+          retention-days: 30
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 13. Upload build log (for debugging failures)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Upload Xcode build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
+          retention-days: 7
