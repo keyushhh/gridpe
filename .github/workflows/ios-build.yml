@@ -1,0 +1,47 @@
+name: Build iOS IPA (Sideload Ready)
+on:
+  workflow_dispatch: # Allows you to run this manually whenever you want
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Project
+        run: npm run build
+
+      - name: Add iOS Platform
+        run: |
+          npm install @capacitor/ios
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Export IPA (Unsigned)
+        # Note: For SideStore, we'll export the .app or an unsigned .ipa
+        # SideStore handles the signing with your Apple ID locally!
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+                     -scheme App \
+                     -configuration Debug \
+                     -sdk iphoneos \
+                     -derivedDataPath build \
+                     clean build
+          mkdir -p payload/Payload
+          cp -R build/Build/Products/Debug-iphoneos/App.app payload/Payload
+          cd payload && zip -r ../GridPeRider.ipa Payload
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GridPeRider-IPA
+          path: GridPeRider.ipa
