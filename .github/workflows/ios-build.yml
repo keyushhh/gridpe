@@ -32,11 +32,11 @@ jobs:
           echo "=== index.html ==="
           cat dist/index.html
 
-      - name: Add iOS Platform
-        run: npx cap add ios
-
-      - name: Sync Web Assets to iOS
-        run: npx cap sync ios
+      - name: Sync iOS Platform
+        run: |
+          rm -rf ios
+          npx cap add ios
+          npx cap sync ios
 
       - name: Verify iOS Web Assets
         run: |
