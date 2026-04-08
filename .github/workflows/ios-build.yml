@@ -29,26 +29,26 @@ jobs:
         run: |
           echo "=== dist/ contents ==="
           ls -la dist/
-          echo "=== index.html ==="
           cat dist/index.html
 
-      - name: Sync iOS Platform
+      - name: Setup iOS Platform
         run: |
           rm -rf ios
           npx cap add ios
+          echo "=== Checking Podfile ==="
+          ls -la ios/App/
           npx cap sync ios
 
       - name: Verify iOS Web Assets
         run: |
-          echo "=== iOS public folder ==="
-          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING - sync failed"
-          echo "=== index.html in bundle ==="
+          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING"
           cat ios/App/App/public/index.html || echo "❌ INDEX.HTML MISSING"
 
       - name: Install CocoaPods
         run: |
           cd ios/App
-          pod install
+          ls -la
+          pod install --repo-update
 
       - name: Build Xcode Project
         run: |
