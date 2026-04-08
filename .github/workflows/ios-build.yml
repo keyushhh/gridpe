@@ -95,6 +95,9 @@ jobs:
           with open('$CONFIG') as f:
               cfg = json.load(f)
           cfg.pop('server', None)
+          if 'ios' not in cfg:
+              cfg['ios'] = {}
+          cfg['ios']['webContentsDebuggingEnabled'] = True
           with open('$CONFIG', 'w') as f:
               json.dump(cfg, f, indent=2)
           "
