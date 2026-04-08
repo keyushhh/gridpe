@@ -22,15 +22,14 @@ jobs:
       - name: Build Web Project
         run: npm run build
 
-      - name: Initialize & Sync iOS
+      - name: Sync iOS Platform
         run: |
-          npx cap init GridPeRider com.gridpe.rider --web-dir dist
-          npx cap add ios
+          # If the ios folder doesn't exist, add it. If it does, just sync it.
+          npx cap add ios || true 
           npx cap sync ios
 
       - name: Build Xcode Project
         run: |
-          # We use xcodebuild on the project directly since the workspace might be finicky in CI
           xcodebuild -project ios/App/App.xcodeproj \
                      -scheme App \
                      -configuration Debug \
