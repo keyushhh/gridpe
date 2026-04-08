@@ -12,30 +12,34 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # Updated to avoid that deprecation warning in your screenshot
+          node-version: 22
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps # Helps bypass conflicts with that SIM manager library
+        run: |
+          npm install --legacy-peer-deps
+          npm install @capacitor/cli @capacitor/core @capacitor/ios
 
       - name: Build Web Project
         run: npm run build
 
-      - name: Capacitor Sync
+      - name: Initialize & Sync iOS
         run: |
-          npm install @capacitor/ios
-          npx cap add ios || true
+          npx cap init GridPeRider com.gridpe.rider --web-dir dist
+          npx cap add ios
           npx cap sync ios
 
       - name: Build Xcode Project
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace \
+          # We use xcodebuild on the project directly since the workspace might be finicky in CI
+          xcodebuild -project ios/App/App.xcodeproj \
                      -scheme App \
                      -configuration Debug \
                      -sdk iphoneos \
                      -derivedDataPath build \
                      CODE_SIGNING_ALLOWED=NO \
-                     COMPILER_INDEX_STORE_ENABLE=NO
-          
+                     CODE_SIGNING_REQUIRED=NO \
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES
+
       - name: Package IPA
         run: |
           mkdir -p Payload
