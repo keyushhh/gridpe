@@ -21,15 +21,15 @@ env:
   # ── Vite env vars (mirror your .env) ──────────────────────────────────────
   # Add these as GitHub repository secrets so the production build can
   # inline them. Any VITE_* variable referenced in your app must be here.
-  VITE_SUPABASE_URL: https://xxvbmvnrggsgetqswmjs.supabase.co
-  VITE_SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dmJtdm5yZ2dzZ2V0cXN3bWpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1Mjc0ODgsImV4cCI6MjA4NDEwMzQ4OH0.qxwDinews3GPFuPQxZaHB0wgSyM_S1PxuKvby3fhJAk
-  VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4dmJtdm5yZ2dzZ2V0cXN3bWpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1Mjc0ODgsImV4cCI6MjA4NDEwMzQ4OH0.qxwDinews3GPFuPQxZaHB0wgSyM_S1PxuKvby3fhJAk
-  VITE_MAPBOX_TOKEN: pk.placeholder_mapbox_token
-  VITE_MAPS_API_KEY: 0YKHj47EEuldJryzAxYNLIx2dWRuvTlgbLmHWFSa
-  VITE_CLERK_PUBLISHABLE_KEY: pk_test_b3JpZW50ZWQtb3gtODAuY2xlcmsuYWNjb3VudHMuZGV2JA
-  VITE_RAZORPAY_KEY_ID: rzp_test_SKrtRmVWXS3WSn
-  VITE_CORBADO_PROJECT_ID: pro-5247868208405285450
-  VITE_CORBADO_API_SECRET: corbado1_k8x8zdAbfffGtWEteJPSREV54BQRbT
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+  VITE_MAPS_API_KEY: ${{ secrets.VITE_MAPS_API_KEY }}
+  VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+  VITE_RAZORPAY_KEY_ID: ${{ secrets.VITE_RAZORPAY_KEY_ID }}
+  VITE_CORBADO_PROJECT_ID: ${{ secrets.VITE_CORBADO_PROJECT_ID }}
+  VITE_CORBADO_API_SECRET: ${{ secrets.VITE_CORBADO_API_SECRET }}
 
 jobs:
   build-ios:
