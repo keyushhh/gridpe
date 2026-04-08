@@ -1,4 +1,4 @@
-name: Grid.Pe Customer App Build
+name: Grid.Pe Customer App
 
 on:
   workflow_dispatch:
@@ -15,12 +15,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Install Capacitor CLI
+      - name: Install Capacitor Packages
         run: npm install @capacitor/cli @capacitor/core @capacitor/ios --legacy-peer-deps
 
       - name: Build Web Project
@@ -30,47 +29,44 @@ jobs:
         run: |
           rm -rf ios
           npx cap add ios
-          # This command forces the App name change in the Xcode project
           npx cap sync ios
 
-      - name: Set App Display Name
+      - name: Verify iOS Web Assets
         run: |
-          # Updates the Info.plist to show the proper name on the home screen
-          PLIST="ios/App/App/Info.plist"
-          plutil -replace CFBundleDisplayName -string "Grid.Pe Customer App" $PLIST
-          plutil -replace CFBundleName -string "GridPeCustomer" $PLIST
+          echo "=== iOS public folder ==="
+          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING"
+          echo "=== index.html ==="
+          cat ios/App/App/public/index.html || echo "❌ INDEX.HTML MISSING"
 
-      - name: Install CocoaPods
+      - name: Build Xcode Project
         run: |
-          # We check both possible directories to avoid the "No Podfile" error
-          if [ -f "ios/App/Podfile" ]; then
-            cd ios/App && pod install --repo-update
-          else
-            cd ios && pod install --repo-update
-          fi
-
-      - name: Build Xcode Project (unsigned)
-        run: |
-          xcodebuild -workspace ios/App/App.xcworkspace \
+          xcodebuild -project ios/App/App.xcodeproj \
                      -scheme App \
                      -configuration Release \
                      -sdk iphoneos \
                      -derivedDataPath build \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
-                     AD_HOC_CODE_SIGNING_ALLOWED=YES
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
+                     ENABLE_BITCODE=NO
 
       - name: Package IPA
         run: |
           mkdir -p Payload
-          # Find the .app folder regardless of the specific build subfolder name
-          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
-          cp -R "$APP_PATH" Payload/
-          zip -r "GridPeCustomer.ipa" Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -r GridPeCustomer.ipa Payload
+
+      - name: Debug IPA Contents
+        run: |
+          echo "=== App.app root ==="
+          ls -la Payload/App.app/
+          echo "=== public folder inside app ==="
+          ls -la Payload/App.app/public/ || echo "❌ NO PUBLIC FOLDER IN APP"
+          echo "=== index.html inside app ==="
+          cat Payload/App.app/public/index.html || echo "❌ NO INDEX.HTML IN APP"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: GridPeCustomer-IPA
           path: GridPeCustomer.ipa
-          retention-days: 7
