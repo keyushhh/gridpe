@@ -25,34 +25,22 @@ jobs:
       - name: Build Web Project
         run: npm run build
 
-      - name: Verify Build Output
+      - name: Setup iOS Platform
         run: |
-          echo "=== dist/ contents ==="
-          ls -la dist/
-          echo "=== index.html ==="
-          cat dist/index.html
-
-      - name: Add iOS Platform
-        run: npx cap add ios
-
-      - name: Sync Web Assets to iOS
-        run: npx cap sync ios
+          rm -rf ios
+          npx cap add ios
+          npx cap sync ios
 
       - name: Verify iOS Web Assets
         run: |
           echo "=== iOS public folder ==="
-          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING - sync failed"
-          echo "=== index.html in bundle ==="
+          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING"
+          echo "=== index.html ==="
           cat ios/App/App/public/index.html || echo "❌ INDEX.HTML MISSING"
-
-      - name: Install CocoaPods
-        run: |
-          cd ios/App
-          pod install
 
       - name: Build Xcode Project
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace \
+          xcodebuild -project ios/App/App.xcodeproj \
                      -scheme App \
                      -configuration Release \
                      -sdk iphoneos \
@@ -67,6 +55,15 @@ jobs:
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/App.app Payload/
           zip -r GridPeCustomer.ipa Payload
+
+      - name: Debug IPA Contents
+        run: |
+          echo "=== App.app root ==="
+          ls -la Payload/App.app/
+          echo "=== public folder inside app ==="
+          ls -la Payload/App.app/public/ || echo "❌ NO PUBLIC FOLDER IN APP"
+          echo "=== index.html inside app ==="
+          cat Payload/App.app/public/index.html || echo "❌ NO INDEX.HTML IN APP"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
