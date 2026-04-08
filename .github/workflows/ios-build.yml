@@ -19,6 +19,9 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Install Capacitor Packages
+        run: npm install @capacitor/cli @capacitor/core @capacitor/ios --legacy-peer-deps
+
       - name: Build Web Project
         run: npm run build
 
@@ -26,34 +29,38 @@ jobs:
         run: |
           echo "=== dist/ contents ==="
           ls -la dist/
-          echo "=== index.html check ==="
+          echo "=== index.html ==="
           cat dist/index.html
 
-      - name: Install Capacitor CLI
-        run: npm install -g @capacitor/cli
+      - name: Add iOS Platform
+        run: npx cap add ios
 
-      - name: Sync iOS Platform
-        run: |
-          npx cap add ios || true
-          npx cap sync ios
+      - name: Sync Web Assets to iOS
+        run: npx cap sync ios
 
       - name: Verify iOS Web Assets
         run: |
           echo "=== iOS public folder ==="
-          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING"
+          ls -la ios/App/App/public/ || echo "❌ PUBLIC FOLDER MISSING - sync failed"
           echo "=== index.html in bundle ==="
           cat ios/App/App/public/index.html || echo "❌ INDEX.HTML MISSING"
 
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install
+
       - name: Build Xcode Project
         run: |
-          xcodebuild -project ios/App/App.xcodeproj \
+          xcodebuild -workspace ios/App/App.xcworkspace \
                      -scheme App \
                      -configuration Release \
                      -sdk iphoneos \
                      -derivedDataPath build \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
-                     AD_HOC_CODE_SIGNING_ALLOWED=YES
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
+                     ENABLE_BITCODE=NO
 
       - name: Package IPA
         run: |
