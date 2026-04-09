@@ -35,10 +35,11 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 backdrop-blur-lg ${isDarkMode ? 'bg-black/80 border-t border-white/40' : 'bg-white/80 border-t border-[#E9EAEB]'}`}
+      className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 backdrop-blur-xl ${isDarkMode ? 'bg-black/95 border-t border-white/5' : 'bg-white/95 border-t border-[#E9EAEB]'}`}
       style={{
-        height: 'calc(104px + env(safe-area-inset-bottom))',
-        paddingBottom: 'env(safe-area-inset-bottom)'
+        height: 'calc(64px + env(safe-area-inset-bottom))',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        boxShadow: '0 -10px 30px rgba(0,0,0,0.15)'
       }}
     >
       {/* Background Overlay */}
@@ -47,14 +48,15 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
         style={{
           backgroundImage: `url(${isDarkMode ? navbarOverlay : navbarLight})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: isDarkMode ? 0.06 : 0.85
+          backgroundPosition: 'bottom center',
+          opacity: isDarkMode ? 0.08 : 0.9
         }}
       />
+      
       {/* Home */}
       <button
         onClick={() => navigate("/home")}
-        className="flex flex-col items-center gap-1 min-w-[60px]"
+        className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img
           src={!isDarkMode ? (activeTab === "home" ? homeLight : homeNotselectedLight) : (activeTab === "home" ? navHome : navHomeInactive)}
@@ -62,7 +64,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
           className="w-6 h-6 object-contain"
         />
         <span
-          className={`text-[11px] font-medium ${activeTab === "home" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+          className={`text-[10px] font-medium ${activeTab === "home" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
         >
           Home
         </span>
@@ -71,7 +73,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
       {/* Cards */}
       <button
         onClick={() => navigate("/cards")}
-        className="flex flex-col items-center gap-1 min-w-[60px]"
+        className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img
           src={!isDarkMode ? (activeTab === "cards" ? cardSelectedLight : cardLight) : (activeTab === "cards" ? navCardsActive : navCards)}
@@ -79,19 +81,19 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
           className="w-6 h-6 object-contain"
         />
         <span
-          className={`text-[11px] font-medium ${activeTab === "cards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+          className={`text-[10px] font-medium ${activeTab === "cards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
         >
           Cards
         </span>
       </button>
 
       {/* Center FAB Space */}
-      <div className="flex justify-center w-[72px] relative h-full">
+      <div className="flex items-center justify-center -mt-6">
         <button
           onClick={() => navigate("/wallet-add-money")}
-          className="absolute top-[9px] w-[72px] h-[72px] rounded-full flex items-center justify-center transition-transform active:scale-95 z-20"
+          className="w-[68px] h-[68px] rounded-full flex items-center justify-center transition-transform active:scale-90 z-20"
           style={{
-            boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.79), 0 3px 3px 0 rgba(0, 0, 0, 0.68), 0 7px 4px 0 rgba(0, 0, 0, 0.40), 0 12px 5px 0 rgba(0, 0, 0, 0.12), 0 19px 5px 0 rgba(0, 0, 0, 0.01)' : '0 2px 10px rgba(0,0,0,0.1)'
+            boxShadow: isDarkMode ? '0 8px 16px rgba(0, 0, 0, 0.4)' : '0 4px 12px rgba(0,0,0,0.15)'
           }}
         >
           <img
@@ -105,7 +107,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
       {/* Rewards */}
       <button
         onClick={() => navigate("/rewards")}
-        className="flex flex-col items-center gap-1 min-w-[60px]"
+        className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img
           src={!isDarkMode ? (activeTab === "rewards" ? rewardsSelectedLight : rewardLight) : (activeTab === "rewards" ? navRewardsActive : navRewards)}
@@ -113,7 +115,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
           className="w-6 h-6 object-contain"
         />
         <span
-          className={`text-[11px] font-medium ${activeTab === "rewards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+          className={`text-[10px] font-medium ${activeTab === "rewards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
         >
           Rewards
         </span>
@@ -122,7 +124,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
       {/* More */}
       <button
         onClick={() => navigate("/more")}
-        className="flex flex-col items-center gap-1 min-w-[60px]"
+        className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img
           src={!isDarkMode ? (activeTab === "more" ? moreSelectedLight : moreLight) : (activeTab === "more" ? navMoreFilled : navMore)}
@@ -130,7 +132,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
           className="w-6 h-6 object-contain"
         />
         <span
-          className={`text-[11px] font-medium ${activeTab === "more" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+          className={`text-[10px] font-medium ${activeTab === "more" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
         >
           More
         </span>

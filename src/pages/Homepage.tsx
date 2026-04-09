@@ -490,7 +490,7 @@ const Homepage = () => {
 
   return (
     <div
-      className="absolute inset-0 flex flex-col overflow-hidden bg-[#0a0a12]"
+      className="flex-1 w-full flex flex-col overflow-hidden bg-[#0a0a12] relative"
       style={{
         backgroundImage: `url(${mainBg})`,
         backgroundSize: "cover",
@@ -502,7 +502,7 @@ const Homepage = () => {
         {/* Header Fixed Area (Top Section always visible) */}
         <div className="shrink-0 flex flex-col safe-area-top z-50 relative pointer-events-none">
           {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
-          <div className="px-5 pt-12 flex items-start justify-between relative pointer-events-auto z-50">
+          <div className="px-5 pt-4 flex items-start justify-between relative pointer-events-auto z-50">
             <div className="space-y-1 max-w-[70%]">
               {savedAddress ? (
                 <div className="flex items-center gap-1">
