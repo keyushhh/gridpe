@@ -866,8 +866,8 @@ const Homepage = () => {
                 </div>
 
                 <div className="flex justify-center gap-2 mt-3">
-                  <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0 ? 'bg-[#5260FE]' : 'bg-[#4B53AF]/18 dark:bg-muted'}`} />
-                  <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1 ? 'bg-[#5260FE]' : 'bg-[#4B53AF]/18 dark:bg-muted'}`} />
+                  <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0 ? 'bg-[#5260FE]' : 'bg-[#5260FE]/30 dark:bg-muted'}`} />
+                  <div className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1 ? 'bg-[#5260FE]' : 'bg-[#5260FE]/30 dark:bg-muted'}`} />
                 </div>
               </div>
             )}

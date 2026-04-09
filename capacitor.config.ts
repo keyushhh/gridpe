@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   ...(isDev && {
     server: {
-      url: 'http://Z390.local:8080',
+      url: 'http://172.20.10.5:8080',
       cleartext: true
     }
   })
