@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ChevronDown } from "lucide-react";
+import { Eye, EyeOff, ChevronDown, Home, Briefcase, Users, MapPin } from "lucide-react";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from "open-location-code";
@@ -506,12 +506,20 @@ const Homepage = () => {
             <div className="space-y-1 max-w-[70%]">
               {savedAddress ? (
                 <div className="flex items-center gap-1">
-                  <img
-                    src={getTagIcon(savedAddress.tag)}
-                    alt={savedAddress.tag}
-                    className="w-3 h-3"
-                    style={{ filter: 'invert(36%) sepia(80%) saturate(6000%) hue-rotate(230deg) brightness(95%) contrast(100%)' }}
-                  />
+                  {(() => {
+                    const IconProps = {
+                      size: 14,
+                      color: isDarkMode ? "#FFFFFF" : "#5260FE",
+                      strokeWidth: 2.5
+                    };
+                    switch (savedAddress.tag) {
+                      case "Home": return <Home {...IconProps} />;
+                      case "Work": return <Briefcase {...IconProps} />;
+                      case "Friends & Family": return <Users {...IconProps} />;
+                      case "Other": return <MapPin {...IconProps} />;
+                      default: return <Home {...IconProps} />;
+                    }
+                  })()}
                   <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
                     {savedAddress.tag}
                   </p>
