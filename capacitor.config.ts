@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Grid.Pe',
   webDir: 'dist',
   server: {
-    url: 'http://192.168.29.5:8080',
+    url: 'https://late-spiders-enjoy.loca.lt',
     cleartext: true
   }
 };
