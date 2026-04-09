@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { X, Search } from "lucide-react";
+import { X, Search, Plus, MapPin, MessageSquareMore } from "lucide-react";
 import { reverseGeocode, forwardGeocode } from "@/utils/geoUtils";
 import { Geolocation } from '@capacitor/geolocation';
 import { OpenLocationCode } from "open-location-code";
@@ -374,7 +374,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                         onClick={() => navigate('/add-address')}
                     >
                         <div className="flex items-center gap-3">
-                            <img src={addPlusIcon} alt="" className={`w-5 h-5 ${isDarkMode ? 'opacity-80' : ''}`} style={!isDarkMode ? { filter: 'brightness(0) saturate(100%) invert(36%) sepia(54%) saturate(3545%) hue-rotate(223deg) brightness(101%) contrast(98%)' } : undefined} />
+                            <Plus size={20} color="#5260FE" strokeWidth={2.5} />
                             <p className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>Add address</p>
                         </div>
                         <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
@@ -390,7 +390,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                         onClick={handleUseCurrentLocation}
                     >
                         <div className="flex items-center gap-3">
-                            <img src={currentLocationIcon} alt="" className={isDarkMode ? 'opacity-80' : ''} style={{ width: '15px', height: '18px', filter: !isDarkMode ? 'brightness(0) saturate(100%) invert(36%) sepia(54%) saturate(3545%) hue-rotate(223deg) brightness(101%) contrast(98%)' : 'none' }} />
+                            <MapPin size={20} color="#5260FE" strokeWidth={2.5} />
                             <div>
                                 <p className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>Use my current location</p>
                                 <p className={`text-[12px] font-regular font-satoshi mt-0.5 ${isDarkMode ? 'text-white/30' : 'text-black'}`}>
@@ -411,7 +411,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                         onClick={() => { }} // No-op as requested
                     >
                         <div className="flex items-center gap-3">
-                            <img src={chatIcon} alt="" className={`w-5 h-5 ${isDarkMode ? 'opacity-80' : ''}`} style={!isDarkMode ? { filter: 'brightness(0) saturate(100%) invert(36%) sepia(54%) saturate(3545%) hue-rotate(223deg) brightness(101%) contrast(98%)' } : undefined} />
+                            <MessageSquareMore size={20} color="#5260FE" strokeWidth={2.5} />
                             <p className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>Request address from someone else</p>
                         </div>
                         <img src={chevronRight} alt="" className="w-4 h-4 opacity-50" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
