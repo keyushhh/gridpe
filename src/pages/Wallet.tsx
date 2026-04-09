@@ -9,7 +9,7 @@ const Wallet = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { isWalletActivated } = useUser();
+    const { isWalletActivated, activateWallet } = useUser();
     const [activeTab, setActiveTab] = useState<'how-it-works' | 'refund-policy'>('how-it-works');
 
     const walletBg = useAsset("wallet-bg");
@@ -247,6 +247,7 @@ const Wallet = () => {
             <div className="shrink-0 px-5 pb-[30px] pt-4 w-full bg-transparent">
                 <button
                     onClick={() => {
+                        activateWallet();
                         navigate('/wallet-created');
                     }}
                     className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans transition-all active:scale-95 ${!isDarkMode ? 'bg-[#5260FE] rounded-full' : ''}`}

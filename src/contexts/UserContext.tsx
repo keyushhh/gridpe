@@ -214,7 +214,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             is_passport_verified: !!profileData.is_passport_verified
           } as any,
           rewardPoints: Number(profileData.reward_points || 0),
-          isPassportVerified: !!profileData.is_passport_verified
+          isPassportVerified: !!profileData.is_passport_verified,
+          isWalletActivated: prev.isWalletActivated || 
+            (tierData?.name && tierData.name.toLowerCase() !== 'starter') || 
+            profileData.subscription_status === 'completed' ||
+            !!profileData.is_passport_verified
         }));
         console.log('Profile and tier data refreshed via JOIN from Supabase');
       } else {
@@ -339,7 +343,28 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const held = Math.floor(calculateHeldBalance(txData as LibWalletTransaction[] || []));
 
       console.log('Balance read from wallets (floored):', flooredBalance, 'Held:', held, 'for userId:', userId);
-      setState(prev => ({ ...prev, walletBalance: flooredBalance, heldBalance: held }));
+      
+      // Auto-activate if user has balance or held funds
+      const shouldBeActivated = flooredBalance > 0 || held > 0;
+      
+      setState(prev => ({ 
+        ...prev, 
+        walletBalance: flooredBalance, 
+        heldBalance: held,
+        isWalletActivated: prev.isWalletActivated || shouldBeActivated
+      }));
+
+      // If still not activated, check for ANY transaction history
+      if (!state.isWalletActivated && !shouldBeActivated) {
+        const { count } = await supabase
+          .from('wallet_transactions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        
+        if (count && count > 0) {
+          setState(prev => ({ ...prev, isWalletActivated: true }));
+        }
+      }
     } catch (err) {
       console.error('Error in fetchAndCalculateBalance:', err);
     }

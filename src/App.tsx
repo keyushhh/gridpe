@@ -1,11 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect } from "react";
 import { supabase } from "./lib/supabase";
-import { UserProvider } from "./contexts/UserContext";
-import { CustomToasterProvider } from "./contexts/CustomToasterContext";
 import GlobalCustomToaster from "./components/GlobalCustomToaster";
 import Index from "./pages/Index";
 import Homepage from "./pages/Homepage";
@@ -94,7 +90,6 @@ import NotFound from "./pages/NotFound";
 import DeliveryCaution from "./pages/DeliveryCaution";
 import NotAvailable from "./pages/NotAvailable";
 
-const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
@@ -151,106 +146,100 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <CustomToasterProvider>
-          <TooltipProvider>
-            <GlobalCustomToaster />
-            <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/home" element={<Homepage />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/kyc-intro" element={<KYCIntro />} />
-                <Route path="/kyc-form" element={<KYCForm />} />
-                <Route path="/kyc-success" element={<SuccessScreen />} />
-                <Route path="/profile-edit" element={<ProfileEdit />} />
-                <Route path="/cards" element={<MyCards />} />
-                <Route path="/cards/add" element={<AddCard />} />
-                <Route path="/card-remove-success" element={<CardRemoveSuccess />} />
-                <Route path="/camera-page" element={<CameraPage />} />
-                <Route path="/banking" element={<Banking />} />
-                <Route path="/banking/add" element={<AddBank />} />
-                <Route path="/banking/linked-accounts" element={<LinkedAccounts />} />
-                <Route path="/bank-remove-success" element={<BankRemoveSuccess />} />
-                <Route path="/security-dashboard" element={<SecurityDashboard />} />
-                <Route path="/kyc-status-complete" element={<KYCStatusComplete />} />
-                <Route path="/delete-account" element={<DeleteAccount />} />
-                <Route path="/confirm-deactivation" element={<ConfirmDeactivation />} />
-                <Route path="/account-deactivated" element={<AccountDeactivated />} />
-                <Route path="/delete-account-reasons" element={<DeleteAccountReasons />} />
-                <Route path="/delete-account-mobile" element={<DeleteAccountMobile />} />
-                <Route path="/delete-account-otp" element={<DeleteAccountOTP />} />
-                <Route path="/account-deleted" element={<AccountDeleted />} />
-                <Route path="/account-retrieved" element={<AccountRetrieved />} />
-                <Route path="/security/mpin-settings" element={<MpinSettings />} />
-                <Route path="/forgot-mpin" element={<ForgotMpin />} />
-                <Route path="/order-cash" element={<OrderCash />} />
-                <Route path="/order-cash-summary" element={<OrderCashSummary />} />
-                <Route path="/order-history" element={<OrderHistory />} />
-                <Route path="/order-details/:orderId" element={<OrderDetails />} />
-                <Route path="/schedule-delivery" element={<ScheduleDelivery />} />
-                <Route path="/saved-addresses" element={<SavedAddresses />} />
-                <Route path="/add-address" element={<AddAddress />} />
-                <Route path="/add-address-details" element={<AddAddressDetails />} />
-                <Route path="/order-cancelled" element={<OrderCancelled />} />
-                <Route path="/order-tracking" element={<OrderTracking />} />
-                <Route path="/wallet" element={<Wallet />} />
-                <Route path="/wallet-created" element={<WalletCreated />} />
-                <Route path="/wallet-transaction-history" element={<WalletTransactionHistory />} />
-                <Route path="/wallet-settings" element={<WalletSettings />} />
-                <Route path="/wallet-tier/:tierId" element={<WalletTierDetails />} />
-                <Route path="/wallet-add-money" element={<WalletAddMoney />} />
-                <Route path="/add-payment-method" element={<AddPaymentMethod />} />
-                <Route path="/order-summary" element={<OrderSummary />} />
-                <Route path="/wallet-topup-success" element={<WalletTopUpSuccess />} />
-                <Route path="/wallet-topup-failed" element={<WalletTopUpFailed />} />
-                <Route path="/subscription-details" element={<SubscriptionSummary />} />
-                <Route path="/wallet-upgrade-success" element={<WalletUpgradeSuccess />} />
-                <Route path="/wallet-withdraw" element={<WalletWithdraw />} />
-                <Route path="/wallet-withdraw-success" element={<WalletWithdrawSuccess />} />
-                <Route path="/payment-missing" element={<PaymentMissing />} />
-                <Route path="/select-payment-method" element={<SelectPaymentMethod />} />
-                <Route path="/withdraw-otp" element={<WithdrawOTP />} />
-                <Route path="/wallet-withdraw-failed" element={<WalletWithdrawFailed />} />
-                <Route path="/view-rider-kyc" element={<ViewRiderKyc />} />
-                <Route path="/verify-rider-kyc" element={<VerifyRiderKyc />} />
-                <Route path="/report-rider-kyc" element={<ReportRiderKyc />} />
-                <Route path="/kyc-report-success" element={<KycReportSuccess />} />
-                <Route path="/kyc-report-error" element={<KycReportError />} />
-                <Route path="/report-rider-confirm" element={<ReportRiderConfirm />} />
-                <Route path="/order-delivered" element={<OrderDelivered />} />
-                <Route path="/help" element={<HelpSupport />} />
-                <Route path="/help/report" element={<NeedHelp />} />
-                <Route path="/help/category/:categoryId" element={<HelpCategoryPage />} />
-                <Route path="/help/chat" element={<ZingChat />} />
-                <Route path="/help/success" element={<HelpReportSuccess />} />
-                <Route path="/rewards" element={<Rewards />} />
-                <Route path="/legal/privacy" element={<LegalPage type="privacy" />} />
-                <Route path="/legal/terms" element={<LegalPage type="terms" />} />
-                <Route path="/more" element={<MorePage />} />
-                <Route path="/fx-exchange" element={<FxExchange />} />
-                <Route path="/fx-exchange-summary" element={<FxExchangeSummary />} />
-                <Route path="/fx-success/:orderId" element={<FxSuccess />} />
-                <Route path="/fx-intro" element={<FxIntro />} />
-                <Route path="/fx-passport-gate" element={<FxPassportGate />} />
-                <Route path="/fx-passport-kyc" element={<FxPassportKYC />} />
-                <Route path="/fx-kyc-success" element={<FxKYCSuccess />} />
-                <Route path="/live-rates" element={<LiveRates />} />
-                <Route path="/subscriptions" element={<Subscriptions />} />
-                <Route path="/manage-subscription" element={<ManageSubscription />} />
-                <Route path="/downgrade-plan" element={<DowngradePlan />} />
-                <Route path="/downgrade-summary" element={<DowngradeSummary />} />
-                <Route path="/auth/v1/callback" element={<AuthCallback />} />
-                <Route path="/delivery-caution" element={<DeliveryCaution />} />
-                <Route path="/not-available" element={<NotAvailable />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </HashRouter>
-          </TooltipProvider>
-        </CustomToasterProvider>
-      </UserProvider>
-    </QueryClientProvider>
+    <>
+      <GlobalCustomToaster />
+      <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/home" element={<Homepage />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/kyc-intro" element={<KYCIntro />} />
+          <Route path="/kyc-form" element={<KYCForm />} />
+          <Route path="/kyc-success" element={<SuccessScreen />} />
+          <Route path="/profile-edit" element={<ProfileEdit />} />
+          <Route path="/cards" element={<MyCards />} />
+          <Route path="/cards/add" element={<AddCard />} />
+          <Route path="/card-remove-success" element={<CardRemoveSuccess />} />
+          <Route path="/camera-page" element={<CameraPage />} />
+          <Route path="/banking" element={<Banking />} />
+          <Route path="/banking/add" element={<AddBank />} />
+          <Route path="/banking/linked-accounts" element={<LinkedAccounts />} />
+          <Route path="/bank-remove-success" element={<BankRemoveSuccess />} />
+          <Route path="/security-dashboard" element={<SecurityDashboard />} />
+          <Route path="/kyc-status-complete" element={<KYCStatusComplete />} />
+          <Route path="/delete-account" element={<DeleteAccount />} />
+          <Route path="/confirm-deactivation" element={<ConfirmDeactivation />} />
+          <Route path="/account-deactivated" element={<AccountDeactivated />} />
+          <Route path="/delete-account-reasons" element={<DeleteAccountReasons />} />
+          <Route path="/delete-account-mobile" element={<DeleteAccountMobile />} />
+          <Route path="/delete-account-otp" element={<DeleteAccountOTP />} />
+          <Route path="/account-deleted" element={<AccountDeleted />} />
+          <Route path="/account-retrieved" element={<AccountRetrieved />} />
+          <Route path="/security/mpin-settings" element={<MpinSettings />} />
+          <Route path="/forgot-mpin" element={<ForgotMpin />} />
+          <Route path="/order-cash" element={<OrderCash />} />
+          <Route path="/order-cash-summary" element={<OrderCashSummary />} />
+          <Route path="/order-history" element={<OrderHistory />} />
+          <Route path="/order-details/:orderId" element={<OrderDetails />} />
+          <Route path="/schedule-delivery" element={<ScheduleDelivery />} />
+          <Route path="/saved-addresses" element={<SavedAddresses />} />
+          <Route path="/add-address" element={<AddAddress />} />
+          <Route path="/add-address-details" element={<AddAddressDetails />} />
+          <Route path="/order-cancelled" element={<OrderCancelled />} />
+          <Route path="/order-tracking" element={<OrderTracking />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/wallet-created" element={<WalletCreated />} />
+          <Route path="/wallet-transaction-history" element={<WalletTransactionHistory />} />
+          <Route path="/wallet-settings" element={<WalletSettings />} />
+          <Route path="/wallet-tier/:tierId" element={<WalletTierDetails />} />
+          <Route path="/wallet-add-money" element={<WalletAddMoney />} />
+          <Route path="/add-payment-method" element={<AddPaymentMethod />} />
+          <Route path="/order-summary" element={<OrderSummary />} />
+          <Route path="/wallet-topup-success" element={<WalletTopUpSuccess />} />
+          <Route path="/wallet-topup-failed" element={<WalletTopUpFailed />} />
+          <Route path="/subscription-details" element={<SubscriptionSummary />} />
+          <Route path="/wallet-upgrade-success" element={<WalletUpgradeSuccess />} />
+          <Route path="/wallet-withdraw" element={<WalletWithdraw />} />
+          <Route path="/wallet-withdraw-success" element={<WalletWithdrawSuccess />} />
+          <Route path="/payment-missing" element={<PaymentMissing />} />
+          <Route path="/select-payment-method" element={<SelectPaymentMethod />} />
+          <Route path="/withdraw-otp" element={<WithdrawOTP />} />
+          <Route path="/wallet-withdraw-failed" element={<WalletWithdrawFailed />} />
+          <Route path="/view-rider-kyc" element={<ViewRiderKyc />} />
+          <Route path="/verify-rider-kyc" element={<VerifyRiderKyc />} />
+          <Route path="/report-rider-kyc" element={<ReportRiderKyc />} />
+          <Route path="/kyc-report-success" element={<KycReportSuccess />} />
+          <Route path="/kyc-report-error" element={<KycReportError />} />
+          <Route path="/report-rider-confirm" element={<ReportRiderConfirm />} />
+          <Route path="/order-delivered" element={<OrderDelivered />} />
+          <Route path="/help" element={<HelpSupport />} />
+          <Route path="/help/report" element={<NeedHelp />} />
+          <Route path="/help/category/:categoryId" element={<HelpCategoryPage />} />
+          <Route path="/help/chat" element={<ZingChat />} />
+          <Route path="/help/success" element={<HelpReportSuccess />} />
+          <Route path="/rewards" element={<Rewards />} />
+          <Route path="/legal/privacy" element={<LegalPage type="privacy" />} />
+          <Route path="/legal/terms" element={<LegalPage type="terms" />} />
+          <Route path="/more" element={<MorePage />} />
+          <Route path="/fx-exchange" element={<FxExchange />} />
+          <Route path="/fx-exchange-summary" element={<FxExchangeSummary />} />
+          <Route path="/fx-success/:orderId" element={<FxSuccess />} />
+          <Route path="/fx-intro" element={<FxIntro />} />
+          <Route path="/fx-passport-gate" element={<FxPassportGate />} />
+          <Route path="/fx-passport-kyc" element={<FxPassportKYC />} />
+          <Route path="/fx-kyc-success" element={<FxKYCSuccess />} />
+          <Route path="/live-rates" element={<LiveRates />} />
+          <Route path="/subscriptions" element={<Subscriptions />} />
+          <Route path="/manage-subscription" element={<ManageSubscription />} />
+          <Route path="/downgrade-plan" element={<DowngradePlan />} />
+          <Route path="/downgrade-summary" element={<DowngradeSummary />} />
+          <Route path="/auth/v1/callback" element={<AuthCallback />} />
+          <Route path="/delivery-caution" element={<DeliveryCaution />} />
+          <Route path="/not-available" element={<NotAvailable />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </HashRouter>
+    </>
   );
 };
 

@@ -101,13 +101,17 @@ const KYCForm = () => {
 
 
       // 4. Bypass Sticky Sessions by making vendor_data strictly unique per attempt
-      // For upgrades, we append _passport to signal the webhook
-      const customerUuid = isUpgradeFlow ? `${rawUuid}_passport_${Date.now()}` : `${rawUuid}_${Date.now()}`;
+      // For FX flows, we use _p_ to signal passport requirement to the webhook
+      const customerUuid = isFxFlow ? `${rawUuid}_p_${Date.now()}` : `${rawUuid}_${Date.now()}`;
 
-      // 3. Launch Didit using the explicit UniLink URL
-      const DIDIT_UNI_LINK = 'https://verify.didit.me/u/rIUXDqkBQ0Ger_cQiQMbrA';
+      // 3. Launch Didit using the appropriate UniLink URL
+      const DIDIT_STANDARD_URL = 'https://verify.didit.me/u/rIUXDqkBQ0Ger_cQiQMbrA';
+      const DIDIT_PASSPORT_URL = 'https://verify.didit.me/u/gFonSKPQREqtUrpyWSSnpA';
+      
+      const targetUrl = isFxFlow ? DIDIT_PASSPORT_URL : DIDIT_STANDARD_URL;
       const metaFlow = isUpgradeFlow ? 'fx_upgrade' : (isFxFlow ? 'fx_passport' : 'standard');
-      const finalUrl = `${DIDIT_UNI_LINK}?vendor_data=${customerUuid}&reverify=true&metadata=${encodeURIComponent(JSON.stringify({ user_type: 'customer', flow: metaFlow }))}`;
+      
+      const finalUrl = `${targetUrl}?vendor_data=${customerUuid}&reverify=true&webhook=true&metadata=${encodeURIComponent(JSON.stringify({ user_type: 'customer', flow: metaFlow }))}`;
 
       console.log("CRITICAL: Attempting to trigger Didit for User:", profile?.id);
       console.log("Final URL:", finalUrl);
