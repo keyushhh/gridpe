@@ -26,7 +26,7 @@ const FxPassportKYC = () => {
 
     return (
         <div
-            className="min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-bottom animate-in fade-in duration-500 relative"
+            className="min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth animate-in fade-in duration-500 relative"
             style={{
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -53,7 +53,7 @@ const FxPassportKYC = () => {
                 <div className="w-10" />
             </div>
 
-            <div className="px-5 pb-20">
+            <div className="px-5 pb-safe pb-4 flex-1 flex flex-col justify-between">
                 {step === 'upload' && (
                     <div className="animate-in slide-in-from-bottom-4 duration-500">
                         <div className="mt-8">
@@ -111,7 +111,7 @@ const FxPassportKYC = () => {
                             </div>
                         </div>
 
-                        <div className="mt-12">
+                        <div className="mt-auto">
                             <button
                                 disabled={!files.front || !files.back}
                                 onClick={handleSubmit}
@@ -152,7 +152,7 @@ const FxPassportKYC = () => {
                             Your identity has been successfully confirmed. You now have full access to International FX Exchange.
                         </p>
 
-                        <div className="mt-12 w-full">
+                        <div className="mt-auto w-full">
                             <button
                                 onClick={() => navigate('/fx-exchange')}
                                 className="w-[362px] h-[54px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"

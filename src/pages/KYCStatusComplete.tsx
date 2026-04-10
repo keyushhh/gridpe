@@ -21,7 +21,7 @@ const KYCStatusComplete = () => {
 
   return (
     <div
-      className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
+      className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${successBg})` : "none",
@@ -99,7 +99,7 @@ const KYCStatusComplete = () => {
       </div>
 
       {/* Footer / CTA */}
-      <div className="px-5 pb-20 mt-auto">
+      <div className="px-5 pb-safe pb-4 mt-auto">
         <Button
           className={`w-full h-[48px] text-white rounded-full font-semibold text-[16px] ${isDarkMode ? 'border-none' : 'bg-[#5260FE] hover:bg-[#5260FE]/90'}`}
           style={isDarkMode ? {

@@ -223,7 +223,7 @@ const WalletCreated = () => {
             const isDowngradePending = isRenewalPending || (profile as any)?.subscription_status === 'pending';
             const showWarning = isDowngradePending;
             const hasScheduledDowngrade = !!scheduledDowngrade;
-            const transitionSuccess = (location.state as any)?.transitionSuccess;
+            const transitionSuccess = (location as any).state?.transitionSuccess;
 
             return (
                 <div className="mt-[16px]">
@@ -369,7 +369,7 @@ const WalletCreated = () => {
 
     return (
         <div
-            className="h-full w-full overflow-y-auto overscroll-auto flex flex-col safe-area-top safe-area-bottom pb-20 relative"
+            className="h-full w-full overflow-y-auto overscroll-auto flex flex-col safe-area-top relative"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${walletBg})` : "none",
@@ -560,7 +560,7 @@ const WalletCreated = () => {
             </div>
 
             {/* Footer CTA */}
-            <div className="shrink-0 px-5 pb-[30px] pt-4 w-full bg-transparent flex flex-col gap-[12px]">
+            <div className="shrink-0 px-5 mt-auto pb-safe pb-4 pt-4 w-full bg-transparent flex flex-col gap-[12px]">
                 <button
                     disabled={isRenewalPending || (profile as any)?.subscription_status === 'pending'}
                     onClick={() => !isRenewalPending && (profile as any)?.subscription_status !== 'pending' && navigate('/wallet-add-money')}

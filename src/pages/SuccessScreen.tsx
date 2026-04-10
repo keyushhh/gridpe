@@ -68,7 +68,7 @@ const SuccessScreen = () => {
 
   return (
     <div
-      className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom"
+      className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-area-top"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${successBg})` : "none",
@@ -123,8 +123,9 @@ const SuccessScreen = () => {
         {getBodyText()}
       </p>
 
-      {/* CTA — 210px below body text */}
-      <div className="pb-20 space-y-4 relative z-10 w-full flex flex-col items-center">
+      {/* CTA Section - using flex-1 to push footer text down */}
+      <div className="flex-1" />
+      <div className="pb-4 space-y-4 relative z-10 w-full flex flex-col items-center">
         <button
           onClick={() => {
             if (kycStatus === 'verified') {
@@ -161,7 +162,7 @@ const SuccessScreen = () => {
       </div>
 
       {/* Footer Text — pushed to bottom */}
-      <div className="mt-auto pb-20 px-4">
+      <div className="mt-auto pb-safe pb-4 px-4">
         <p className={`${isDarkMode ? 'text-white' : 'text-black/60'} text-[13px] text-center leading-snug font-sans`}>
           {kycStatus === 'verified'
             ? "Your account features have been fully unlocked."

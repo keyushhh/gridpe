@@ -125,7 +125,7 @@ const ProfileEdit = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',
@@ -306,7 +306,7 @@ const ProfileEdit = () => {
       </div>
 
       {/* Footer Info */}
-      <div className="px-5 mt-32 pb-20 opacity-40 flex flex-col items-start mt-auto">
+      <div className="px-5 pb-safe pb-4 opacity-40 flex flex-col items-start mt-auto">
         <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
         <p className="text-sm mt-1">This is not where you find love.</p>
       </div>

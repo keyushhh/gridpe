@@ -84,7 +84,7 @@ const SelectPaymentMethod = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom ${isDarkMode ? "" : "bg-white"}`}
+            className={`h-full w-full overflow-hidden flex flex-col safe-area-top ${isDarkMode ? "" : "bg-white"}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -111,7 +111,7 @@ const SelectPaymentMethod = () => {
                 </h1>
             </div>
 
-            <div className="flex-1 flex flex-col px-5 pt-[34px] overflow-y-auto overscroll-y-contain pb-[180px] z-10 min-h-0">
+            <div className="flex-1 flex flex-col px-5 pt-[34px] overflow-y-auto overscroll-y-contain pb-32 z-10 min-h-0">
                 {/* Sub-text - 34px below header */}
                 <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-tight mb-[22px]`}>
                     Select a payment method where you want the amount to be refunded.
@@ -320,7 +320,7 @@ const SelectPaymentMethod = () => {
 
             {/* Footer CTAs - Absolute with blur */}
             <div
-                className="absolute bottom-0 left-0 right-0 px-5 pb-20 pt-5 flex flex-col gap-3 z-30"
+                className="absolute bottom-0 left-0 right-0 px-5 pb-safe pb-4 pt-5 flex flex-col gap-3 z-30"
                 style={{
                     backgroundColor: isDarkMode ? "rgba(10, 10, 18, 0.4)" : "rgba(255, 255, 255, 0.8)",
                     backdropFilter: "blur(20px)",

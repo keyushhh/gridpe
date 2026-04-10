@@ -20,7 +20,7 @@ const FxIntro = () => {
 
     return (
         <div
-            className="min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-top safe-area-bottom animate-in fade-in duration-500 relative flex flex-col items-center"
+            className="min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-top animate-in fade-in duration-500 relative flex flex-col items-center"
             style={{
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${mainBg})`,
@@ -98,7 +98,7 @@ const FxIntro = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-32 pb-20 flex justify-center">
+                <div className="mt-auto pb-safe pb-4 flex justify-center">
                     <button
                         onClick={() => navigate("/wallet-settings")}
                         className="w-[362px] h-[48px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"

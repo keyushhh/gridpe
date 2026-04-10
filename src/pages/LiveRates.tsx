@@ -380,7 +380,7 @@ const LiveRates = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-12 pb-20">
+                <div className="mt-12 pb-safe pb-4">
                     <button
                         onClick={() => navigate('/fx-exchange', {
                             state: {

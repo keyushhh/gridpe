@@ -33,7 +33,7 @@ const AccountDeactivated = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center safe-area-top safe-area-bottom pb-20 relative"
+      className="h-full w-full overflow-hidden flex flex-col items-center safe-area-top pb-safe pb-4 relative"
       style={isDarkMode ? {
         backgroundImage: `url(${warningBackground})`,
         backgroundSize: "cover",
@@ -116,7 +116,7 @@ const AccountDeactivated = () => {
       </div>
 
       {/* CTA Button */}
-      <div className="w-[362px] mt-[29px] relative z-10">
+      <div className="w-[362px] mt-auto relative z-10">
         <Button
           onClick={handlePanicked}
           className={`w-full h-[52px] rounded-full font-semibold text-[16px] border-none ${isDarkMode

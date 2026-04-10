@@ -33,7 +33,7 @@ const ReportRiderKyc = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full h-full flex flex-col safe-area-top safe-area-bottom overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`fixed inset-0 w-full h-full flex flex-col safe-area-top overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -71,7 +71,7 @@ const ReportRiderKyc = () => {
                 </h1>
             </div>
 
-            <div className="px-5 mt-8 pb-20 space-y-4">
+            <div className="px-5 mt-8 pb-safe pb-4 space-y-4">
                 {/* Pick a Reason Section */}
                 <div
                     className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}

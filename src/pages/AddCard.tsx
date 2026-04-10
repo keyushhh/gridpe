@@ -211,7 +211,7 @@ const AddCard = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 relative"
+      className="h-full w-full overflow-hidden flex flex-col safe-area-top relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -245,7 +245,7 @@ const AddCard = () => {
         <div className="w-10" />
       </div>
 
-      <div className="flex-1 px-5 mt-8 flex flex-col">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 mt-8 flex flex-col">
         {/* Interactive Card Preview */}
         {/* Size: 360 x 192 px, Padding L/R: 26px */}
         <div
@@ -445,7 +445,7 @@ const AddCard = () => {
         </div>
 
         {/* CTA Button */}
-        <div className="mt-[86px]">
+        <div className="mt-auto mt-6 pb-safe pb-4">
           <Button
             onClick={handleSaveCard}
             disabled={!hasInput || hasErrors}

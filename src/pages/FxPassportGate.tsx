@@ -49,7 +49,7 @@ const FxPassportGate = () => {
 
     return (
         <div
-            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top safe-area-bottom relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}
+            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}
             style={{
                 backgroundImage: `url(${mainBg})`,
                 backgroundSize: "cover",
@@ -136,7 +136,7 @@ const FxPassportGate = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="w-full mt-auto pt-10 pb-20 flex flex-col items-center">
+                <div className="w-full mt-auto pt-4 pb-safe pb-4 flex flex-col items-center">
                     <button
                         onClick={() => navigate('/kyc-form?flow=fx')}
                         className="w-full h-[48px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform"

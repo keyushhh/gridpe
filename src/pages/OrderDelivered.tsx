@@ -65,7 +65,7 @@ const OrderDelivered = () => {
                 />
             )}
 
-            <div className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom pb-20 relative z-10 w-full pt-4">
+            <div className="h-full w-full overflow-hidden flex flex-col safe-area-top relative z-10 w-full pt-4">
                 {/* Heading: Satoshi - medium - 22px */}
                 <h1 className={`text-[22px] font-medium font-satoshi text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Order Delivered
@@ -113,10 +113,11 @@ const OrderDelivered = () => {
                     </div>
                 </div>
 
-                {/* Redirecting CTA: 362x48px, 29px below container */}
-                <button
-                    onClick={() => navigate("/home")}
-                    className={`mt-[29px] flex items-center justify-center active:scale-95 transition-transform ${isDarkMode ? '' : 'bg-[#18181A] rounded-full'}`}
+                {/* Redirecting CTA */}
+                <div className="w-full mt-auto flex flex-col items-center pb-safe pb-4">
+                    <button
+                        onClick={() => navigate("/home")}
+                        className={`flex items-center justify-center active:scale-95 transition-transform ${isDarkMode ? '' : 'bg-[#18181A] rounded-full'}`}
                     style={{
                         width: "362px",
                         height: "48px",
@@ -131,6 +132,7 @@ const OrderDelivered = () => {
                 </button>
             </div>
         </div>
+    </div>
     );
 };
 

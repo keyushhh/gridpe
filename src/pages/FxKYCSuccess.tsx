@@ -21,7 +21,7 @@ const FxKYCSuccess = () => {
 
     return (
         <div
-            className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom"
+            className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-area-top"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${successBg})` : "none",
@@ -72,8 +72,8 @@ const FxKYCSuccess = () => {
                 We've received your KYC details. Verification typically takes under 30 minutes.
             </p>
 
-            {/* CTA — 210px below body text */}
-            <div className="mt-[210px] flex flex-col items-center">
+            <div className="flex-1" />
+            <div className="flex flex-col items-center">
                 <button
                     onClick={() => navigate("/fx-exchange", { replace: true })}
                     className="flex items-center justify-center text-[16px] font-medium transition-transform active:scale-95 rounded-full font-sans"
@@ -97,7 +97,7 @@ const FxKYCSuccess = () => {
             </div>
 
             {/* Footer Text — pushed to bottom */}
-            <div className="mt-auto pb-20 px-4">
+            <div className="mt-auto pb-safe pb-4 px-4">
                 <p className={`${isDarkMode ? "text-white" : "text-black"} text-[13px] text-center leading-snug font-sans`}>
                     If accepted, you'll officially be one of us. If rejected... it's probably your lighting.
                 </p>

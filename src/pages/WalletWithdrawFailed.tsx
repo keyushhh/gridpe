@@ -25,7 +25,7 @@ const WalletWithdrawFailed = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${errorBg})`,
@@ -88,7 +88,7 @@ const WalletWithdrawFailed = () => {
                 </div>
 
                 {/* CTAs Section - 72px below container */}
-                <div className="mt-[72px] w-full flex flex-col items-center overflow-hidden">
+                <div className="mt-auto mb-4 w-full flex flex-col items-center overflow-hidden">
                     <button
                         onClick={() => navigate("/wallet-withdraw")}
                         className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center active:scale-95 transition-transform font-satoshi ${isDarkMode ? '' : 'bg-[#6C72FF]'}`}

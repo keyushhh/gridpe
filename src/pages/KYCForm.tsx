@@ -137,7 +137,7 @@ const KYCForm = () => {
 
   return (
     <div
-      className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
+      className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -261,7 +261,7 @@ const KYCForm = () => {
       </div>
 
       {/* Footer - Constrained container */}
-      <div className={`mt-auto pb-20 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
+      <div className={`mt-auto pb-safe pb-4 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
         <p className={`${isDarkMode ? 'text-[#7E7E7E]/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}>
           This information is used for identity verification only, and will be kept secure by Didit
         </p>

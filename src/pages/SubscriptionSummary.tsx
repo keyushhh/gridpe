@@ -206,7 +206,7 @@ const SubscriptionSummary = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -417,7 +417,7 @@ const SubscriptionSummary = () => {
             </div>
 
             {/* Slide to Pay */}
-            <div className="px-5 mt-auto pb-20 pt-4 shrink-0">
+            <div className="px-5 mt-auto pb-safe pb-4 pt-4 shrink-0">
                 <SlideToPay
                     onComplete={async () => {
                         if (isDowngrade) {

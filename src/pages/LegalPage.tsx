@@ -161,7 +161,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full overflow-hidden flex flex-col safe-area-top font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",
@@ -249,7 +249,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
 
             {/* Bottom Actions */}
             {showActions && (
-                <div className="px-4 pb-20 pt-2 flex gap-4 animate-fade-in justify-center">
+                <div className="px-4 pb-safe pb-4 pt-2 flex gap-4 animate-fade-in justify-center">
                     <Button
                         variant="outline"
                         className={`w-[172px] h-[48px] rounded-full border text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-[#E9EAEB] text-black'}`}

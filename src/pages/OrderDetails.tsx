@@ -337,7 +337,7 @@ const OrderDetails = () => {
     // --- RENDER ---
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom animate-in fade-in duration-500 relative"
+            className="h-full w-full overflow-hidden flex flex-col safe-area-top animate-in fade-in duration-500 relative"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : 'none',
@@ -421,7 +421,7 @@ const OrderDetails = () => {
                 )}
             </div>
 
-            <div className="flex-1 overflow-hidden px-5 pb-20 flex flex-col items-center">
+            <div className="flex-1 overflow-y-auto no-scrollbar px-5 flex flex-col items-center">
                 {/* Main Icon */}
                 <div className="w-[62px] h-[62px] mb-[35px]">
                     <img src={statusConfig.mainIcon} alt="Status" className="w-full h-full object-contain" />
@@ -564,7 +564,7 @@ const OrderDetails = () => {
                 </div>
 
                 {/* Footer CTA */}
-                <div className="w-full">
+                <div className="w-full mt-auto mt-[20px] pb-safe pb-4">
                     {order?.status === 'cancelled' || order?.status === 'failed' ? (
                         <div className="flex flex-col items-center">
                             <button

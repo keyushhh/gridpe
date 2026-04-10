@@ -36,7 +36,7 @@ const AccountDeleted = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center pt-4 pb-20 px-5 safe-area-top safe-area-bottom relative"
+      className="h-full w-full overflow-hidden flex flex-col items-center pt-4 pb-safe pb-4 px-5 safe-area-top relative"
       style={isDarkMode ? {
         backgroundImage: `url(${accountDeletedBg})`,
         backgroundSize: "cover",
@@ -111,7 +111,7 @@ const AccountDeleted = () => {
       </div>
 
       {/* Footer / Action */}
-      <div className="w-full mt-[32px] flex flex-col items-center relative z-10">
+      <div className="w-full mt-auto flex flex-col items-center relative z-10">
         <button
           className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
           onClick={handleTakeMeBack}

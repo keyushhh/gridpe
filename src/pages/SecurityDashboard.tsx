@@ -309,7 +309,7 @@ const SecurityDashboard = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
+      className="h-full w-full overflow-hidden flex flex-col safe-area-top relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         // Remove background image in Dark Mode as requested to fix the "frame" issue.
@@ -423,7 +423,7 @@ const SecurityDashboard = () => {
         </div>
 
         {/* Content Container */}
-        <div className="px-5 pb-8 flex flex-col gap-4">
+        <div className="px-5 pb-safe pb-4 flex flex-col gap-4">
 
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}

@@ -46,7 +46,7 @@ const HelpCategoryPage = () => {
             )}
 
             {/* Scrollable Content */}
-            <div className="relative z-20 h-full w-full flex flex-col safe-area-top overflow-y-auto no-scrollbar pb-20">
+            <div className="relative z-20 h-full w-full flex flex-col safe-area-top overflow-y-auto no-scrollbar pb-safe pb-4">
                 {/* Header */}
                 <header className="px-5 pt-4 pb-4 flex items-center justify-center relative z-10 shrink-0 mb-[41px]">
                     <button
@@ -98,7 +98,7 @@ const HelpCategoryPage = () => {
                     </div>
 
                     {/* Footer Watermark (Inside scrollable content) */}
-                    <div className="mt-32 pb-20">
+                    <div className="mt-32 pb-4">
                         <div className="flex flex-col items-start">
                             <h2 className={`text-[40px] font-black font-satoshi tracking-tight leading-none ${isDarkMode ? 'text-white/40' : 'text-black/40'}`}>
                                 Grid.Pe

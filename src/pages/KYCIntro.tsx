@@ -34,7 +34,7 @@ const KYCIntro = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom pb-20 relative"
+      className="h-full w-full overflow-hidden flex flex-col safe-area-top relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -91,7 +91,7 @@ const KYCIntro = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="pb-20 space-y-4 relative z-10 flex flex-col items-center">
+      <div className="mt-auto pb-safe pb-4 space-y-4 relative z-10 flex flex-col items-center">
         <button
           onClick={() => navigate('/kyc-form')}
           className="w-[362px] h-[48px] rounded-full text-white font-medium text-[16px] btn-gradient font-sans flex items-center justify-center"

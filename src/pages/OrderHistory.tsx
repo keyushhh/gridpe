@@ -434,7 +434,7 @@ const OrderHistory = () => {
 
             {/* Past Orders (Grouped by Date) */}
             {groupedPastOrders.length > 0 && (
-                <div className="px-5 pb-20 relative z-10 flex flex-col gap-[24px]">
+                <div className="px-5 pb-safe pb-4 relative z-10 flex flex-col gap-[24px]">
                     {groupedPastOrders.map((group) => (
                         <div key={group.title}>
                             <h2 className={`${showOnlyPast ? 'text-[#7E7E7E] text-[14px] font-medium uppercase' : (isDarkMode ? 'text-white' : 'text-black')} text-[16px] font-bold font-satoshi mb-[12px]`}>

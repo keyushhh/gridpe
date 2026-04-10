@@ -81,7 +81,7 @@ const DeleteAccount = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom relative"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top pb-safe pb-4 relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -148,7 +148,7 @@ const DeleteAccount = () => {
       </div>
 
       {/* Footer / CTA */}
-      <div className="px-5 pb-20 mt-auto flex flex-col gap-3 relative z-10">
+      <div className="px-5 pb-safe pb-4 mt-auto flex flex-col gap-3 relative z-10">
         {/* Proceed Button */}
         <button
           className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"

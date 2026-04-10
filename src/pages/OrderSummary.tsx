@@ -66,7 +66,7 @@ const OrderSummary = () => {
 
     return (
         <div
-            className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 relative"
+            className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top relative"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -224,7 +224,7 @@ const OrderSummary = () => {
             </div>
 
             {/* Bottom Slider CTA */}
-            <div className="w-full px-5 pb-20">
+            <div className="w-full mt-auto px-5 pb-safe pb-4">
                 <SlideToPay
                     onComplete={() => {
                         if (retry) {

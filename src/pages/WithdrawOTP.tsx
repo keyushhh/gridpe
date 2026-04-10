@@ -165,7 +165,7 @@ const WithdrawOTP = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -290,7 +290,7 @@ const WithdrawOTP = () => {
                 </div>
 
                 {/* Info Text - Spaced out */}
-                <div className="mt-[140px]">
+                <div className="mt-auto mb-8">
                     <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-tight mb-[12px]`}>
                         Your amount will be credited in this selected mode of payment.
                     </p>
@@ -335,7 +335,7 @@ const WithdrawOTP = () => {
                 </div>
             </div>
 
-            <div className="px-5 pb-20 flex flex-col gap-3 z-10">
+            <div className="px-5 pb-safe pb-4 flex flex-col gap-3 z-10">
                 <button
                     onClick={handleVerify}
                     disabled={!isComplete || loading || ((stateMethod?.id === 'upi-id' || stateMethod?.id === 'gpay' || stateMethod?.id === 'phonepe') && !actualUpiId)}

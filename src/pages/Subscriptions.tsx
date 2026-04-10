@@ -263,7 +263,7 @@ const Subscriptions = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-area-top pb-safe pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -442,7 +442,7 @@ const Subscriptions = () => {
                 )}
 
                 {/* Manage Subscription CTA Section */}
-                <div className={`${scheduledDowngrade ? 'mt-[100px]' : 'mt-[214px]'} w-full flex flex-col items-center`}>
+                <div className="mt-auto pb-safe pb-4 w-full flex flex-col items-center">
                     {scheduledDowngrade && (
                         <div className={`w-[326px] min-h-[80px] rounded-[12px] border p-[10px] flex flex-col mb-[24px] ${isDarkMode ? 'bg-black border-white/10' : 'bg-white border-[#E9EAEB]'}`}>
                             <span className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[10px] font-medium font-satoshi`}>Note:</span>

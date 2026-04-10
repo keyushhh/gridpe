@@ -487,7 +487,7 @@ const FxExchange = () => {
             </div>
 
             {/* Footer / CTA */}
-            <div className="px-5 pb-20 mt-[24px] flex flex-col items-center gap-[18px]">
+            <div className="px-5 pb-safe pb-4 mt-auto flex flex-col items-center gap-[18px]">
                 <p className={`text-[12px] ${isDarkMode ? "text-white/60" : "text-black"}`}>
                     (Rate locked for <span className="text-[#5260FE] font-bold">{formatTime(timer)}</span>)
                 </p>

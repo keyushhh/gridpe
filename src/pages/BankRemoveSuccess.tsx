@@ -35,7 +35,7 @@ const BankRemoveSuccess = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom px-6 pt-4 pb-20"
+      className="h-full w-full overflow-hidden flex flex-col items-center relative safe-area-top px-6 pt-4 pb-safe pb-4"
       style={isDarkMode ? {
         backgroundImage: `url(${successBg})`,
         backgroundSize: "cover",
@@ -85,7 +85,7 @@ const BankRemoveSuccess = () => {
         {/* CTA: 190px below body text */}
         <button
           onClick={() => navigate("/banking")}
-          className={`flex items-center justify-center ${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px] font-medium transition-transform active:scale-95 mt-[190px] rounded-full`}
+          className={`flex items-center justify-center ${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px] font-medium transition-transform active:scale-95 mt-auto rounded-full`}
           style={isDarkMode ? {
             backgroundImage: `url(${darkBgCta})`,
             backgroundSize: '100% 100%',

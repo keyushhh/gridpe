@@ -100,7 +100,7 @@ const DowngradePlan = () => {
 
     return (
         <div
-            className={`absolute inset-0 overflow-y-auto overscroll-y-contain flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`absolute inset-0 overflow-y-auto overscroll-y-contain flex flex-col safe-area-top pb-safe pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -316,7 +316,7 @@ const DowngradePlan = () => {
             {/* Fixed Bottom Confirmation Container */}
             {
                 selectedTier && (
-                    <div className={`fixed bottom-0 left-0 right-0 flex flex-col items-center pt-[20px] pb-20 z-[100] ${isDarkMode ? 'bg-black' : 'bg-white border-t border-[#E9EAEB]'}`}>
+                    <div className={`fixed bottom-0 left-0 right-0 flex flex-col items-center pt-[20px] pb-safe pb-4 z-[100] ${isDarkMode ? 'bg-black' : 'bg-white border-t border-[#E9EAEB]'}`}>
                         {/* Note Container */}
                         <div
                             className={`w-[340px] min-h-[50px] rounded-[10px] border flex items-start p-[9px_10px] relative ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}

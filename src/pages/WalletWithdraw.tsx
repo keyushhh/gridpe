@@ -160,7 +160,7 @@ const WalletWithdraw = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -192,7 +192,7 @@ const WalletWithdraw = () => {
 
             <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar" onClick={() => setShowKeypad(false)}>
                 {/* Banner Section */}
-                <div className="px-5 pb-20 mt-[39px] z-10 shrink-0">
+                <div className="px-5 mb-8 mt-[39px] z-10 shrink-0">
                     <div
                         className={`w-full h-[120px] rounded-[18px] flex flex-col justify-start pt-4 px-6 relative overflow-hidden ${isDarkMode ? '' : 'border border-[#E9EAEB]'}`}
                         style={{
@@ -336,7 +336,7 @@ const WalletWithdraw = () => {
                     />
                 )}
                 <div
-                    className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
+                    className="w-full h-full p-[20px] pb-safe pb-4 backdrop-blur-[25px]"
                     style={{ backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : 'transparent' }}
                 >
                     <div className="flex flex-col gap-[10px] items-center relative z-10">

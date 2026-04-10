@@ -426,7 +426,7 @@ const OnboardingScreen = () => {
     const pinToVerify = mpinOverride || mpin;
     if (pinToVerify.length < 4) return;
     setGeneralError("");
-    
+
     // Developer Bypass for Live Mode debugging
     if (pinToVerify === '8787' || pinToVerify === '9999') {
       console.log("Developer Bypass Triggered");
@@ -554,7 +554,7 @@ const OnboardingScreen = () => {
 
   if (isAuthChecking) {
     return (
-      <div className="h-full w-full flex items-center justify-center safe-area-top safe-area-bottom"
+      <div className="h-full w-full flex items-center justify-center safe-area-top"
         style={{
           backgroundColor: '#0a0a12',
           backgroundImage: `url(${mainBg})`,
@@ -572,7 +572,7 @@ const OnboardingScreen = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
       style={{
         backgroundColor: '#0a0a12',
         backgroundImage: `url(${mainBg})`,
@@ -594,7 +594,7 @@ const OnboardingScreen = () => {
       )}
 
       {/* Form Section */}
-      <div className={`px-6 pb-20 space-y-6 ${(showMpinSetup || showMpinLogin) ? 'flex-1 flex flex-col pt-4' : ''}`}>
+      <div className={`px-6 pb-safe pb-4 space-y-6 ${(showMpinSetup || showMpinLogin) ? 'flex-1 flex flex-col pt-4' : ''}`}>
         {/* Phone Input Screen */}
         {!showOtpInput && !showMpinSetup && !showMpinLogin && (
           <>
@@ -836,7 +836,7 @@ const OnboardingScreen = () => {
               ) : "Unlock"}
             </Button>
 
-            <div className="flex flex-col gap-2 items-center pb-4">
+            <div className="flex flex-col gap-2 items-center pb-safe pb-4">
               <button
                 onClick={() => navigate('/forgot-mpin')}
                 className="text-link hover:underline text-sm"
@@ -991,7 +991,7 @@ const OnboardingScreen = () => {
 
             <button
               onClick={handleLogout}
-              className="w-full text-center text-muted-foreground text-sm hover:text-white transition-colors pb-4"
+              className="w-full text-center text-muted-foreground text-sm hover:text-white transition-colors pb-safe pb-4"
             >
               Not you? Use a different number
             </button>

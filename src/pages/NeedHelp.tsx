@@ -268,7 +268,7 @@ const NeedHelp = () => {
             </main>
 
             {/* Bottom Submit Button */}
-            <div className={`fixed bottom-0 left-0 right-0 p-5 pb-20 z-20 ${isDarkMode ? 'bg-[#0a0a12]/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-[#E9EAEB]'}`}>
+            <div className={`fixed bottom-0 left-0 right-0 p-5 pb-safe pb-4 z-20 ${isDarkMode ? 'bg-[#0a0a12]/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-[#E9EAEB]'}`}>
                 <button
                     disabled={!selectedCategory}
                     className={`w-full h-12 rounded-full flex items-center justify-center text-white text-[16px] font-medium active:scale-95 transition-all

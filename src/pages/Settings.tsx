@@ -197,7 +197,7 @@ const Settings = () => {
       )}
 
       {/* Content Container */}
-      <div className="relative z-10 flex flex-col h-full w-full overflow-hidden safe-area-top safe-area-bottom">
+      <div className="relative z-10 flex flex-col h-full w-full overflow-hidden safe-area-top">
         {/* Header */}
         <div className="px-5 pt-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -438,7 +438,7 @@ const Settings = () => {
 
           {/* Footer */}
           <div
-            className="px-5 pb-20 opacity-40 cursor-pointer"
+            className="px-5 pb-safe pb-4 opacity-40 cursor-pointer"
             onMouseDown={handleLogoPress}
             onMouseUp={handleLogoRelease}
             onMouseLeave={handleLogoRelease}

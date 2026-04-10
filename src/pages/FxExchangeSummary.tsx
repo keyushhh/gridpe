@@ -1044,9 +1044,9 @@ const FxExchangeSummary = () => {
             />
 
             <div
-                className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom flex flex-col pt-[26px] px-[20px] pb-20 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
+                className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] pb-safe pb-4 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
                 style={{
-                    height: "255px",
+                    minHeight: "255px",
                     borderTopLeftRadius: "32px",
                     borderTopRightRadius: "32px",
                 }}

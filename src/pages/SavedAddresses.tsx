@@ -238,7 +238,7 @@ const SavedAddresses = () => {
 
             {/* Bottom CTA */}
             {!addressToDelete && (
-                <div className={`absolute bottom-0 left-0 right-0 p-5 pt-10 pb-20 z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}>
+                <div className={`absolute bottom-0 left-0 right-0 p-5 pt-10 pb-safe pb-4 z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}>
                     <button
                         onClick={() => navigate("/add-address")}
                         className={`w-full h-[48px] border backdrop-blur-xl rounded-full flex items-center justify-center text-[16px] font-medium active:scale-95 transition-transform ${isDarkMode ? 'bg-black/40 border-white/20 text-white' : 'bg-[#5260FE] border-[#5260FE] text-white shadow-lg shadow-[#5260FE]/20'}`}
