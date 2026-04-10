@@ -1,12 +1,14 @@
 import React from "react";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 
 interface NotAvailableProps {
-    onOpenAddressSheet: () => void;
+    onOpenAddressSheet?: () => void;
 }
 
 const NotAvailable: React.FC<NotAvailableProps> = ({ onOpenAddressSheet }) => {
+    const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
 
@@ -41,7 +43,13 @@ const NotAvailable: React.FC<NotAvailableProps> = ({ onOpenAddressSheet }) => {
 
                 {/* Change Location CTA */}
                 <button
-                    onClick={onOpenAddressSheet}
+                    onClick={() => {
+                        if (onOpenAddressSheet) {
+                            onOpenAddressSheet();
+                        } else {
+                            navigate('/home');
+                        }
+                    }}
                     className="mt-[30px] w-[206px] h-[48px] rounded-full bg-[#5260FE] text-white font-satoshi font-medium text-[16px] flex items-center justify-center active:scale-95 transition-transform"
                     style={{
                         boxShadow: "0px 8px 24px rgba(82, 96, 254, 0.25)"

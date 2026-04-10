@@ -95,9 +95,9 @@ const MorePage = () => {
                 backgroundRepeat: "no-repeat",
             }}
         >
-            <div className="flex-1 px-5 pt-4 pb-[120px]">
+            <div className="flex-1 px-5 pt-safe pb-[120px]">
                 {/* Header */}
-                <div className="mb-10">
+                <div className="mt-8 mb-10">
                     <img src={gridpeLogo} alt="grid.pe" className="h-10 mb-2" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
                 </div>
 

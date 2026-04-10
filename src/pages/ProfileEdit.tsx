@@ -135,7 +135,7 @@ const ProfileEdit = () => {
       }}
     >
       {/* Header */}
-      <div className="px-5 pt-4 flex items-center justify-between shrink-0">
+      <div className="px-5 pt-safe pt-4 flex items-center justify-between shrink-0">
         <button
           onClick={() => navigate(-1)}
           className="w-10 h-10 rounded-full border border-[#E6E8EB] dark:border-white/20 flex items-center justify-center transition-colors hover:bg-white/10"

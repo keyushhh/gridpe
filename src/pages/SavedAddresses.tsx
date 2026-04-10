@@ -114,7 +114,7 @@ const SavedAddresses = () => {
     };
 
     return (
-        <div className={`fixed inset-0 flex flex-col ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-[#FFFFFF] text-black'} font-satoshi overflow-hidden`}>
+        <div className={`fixed inset-0 flex flex-col ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-[#FFFFFF] text-black'} font-satoshi overflow-hidden safe-area-bottom`}>
             {/* Background */}
             <div
                 className={`absolute inset-0 z-0 pointer-events-none ${isDarkMode ? 'opacity-40' : 'opacity-100'}`}
@@ -139,7 +139,7 @@ const SavedAddresses = () => {
             )}
 
             {/* Header */}
-            <div className="relative z-10 px-5 pt-4 pb-4 flex items-center justify-between">
+            <div className="relative z-10 px-5 safe-area-top pt-4 pb-4 flex items-center justify-between">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-black/10 bg-white/50'} flex items-center justify-center backdrop-blur-md active:scale-95 transition-transform`}

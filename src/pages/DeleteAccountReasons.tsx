@@ -25,7 +25,7 @@ const DeleteAccountReasons = () => {
   ];
 
   const handleGoBack = () => {
-    navigate("/delete-account", { state: { originPath: (location.state as any)?.originPath } });
+    navigate(-1);
   };
 
   const handleCancel = () => {
@@ -69,7 +69,7 @@ const DeleteAccountReasons = () => {
       )}
 
       {/* Header */}
-      <div className="px-5 pt-4 flex items-center relative z-50 mb-8">
+      <div className="px-5 pt-safe pt-4 flex items-center relative z-50 mb-8">
         <button
           onClick={handleGoBack}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}

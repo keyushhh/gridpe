@@ -20,7 +20,7 @@ const DeleteAccount = () => {
   const originPath = (location.state as any)?.originPath || "/security-dashboard";
 
   const handleGoBack = () => {
-    navigate(originPath);
+    navigate(-1);
   };
 
   const handleProceed = () => {
@@ -104,7 +104,7 @@ const DeleteAccount = () => {
       )}
 
       {/* Header */}
-      <div className="px-5 pt-4 flex items-center relative z-50 mb-0">
+      <div className="px-5 pt-safe pt-4 flex items-center relative z-50 mb-0">
         <button
           onClick={handleGoBack}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}

@@ -293,11 +293,11 @@ const AddAddressDetails = () => {
                 className="flex-1 overflow-y-auto pb-safe pb-4 relative z-10 font-sans"
                 onScroll={handleScroll}
             >
-                <div className="pt-4 px-5">
+                <div className="pt-safe pt-4 px-5">
                     {/* Header */}
                     <div
                         className="flex items-center sticky top-0 z-50 transition-colors"
-                        style={{ opacity: headerOpacity, pointerEvents: headerOpacity === 0 ? 'none' : 'auto' }}
+                        style={{ opacity: headerOpacity, pointerEvents: headerOpacity === 0 ? 'none' : 'auto', paddingTop: 'env(safe-area-inset-top)' }}
                     >
                         <button
                             onClick={() => navigate(-1)}

@@ -6,7 +6,12 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     url: 'http://192.168.29.138:8080',
-    cleartext: true
+    cleartext: true,
+    androidScheme: 'https'
+  },
+  ios: {
+    allowsLinkPreview: true,
+    handleApplicationNotifications: true
   }
 };
 

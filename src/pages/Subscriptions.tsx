@@ -277,7 +277,7 @@ const Subscriptions = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 pt-4 pb-2 flex items-center relative z-10 shrink-0">
+            <header className="px-5 pt-safe pt-4 pb-2 flex items-center relative z-10 shrink-0">
                 <button
                     onClick={() => navigate('/more')}
                     className={`w-10 h-10 flex items-center justify-center rounded-full border active:bg-white/10 absolute left-5 ${isDarkMode ? 'border-white/20' : 'border-[#E9EAEB]'}`}

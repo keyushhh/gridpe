@@ -354,7 +354,7 @@ const OrderDetails = () => {
 
 
             {/* Header */}
-            <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-[21px] relative">
+            <div className="flex-none px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-[21px] relative">
                 <div className="w-6" /> {/* Spacer */}
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {statusConfig.headerTitle}

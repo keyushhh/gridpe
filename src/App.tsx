@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect } from "react";
 import { supabase } from "./lib/supabase";
@@ -140,15 +140,25 @@ const App = () => {
       }
     });
 
+    // Handle hardware back button for Android
+    const backListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      if (!canGoBack) {
+        CapacitorApp.exitApp();
+      } else {
+        window.history.back();
+      }
+    });
+
     return () => {
       listener.then(handle => handle.remove());
+      backListener.then(handle => handle.remove());
     };
   }, []);
 
   return (
     <>
       <GlobalCustomToaster />
-      <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Homepage />} />
@@ -238,7 +248,7 @@ const App = () => {
           <Route path="/not-available" element={<NotAvailable />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
     </>
   );
 };

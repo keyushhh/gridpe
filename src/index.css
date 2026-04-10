@@ -85,6 +85,7 @@
     @apply bg-background text-foreground;
     /* transition: background-color 1.5s ease-in-out... removed to avoid conflict with View Transition */
     overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
     user-select: none;
     -webkit-user-select: none;
   }

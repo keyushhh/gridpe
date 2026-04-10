@@ -174,7 +174,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <div className="px-4 pt-4 relative flex items-center justify-center min-h-[64px]">
+            <div className="px-4 pt-safe pt-4 relative flex items-center justify-center min-h-[64px]">
                 <button
                     onClick={() => navigate(-1)}
                     className={`absolute left-4 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-transform active:scale-95 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
