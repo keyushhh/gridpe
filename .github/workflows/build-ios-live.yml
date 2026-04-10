@@ -65,7 +65,7 @@ jobs:
           plutil -replace CAPACITOR_DEBUG -string "true" "$PLIST"
 
       - name: Install CocoaPods
-        working-directory: ios/App
+        working-directory: ios
         run: pod install --repo-update
 
       - name: Build Xcode project (Debug)
