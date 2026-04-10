@@ -443,7 +443,7 @@ const Settings = () => {
             onTouchEnd={handleLogoRelease}
           >
             <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
-            <p className="text-sm mt-2">App Version v1.0.2 — 100% drama compatible.</p>
+            <p className="text-sm mt-2">App Version v1.0.0 — 100% drama compatible.</p>
           </div>
         </div>
       </div>
