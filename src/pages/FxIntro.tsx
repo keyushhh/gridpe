@@ -32,7 +32,7 @@ const FxIntro = () => {
         >
 
             {/* Header */}
-            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-12 pb-0 z-10">
+            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-4 pb-0 z-10">
                 <button
                     onClick={() => navigate(-1)}
                     className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
@@ -98,7 +98,7 @@ const FxIntro = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-[220px] pb-10 flex justify-center">
+                <div className="mt-32 pb-20 flex justify-center">
                     <button
                         onClick={() => navigate("/wallet-settings")}
                         className="w-[362px] h-[48px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"

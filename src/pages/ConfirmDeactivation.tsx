@@ -102,7 +102,7 @@ const ConfirmDeactivation = () => {
       )}
 
       {/* Header */}
-      <div className="px-5 pt-6 flex items-center relative z-50 mb-0">
+      <div className="px-5 pt-4 flex items-center relative z-50 mb-0">
         <button
           onClick={handleBack}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
@@ -153,7 +153,7 @@ const ConfirmDeactivation = () => {
       </div>
 
       {/* Footer / CTA */}
-      <div className="px-5 pb-10 mt-auto flex flex-col gap-3 relative z-10">
+      <div className="px-5 pb-20 mt-auto flex flex-col gap-3 relative z-10">
         {/* Deactivate Button */}
         <button
           className={`w-full h-[48px] relative flex items-center justify-center transition-all ${isValid ? "active:scale-95" : "opacity-50 grayscale cursor-not-allowed"

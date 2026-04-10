@@ -33,7 +33,7 @@ const AccountDeactivated = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center safe-area-top safe-area-bottom relative"
+      className="h-full w-full overflow-hidden flex flex-col items-center safe-area-top safe-area-bottom pb-20 relative"
       style={isDarkMode ? {
         backgroundImage: `url(${warningBackground})`,
         backgroundSize: "cover",
@@ -57,7 +57,7 @@ const AccountDeactivated = () => {
       )}
 
       {/* Header */}
-      <div className="flex flex-col items-center pt-[24px] relative z-10">
+      <div className="flex flex-col items-center pt-4 relative z-10">
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[26px] font-medium font-sans`}>
           Deactivated
         </h1>

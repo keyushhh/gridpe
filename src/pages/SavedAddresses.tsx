@@ -139,7 +139,7 @@ const SavedAddresses = () => {
             )}
 
             {/* Header */}
-            <div className="relative z-10 px-5 pt-12 pb-4 flex items-center justify-between">
+            <div className="relative z-10 px-5 pt-4 pb-4 flex items-center justify-between">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-black/10 bg-white/50'} flex items-center justify-center backdrop-blur-md active:scale-95 transition-transform`}
@@ -238,7 +238,7 @@ const SavedAddresses = () => {
 
             {/* Bottom CTA */}
             {!addressToDelete && (
-                <div className={`absolute bottom-0 left-0 right-0 p-5 pt-10 pb-10 z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}>
+                <div className={`absolute bottom-0 left-0 right-0 p-5 pt-10 pb-20 z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}>
                     <button
                         onClick={() => navigate("/add-address")}
                         className={`w-full h-[48px] border backdrop-blur-xl rounded-full flex items-center justify-center text-[16px] font-medium active:scale-95 transition-transform ${isDarkMode ? 'bg-black/40 border-white/20 text-white' : 'bg-[#5260FE] border-[#5260FE] text-white shadow-lg shadow-[#5260FE]/20'}`}

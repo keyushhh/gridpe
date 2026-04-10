@@ -210,7 +210,7 @@ const Banking = () => {
             <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass} min-h-0 overflow-hidden`}>
 
                 {/* Header */}
-                <div className="px-5 pt-12 flex items-center justify-between shrink-0 relative z-10">
+                <div className="px-5 pt-4 flex items-center justify-between shrink-0 relative z-10">
                     <button
                         onClick={() => navigate("/settings")}
                         className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}

@@ -71,7 +71,7 @@ const ReportRiderKyc = () => {
                 </h1>
             </div>
 
-            <div className="px-5 mt-8 pb-10 space-y-4">
+            <div className="px-5 mt-8 pb-20 space-y-4">
                 {/* Pick a Reason Section */}
                 <div
                     className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
@@ -131,7 +131,7 @@ const ReportRiderKyc = () => {
                     </button>
 
                     {isAttachmentsOpen && (
-                        <div className={`px-4 pb-6 flex flex-col items-center justify-center border-t pt-6 animate-in fade-in slide-in-from-top-2 ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}`}>
+                        <div className={`px-4 pb-6 flex flex-col items-center justify-center border-t pt-4 animate-in fade-in slide-in-from-top-2 ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}`}>
                             <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${isDarkMode ? 'bg-white/5' : 'bg-[#F7F8FA]'}`}>
                                 <ImageIcon className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                             </div>

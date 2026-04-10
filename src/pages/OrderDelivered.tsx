@@ -65,7 +65,7 @@ const OrderDelivered = () => {
                 />
             )}
 
-            <div className="flex flex-col items-center px-4 pt-[24px] relative z-10 w-full">
+            <div className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom pb-20 relative z-10 w-full pt-4">
                 {/* Heading: Satoshi - medium - 22px */}
                 <h1 className={`text-[22px] font-medium font-satoshi text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Order Delivered

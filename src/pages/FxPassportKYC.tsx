@@ -39,7 +39,7 @@ const FxPassportKYC = () => {
             {/* Header */}
             <div
                 className="px-5 flex items-center justify-between z-10 mb-[21px] relative"
-                style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
+                style={{ paddingTop: "calc(env(safe-area-inset-top) + 4px)" }}
             >
                 <button
                     onClick={() => navigate(-1)}
@@ -53,7 +53,7 @@ const FxPassportKYC = () => {
                 <div className="w-10" />
             </div>
 
-            <div className="px-5 pb-10">
+            <div className="px-5 pb-20">
                 {step === 'upload' && (
                     <div className="animate-in slide-in-from-bottom-4 duration-500">
                         <div className="mt-8">

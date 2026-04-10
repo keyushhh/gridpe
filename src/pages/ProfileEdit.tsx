@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { useAsset } from "@/hooks/useAsset";
 import avatarImg from "@/assets/avatar.png";
-import verifiedIcon from "@/assets/verified.svg";
+import verifiedPng from "@/assets/verified.png";
 import inputFieldBg from "@/assets/input-field-bg.png";
 import buttonCancel from "@/assets/button-cancel.png";
 import gridPeLogo from "@/assets/grid.pe.svg";
@@ -224,18 +224,10 @@ const ProfileEdit = () => {
                   {phoneNumber?.replace('+91', '').replace(/\s/g, '') || contextEmail}
                 </span>
               </div>
-              <div
-                className="w-4 h-4 bg-[#1CB956]"
-                style={{
-                  maskImage: `url(${verifiedIcon})`,
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  maskPosition: 'center',
-                  WebkitMaskImage: `url(${verifiedIcon})`,
-                  WebkitMaskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                }}
+              <img
+                src={verifiedPng}
+                className="w-4 h-4 object-contain"
+                alt="Verified"
               />
             </div>
             <p className="text-black dark:text-[#5B5B5B] text-[14px] font-normal px-4">
@@ -263,18 +255,10 @@ const ProfileEdit = () => {
               {/* Verification UI */}
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
                 {emailVerified ? (
-                  <div
-                    className="w-4 h-4 bg-[#1CB956] mr-2"
-                    style={{
-                      maskImage: `url(${verifiedIcon})`,
-                      maskSize: 'contain',
-                      maskRepeat: 'no-repeat',
-                      maskPosition: 'center',
-                      WebkitMaskImage: `url(${verifiedIcon})`,
-                      WebkitMaskSize: 'contain',
-                      WebkitMaskRepeat: 'no-repeat',
-                      WebkitMaskPosition: 'center',
-                    }}
+                  <img
+                    src={verifiedPng}
+                    className="w-4 h-4 object-contain mr-2"
+                    alt="Verified"
                   />
                 ) : isEmailNonEmpty && isEditing ? (
                   <button
@@ -322,7 +306,7 @@ const ProfileEdit = () => {
       </div>
 
       {/* Footer Info */}
-      <div className="px-5 mt-14 pb-10 opacity-40 flex flex-col items-start mt-auto">
+      <div className="px-5 mt-32 pb-20 opacity-40 flex flex-col items-start mt-auto">
         <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
         <p className="text-sm mt-1">This is not where you find love.</p>
       </div>

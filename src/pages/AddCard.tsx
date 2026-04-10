@@ -211,7 +211,7 @@ const AddCard = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-8 relative"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -234,7 +234,7 @@ const AddCard = () => {
       )}
 
       {/* Header */}
-      <div className="px-5 pt-6 flex items-center justify-between relative z-10">
+      <div className="px-5 pt-4 flex items-center justify-between relative z-10">
         <button
           onClick={() => navigate(-1)}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 hover:bg-white/10' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center transition-colors`}

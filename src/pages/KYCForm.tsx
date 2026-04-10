@@ -159,7 +159,7 @@ const KYCForm = () => {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-2 relative z-10">
+      <div className="flex items-center justify-between px-5 pt-4 pb-2 relative z-10">
         <button
           onClick={() => navigate(-1)}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center transition-colors hover:bg-white/10`}
@@ -171,7 +171,7 @@ const KYCForm = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0 relative">
-        <div className="min-h-full flex flex-col px-5 pt-4 pb-10">
+        <div className="min-h-full flex flex-col px-5 pt-4 pb-20">
           {/* Steps Indicator */}
           <div
             className={`w-full h-[88px] rounded-[20px] p-5 mb-8 relative overflow-hidden ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
@@ -261,7 +261,7 @@ const KYCForm = () => {
       </div>
 
       {/* Footer - Constrained container */}
-      <div className={`mt-auto pb-8 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
+      <div className={`mt-auto pb-20 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
         <p className={`${isDarkMode ? 'text-[#7E7E7E]/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}>
           This information is used for identity verification only, and will be kept secure by Didit
         </p>

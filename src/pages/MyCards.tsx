@@ -263,12 +263,12 @@ const MyCards = () => {
             {/* Main Content with conditional blur */}
             <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass}`}>
                 {/* Header */}
-                <div className="px-5 pt-6 flex items-center justify-center relative z-10">
+                <div className="px-5 pt-4 flex items-center justify-center relative z-10">
                     <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[20px] font-medium text-center w-full`}>My Cards</h1>
                 </div>
 
                 {/* Content */}
-                <div className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-none scrollbar-hide pb-0">
+                <div className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-none scrollbar-hide pb-[120px]">
 
                     {cards.length === 0 ? (
                         /* Empty State */

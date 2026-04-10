@@ -44,7 +44,7 @@ const KYCStatusComplete = () => {
       )}
 
       {/* Header */}
-      <div className="px-5 pt-12 flex items-center relative z-10 mb-8">
+      <div className="px-5 pt-4 flex items-center relative z-10 mb-8">
         <button
           onClick={handleGoBack}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
@@ -99,7 +99,7 @@ const KYCStatusComplete = () => {
       </div>
 
       {/* Footer / CTA */}
-      <div className="px-5 pb-10 mt-auto">
+      <div className="px-5 pb-20 mt-auto">
         <Button
           className={`w-full h-[48px] text-white rounded-full font-semibold text-[16px] ${isDarkMode ? 'border-none' : 'bg-[#5260FE] hover:bg-[#5260FE]/90'}`}
           style={isDarkMode ? {

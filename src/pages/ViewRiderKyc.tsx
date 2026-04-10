@@ -249,7 +249,7 @@ const ViewRiderKyc = () => {
                 {/* Hyperlink - 10px below security text */}
                 <button
                     onClick={() => navigate('/verify-rider-kyc')}
-                    className={`mt-[10px] text-[16px] font-medium font-satoshi text-center underline pb-10 active:opacity-70 transition-opacity ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
+                    className={`mt-[10px] text-[16px] font-medium font-satoshi text-center underline pb-20 active:opacity-70 transition-opacity ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
                 >
                     Does this KYC look correct?
                 </button>

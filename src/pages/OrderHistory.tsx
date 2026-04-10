@@ -281,7 +281,7 @@ const OrderHistory = () => {
                                 <span className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                     {order.metadata?.isFx ? "FX Exchange" : (order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"))}
                                 </span>
-                                <div className="flex items-center gap-2 mt-1">
+                                <div className="flex items-center gap-2 pt-4">
                                     <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black/50'}`}>
                                         {formatDateTime(order.created_at)}
                                     </span>
@@ -407,7 +407,7 @@ const OrderHistory = () => {
             )}
 
             {/* Header */}
-            <div className="pt-12 px-5 flex items-center justify-center relative mb-[26px] z-10 h-[88px]">
+            <div className="pt-4 px-5 flex items-center justify-center relative mb-[26px] z-10 h-[88px]">
                 <button
                     onClick={() => navigate(-1)}
                     className={`absolute left-5 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full backdrop-blur-md z-20 ${isDarkMode ? 'bg-white/5 border border-white/10 active:bg-white/10' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
@@ -434,7 +434,7 @@ const OrderHistory = () => {
 
             {/* Past Orders (Grouped by Date) */}
             {groupedPastOrders.length > 0 && (
-                <div className="px-5 pb-10 relative z-10 flex flex-col gap-[24px]">
+                <div className="px-5 pb-20 relative z-10 flex flex-col gap-[24px]">
                     {groupedPastOrders.map((group) => (
                         <div key={group.title}>
                             <h2 className={`${showOnlyPast ? 'text-[#7E7E7E] text-[14px] font-medium uppercase' : (isDarkMode ? 'text-white' : 'text-black')} text-[16px] font-bold font-satoshi mb-[12px]`}>

@@ -100,7 +100,7 @@ const DowngradePlan = () => {
 
     return (
         <div
-            className={`absolute inset-0 overflow-y-auto overscroll-y-contain flex flex-col safe-area-top safe-area-bottom pb-10 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`absolute inset-0 overflow-y-auto overscroll-y-contain flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -113,7 +113,7 @@ const DowngradePlan = () => {
             {!isDarkMode && (
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
-            <header className="px-5 pt-12 pb-2 flex items-center relative z-10">
+            <header className="px-5 pt-4 pb-2 flex items-center relative z-10">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full border active:bg-white/10 absolute left-5 ${isDarkMode ? 'border-white/20' : 'border-[#E9EAEB]'}`}
@@ -211,7 +211,7 @@ const DowngradePlan = () => {
             </div>
 
             {/* Downgrade Containers */}
-            <div className={`px-5 mt-[12px] flex flex-col gap-[12px] items-center ${selectedTier ? 'pb-[300px]' : 'pb-10'}`}>
+            <div className={`px-5 mt-[12px] flex flex-col gap-[12px] items-center ${selectedTier ? 'pb-[300px]' : 'pb-20'}`}>
                 {downgradeOptions.map((tier) => (
                     <div
                         key={tier.name}
@@ -316,7 +316,7 @@ const DowngradePlan = () => {
             {/* Fixed Bottom Confirmation Container */}
             {
                 selectedTier && (
-                    <div className={`fixed bottom-0 left-0 right-0 flex flex-col items-center pt-[20px] pb-[42px] z-[100] ${isDarkMode ? 'bg-black' : 'bg-white border-t border-[#E9EAEB]'}`}>
+                    <div className={`fixed bottom-0 left-0 right-0 flex flex-col items-center pt-[20px] pb-20 z-[100] ${isDarkMode ? 'bg-black' : 'bg-white border-t border-[#E9EAEB]'}`}>
                         {/* Note Container */}
                         <div
                             className={`w-[340px] min-h-[50px] rounded-[10px] border flex items-start p-[9px_10px] relative ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}

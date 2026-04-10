@@ -54,7 +54,7 @@ const WalletSettings = () => {
             )}
 
             {/* Header */}
-            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-12 pb-0 z-10">
+            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-4 pb-0 z-10">
                 <button
                     onClick={() => navigate(-1)}
                     className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md active:scale-95 transition-transform ${isDarkMode

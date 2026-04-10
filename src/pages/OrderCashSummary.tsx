@@ -597,7 +597,7 @@ const OrderCashSummary = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
 
-            <div className="flex-none px-5 pt-[24px] flex items-center justify-between z-10 mb-6">
+            <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6">
                 <button
                     onClick={() => navigate("/order-cash")}
                     className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-white border border-[#E6E8EB]'}`}
@@ -1005,7 +1005,7 @@ const OrderCashSummary = () => {
             />
 
             <div
-                className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom flex flex-col pt-[26px] px-[20px] pb-[54px] shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
+                className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom flex flex-col pt-[26px] px-[20px] pb-20 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
                 style={{
                     height: "255px",
                     borderTopLeftRadius: "32px",

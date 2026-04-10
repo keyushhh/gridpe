@@ -369,7 +369,7 @@ const WalletCreated = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
+            className="h-full w-full overflow-y-auto overscroll-auto flex flex-col safe-area-top safe-area-bottom pb-20 relative"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${walletBg})` : "none",
@@ -383,7 +383,7 @@ const WalletCreated = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header Container */}
-            <div className="shrink-0 flex items-center justify-between w-full px-5 pt-12 pb-2 z-10">
+            <div className="shrink-0 flex items-center justify-between w-full px-5 pt-4 pb-2 z-10">
                 {/* Back Button */}
                 <button
                     onClick={() => navigate('/home')}
@@ -430,7 +430,7 @@ const WalletCreated = () => {
                     />
 
                     {/* Card Content */}
-                    <div className="relative w-full h-full px-5 pt-6 pb-[20px] flex flex-col">
+                    <div className="relative w-full h-full px-5 pt-4 pb-[20px] flex flex-col">
                         <div className="flex justify-between items-center">
                             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-sans uppercase`}>
                                 Wallet Balance

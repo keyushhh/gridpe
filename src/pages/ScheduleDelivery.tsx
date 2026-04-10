@@ -218,7 +218,7 @@ const ScheduleDelivery = () => {
             )}
 
             {/* Header */}
-            <div className="flex-none px-5 pt-[24px] flex items-center justify-between z-10 mb-6 font-sans">
+            <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6 font-sans">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10 border-white/10' : 'bg-white border-[#E6E8EB] border'}`}

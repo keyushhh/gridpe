@@ -35,11 +35,11 @@ const Wallet = () => {
             }}
         >
             {/* Header Container (Fixed) */}
-            <div className="shrink-0 w-full relative z-10 pt-12 px-5">
+            <div className="shrink-0 w-full relative z-10 pt-4 px-5">
                 {/* Back Button */}
                 <button
                     onClick={() => navigate(-1)}
-                    className={`absolute left-5 top-12 w-10 h-10 flex items-center justify-center rounded-full z-20 transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
+                    className={`absolute left-5 top-4 w-10 h-10 flex items-center justify-center rounded-full z-20 transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
                 >
                     <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
                 </button>
@@ -244,7 +244,7 @@ const Wallet = () => {
             </div>
 
             {/* Footer CTA (Fixed) */}
-            <div className="shrink-0 px-5 pb-[30px] pt-4 w-full bg-transparent">
+            <div className="shrink-0 px-5 pb-20 pt-4 w-full bg-transparent">
                 <button
                     onClick={() => {
                         activateWallet();

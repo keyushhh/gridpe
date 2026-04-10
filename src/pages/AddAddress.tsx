@@ -372,7 +372,7 @@ const AddAddress = () => {
             borderBottom: isDarkMode ? 'none' : '1px solid rgba(0,0,0,0.05)'
           }}
         >
-          <div className="pt-[24px] px-5">
+          <div className="pt-4 px-5">
             {/* Header */}
             <div className="flex items-center">
               <button

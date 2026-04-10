@@ -90,7 +90,7 @@ const WalletUpgradeSuccess = () => {
             )}
 
             {/* Heading */}
-            <div className="w-full pt-6 flex justify-center z-10">
+            <div className="w-full pt-4 flex justify-center z-10">
                 <h1 className={`${isDarkMode ? 'text-white' : 'text-[#1A1A1A]'} text-[22px] font-medium leading-[120%] font-satoshi`}>
                     {isDowngrade ? 'Wallet Downgraded' : 'Wallet Upgraded'}
                 </h1>

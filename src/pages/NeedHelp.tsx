@@ -123,7 +123,7 @@ const NeedHelp = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 pt-8 pb-4 flex items-center justify-between relative z-10 shrink-0">
+            <header className="px-5 pt-4 pb-4 flex items-center justify-between relative z-10 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
@@ -268,7 +268,7 @@ const NeedHelp = () => {
             </main>
 
             {/* Bottom Submit Button */}
-            <div className={`fixed bottom-0 left-0 right-0 p-5 z-20 ${isDarkMode ? 'bg-[#0a0a12]/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-[#E9EAEB]'}`}>
+            <div className={`fixed bottom-0 left-0 right-0 p-5 pb-20 z-20 ${isDarkMode ? 'bg-[#0a0a12]/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-[#E9EAEB]'}`}>
                 <button
                     disabled={!selectedCategory}
                     className={`w-full h-12 rounded-full flex items-center justify-center text-white text-[16px] font-medium active:scale-95 transition-all

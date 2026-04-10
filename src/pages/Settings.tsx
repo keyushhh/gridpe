@@ -15,7 +15,7 @@ import iconBankAcc from "@/assets/icon-bank-acc.svg";
 import iconNotifications from "@/assets/icon-notifications.svg";
 import iconDarkMode from "@/assets/icon-dark-mode.svg";
 import iconLogout from "@/assets/icon-logout.svg";
-import verifiedIcon from "@/assets/verified.svg";
+import verifiedPng from "@/assets/verified.png";
 // import securityIncomplete from "@/assets/security-incomplete.png";
 // import securityComplete from "@/assets/security-complete.png";
 // import securityPending from "@/assets/security-pending.png";
@@ -158,7 +158,7 @@ const Settings = () => {
     if (DiditSDK?.DiditSdk?.shared?.destroy) {
       DiditSDK.DiditSdk.shared.destroy();
     }
-    
+
     // Clear session/state
     localStorage.clear();
     // Navigate to authentication screen (Index)
@@ -199,7 +199,7 @@ const Settings = () => {
       {/* Content Container */}
       <div className="relative z-10 flex flex-col h-full w-full overflow-y-auto touch-pan-y safe-area-top safe-area-bottom">
         {/* Header */}
-        <div className="px-5 pt-12 flex items-center justify-between">
+        <div className="px-5 pt-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/home")}
@@ -236,18 +236,10 @@ const Settings = () => {
               </h2>
               <div className="flex items-center gap-1">
                 <span className="text-black dark:text-muted-foreground text-[14px]">{phoneNumber || email}</span>
-                <div
-                  className="w-4 h-4 bg-[#1CB956]"
-                  style={{
-                    maskImage: `url(${verifiedIcon})`,
-                    maskSize: 'contain',
-                    maskRepeat: 'no-repeat',
-                    maskPosition: 'center',
-                    WebkitMaskImage: `url(${verifiedIcon})`,
-                    WebkitMaskSize: 'contain',
-                    WebkitMaskRepeat: 'no-repeat',
-                    WebkitMaskPosition: 'center',
-                  }}
+                <img
+                  src={verifiedPng}
+                  className="w-4 h-4 object-contain"
+                  alt="Verified"
                 />
               </div>
             </div>
@@ -443,7 +435,7 @@ const Settings = () => {
 
           {/* Footer */}
           <div
-            className="px-5 mt-14 pb-10 opacity-40 cursor-pointer mt-auto"
+            className="px-5 mt-32 pb-20 opacity-40 cursor-pointer mt-auto"
             onMouseDown={handleLogoPress}
             onMouseUp={handleLogoRelease}
             onMouseLeave={handleLogoRelease}
@@ -451,7 +443,7 @@ const Settings = () => {
             onTouchEnd={handleLogoRelease}
           >
             <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
-            <p className="text-sm mt-2">App Version v1.0.0 — 100% drama compatible.</p>
+            <p className="text-sm mt-2">App Version v1.0.2 — 100% drama compatible.</p>
           </div>
         </div>
       </div>

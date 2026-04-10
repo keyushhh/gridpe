@@ -276,7 +276,7 @@ const SecurityDashboard = () => {
         />
       )}
       {/* Header - Fixed */}
-      <div className="px-5 pt-12 flex items-center justify-between relative z-50 flex-none">
+      <div className="px-5 pt-4 flex items-center justify-between relative z-50 flex-none">
         <button
           onClick={() => navigate(originPath)}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center backdrop-blur-md`}
@@ -367,7 +367,7 @@ const SecurityDashboard = () => {
         </div>
 
         {/* Content Container */}
-        <div className="px-5 pb-10 flex flex-col gap-6">
+        <div className="px-5 pb-20 flex flex-col gap-6">
 
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}

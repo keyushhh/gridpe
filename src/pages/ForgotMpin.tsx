@@ -69,7 +69,7 @@ const ForgotMpin = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col safe-area-top safe-area-bottom font-sans relative"
+      className="h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top safe-area-bottom relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -164,7 +164,7 @@ const ForgotMpin = () => {
       </div>
 
       {/* Bottom CTA */}
-      <div className="mt-auto px-5 pb-10 w-full relative z-10">
+      <div className="mt-auto px-5 pb-20 w-full relative z-10">
         <Button
           onClick={step === 'REQUEST' ? handleRequestOTP : handleSubmit}
           disabled={isLoading || (step === 'VERIFY' && otp.length < 6)}

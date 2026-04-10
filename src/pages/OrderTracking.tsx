@@ -12,7 +12,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 import arrivingIcon from "@/assets/arriving.svg";
 import riderIcon from "@/assets/rider.svg";
-import verifiedIcon from "@/assets/verified.svg";
+import verifiedIcon from "@/assets/verified.png";
 import callIcon from "@/assets/call.svg";
 import awaitingIcon from "@/assets/awaiting.svg";
 import verifiedCircleIcon from "@/assets/verified-circle.svg";
@@ -492,7 +492,7 @@ const OrderTracking = () => {
             </div>
 
             {/* Need Help CTA */}
-            <div className="px-5 mt-[16px] pb-10 relative z-0">
+            <div className="px-5 mt-[16px] pb-20 relative z-0">
                 <button
                     onClick={() => navigate('/help/report', { state: { order } })}
                     className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${!isDarkMode ? 'bg-black' : ''}`}

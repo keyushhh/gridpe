@@ -296,7 +296,7 @@ const FxExchange = () => {
                 />
             )}
             {/* Header */}
-            <div className="px-5 pt-12 pb-6 flex items-center justify-between">
+            <div className="px-5 pt-4 pb-6 flex items-center justify-between">
                 <button
                     onClick={() => navigate('/home')}
                     className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
@@ -487,7 +487,7 @@ const FxExchange = () => {
             </div>
 
             {/* Footer / CTA */}
-            <div className="px-5 pb-[60px] mt-[24px] flex flex-col items-center gap-[18px]">
+            <div className="px-5 pb-20 mt-[24px] flex flex-col items-center gap-[18px]">
                 <p className={`text-[12px] ${isDarkMode ? "text-white/60" : "text-black"}`}>
                     (Rate locked for <span className="text-[#5260FE] font-bold">{formatTime(timer)}</span>)
                 </p>

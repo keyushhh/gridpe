@@ -34,7 +34,7 @@ const KYCIntro = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom relative"
+      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom pb-20 relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -56,7 +56,7 @@ const KYCIntro = () => {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-2 relative z-10">
+      <div className="flex items-center justify-between px-5 pt-4 pb-2 relative z-10">
         <button
           onClick={() => navigate(-1)}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center`}
@@ -68,7 +68,7 @@ const KYCIntro = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-5 pt-6 relative z-10">
+      <div className="flex-1 px-5 pt-4 relative z-10">
         <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-sans leading-relaxed mb-6`}>
           Complete your eKYC to start using grid.pe with all it's features:
         </p>
@@ -91,7 +91,7 @@ const KYCIntro = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="pb-8 space-y-4 relative z-10 flex flex-col items-center">
+      <div className="pb-20 space-y-4 relative z-10 flex flex-col items-center">
         <button
           onClick={() => navigate('/kyc-form')}
           className="w-[362px] h-[48px] rounded-full text-white font-medium text-[16px] btn-gradient font-sans flex items-center justify-center"

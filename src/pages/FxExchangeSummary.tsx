@@ -628,7 +628,7 @@ const FxExchangeSummary = () => {
 
             {/* Header */}
             <div
-                className="flex-none px-5 pt-[24px] flex items-center justify-between z-10 mb-6"
+                className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6"
             >
                 <button
                     onClick={() => navigate(-1)}
@@ -1044,7 +1044,7 @@ const FxExchangeSummary = () => {
             />
 
             <div
-                className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom flex flex-col pt-[26px] px-[20px] pb-[54px] shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
+                className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom flex flex-col pt-[26px] px-[20px] pb-20 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
                 style={{
                     height: "255px",
                     borderTopLeftRadius: "32px",

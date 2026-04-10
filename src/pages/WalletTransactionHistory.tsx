@@ -579,9 +579,8 @@ const WalletTransactionHistory = () => {
 
     return (
         <div
-            className="h-screen flex flex-col relative overflow-hidden font-sans"
+            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top safe-area-bottom relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
-                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
@@ -602,7 +601,7 @@ const WalletTransactionHistory = () => {
             )}
 
             {/* Header Container */}
-            <div className="shrink-0 flex items-center justify-between w-full px-5 pt-12 pb-2 z-10 relative">
+            <div className="shrink-0 flex items-center justify-between w-full px-5 pt-4 pb-2 z-10 relative">
                 {/* Back Button */}
                 <button
                     onClick={(e) => { e.stopPropagation(); navigate(-1); }}
@@ -713,7 +712,7 @@ const WalletTransactionHistory = () => {
             </div>
 
             {/* Content area */}
-            <div className="flex-1 w-full overflow-y-auto px-5 pb-[20px] mt-4 z-0">
+            <div className="px-5 mt-6 flex-1 min-h-0 overflow-y-auto no-scrollbar pb-20 flex flex-col gap-6 relative">
                 {(() => {
                     // Group by date (localized to avoid UTC shifts)
                     const grouped: { [key: string]: typeof walletTransactions } = {};

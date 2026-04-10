@@ -49,7 +49,7 @@ const HelpSupport = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full flex flex-col safe-area-top overflow-y-auto no-scrollbar ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",
@@ -62,7 +62,7 @@ const HelpSupport = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 pt-12 pb-4 flex items-center relative z-10 shrink-0 mb-[41px]">
+            <header className="px-5 pt-4 pb-4 flex items-center relative z-10 shrink-0 mb-[41px]">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}

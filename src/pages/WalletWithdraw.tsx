@@ -160,7 +160,7 @@ const WalletWithdraw = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -177,7 +177,7 @@ const WalletWithdraw = () => {
             )}
 
             {/* Header */}
-            <div className="px-5 pt-12 flex items-center justify-between z-10 shrink-0">
+            <div className="px-5 pt-4 flex items-center justify-between z-10 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-[#F5F5F5] border border-[#E9EAEB]'}`}
@@ -192,9 +192,9 @@ const WalletWithdraw = () => {
 
             <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar" onClick={() => setShowKeypad(false)}>
                 {/* Banner Section */}
-                <div className="px-5 mt-[39px] z-10 shrink-0">
+                <div className="px-5 pb-20 mt-[39px] z-10 shrink-0">
                     <div
-                        className={`w-full h-[120px] rounded-[18px] flex flex-col justify-start pt-6 px-6 relative overflow-hidden ${isDarkMode ? '' : 'border border-[#E9EAEB]'}`}
+                        className={`w-full h-[120px] rounded-[18px] flex flex-col justify-start pt-4 px-6 relative overflow-hidden ${isDarkMode ? '' : 'border border-[#E9EAEB]'}`}
                         style={{
                             backgroundImage: `url(${isDarkMode ? tierWithdrawMap[walletTier as keyof typeof tierWithdrawMap] : tierWithdrawMapLight[walletTier as keyof typeof tierWithdrawMap]})`,
                             backgroundSize: '100% 100%',

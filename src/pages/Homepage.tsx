@@ -498,7 +498,7 @@ const Homepage = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col">
+      <div className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col pb-[120px]">
         {/* Header Fixed Area (Top Section always visible) */}
         <div className="shrink-0 flex flex-col safe-area-top z-50 relative pointer-events-none">
           {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}

@@ -35,7 +35,7 @@ const BankRemoveSuccess = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom px-6"
+      className="h-full w-full overflow-hidden flex flex-col items-center relative overflow-hidden safe-area-top safe-area-bottom px-6 pt-4 pb-20"
       style={isDarkMode ? {
         backgroundImage: `url(${successBg})`,
         backgroundSize: "cover",
@@ -58,7 +58,7 @@ const BankRemoveSuccess = () => {
       )}
 
       {/* Header */}
-      <div className="w-full pt-6 flex justify-center relative z-10">
+      <div className="w-full pt-4 flex justify-center relative z-10">
         <h1 className={`${isDarkMode ? 'text-white font-satoshi' : 'text-black font-sans'} text-[22px] font-medium`}>Banking</h1>
       </div>
 

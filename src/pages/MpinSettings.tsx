@@ -33,7 +33,7 @@ const MpinSettings = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col safe-area-top safe-area-bottom font-sans relative"
+      className="min-h-screen flex flex-col pt-4 safe-area-top safe-area-bottom font-sans relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -119,7 +119,7 @@ const MpinSettings = () => {
       </div>
 
       {/* Bottom CTA */}
-      <div className="mt-auto px-5 pb-10 relative z-10">
+      <div className="mt-auto px-5 pb-20 relative z-10">
         <Button
           onClick={() => {
             setSheetMode('change');

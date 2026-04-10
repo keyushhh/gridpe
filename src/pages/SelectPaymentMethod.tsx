@@ -99,7 +99,7 @@ const SelectPaymentMethod = () => {
             )}
 
             {/* Header */}
-            <div className="px-5 pt-12 flex items-center justify-between relative z-10 shrink-0">
+            <div className="px-5 pt-4 flex items-center justify-between relative z-10 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-white border border-[#E9EAEB]'}`}
@@ -320,7 +320,7 @@ const SelectPaymentMethod = () => {
 
             {/* Footer CTAs - Absolute with blur */}
             <div
-                className="absolute bottom-0 left-0 right-0 px-5 pb-10 pt-5 flex flex-col gap-3 z-30"
+                className="absolute bottom-0 left-0 right-0 px-5 pb-20 pt-5 flex flex-col gap-3 z-30"
                 style={{
                     backgroundColor: isDarkMode ? "rgba(10, 10, 18, 0.4)" : "rgba(255, 255, 255, 0.8)",
                     backdropFilter: "blur(20px)",

@@ -90,7 +90,7 @@ const SuccessScreen = () => {
       )}
 
       {/* Header — "KYC" */}
-      <div className="w-full pt-12 flex justify-center relative z-10">
+      <div className="w-full pt-4 flex justify-center relative z-10">
         <h1 className={`${isDarkMode ? 'text-white font-satoshi' : 'text-black font-sans'} text-[22px] font-medium`}>KYC</h1>
       </div>
 
@@ -124,7 +124,7 @@ const SuccessScreen = () => {
       </p>
 
       {/* CTA — 210px below body text */}
-      <div className="mt-[210px] flex flex-col items-center">
+      <div className="pb-20 space-y-4 relative z-10 w-full flex flex-col items-center">
         <button
           onClick={() => {
             if (kycStatus === 'verified') {
@@ -161,7 +161,7 @@ const SuccessScreen = () => {
       </div>
 
       {/* Footer Text — pushed to bottom */}
-      <div className="mt-auto pb-10 px-4">
+      <div className="mt-auto pb-20 px-4">
         <p className={`${isDarkMode ? 'text-white' : 'text-black/60'} text-[13px] text-center leading-snug font-sans`}>
           {kycStatus === 'verified'
             ? "Your account features have been fully unlocked."

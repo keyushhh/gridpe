@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Grid.Pe',
   webDir: 'dist',
   server: {
-    url: 'http://172.20.10.5:8080',
+    url: 'http://192.168.29.138:8080',
     cleartext: true
   }
 };

@@ -41,7 +41,7 @@ const WalletWithdrawSuccess = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-10 ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${successBg})`,
@@ -64,7 +64,7 @@ const WalletWithdrawSuccess = () => {
             )}
 
             {/* Header */}
-            <div className="px-5 pt-12 flex items-center justify-center relative z-10 shrink-0">
+            <div className="px-5 pt-4 flex items-center justify-center relative z-10 shrink-0">
                 <button
                     onClick={() => navigate("/wallet-created")}
                     className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md absolute left-5 ${isDarkMode ? 'bg-white/10' : 'bg-[#F2F2F2] border border-[#E9EAEB]'

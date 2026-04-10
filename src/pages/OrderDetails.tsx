@@ -421,7 +421,7 @@ const OrderDetails = () => {
                 )}
             </div>
 
-            <div className="flex-1 overflow-hidden px-5 pb-[10px] flex flex-col items-center">
+            <div className="flex-1 overflow-hidden px-5 pb-20 flex flex-col items-center">
                 {/* Main Icon */}
                 <div className="w-[62px] h-[62px] mb-[35px]">
                     <img src={statusConfig.mainIcon} alt="Status" className="w-full h-full object-contain" />

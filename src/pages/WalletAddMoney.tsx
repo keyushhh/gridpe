@@ -119,7 +119,7 @@ const WalletAddMoney = () => {
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header - Standard Single Row */}
-      <div className="px-5 pt-12 pb-2 flex items-center justify-between z-10">
+      <div className="px-5 pt-4 pb-2 flex items-center justify-between z-10">
         {/* Back Button */}
         <button
           onClick={() => fromWallet ? navigate(-1) : navigate("/home")}

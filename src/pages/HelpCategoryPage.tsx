@@ -46,9 +46,9 @@ const HelpCategoryPage = () => {
             )}
 
             {/* Scrollable Content */}
-            <div className="relative z-20 h-full w-full flex flex-col safe-area-top overflow-y-auto no-scrollbar pb-[100px]">
+            <div className="relative z-20 h-full w-full flex flex-col safe-area-top overflow-y-auto no-scrollbar pb-20">
                 {/* Header */}
-                <header className="px-5 pt-12 pb-4 flex items-center justify-center relative z-10 shrink-0 mb-[41px]">
+                <header className="px-5 pt-4 pb-4 flex items-center justify-center relative z-10 shrink-0 mb-[41px]">
                     <button
                         onClick={() => navigate(-1)}
                         className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md z-20 ${isDarkMode ? 'bg-white/5 border border-white/10 active:bg-white/10' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
@@ -98,7 +98,7 @@ const HelpCategoryPage = () => {
                     </div>
 
                     {/* Footer Watermark (Inside scrollable content) */}
-                    <div className="mt-[50px] pb-10">
+                    <div className="mt-32 pb-20">
                         <div className="flex flex-col items-start">
                             <h2 className={`text-[40px] font-black font-satoshi tracking-tight leading-none ${isDarkMode ? 'text-white/40' : 'text-black/40'}`}>
                                 Grid.Pe

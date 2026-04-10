@@ -43,7 +43,7 @@ const FxKYCSuccess = () => {
             )}
 
             {/* Header — "KYC" */}
-            <div className="w-full pt-12 flex justify-center relative z-10">
+            <div className="w-full pt-4 flex justify-center relative z-10">
                 <h1 className={`${isDarkMode ? "text-white font-satoshi" : "text-black font-sans"} text-[22px] font-medium`}>KYC</h1>
             </div>
 
@@ -97,7 +97,7 @@ const FxKYCSuccess = () => {
             </div>
 
             {/* Footer Text — pushed to bottom */}
-            <div className="mt-auto pb-10 px-4">
+            <div className="mt-auto pb-20 px-4">
                 <p className={`${isDarkMode ? "text-white" : "text-black"} text-[13px] text-center leading-snug font-sans`}>
                     If accepted, you'll officially be one of us. If rejected... it's probably your lighting.
                 </p>

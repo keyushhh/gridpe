@@ -274,7 +274,7 @@ const AddAddressDetails = () => {
     };
 
     return (
-        <div className={`h-full flex flex-col relative ${isDarkMode ? 'bg-black text-white' : 'bg-[#FFFFFF] text-[#09090B]'}`}>
+        <div className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} text-[#09090B]`}>
             {/* Background - Applied to a container to avoid scroll issues if needed, but fixed attachment works on scrollable too */}
             {isDarkMode && (
                 <div
@@ -293,7 +293,7 @@ const AddAddressDetails = () => {
                 className="flex-1 overflow-y-auto pb-10 relative z-10 font-sans"
                 onScroll={handleScroll}
             >
-                <div className="pt-[24px] px-5">
+                <div className="pt-4 px-5">
                     {/* Header */}
                     <div
                         className="flex items-center sticky top-0 z-50 transition-colors"

@@ -110,7 +110,7 @@ const DowngradeSummary = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-6 pb-0 z-10">
+            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-4 pb-0 z-10">
                 <button
                     onClick={() => navigate(-1)}
                     className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
@@ -305,7 +305,7 @@ const DowngradeSummary = () => {
                 )}
             </div>
 
-            <div className="px-5 mt-auto pb-[42px] pt-[24px] shrink-0">
+            <div className="px-5 mt-auto pb-20 pt-4 shrink-0">
                 <SlideToPay
                     onComplete={async () => {
                         try {

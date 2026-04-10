@@ -74,7 +74,7 @@ const DeleteAccountOTP = () => {
         />
       )}
 
-      <div className="px-5 pt-6 flex items-center relative z-50 mb-8">
+      <div className="px-5 pt-4 flex items-center relative z-50 mb-8">
         <button
           onClick={() => navigate("/delete-account-mobile", { state: location.state })}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
@@ -143,7 +143,7 @@ const DeleteAccountOTP = () => {
       </div>
 
       {/* Footer Button */}
-      <div className="px-5 pb-10 mt-auto flex flex-col gap-3 relative z-10">
+      <div className="px-5 pb-20 mt-auto flex flex-col gap-3 relative z-10">
         <button
           className={`w-full h-[48px] relative flex items-center justify-center transition-transform ${!isComplete ? "opacity-50 grayscale pointer-events-none" : "active:scale-95"
             }`}

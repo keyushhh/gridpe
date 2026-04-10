@@ -66,7 +66,7 @@ const OrderSummary = () => {
 
     return (
         <div
-            className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-8 relative"
+            className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top safe-area-bottom pb-20 relative"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -81,7 +81,7 @@ const OrderSummary = () => {
             )}
 
             {/* Header */}
-            <div className="px-5 pt-12 pb-2 flex items-center justify-between relative z-10 shrink-0">
+            <div className="px-5 pt-4 pb-2 flex items-center justify-between relative z-10 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
@@ -224,7 +224,7 @@ const OrderSummary = () => {
             </div>
 
             {/* Bottom Slider CTA */}
-            <div className="w-full px-5 pb-[20px]">
+            <div className="w-full px-5 pb-20">
                 <SlideToPay
                     onComplete={() => {
                         if (retry) {

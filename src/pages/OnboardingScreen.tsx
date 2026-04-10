@@ -469,8 +469,8 @@ const OnboardingScreen = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: providerName as Provider,
         options: {
-          redirectTo: Capacitor.isNativePlatform() 
-            ? 'gridpe://auth/v1/callback' 
+          redirectTo: Capacitor.isNativePlatform()
+            ? 'gridpe://auth/v1/callback'
             : `${window.location.origin}/#/auth/v1/callback`,
           queryParams: {
             access_type: 'offline',
@@ -535,7 +535,7 @@ const OnboardingScreen = () => {
     >
       {/* Logo Section - only show for phone/OTP screens */}
       {!showMpinSetup && !showMpinLogin && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-4">
           <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
             <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
             <p className="text-foreground text-[18px] font-normal text-center">
@@ -546,7 +546,7 @@ const OnboardingScreen = () => {
       )}
 
       {/* Form Section */}
-      <div className={`px-6 pb-8 space-y-6 ${(showMpinSetup || showMpinLogin) ? 'flex-1 flex flex-col pt-12' : ''}`}>
+      <div className={`px-6 pb-20 space-y-6 ${(showMpinSetup || showMpinLogin) ? 'flex-1 flex flex-col pt-4' : ''}`}>
         {/* Phone Input Screen */}
         {!showOtpInput && !showMpinSetup && !showMpinLogin && (
           <>
@@ -592,7 +592,7 @@ const OnboardingScreen = () => {
             </div>
 
             <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-              <button 
+              <button
                 onClick={() => handleSocialLogin('google')}
                 className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
                 disabled={isLoading}
@@ -703,7 +703,7 @@ const OnboardingScreen = () => {
             </div>
 
             <div className="flex justify-center gap-4">
-              <button 
+              <button
                 onClick={() => handleSocialLogin('google')}
                 className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
                 disabled={isLoading}
@@ -730,7 +730,7 @@ const OnboardingScreen = () => {
 
         {/* MPIN Login Screen */}
         {showMpinLogin && (
-          <div className="space-y-6 animate-fade-in flex-1 flex flex-col pt-12">
+          <div className="space-y-6 animate-fade-in flex-1 flex flex-col pt-4">
             {/* Header */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">

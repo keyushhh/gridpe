@@ -76,7 +76,7 @@ const LinkedAccounts = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-32">
+      <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-40">
         <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium leading-relaxed mb-6`}>
           Linked accounts found for +91 {maskMobile(mobile)}. Pick your primary bank account — or select all and let us handle the rest.
         </p>
@@ -158,7 +158,7 @@ const LinkedAccounts = () => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-10 left-0 w-full px-5 flex justify-center z-20">
+      <div className="absolute bottom-20 left-0 w-full px-5 flex justify-center z-20">
         <Button
           variant="gradient"
           className="w-full h-[48px] rounded-full text-[18px] font-medium transition-opacity duration-200"

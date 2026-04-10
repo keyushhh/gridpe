@@ -205,7 +205,7 @@ const LiveRates = () => {
                 />
             )}
             {/* Header */}
-            <div className="px-5 pt-12 pb-2 flex items-center justify-between">
+            <div className="px-5 pt-4 pb-2 flex items-center justify-between">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
@@ -380,7 +380,7 @@ const LiveRates = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-12 mb-10">
+                <div className="mt-12 pb-20">
                     <button
                         onClick={() => navigate('/fx-exchange', {
                             state: {
