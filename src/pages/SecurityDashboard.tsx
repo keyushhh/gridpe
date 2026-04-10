@@ -309,7 +309,7 @@ const SecurityDashboard = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top relative"
+      className="h-full w-full overflow-hidden flex flex-col relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         // Remove background image in Dark Mode as requested to fix the "frame" issue.
@@ -334,7 +334,7 @@ const SecurityDashboard = () => {
       {/* Header - Fixed */}
       <div className="px-5 pt-safe pt-4 flex items-center justify-between relative z-50 flex-none">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(originPath)}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center backdrop-blur-md`}
         >
           <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />

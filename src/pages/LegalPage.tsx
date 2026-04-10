@@ -161,7 +161,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col safe-area-top font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full overflow-hidden flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",

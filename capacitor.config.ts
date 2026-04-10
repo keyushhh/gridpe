@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const config: CapacitorConfig = {
+const config: CapacitorConfig & { ios?: { allowsBackForwardNavigationGestures?: boolean } } = {
   appId: 'com.gridpe.customer',
   appName: 'Grid.Pe',
   webDir: 'dist',
@@ -11,7 +11,8 @@ const config: CapacitorConfig = {
   },
   ios: {
     allowsLinkPreview: true,
-    handleApplicationNotifications: true
+    handleApplicationNotifications: true,
+    allowsBackForwardNavigationGestures: true
   }
 };
 

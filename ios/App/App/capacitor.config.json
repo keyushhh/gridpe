@@ -9,7 +9,8 @@
 	},
 	"ios": {
 		"allowsLinkPreview": true,
-		"handleApplicationNotifications": true
+		"handleApplicationNotifications": true,
+		"allowsBackForwardNavigationGestures": true
 	},
 	"packageClassList": [
 		"AppPlugin",

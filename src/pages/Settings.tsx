@@ -197,7 +197,7 @@ const Settings = () => {
       )}
 
       {/* Content Container */}
-      <div className="relative z-10 flex flex-col h-full w-full overflow-hidden safe-area-top">
+      <div className="relative z-10 flex flex-col h-full w-full overflow-hidden">
         {/* Header */}
         <div className="px-5 pt-safe pt-4 flex items-center justify-between">
           <div className="flex items-center gap-3">

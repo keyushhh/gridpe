@@ -49,7 +49,7 @@ const HelpSupport = () => {
 
     return (
         <div
-            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full overflow-hidden flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",

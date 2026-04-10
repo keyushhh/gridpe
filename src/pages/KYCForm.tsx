@@ -137,7 +137,7 @@ const KYCForm = () => {
 
   return (
     <div
-      className="h-[100dvh] w-full overflow-hidden flex flex-col safe-area-top relative"
+      className="h-[100dvh] w-full overflow-hidden flex flex-col relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -159,7 +159,7 @@ const KYCForm = () => {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-2 relative z-10">
+      <div className="flex items-center justify-between px-5 pt-safe pt-4 pb-2 relative z-10">
         <button
           onClick={() => navigate(-1)}
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center transition-colors hover:bg-white/10`}

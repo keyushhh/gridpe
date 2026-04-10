@@ -86,6 +86,7 @@
     /* transition: background-color 1.5s ease-in-out... removed to avoid conflict with View Transition */
     overscroll-behavior-y: none;
     overscroll-behavior-x: none;
+    -webkit-overflow-scrolling: touch;
     user-select: none;
     -webkit-user-select: none;
   }

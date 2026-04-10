@@ -26,7 +26,7 @@ const HelpCategoryPage = () => {
     };
 
     return (
-        <div className={`fixed inset-0 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}>
+        <div className={`fixed inset-0 w-full flex flex-col ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}>
             {/* Background Image */}
             {isDarkMode && (
                 <div
@@ -46,7 +46,7 @@ const HelpCategoryPage = () => {
             )}
 
             {/* Scrollable Content */}
-            <div className="relative z-20 h-full w-full flex flex-col safe-area-top overflow-y-auto no-scrollbar pb-safe pb-4">
+            <div className="relative z-20 h-full w-full flex flex-col overflow-y-auto no-scrollbar pb-safe pb-4">
                 {/* Header */}
                 <header className="px-5 pt-safe pt-4 pb-4 flex items-center justify-center relative z-10 shrink-0 mb-[41px]">
                     <button

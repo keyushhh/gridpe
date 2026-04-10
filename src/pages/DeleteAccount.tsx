@@ -81,7 +81,7 @@ const DeleteAccount = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top pb-safe pb-4 relative"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col pb-safe pb-4 relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
