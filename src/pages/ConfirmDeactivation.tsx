@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { hashMpin } from "@/utils/cryptoUtils";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import buttonRemoveCard from "@/assets/button-remove-card.png";
 import buttonCancel from "@/assets/button-cancel-wide.png";
@@ -44,7 +45,7 @@ const ConfirmDeactivation = () => {
   const originPath = (location.state as any)?.originPath || "/settings";
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { mpin: storedMpin, setMpin } = useUser();
+  const { profile } = useUser();
   const [mpin, setMpinState] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -54,14 +55,21 @@ const ConfirmDeactivation = () => {
     setIsValid(false);
     setIsError(false);
 
-    if (mpin.length === 4) {
-      if (mpin === storedMpin) {
-        setIsValid(true);
-      } else {
-        setIsError(true);
+    const verifyDeactivationMpin = async () => {
+      if (mpin.length === 4) {
+        const hashedInput = await hashMpin(mpin);
+        const targetHash = profile?.mpin_hash;
+
+        if (hashedInput === targetHash) {
+          setIsValid(true);
+        } else {
+          setIsError(true);
+        }
       }
-    }
-  }, [mpin, storedMpin]);
+    };
+
+    verifyDeactivationMpin();
+  }, [mpin, profile?.mpin_hash]);
 
   const handleDeactivate = () => {
     if (!isValid) return;

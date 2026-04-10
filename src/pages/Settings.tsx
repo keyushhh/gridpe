@@ -197,7 +197,7 @@ const Settings = () => {
       )}
 
       {/* Content Container */}
-      <div className="relative z-10 flex flex-col h-full w-full overflow-y-auto touch-pan-y safe-area-top safe-area-bottom">
+      <div className="relative z-10 flex flex-col h-full w-full overflow-hidden safe-area-top safe-area-bottom">
         {/* Header */}
         <div className="px-5 pt-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -224,7 +224,7 @@ const Settings = () => {
         </div>
 
         {/* Profile */}
-        <div className="px-5 mt-[42px] flex items-center justify-between">
+        <div className="px-5 mt-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img
               src={profileImage || avatarImg}
@@ -296,7 +296,7 @@ const Settings = () => {
         </div>
 
         {/* PAYMENT SETTINGS */}
-        <div className="px-5 mt-8">
+        <div className="px-5 mt-6">
           <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
             PAYMENT SETTINGS
           </p>
@@ -339,7 +339,7 @@ const Settings = () => {
         </div>
 
         {/* APP PREFERENCES & Footer Container */}
-        <div className="flex-1 w-full bg-[#F7F8FA] dark:bg-transparent mt-8 pt-4 flex flex-col">
+        <div className="flex-1 w-full bg-[#F7F8FA] dark:bg-transparent mt-6 pt-4 flex flex-col">
           <div className="px-5">
             <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
               APP PREFERENCES
@@ -433,9 +433,12 @@ const Settings = () => {
             </div>
           </div>
 
+          {/* Spacer to push footer down */}
+          <div className="flex-1 min-h-[40px]" />
+
           {/* Footer */}
           <div
-            className="px-5 mt-32 pb-20 opacity-40 cursor-pointer mt-auto"
+            className="px-5 pb-20 opacity-40 cursor-pointer"
             onMouseDown={handleLogoPress}
             onMouseUp={handleLogoRelease}
             onMouseLeave={handleLogoRelease}

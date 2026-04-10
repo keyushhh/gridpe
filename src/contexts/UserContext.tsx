@@ -18,6 +18,7 @@ interface UserProfile {
   referral_code?: string;
   subscription_status?: string;
   is_passport_verified?: boolean;
+  biometric_enabled?: boolean;
 }
 
 export interface WalletTransaction extends LibWalletTransaction { }
@@ -30,7 +31,6 @@ interface UserState {
   profileImage: string | null;
   kycStatus: 'incomplete' | 'pending' | 'in_review' | 'verified';
   kycSubmittedAt: number | null;
-  mpin: string | null;
   biometricEnabled: boolean;
   profile: UserProfile | null;
   isWalletActivated: boolean;
@@ -67,7 +67,6 @@ interface UserContextType extends UserState {
   setEmailVerified: (verified: boolean) => void;
   setProfileImage: (image: string | null) => void;
   setKycStatus: (status: 'incomplete' | 'pending' | 'in_review' | 'verified') => void;
-  setMpin: (mpin: string) => void;
   setBiometricEnabled: (enabled: boolean) => void;
   setProfile: (profile: UserProfile | null) => void;
   submitKyc: (isPassport?: boolean) => void;
@@ -98,7 +97,6 @@ const defaultState: UserState = {
   profileImage: null,
   kycStatus: 'incomplete',
   kycSubmittedAt: null,
-  mpin: null,
   biometricEnabled: false,
   profile: null,
   isWalletActivated: false,
@@ -156,7 +154,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .select(`
           id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
           current_tier_id, scheduled_tier_id, tier_change_date,
-          payment_status, subscription_status, reward_points,
+          payment_status, subscription_status, reward_points, mpin_hash, biometric_enabled,
           wallet_tiers!current_tier_id(*, subscription_price),
           scheduled_tier:wallet_tiers!scheduled_tier_id(name)
         `)
@@ -186,6 +184,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           email: profileData.email || prev.email,
           phoneNumber: profileData.phone || prev.phoneNumber,
           isFxEnabled: !!profileData.is_fx_enabled,
+          biometricEnabled: !!profileData.biometric_enabled,
 
           // Tier Hardening: Normalize limits to whole numbers (Math.floor)
           walletTier: tierData?.name
@@ -211,7 +210,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             name: profileData.name,
             subscription_status: profileData.subscription_status,
             reward_points: profileData.reward_points,
-            is_passport_verified: !!profileData.is_passport_verified
+            is_passport_verified: !!profileData.is_passport_verified,
+            mpin_hash: profileData.mpin_hash,
+            biometric_enabled: !!profileData.biometric_enabled
           } as any,
           rewardPoints: Number(profileData.reward_points || 0),
           isPassportVerified: !!profileData.is_passport_verified,
@@ -491,12 +492,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, kycStatus: status }));
   };
 
-  const setMpin = (mpin: string) => {
-    setState(prev => ({ ...prev, mpin }));
-  };
 
-  const setBiometricEnabled = (enabled: boolean) => {
+  const setBiometricEnabled = async (enabled: boolean) => {
     setState(prev => ({ ...prev, biometricEnabled: enabled }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ biometric_enabled: enabled })
+          .eq('id', user.id);
+      }
+    } catch (error) {
+      console.error("Failed to sync biometric preference:", error);
+    }
   };
 
   const setProfile = (profile: UserProfile | null) => {
@@ -703,7 +712,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setEmailVerified,
     setProfileImage,
     setKycStatus,
-    setMpin,
     setBiometricEnabled,
     setProfile,
     submitKyc,

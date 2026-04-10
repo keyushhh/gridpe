@@ -4,6 +4,8 @@ import { ChevronLeft, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import MpinSheet from "@/components/MpinSheet";
+import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/lib/supabase";
 import { useAsset } from "@/hooks/useAsset";
 import kycBadge from "@/assets/kyc-badge.png";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -19,6 +21,7 @@ const MpinSettings = () => {
   const isDarkMode = theme === 'dark' || theme === 'system';
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const { resetForDemo } = useUser();
   const [sheetMode, setSheetMode] = useState<'change' | 'reset'>('change');
   const bannerAsset = useAsset("security-complete");
 
@@ -209,7 +212,13 @@ const MpinSettings = () => {
 
           {/* Close Button */}
           <button
-            onClick={() => setShowSuccessPopup(false)}
+            onClick={async () => {
+              setShowSuccessPopup(false);
+              resetForDemo();
+              await supabase.auth.signOut();
+              localStorage.clear();
+              navigate('/', { replace: true });
+            }}
             className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 w-[160px]"
             style={isDarkMode ? {
               backgroundImage: `url(${buttonCloseBg})`,

@@ -21,6 +21,8 @@ import gridpeRadarAnimation from "@/assets/gridpe-radar.json";
 import errorRadarAnimation from "@/assets/error.json";
 import inProgressRadarAnimation from "@/assets/in-progress.json";
 import MpinSheet from "@/components/MpinSheet";
+import { BiometricService } from "@/utils/biometricUtils";
+import { toast } from "sonner";
 
 const SecurityDashboard = () => {
   const navigate = useNavigate();
@@ -28,8 +30,9 @@ const SecurityDashboard = () => {
   const originPath = (location.state as any)?.originPath || "/settings";
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { kycStatus, setKycStatus, biometricEnabled, setBiometricEnabled } = useUser();
+  const { profile, kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
+  const [showMpinForBiometric, setShowMpinForBiometric] = useState(false);
 
   // Get assets via useAsset for theme support
   const securityCompleteAsset = useAsset("security-complete");
@@ -115,6 +118,48 @@ const SecurityDashboard = () => {
     );
   };
 
+  const handleKycClick = () => {
+    if (kycStatus !== 'verified') {
+      navigate("/kyc-intro");
+    } else {
+      navigate("/kyc-status-complete"); 
+    }
+  };
+
+  const handleBiometricToggle = async () => {
+    if (biometricEnabled) {
+      // Disable
+      await BiometricService.deleteStoredMpin();
+      setBiometricEnabled(false);
+      toast.success("Biometric unlock disabled");
+    } else {
+      // Enable
+      const availability = await BiometricService.checkAvailability();
+      if (!availability.isAvailable) {
+        toast.error("Biometric authentication is not available on this device");
+        return;
+      }
+      // Force MPIN Verification first
+      setShowMpinForBiometric(true);
+    }
+  };
+
+  const onMpinVerifySuccess = async (mpin?: string) => {
+    if (!mpin) return;
+    
+    const success = await BiometricService.verifyIdentity("Enable Biometric Unlock");
+    if (success) {
+      const saved = await BiometricService.saveMpin(profile?.id || 'user', mpin);
+      if (saved) {
+        setBiometricEnabled(true);
+        toast.success("Biometric unlock enabled!");
+      } else {
+        toast.error("Failed to secure credentials. Please try again.");
+      }
+    }
+    setShowMpinForBiometric(false);
+  };
+
   const renderSubmenu = () => {
     // Menu Config
     const rowHeight = "h-[68px]";
@@ -149,14 +194,6 @@ const SecurityDashboard = () => {
         kycBg = "rgba(250, 204, 21, 0.12)";
       }
     }
-
-    const handleKycClick = () => {
-      if (kycStatus !== 'verified') {
-        navigate("/kyc-intro");
-      } else {
-        navigate("/kyc-status-complete"); // assuming this route still exists, although User requested to redirect to Home/FX on Success. This is just for the menu.
-      }
-    };
 
     return (
       <div className="flex flex-col gap-[4px] w-full">
@@ -208,7 +245,7 @@ const SecurityDashboard = () => {
           {/* Toggle Wrapper: Increased size and adjusted margin */}
           <div
             className="mr-[10px] cursor-pointer w-[34px] h-[20px] flex items-center justify-center shrink-0"
-            onClick={() => setBiometricEnabled(!biometricEnabled)}
+            onClick={handleBiometricToggle}
           >
             <img
               src={biometricEnabled ? toggleActive : toggleInactive}
@@ -288,9 +325,9 @@ const SecurityDashboard = () => {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overscroll-y-none flex flex-col">
+      <div className="flex-1 overflow-hidden flex flex-col">
         {/* Radar Animation Section */}
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] relative">
+        <div className="flex-1 flex flex-col items-center justify-center relative">
           <div className="w-[254px] h-[254px] flex items-center justify-center relative">
             {/* Replicated 5-circle structure for both modes to ensure consistent size */}
             {/* 5th Circle (Outer) */}
@@ -367,7 +404,7 @@ const SecurityDashboard = () => {
         </div>
 
         {/* Content Container */}
-        <div className="px-5 pb-20 flex flex-col gap-6">
+        <div className="px-5 pb-8 flex flex-col gap-4">
 
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}
@@ -383,10 +420,19 @@ const SecurityDashboard = () => {
         <MpinSheet
           onClose={() => setShowMpinSheet(false)}
           mode="verify"
-          onSuccess={() => {
+          onSuccess={(mpin) => {
             setShowMpinSheet(false);
             navigate('/security/mpin-settings');
           }}
+        />
+      )}
+
+      {/* MPIN Sheet for Biometric Enrollment */}
+      {showMpinForBiometric && (
+        <MpinSheet
+          onClose={() => setShowMpinForBiometric(false)}
+          mode="verify"
+          onSuccess={onMpinVerifySuccess}
         />
       )}
     </div>

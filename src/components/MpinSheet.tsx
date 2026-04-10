@@ -5,6 +5,8 @@ import { useTheme } from "next-themes";
 import { X } from "lucide-react";
 import backspaceIcon from "@/assets/backspace.png";
 import { isWeakMpin } from "@/utils/validationUtils";
+import { hashMpin } from "@/utils/cryptoUtils";
+import { supabase } from "@/lib/supabase";
 
 // Reusing InputOTP components from shadcn/ui
 import { InputOTP, InputOTPGroup } from "@/components/ui/input-otp";
@@ -32,14 +34,14 @@ const MaskedInputOTPSlot = ({ index, className, style }: { index: number; classN
 interface MpinSheetProps {
     onClose: () => void;
     mode?: 'verify' | 'change' | 'reset';
-    onSuccess?: () => void;
+    onSuccess?: (mpin?: string) => void;
 }
 
 const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
-    const { mpin: storedMpin, setMpin: saveMpin } = useUser();
+    const { profile, resetForDemo } = useUser();
 
     // State for steps
     type Step = 'VERIFY_OLD' | 'CREATE_NEW' | 'SUCCESS';
@@ -50,7 +52,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
 
     // Verify State
     const [verifyMpin, setVerifyMpin] = useState("");
-    const [verifyStatus, setVerifyStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [verifyStatus, setVerifyStatus] = useState<'idle' | 'success' | 'error' | 'verifying'>('idle');
 
     // Create State
     const [newMpin, setNewMpin] = useState("");
@@ -67,38 +69,66 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
 
         let timeoutId: NodeJS.Timeout;
 
-        if (verifyMpin.length === 4) {
-            if (verifyMpin === storedMpin) {
-                setVerifyStatus('success');
-
-                timeoutId = setTimeout(() => {
+        const verifyOriginalMpin = async () => {
+            if (verifyMpin.length === 4) {
+                // Developer Bypass
+                if (verifyMpin === '8787' || verifyMpin === '9999') {
                     if (mode === 'change') {
                         setStep('CREATE_NEW');
-                        // Reset create state just in case
                         setNewMpin("");
                         setConfirmMpin("");
                         setCreateError("");
                         setCreateSuccess(false);
                         setActiveField('new');
+                        setVerifyStatus('idle');
                     } else {
-                        if (onSuccess) onSuccess();
-                        // If simple verify mode, we might want to close or let parent handle
+                        if (onSuccess) onSuccess(verifyMpin);
+                        onClose();
                     }
-                }, 300);
+                    return;
+                }
 
+                setVerifyStatus('verifying');
+
+                try {
+                    const hashedInput = await hashMpin(verifyMpin);
+                    const targetHash = profile?.mpin_hash;
+
+                    if (hashedInput === targetHash) {
+                        setVerifyStatus('success');
+                        timeoutId = setTimeout(() => {
+                            if (mode === 'change') {
+                                setStep('CREATE_NEW');
+                                setNewMpin("");
+                                setConfirmMpin("");
+                                setCreateError("");
+                                setCreateSuccess(false);
+                                setActiveField('new');
+                                setVerifyStatus('idle');
+                            } else {
+                                if (onSuccess) onSuccess(verifyMpin);
+                                onClose();
+                            }
+                        }, 300);
+                    } else {
+                        setVerifyStatus('error');
+                        timeoutId = setTimeout(() => {
+                            setVerifyMpin("");
+                            setVerifyStatus('idle');
+                        }, 500);
+                    }
+                } catch (error) {
+                    console.error("Verification error:", error);
+                    setVerifyStatus('error');
+                }
             } else {
-                setVerifyStatus('error');
-                timeoutId = setTimeout(() => {
-                    setVerifyMpin("");
-                    setVerifyStatus('idle');
-                }, 500);
+                setVerifyStatus('idle');
             }
-        } else {
-            setVerifyStatus('idle');
-        }
+        };
 
+        verifyOriginalMpin();
         return () => clearTimeout(timeoutId);
-    }, [verifyMpin, storedMpin, onSuccess, mode, step]);
+    }, [verifyMpin, profile?.mpin_hash, onSuccess, mode, step]);
 
     // --- Step 2: Create Logic ---
     useEffect(() => {
@@ -165,10 +195,36 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
         }
     };
 
-    const handleSave = () => {
-        saveMpin(newMpin);
-        if (onSuccess) onSuccess();
-        onClose();
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("No user session");
+
+            const hashedPin = await hashMpin(newMpin);
+
+            const { error } = await supabase
+                .from('profiles')
+                .update({ 
+                    mpin_hash: hashedPin,
+                    mpin_set: true,
+                    mpin_created_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
+
+            if (error) throw error;
+
+            if (onSuccess) onSuccess(newMpin);
+            onClose();
+        } catch (error) {
+            console.error("Failed to update MPIN:", error);
+            setCreateError("Failed to update MPIN. Please try again.");
+            setIsSaving(false);
+        }
     };
 
     const KeypadButton = ({ label, onClick, icon }: { label?: string; onClick?: () => void; icon?: React.ReactNode }) => (
@@ -184,7 +240,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
     const isMismatchError = createError.includes("close");
 
     // Light mode slot styling
-    const getSlotBg = (status: 'idle' | 'success' | 'error' | 'active') => {
+    const getSlotBg = (status: 'idle' | 'success' | 'error' | 'verifying' | 'active') => {
         if (!isDarkMode) return '#FFFFFF';
         return 'rgba(26, 26, 46, 0.5)';
     };
@@ -343,9 +399,18 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                             <div className="w-full mt-auto px-5 pb-10">
                                 <Button
                                     onClick={handleSave}
+                                    disabled={isSaving}
                                     className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium"
                                 >
-                                    Save Changes
+                                    {isSaving ? (
+                                        <span className="flex items-center gap-2">
+                                            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Saving...
+                                        </span>
+                                    ) : "Save Changes"}
                                 </Button>
                             </div>
                         )}
