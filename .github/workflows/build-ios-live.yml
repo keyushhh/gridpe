@@ -1,0 +1,131 @@
+# =============================================================================
+# Grid.Pe Customer App — iOS LIVE IPA Build (Unsigned, for SideStore)
+# =============================================================================
+# This workflow builds a DEBUG version of the app that keeps your local 
+# development server URL intact for Live Reload on physical devices.
+# =============================================================================
+
+name: Build iOS Live IPA
+
+on:
+  workflow_dispatch:
+
+env:
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+  VITE_MAPS_API_KEY: ${{ secrets.VITE_MAPS_API_KEY }}
+  VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+  VITE_RAZORPAY_KEY_ID: ${{ secrets.VITE_RAZORPAY_KEY_ID }}
+  VITE_CORBADO_PROJECT_ID: ${{ secrets.VITE_CORBADO_PROJECT_ID }}
+  VITE_CORBADO_API_SECRET: ${{ secrets.VITE_CORBADO_API_SECRET }}
+
+jobs:
+  build-ios-live:
+    name: Build Unsigned Live IPA
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web app (production)
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Verify Live Reload IP
+        run: |
+          CONFIG="ios/App/App/capacitor.config.json"
+          if grep -q "192.168.29.138" "$CONFIG"; then
+            echo "✅ Found Live Reload IP: 192.168.29.138"
+          else
+            echo "❌ ERROR: Live Reload IP 192.168.29.138 not found in $CONFIG!"
+            echo "Current config contents:"
+            cat "$CONFIG"
+            exit 1
+          fi
+
+      - name: Set app display name & enable debug mode
+        run: |
+          PLIST="ios/App/App/Info.plist"
+          plutil -replace CFBundleDisplayName -string "Grid.Pe Live" "$PLIST"
+          plutil -replace CFBundleName -string "GridPeLive" "$PLIST"
+          
+          # Force CAPACITOR_DEBUG to true to allow connecting to the dev server
+          plutil -replace CAPACITOR_DEBUG -string "true" "$PLIST"
+
+          echo "=== Patched Info.plist ==="
+          plutil -p "$PLIST"
+
+      - name: Resolve Swift Package Manager dependencies
+        working-directory: ios/App
+        run: |
+          xcodebuild -project App.xcodeproj \
+                     -scheme App \
+                     -resolvePackageDependencies \
+                     -clonedSourcePackagesDirPath ../../.spm-cache
+
+      - name: Build Xcode project (Debug)
+        working-directory: ios/App
+        run: |
+          xcodebuild build \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphoneos \
+            -derivedDataPath ../../build \
+            -clonedSourcePackagesDirPath ../../.spm-cache \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            ENABLE_BITCODE=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            | tee ../../xcodebuild.log \
+            | tail -50
+
+      - name: Verify .app bundle contents
+        run: |
+          APP_PATH="build/Build/Products/Debug-iphoneos/App.app"
+          echo "=== App.app root ==="
+          ls -la "$APP_PATH/"
+          echo ""
+          echo "=== capacitor.config.json inside .app ==="
+          cat "$APP_PATH/capacitor.config.json" || echo "❌ NO capacitor.config.json IN APP"
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Debug-iphoneos/App.app Payload/
+          zip -r -9 GridPeLive.ipa Payload
+          echo ""
+          echo "=== IPA size ==="
+          ls -lh GridPeLive.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GridPeLive-IPA
+          path: GridPeLive.ipa
+          retention-days: 14
+
+      - name: Upload Xcode build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-xcodebuild-log
+          path: xcodebuild.log
+          retention-days: 7
