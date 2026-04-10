@@ -64,9 +64,13 @@ jobs:
           # Debug Flag
           plutil -replace CAPACITOR_DEBUG -string "true" "$PLIST"
 
-      - name: Install CocoaPods
-        working-directory: ios
-        run: pod install --repo-update
+      - name: Resolve Swift Package Manager Dependencies
+        working-directory: ios/App
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Debug
 
       - name: Build Xcode project (Debug)
         working-directory: ios/App
