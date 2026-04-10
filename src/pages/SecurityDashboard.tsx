@@ -23,6 +23,9 @@ import inProgressRadarAnimation from "@/assets/in-progress.json";
 import MpinSheet from "@/components/MpinSheet";
 import { BiometricService } from "@/utils/biometricUtils";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { Capacitor } from "@capacitor/core";
 
 const SecurityDashboard = () => {
   const navigate = useNavigate();
@@ -122,31 +125,47 @@ const SecurityDashboard = () => {
     if (kycStatus !== 'verified') {
       navigate("/kyc-intro");
     } else {
-      navigate("/kyc-status-complete"); 
+      navigate("/kyc-status-complete");
+    }
+  };
+
+  const triggerHaptic = async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      }
+    } catch (e) {
+      console.warn('Haptics not supported', e);
     }
   };
 
   const handleBiometricToggle = async () => {
+    await triggerHaptic();
+    console.log("Biometric toggle triggered. Current state:", biometricEnabled);
     if (biometricEnabled) {
       // Disable
+      console.log("Disabling biometrics...");
       await BiometricService.deleteStoredMpin();
       setBiometricEnabled(false);
       toast.success("Biometric unlock disabled");
     } else {
       // Enable
+      console.log("Checking availability...");
       const availability = await BiometricService.checkAvailability();
+      console.log("Availability result:", availability);
       if (!availability.isAvailable) {
         toast.error("Biometric authentication is not available on this device");
         return;
       }
       // Force MPIN Verification first
+      console.log("Opening MPIN sheet for enrollment...");
       setShowMpinForBiometric(true);
     }
   };
 
   const onMpinVerifySuccess = async (mpin?: string) => {
     if (!mpin) return;
-    
+
     const success = await BiometricService.verifyIdentity("Enable Biometric Unlock");
     if (success) {
       const saved = await BiometricService.saveMpin(profile?.id || 'user', mpin);
@@ -232,25 +251,25 @@ const SecurityDashboard = () => {
 
         {/* ROW 3: Biometric */}
         <div
-          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'}`}
+          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
+          onClick={handleBiometricToggle}
         >
           <div className="flex items-center gap-4 w-full">
             <img src={biometricIcon} alt="Biometric" className={iconClass} />
             <div className={`flex flex-col justify-center ${textGap} w-full`}>
               <span className={headerClass}>Biometric Unlock</span>
-              <span className={subTextClass}>Don’t worry, your face/finger data stays on your phone. We don’t want it. Promise</span>
+              <span className={subTextClass}>
+                Don’t worry, your face/finger data<br />
+                stays on your phone. We don’t want it. Promise!
+              </span>
             </div>
           </div>
-          {/* Toggle Wrapper: Increased size and adjusted margin */}
-          <div
-            className="mr-[10px] cursor-pointer w-[34px] h-[20px] flex items-center justify-center shrink-0"
-            onClick={handleBiometricToggle}
-          >
-            <img
-              src={biometricEnabled ? toggleActive : toggleInactive}
-              className={`w-full h-full object-contain ${!isDarkMode && !biometricEnabled ? 'filter brightness-0' : ''}`}
-              alt="Toggle"
+          {/* Toggle Wrapper */}
+          <div className="mr-[10px] flex items-center justify-center shrink-0 pointer-events-none">
+            <Switch
+              checked={biometricEnabled}
+              onCheckedChange={() => {}} // Controlled solely by the parent row onClick
             />
           </div>
         </div>

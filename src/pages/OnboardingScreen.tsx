@@ -506,10 +506,10 @@ const OnboardingScreen = () => {
 
   // Trigger biometric login automatically when screen appears
   useEffect(() => {
-    if (showMpinLogin && profile?.biometric_enabled && biometricFailCount < 3) {
+    if (showMpinLogin && profile?.biometric_on && biometricFailCount < 3) {
       handleBiometricLogin();
     }
-  }, [showMpinLogin, profile?.biometric_enabled]);
+  }, [showMpinLogin, profile?.biometric_on]);
 
   const handleSocialLogin = async (providerName: string) => {
     setIsLoading(true);

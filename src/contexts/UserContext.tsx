@@ -18,7 +18,7 @@ interface UserProfile {
   referral_code?: string;
   subscription_status?: string;
   is_passport_verified?: boolean;
-  biometric_enabled?: boolean;
+  biometric_on?: boolean;
 }
 
 export interface WalletTransaction extends LibWalletTransaction { }
@@ -154,7 +154,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .select(`
           id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
           current_tier_id, scheduled_tier_id, tier_change_date,
-          payment_status, subscription_status, reward_points, mpin_hash, biometric_enabled,
+          payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
           wallet_tiers!current_tier_id(*, subscription_price),
           scheduled_tier:wallet_tiers!scheduled_tier_id(name)
         `)
@@ -184,7 +184,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           email: profileData.email || prev.email,
           phoneNumber: profileData.phone || prev.phoneNumber,
           isFxEnabled: !!profileData.is_fx_enabled,
-          biometricEnabled: !!profileData.biometric_enabled,
+          biometricEnabled: !!profileData.biometric_on,
 
           // Tier Hardening: Normalize limits to whole numbers (Math.floor)
           walletTier: tierData?.name
@@ -209,10 +209,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             id: profileData.id,
             name: profileData.name,
             subscription_status: profileData.subscription_status,
-            reward_points: profileData.reward_points,
-            is_passport_verified: !!profileData.is_passport_verified,
+            kyc_status: profileData.kyc_status,
             mpin_hash: profileData.mpin_hash,
-            biometric_enabled: !!profileData.biometric_enabled
+            biometric_on: !!profileData.biometric_on
           } as any,
           rewardPoints: Number(profileData.reward_points || 0),
           isPassportVerified: !!profileData.is_passport_verified,
@@ -500,7 +499,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         await supabase
           .from('profiles')
-          .update({ biometric_enabled: enabled })
+          .update({ biometric_on: enabled })
           .eq('id', user.id);
       }
     } catch (error) {

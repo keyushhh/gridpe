@@ -9,6 +9,7 @@
 	"packageClassList": [
 		"AppPlugin",
 		"GeolocationPlugin",
+		"HapticsPlugin",
 		"SharePlugin",
 		"NativeBiometric"
 	]
