@@ -45,10 +45,10 @@ jobs:
       - name: Verify Live Reload IP
         run: |
           CONFIG="ios/App/App/capacitor.config.json"
-          if grep -q "192.168.29.138" "$CONFIG"; then
-            echo "✅ Found Live Reload IP: 192.168.29.138"
+          if grep -q "192.168.29.136" "$CONFIG"; then
+            echo "✅ Found Live Reload IP: 192.168.29.136"
           else
-            echo "❌ ERROR: Live Reload IP 192.168.29.138 not found in $CONFIG!"
+            echo "❌ ERROR: Live Reload IP 192.168.29.136 not found in $CONFIG!"
             cat "$CONFIG"
             exit 1
           fi
@@ -59,6 +59,7 @@ jobs:
           # App Names
           plutil -replace CFBundleDisplayName -string "Grid.Pe Live" "$PLIST"
           plutil -replace CFBundleName -string "GridPeLive" "$PLIST"
+          plutil -replace CFBundleIdentifier -string "com.gridpe.customer.dev" "$PLIST"
           # Permissions
           plutil -replace NSFaceIDUsageDescription -string "Grid.Pe needs FaceID to secure your account and allow quick login." "$PLIST"
           # Debug Flag
