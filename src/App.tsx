@@ -142,8 +142,12 @@ const App = () => {
       }
     });
 
-    if (Capacitor.getPlatform() === 'ios') {
-      CapacitorSwipeBackPlugin.enable();
+    try {
+      if (Capacitor.getPlatform() === 'ios' && Capacitor.isPluginAvailable('CapacitorSwipeBackPlugin')) {
+        CapacitorSwipeBackPlugin.enable();
+      }
+    } catch (e) {
+      console.warn('Swipe back plugin failed to load', e);
     }
 
     // Handle hardware back button for Android
