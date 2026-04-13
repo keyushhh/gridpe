@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from "@capacitor/core";
 import { useEffect } from "react";
 import { supabase } from "./lib/supabase";
 import GlobalCustomToaster from "./components/GlobalCustomToaster";
@@ -141,25 +142,31 @@ const App = () => {
     });
 
     // Handle hardware back button for Android
-    const backListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack) {
-        window.history.back();
-      } else {
-        CapacitorApp.exitApp();
-      }
-    });
+    let backListener: Promise<{ remove: () => void }> | null = null;
+    if (Capacitor.getPlatform() === 'android') {
+      backListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack) {
+          window.history.back();
+        } else {
+          CapacitorApp.exitApp();
+        }
+      });
+    }
 
     return () => {
       listener.then(handle => handle.remove());
-      backListener.then(handle => handle.remove());
+      if (backListener) {
+        backListener.then(handle => handle.remove());
+      }
     };
   }, []);
 
   return (
-    <>
+    <div className="app-container">
       <GlobalCustomToaster />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
+          {/* ... existing routes ... */}
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Homepage />} />
           <Route path="/settings" element={<Settings />} />
@@ -249,7 +256,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </>
+    </div>
   );
 };
 
