@@ -64,7 +64,7 @@
 
   html,
   body {
-    overscroll-behavior-x: none;
+    overscroll-behavior-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 

@@ -14,7 +14,7 @@ const FxIntro = () => {
 
     React.useEffect(() => {
         if (walletTier !== "Starter") {
-            navigate("/fx-exchange", { replace: true });
+            navigate("/fx-exchange");
         }
     }, [walletTier, navigate]);
 

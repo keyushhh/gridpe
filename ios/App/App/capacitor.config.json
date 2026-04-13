@@ -13,10 +13,11 @@
 		"allowsBackForwardNavigationGestures": true
 	},
 	"packageClassList": [
+		"BiometricAuthNative",
+		"SecureStorage",
 		"AppPlugin",
 		"GeolocationPlugin",
 		"HapticsPlugin",
-		"SharePlugin",
-		"NativeBiometric"
+		"SharePlugin"
 	]
 }

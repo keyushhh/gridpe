@@ -17,7 +17,8 @@ import biometricIcon from "@/assets/biometric-icon.png";
 import { isWeakMpin } from "@/utils/validationUtils";
 import { hashMpin } from "@/utils/cryptoUtils";
 import { supabase } from "@/lib/supabase";
-import { BiometricService } from "@/utils/biometricUtils";
+import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
+import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { Capacitor } from "@capacitor/core";
 import { Provider, User } from "@supabase/supabase-js";
 
@@ -411,7 +412,11 @@ const OnboardingScreen = () => {
       console.log("MPIN status updated on server:", updatedProfile);
       setProfile(updatedProfile);
 
-      // Save biometric preference only (MPIN is already in DB)
+      // Save biometric preference and secure MPIN if enabled
+      if (biometricEnabled) {
+        await SecureStorage.set('mpin', mpin);
+        localStorage.setItem('biometrics_enabled', 'true');
+      }
       saveBiometricEnabled(biometricEnabled);
 
       console.log("MPIN Setup Complete!", { biometricEnabled });
@@ -482,18 +487,23 @@ const OnboardingScreen = () => {
   const handleBiometricLogin = async () => {
     if (isBiometricPrompting || biometricFailCount >= 3) return;
 
+    // Device-level gate: only prompt if biometrics was enabled on THIS device
+    const isDeviceEnabled = localStorage.getItem('biometrics_enabled') === 'true';
+    if (!isDeviceEnabled) return;
+
     setIsBiometricPrompting(true);
     try {
-      const verified = await BiometricService.verifyIdentity("Unlock GridPe");
-      if (verified) {
-        const storedMpin = await BiometricService.getStoredMpin();
-        if (storedMpin) {
-          await handleLoginMpinVerification(storedMpin);
-        } else {
-          console.warn("Biometric success but no MPIN in vault");
-          setBiometricFailCount(prev => prev + 1);
-        }
+      await BiometricAuth.authenticate({
+        reason: "Log in to Grid.Pe",
+        cancelTitle: "Cancel"
+      });
+      
+      const storedMpin = await SecureStorage.get('mpin') as string;
+      if (storedMpin) {
+        // Silent verification - if success, navigate home
+        await handleLoginMpinVerification(storedMpin);
       } else {
+        console.warn("Biometric success but no MPIN in secure storage");
         setBiometricFailCount(prev => prev + 1);
       }
     } catch (error) {
@@ -506,10 +516,11 @@ const OnboardingScreen = () => {
 
   // Trigger biometric login automatically when screen appears
   useEffect(() => {
-    if (showMpinLogin && profile?.biometric_on && biometricFailCount < 3) {
+    const isDeviceEnabled = localStorage.getItem('biometrics_enabled') === 'true';
+    if (showMpinLogin && isDeviceEnabled && biometricFailCount < 3) {
       handleBiometricLogin();
     }
-  }, [showMpinLogin, profile?.biometric_on]);
+  }, [showMpinLogin]);
 
   const handleSocialLogin = async (providerName: string) => {
     setIsLoading(true);

@@ -21,7 +21,8 @@ import gridpeRadarAnimation from "@/assets/gridpe-radar.json";
 import errorRadarAnimation from "@/assets/error.json";
 import inProgressRadarAnimation from "@/assets/in-progress.json";
 import MpinSheet from "@/components/MpinSheet";
-import { BiometricService } from "@/utils/biometricUtils";
+import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
+import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
@@ -36,6 +37,11 @@ const SecurityDashboard = () => {
   const { profile, kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showMpinForBiometric, setShowMpinForBiometric] = useState(false);
+
+  // Local device-level gate state, initialized from localStorage
+  const [isDeviceEnabled, setIsDeviceEnabled] = useState(() => {
+    return localStorage.getItem('biometrics_enabled') === 'true';
+  });
 
   // Get assets via useAsset for theme support
   const securityCompleteAsset = useAsset("security-complete");
@@ -141,42 +147,54 @@ const SecurityDashboard = () => {
 
   const handleBiometricToggle = async () => {
     await triggerHaptic();
-    console.log("Biometric toggle triggered. Current state:", biometricEnabled);
-    if (biometricEnabled) {
-      // Disable
-      console.log("Disabling biometrics...");
-      await BiometricService.deleteStoredMpin();
-      setBiometricEnabled(false);
-      toast.success("Biometric unlock disabled");
+    
+    if (isDeviceEnabled) {
+      // Disable locally
+      localStorage.setItem('biometrics_enabled', 'false');
+      setIsDeviceEnabled(false);
+      // We keep the Supabase biometricEnabled as true/false based on global preference,
+      // but the user specifically asked for local gate.
+      toast.success("Biometric unlock disabled on this device");
     } else {
       // Enable
-      console.log("Checking availability...");
-      const availability = await BiometricService.checkAvailability();
-      console.log("Availability result:", availability);
-      if (!availability.isAvailable) {
-        toast.error("Biometric authentication is not available on this device");
-        return;
+      try {
+        const availability = await BiometricAuth.checkBiometry();
+        if (!availability.isAvailable) {
+          toast.error(`${availability.reason || "Biometric authentication is not available"}`);
+          return;
+        }
+        // Collect MPIN first
+        setShowMpinForBiometric(true);
+      } catch (error) {
+        console.error("Check biometry failed:", error);
+        toast.error("Failed to check biometric availability");
       }
-      // Force MPIN Verification first
-      console.log("Opening MPIN sheet for enrollment...");
-      setShowMpinForBiometric(true);
     }
   };
 
   const onMpinVerifySuccess = async (mpin?: string) => {
     if (!mpin) return;
 
-    const success = await BiometricService.verifyIdentity("Enable Biometric Unlock");
-    if (success) {
-      const saved = await BiometricService.saveMpin(profile?.id || 'user', mpin);
-      if (saved) {
-        setBiometricEnabled(true);
-        toast.success("Biometric unlock enabled!");
-      } else {
-        toast.error("Failed to secure credentials. Please try again.");
-      }
+    try {
+      await BiometricAuth.authenticate({
+        reason: "Confirm your identity to enable biometrics",
+        cancelTitle: "Cancel"
+      });
+
+      // On Success
+      localStorage.setItem('biometrics_enabled', 'true');
+      setIsDeviceEnabled(true);
+      setBiometricEnabled(true); // Sync to Supabase
+      await SecureStorage.set('mpin', mpin);
+      
+      toast.success("Biometric unlock enabled!");
+    } catch (error: any) {
+      console.error("Biometric authentication failed:", error);
+      // Revert toggle happens naturally as isDeviceEnabled wasn't set
+      toast.error("Authentication failed or cancelled");
+    } finally {
+      setShowMpinForBiometric(false);
     }
-    setShowMpinForBiometric(false);
   };
 
   const renderSubmenu = () => {
@@ -268,7 +286,7 @@ const SecurityDashboard = () => {
           {/* Toggle Wrapper */}
           <div className="mr-[10px] flex items-center justify-center shrink-0 pointer-events-none">
             <Switch
-              checked={biometricEnabled}
+              checked={isDeviceEnabled}
               onCheckedChange={() => {}} // Controlled solely by the parent row onClick
             />
           </div>

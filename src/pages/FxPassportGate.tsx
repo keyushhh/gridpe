@@ -41,9 +41,9 @@ const FxPassportGate = () => {
 
     React.useEffect(() => {
         if (walletTier === 'Starter') {
-            navigate('/fx-intro', { replace: true });
+            navigate('/fx-intro');
         } else if (isPassportVerified) {
-            navigate('/fx-exchange', { replace: true });
+            navigate('/fx-exchange');
         }
     }, [walletTier, isPassportVerified, navigate]);
 

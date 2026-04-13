@@ -142,10 +142,10 @@ const App = () => {
 
     // Handle hardware back button for Android
     const backListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-      if (!canGoBack) {
-        CapacitorApp.exitApp();
-      } else {
+      if (canGoBack) {
         window.history.back();
+      } else {
+        CapacitorApp.exitApp();
       }
     });
 
