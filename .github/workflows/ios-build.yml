@@ -27,16 +27,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Clear npm cache
         run: npm cache clean --force
 
       - name: Install npm dependencies
+        env:
+          NODE_OPTIONS: "--no-node-snapshot"
         run: npm ci --legacy-peer-deps
 
       - name: Build web app (production)
