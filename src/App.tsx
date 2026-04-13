@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from "@capacitor/core";
+import { CapacitorSwipeBackPlugin } from '@notnotsamuel/capacitor-swipe-back';
 import { useEffect } from "react";
 import { supabase } from "./lib/supabase";
 import GlobalCustomToaster from "./components/GlobalCustomToaster";
@@ -140,6 +141,10 @@ const App = () => {
         }
       }
     });
+
+    if (Capacitor.getPlatform() === 'ios') {
+      CapacitorSwipeBackPlugin.enable();
+    }
 
     // Handle hardware back button for Android
     let backListener: Promise<{ remove: () => void }> | null = null;

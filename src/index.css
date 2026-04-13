@@ -188,6 +188,7 @@
     height: 100dvh;
     display: flex;
     flex-direction: column;
+    touch-action: pan-x pan-y;
     user-select: none;
     -webkit-user-select: none;
   }

@@ -18,6 +18,7 @@
 		"AppPlugin",
 		"GeolocationPlugin",
 		"HapticsPlugin",
-		"SharePlugin"
+		"SharePlugin",
+		"CapacitorSwipeBackPlugin"
 	]
 }
