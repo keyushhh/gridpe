@@ -1,26 +1,12 @@
 # =============================================================================
-# Grid.Pe Customer App — iOS IPA Build (Unsigned, for SideStore)
+# Grid.Pe Customer App — iOS Production IPA Build (Unsigned, for SideStore)
 # =============================================================================
-# Manually trigger via Actions → "Build iOS IPA" → Run workflow
-# Downloads an unsigned .ipa you can sideload with SideStore / AltStore.
-#
-# WHITE-SCREEN FIX CHECKLIST (all handled below):
-#   1. Vite builds in production mode  → no dev-server references in JS
-#   2. capacitor.config.json has NO "server.url" override
-#   3. Info.plist CAPACITOR_DEBUG is forced to "false"
-#   4. Xcode build uses --configuration Release
-#   5. Web assets are verified inside the .app bundle before packaging
-# =============================================================================
-
-name: Build iOS IPA
+name: Build iOS Production IPA
 
 on:
   workflow_dispatch:
 
 env:
-  # ── Vite env vars (mirror your .env) ──────────────────────────────────────
-  # Add these as GitHub repository secrets so the production build can
-  # inline them. Any VITE_* variable referenced in your app must be here.
   VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
   VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
   VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -32,21 +18,15 @@ env:
   VITE_CORBADO_API_SECRET: ${{ secrets.VITE_CORBADO_API_SECRET }}
 
 jobs:
-  build-ios:
-    name: Build Unsigned IPA
+  build-ios-production:
+    name: Build Unsigned Production IPA
     runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
-      # ─────────────────────────────────────────────────────────────────────
-      # 1. Checkout
-      # ─────────────────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ─────────────────────────────────────────────────────────────────────
-      # 2. Node.js + npm
-      # ─────────────────────────────────────────────────────────────────────
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -56,100 +36,45 @@ jobs:
       - name: Install npm dependencies
         run: npm ci --legacy-peer-deps
 
-      # ─────────────────────────────────────────────────────────────────────
-      # 3. Production web build (Vite)
-      # ─────────────────────────────────────────────────────────────────────
       - name: Build web app (production)
         run: npm run build
-        # npm run build → vite build → mode=production by default
-        # This outputs to ./dist with relative asset paths (base: "./")
 
-      - name: Verify dist output
-        run: |
-          echo "=== dist/ contents ==="
-          ls -la dist/
-          echo "=== Checking for dev-server references ==="
-          if grep -r "localhost" dist/ --include="*.js" --include="*.html"; then
-            echo "⚠️  WARNING: Found localhost references in production build!"
-          else
-            echo "✅ No localhost references found — good!"
-          fi
-
-      # ─────────────────────────────────────────────────────────────────────
-      # 4. Capacitor sync (copies dist → ios/App/App/public)
-      # ─────────────────────────────────────────────────────────────────────
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
-      # ─────────────────────────────────────────────────────────────────────
-      # 5. Patch capacitor.config.json — remove any server.url override
-      # ─────────────────────────────────────────────────────────────────────
-      - name: Ensure no dev-server URL in Capacitor config
+      - name: Ensure Production Config
         run: |
           CONFIG="ios/App/App/capacitor.config.json"
-          echo "=== Before ==="
-          cat "$CONFIG"
-          # Remove any "server" key that might point to a local dev server
+          # Remove any "server" key to force loading local assets (prevents white screen)
           python3 -c "
           import json, sys
           with open('$CONFIG') as f:
               cfg = json.load(f)
           cfg.pop('server', None)
-          if 'ios' not in cfg:
-              cfg['ios'] = {}
-          cfg['ios']['webContentsDebuggingEnabled'] = True
           with open('$CONFIG', 'w') as f:
               json.dump(cfg, f, indent=2)
           "
-          echo ""
-          echo "=== After ==="
-          cat "$CONFIG"
+          echo "✅ Production config verified (No server.url override)"
 
-      # ─────────────────────────────────────────────────────────────────────
-      # 6. Patch Info.plist — display name + kill CAPACITOR_DEBUG
-      # ─────────────────────────────────────────────────────────────────────
-      - name: Set app display name & disable debug mode
+      - name: Set app permissions & production mode
         run: |
           PLIST="ios/App/App/Info.plist"
-
-          # Set display name to "Grid.Pe Customer App"
-          plutil -replace CFBundleDisplayName -string "Grid.Pe Customer App" "$PLIST"
-
-          # Set internal bundle name
-          plutil -replace CFBundleName -string "GridPeCustomer" "$PLIST"
-
-          # Force CAPACITOR_DEBUG to false so the WebView loads local files,
-          # NOT a dev-server URL. This is the #1 white-screen fix.
+          # App Names
+          plutil -replace CFBundleDisplayName -string "Grid.Pe" "$PLIST"
+          plutil -replace CFBundleName -string "GridPe" "$PLIST"
+          # Permissions
+          plutil -replace NSFaceIDUsageDescription -string "Grid.Pe needs FaceID to secure your account and allow quick login." "$PLIST"
+          # Disable Debug Flag
           plutil -replace CAPACITOR_DEBUG -string "false" "$PLIST"
 
-          echo "=== Patched Info.plist ==="
-          plutil -p "$PLIST"
-
-      # ─────────────────────────────────────────────────────────────────────
-      # 7. Verify web assets landed in the iOS project
-      # ─────────────────────────────────────────────────────────────────────
-      - name: Verify iOS web assets
-        run: |
-          echo "=== ios/App/App/public/ ==="
-          ls -la ios/App/App/public/
-          echo ""
-          echo "=== index.html head (first 30 lines) ==="
-          head -30 ios/App/App/public/index.html
-
-      # ─────────────────────────────────────────────────────────────────────
-      # 8. Resolve SPM dependencies
-      # ─────────────────────────────────────────────────────────────────────
-      - name: Resolve Swift Package Manager dependencies
+      - name: Resolve Swift Package Manager Dependencies
         working-directory: ios/App
         run: |
-          xcodebuild -project App.xcodeproj \
-                     -scheme App \
-                     -resolvePackageDependencies \
-                     -clonedSourcePackagesDirPath ../../.spm-cache
+          xcodebuild -resolvePackageDependencies \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Release
 
-      # ─────────────────────────────────────────────────────────────────────
-      # 9. Build with xcodebuild (Release, no code-signing)
-      # ─────────────────────────────────────────────────────────────────────
       - name: Build Xcode project (Release)
         working-directory: ios/App
         run: |
@@ -159,63 +84,21 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath ../../build \
-            -clonedSourcePackagesDirPath ../../.spm-cache \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             ENABLE_BITCODE=NO \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            | tee ../../xcodebuild.log \
-            | tail -50
+            | tee ../../xcodebuild.log | tail -50
 
-      # ─────────────────────────────────────────────────────────────────────
-      # 10. Verify the built .app bundle
-      # ─────────────────────────────────────────────────────────────────────
-      - name: Verify .app bundle contents
-        run: |
-          APP_PATH="build/Build/Products/Release-iphoneos/App.app"
-          echo "=== App.app root ==="
-          ls -la "$APP_PATH/"
-          echo ""
-          echo "=== public/ inside .app ==="
-          ls -la "$APP_PATH/public/" || echo "❌ NO public/ FOLDER IN APP"
-          echo ""
-          echo "=== index.html inside .app ==="
-          head -10 "$APP_PATH/public/index.html" || echo "❌ NO index.html IN APP"
-          echo ""
-          echo "=== capacitor.config.json inside .app ==="
-          cat "$APP_PATH/capacitor.config.json" || echo "❌ NO capacitor.config.json IN APP"
-
-      # ─────────────────────────────────────────────────────────────────────
-      # 11. Package into IPA
-      # ─────────────────────────────────────────────────────────────────────
       - name: Package IPA
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/App.app Payload/
-          zip -r -9 GridPeCustomer.ipa Payload
-          echo ""
-          echo "=== IPA size ==="
-          ls -lh GridPeCustomer.ipa
+          zip -r -9 GridPeProduction.ipa Payload
 
-      # ─────────────────────────────────────────────────────────────────────
-      # 12. Upload artifact
-      # ─────────────────────────────────────────────────────────────────────
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GridPeCustomer-IPA
-          path: GridPeCustomer.ipa
-          retention-days: 30
-
-      # ─────────────────────────────────────────────────────────────────────
-      # 13. Upload build log (for debugging failures)
-      # ─────────────────────────────────────────────────────────────────────
-      - name: Upload Xcode build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcodebuild-log
-          path: xcodebuild.log
-          retention-days: 7
+          name: GridPeProduction-IPA
+          path: GridPeProduction.ipa
