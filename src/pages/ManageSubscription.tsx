@@ -48,7 +48,7 @@ const ManageSubscription = () => {
             const isoDate = new Date();
             isoDate.setDate(isoDate.getDate() + 31);
             await scheduleDowngrade('Starter', isoDate.toISOString().split('T')[0]);
-            navigate("/subscriptions", { replace: true });
+            navigate("/subscriptions");
         } catch (error: any) {
             console.error("Cancellation scheduling failed:", error);
         }

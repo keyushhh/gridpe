@@ -45,12 +45,10 @@ const OrderTracking = () => {
     useEffect(() => {
         if (order?.status === 'delivered') {
             navigate('/order-delivered', {
-                replace: true,
                 state: { order }
             });
         } else if (order?.status === 'cancelled') {
             navigate('/order-cancelled', {
-                replace: true,
                 state: { order }
             });
         }
@@ -158,7 +156,6 @@ const OrderTracking = () => {
                             // Navigate to delivered screen when order is complete
                             if (newStatus === 'delivered') {
                                 navigate('/order-delivered', {
-                                    replace: true,
                                     state: { order: payload.new }
                                 });
                             }
@@ -166,7 +163,6 @@ const OrderTracking = () => {
                             // Navigate to cancelled screen if cancelled
                             if (newStatus === 'cancelled') {
                                 navigate('/order-cancelled', {
-                                    replace: true,
                                     state: { order: payload.new }
                                 });
                             }

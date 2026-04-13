@@ -316,7 +316,7 @@ const DowngradeSummary = () => {
                                 isoDate.setMonth(isoDate.getMonth() + 1);
                                 await scheduleDowngrade(tier as WalletTier, isoDate.toISOString().split('T')[0]);
                             }
-                            navigate("/subscriptions", { replace: true });
+                            navigate("/subscriptions");
                         } catch (error: any) {
                             console.error("Payment or scheduling failed:", error);
                             // Optionally handle dismiss or error here

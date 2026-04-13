@@ -219,7 +219,6 @@ const Subscriptions = () => {
                                     flow: isRenewalPending ? 'downgrade' : 'upgrade',
                                     message: isRenewalPending ? `Downgraded to ${targetTierName} Successfully` : `Subscription Renewed for ${walletTier}`
                                 },
-                                replace: true
                             });
                         }
                     } catch (err: any) {

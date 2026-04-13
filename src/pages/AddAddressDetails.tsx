@@ -209,7 +209,7 @@ const AddAddressDetails = () => {
             }
 
             showToaster(isEditMode ? "Address updated!" : "Address saved successfully!", 'success');
-            navigate("/home", { replace: true });
+            navigate("/home");
 
         } catch (err: any) {
             console.error("Failed to save address", err);

@@ -221,8 +221,7 @@ const WalletTierDetails = () => {
                         if (scheduledDowngrade) return;
                         if (isUpgrade) {
                             navigate(currentTier.buttonAction, {
-                                state: { flow: 'upgrade', tier: currentTier.name },
-                                replace: true
+                                state: { flow: 'upgrade', tier: currentTier.name }
                             });
                         } else if (isDowngrade) {
                             navigate('/downgrade-summary', {

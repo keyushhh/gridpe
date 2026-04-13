@@ -146,7 +146,7 @@ const AddPaymentMethod = () => {
         if (location.state?.flow === "withdrawal") {
             navigate("/select-payment-method", { state: navState });
         } else if (location.state?.flow === "upgrade") {
-            navigate("/subscription-details", { state: navState, replace: true });
+            navigate("/subscription-details", { state: navState });
         } else {
             navigate("/order-summary", { state: navState });
         }

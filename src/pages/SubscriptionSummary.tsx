@@ -178,7 +178,6 @@ const SubscriptionSummary = () => {
                                     flow: location.state?.flow,
                                     message: `Subscription Renewed for ${tier}`
                                 },
-                                replace: true
                             });
                         }
                     } catch (err: any) {
@@ -426,7 +425,7 @@ const SubscriptionSummary = () => {
                                 isoDate.setMonth(isoDate.getMonth() + 1);
                                 await scheduleDowngrade(tier as WalletTier, isoDate.toISOString().split('T')[0]);
                             }
-                            navigate("/subscriptions", { replace: true });
+                            navigate("/subscriptions");
                         } else {
                             handleUpgrade();
                         }

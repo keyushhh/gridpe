@@ -124,7 +124,6 @@ const KYCForm = () => {
           flow: isFxFlow ? 'fx' : 'standard',
           isWaitingForRealtime: true
         },
-        replace: true
       });
 
     } catch (error) {
