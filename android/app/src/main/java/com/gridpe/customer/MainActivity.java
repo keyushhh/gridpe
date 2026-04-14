@@ -10,21 +10,14 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-
-        // Ensure WebView does not open new windows (keeps navigation in-app)
-        WebView webView = getBridge().getWebView();
-        if (webView != null) {
-            webView.getSettings().setSupportMultipleWindows(false);
-        }
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public void onBackPressed() {
         // Wire hardware/gesture back button to WebView history navigation
-        WebView webView = getBridge().getWebView();
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
+        if (getBridge() != null && getBridge().getWebView() != null && getBridge().getWebView().canGoBack()) {
+            getBridge().getWebView().goBack();
         } else {
             super.onBackPressed();
         }

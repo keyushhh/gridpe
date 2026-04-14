@@ -1,6 +1,16 @@
 import UIKit
 import Capacitor
 
+// Custom CAPBridgeViewController that force-enables swipe-back gestures.
+// Defined here (rather than a separate file) so it's guaranteed to be
+// compiled without needing to register a new file in the .xcodeproj.
+class GridPeViewController: CAPBridgeViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        webView?.allowsBackForwardNavigationGestures = true
+    }
+}
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
