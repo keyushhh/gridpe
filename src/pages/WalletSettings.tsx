@@ -54,19 +54,20 @@ const WalletSettings = () => {
             )}
 
             {/* Header */}
-            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-4 pb-0 z-10">
+            <div className="shrink-0 relative flex items-center justify-between w-full px-5 pt-4 pb-0 z-10">
                 <button
                     onClick={() => navigate(-1)}
-                    className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md active:scale-95 transition-transform ${isDarkMode
+                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md active:scale-95 transition-transform ${isDarkMode
                         ? 'bg-white/10'
                         : 'bg-[#F5F5F5] border border-[#E9EAEB]'
                         }`}
                 >
                     <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className={`text-[22px] font-medium tracking-normal text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                <h1 className={`text-[22px] font-medium tracking-normal text-center absolute left-1/2 -translate-x-1/2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Wallet Settings
                 </h1>
+                <div className="w-10 h-10" /> {/* Spacer for centering */}
             </div>
 
             {/* Scrollable Content */}

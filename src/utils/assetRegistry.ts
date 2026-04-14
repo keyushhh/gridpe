@@ -50,6 +50,8 @@ import iconBankAcc from "@/assets/icon-bank-acc.svg";
 import iconNotifications from "@/assets/icon-notifications.svg";
 import iconDarkMode from "@/assets/icon-dark-mode.svg";
 import iconLogout from "@/assets/icon-logout.svg";
+import fxWalletPro from "@/assets/fx-wallet-pro.png";
+import fxWalletProLight from "@/assets/light-cards/fx-wallet-pro-light.png";
 
 // Define the shape of our asset registry
 // Each asset has a 'dark' and 'light' version
@@ -188,5 +190,9 @@ export const assets = {
     "icon-logout": {
         dark: iconLogout,
         light: logoutLight,
+    },
+    "fx-banner": {
+        dark: fxWalletPro,
+        light: fxWalletProLight,
     },
 } as const;

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
@@ -12,21 +12,31 @@ const FxKYCSuccess = () => {
     const navigate = useNavigate();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
-    const { setPassportVerified } = useUser();
+    const { setPassportVerifiedInDb } = useUser();
 
-    // Mark passport as verified on mount
-    useEffect(() => {
-        setPassportVerified(true);
-    }, [setPassportVerified]);
+    const [loading, setLoading] = useState(false);
+
+    const handleGoToFx = async () => {
+        setLoading(true);
+        try {
+            await setPassportVerifiedInDb(true);
+            navigate("/fx-exchange", { replace: true });
+        } catch (err) {
+            console.error("Failed to persist passport verification:", err);
+            setLoading(false);
+        }
+    };
 
     return (
         <div
-            className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-area-top"
+            className="min-h-screen w-full flex flex-col items-center relative overflow-y-auto no-scrollbar scroll-smooth animate-in fade-in duration-500"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${successBg})` : "none",
                 backgroundSize: "cover",
-                backgroundPosition: "center",
+                backgroundPosition: "top center",
+                backgroundRepeat: "no-repeat",
+                fontFamily: "'Satoshi', sans-serif"
             }}
         >
             {/* Light Mode — Green Glowing Orb */}
@@ -43,64 +53,74 @@ const FxKYCSuccess = () => {
             )}
 
             {/* Header — "KYC" */}
-            <div className="w-full pt-4 flex justify-center relative z-10">
-                <h1 className={`${isDarkMode ? "text-white font-satoshi" : "text-black font-sans"} text-[22px] font-medium`}>KYC</h1>
+            <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-safe pt-4 pb-0 z-50">
+                <h1 className={`${isDarkMode ? "text-white" : "text-black"} text-[22px] font-medium leading-[120%] font-satoshi`}>
+                    KYC
+                </h1>
             </div>
 
-            {/* Check Icon — 22px below header */}
-            <div className="mt-[22px]">
-                <img
-                    src={isDarkMode ? checkIconSvg : checkIconLight}
-                    alt="Success"
-                    className="w-[62px] h-[62px] object-contain"
-                />
-            </div>
+            {/* Content Container */}
+            <div className="w-full max-w-sm px-5 flex-1 flex flex-col items-center relative z-10 pb-8">
+                
+                {/* Check Icon — 22px below header */}
+                <div className="mt-8 flex items-center justify-center">
+                    <img
+                        src={isDarkMode ? checkIconSvg : checkIconLight}
+                        alt="Success"
+                        className="w-[62px] h-[62px] object-contain animate-in zoom-in-50 duration-500"
+                    />
+                </div>
 
-            {/* Sub-heading — 35px below check icon */}
-            <h2
-                className={`${isDarkMode ? "text-white" : "text-black"} text-[18px] font-bold text-center leading-tight font-sans mt-[35px]`}
-                style={{ width: "310px" }}
-            >
-                Your KYC details has been submitted successfully!
-            </h2>
+                {/* Sub-heading — 35px below check icon */}
+                <h2 className={`mt-8 ${isDarkMode ? "text-white" : "text-black"} text-[20px] font-bold text-center leading-tight font-satoshi`}>
+                    Your KYC details has been submitted successfully!
+                </h2>
 
-            {/* Body text — 14px below sub-heading */}
-            <p
-                className={`${isDarkMode ? "text-white/80" : "text-black"} text-[16px] font-normal text-center leading-relaxed font-sans mt-[14px]`}
-                style={{ maxWidth: "320px" }}
-            >
-                We've received your KYC details. Verification typically takes under 30 minutes.
-            </p>
-
-            <div className="flex-1" />
-            <div className="flex flex-col items-center">
-                <button
-                    onClick={() => navigate("/fx-exchange", { replace: true })}
-                    className="flex items-center justify-center text-[16px] font-medium transition-transform active:scale-95 rounded-full font-sans"
-                    style={{
-                        backgroundImage: isDarkMode ? `url(${darkBgCta})` : "none",
-                        backgroundColor: isDarkMode ? "transparent" : "#000000",
-                        color: "#FFFFFF",
-                        backgroundSize: "100% 100%",
-                        backgroundPosition: "center",
-                        width: "362px",
-                        height: "48px"
-                    }}
-                >
-                    Go to FX Exchange
-                </button>
-
-                {/* Disclaimer — 12px below CTA */}
-                <p className={`${isDarkMode ? "text-white/40" : "text-black"} text-[12px] text-center font-sans mt-[12px]`}>
-                    (Because refreshing the screen won't make it go faster.)
+                {/* Body text — 14px below sub-heading */}
+                <p className={`mt-4 ${isDarkMode ? "text-white/60" : "text-black/60"} text-[16px] font-normal text-center leading-relaxed font-satoshi`}>
+                    We've received your KYC details. Verification typically takes under 30 minutes.
                 </p>
-            </div>
 
-            {/* Footer Text — pushed to bottom */}
-            <div className="mt-auto pb-safe pb-4 px-4">
-                <p className={`${isDarkMode ? "text-white" : "text-black"} text-[13px] text-center leading-snug font-sans`}>
-                    If accepted, you'll officially be one of us. If rejected... it's probably your lighting.
-                </p>
+                <div className="flex-1 min-h-[40px]" />
+
+                {/* Actions */}
+                <div className="w-full flex flex-col items-center gap-4">
+                    <button
+                        onClick={handleGoToFx}
+                        disabled={loading}
+                        className={`w-full h-[52px] flex items-center justify-center text-[16px] font-bold text-white transition-all active:scale-95 rounded-full shadow-xl shadow-[#5260FE]/20 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        style={{
+                            backgroundImage: isDarkMode ? `url(${darkBgCta})` : "none",
+                            backgroundColor: isDarkMode ? "#5260FE" : "#000000",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center"
+                        }}
+                    >
+                        {loading ? (
+                            <span className="flex items-center gap-2">
+                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Please wait...
+                            </span>
+                        ) : (
+                            'Go to FX Exchange'
+                        )}
+                    </button>
+
+                    {/* Disclaimer — 12px below CTA */}
+                    <p className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[12px] text-center font-satoshi`}>
+                        (Because refreshing the screen won't make it go faster.)
+                    </p>
+                </div>
+
+                {/* Footer Text — pushed to bottom contextually */}
+                <div className="mt-12 w-full pb-safe">
+                    <p className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[13px] text-center leading-snug font-satoshi`}>
+                        If accepted, you'll officially be one of us. If rejected... it's probably your lighting.
+                    </p>
+                </div>
             </div>
         </div>
     );

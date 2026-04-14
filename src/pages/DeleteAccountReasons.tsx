@@ -29,7 +29,7 @@ const DeleteAccountReasons = () => {
   };
 
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || "/home");
+    navigate((location.state as any)?.originPath || "/home", { replace: true });
   };
 
   const handleDelete = () => {

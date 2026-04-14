@@ -17,7 +17,7 @@ const SuccessScreen = () => {
   const state = location.state || {};
 
   const isFxFlow = searchParams.get("flow") === "fx" || state.flow === "fx";
-  const { kycStatus, fetchProfileData } = useUser();
+  const { kycStatus, fetchProfileData, setPassportVerifiedInDb } = useUser();
   const isWaitingForRealtime = state.isWaitingForRealtime;
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -39,6 +39,9 @@ const SuccessScreen = () => {
   // Handle Redirect after verification
   useEffect(() => {
     if (kycStatus === 'verified') {
+      if (isFxFlow) {
+        setPassportVerifiedInDb(true);
+      }
       const timer = setTimeout(() => {
         // Immediate navigation after short celebration
         navigate(isFxFlow ? "/fx-exchange" : "/home", { replace: true });
@@ -46,7 +49,7 @@ const SuccessScreen = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [kycStatus, navigate, isFxFlow]);
+  }, [kycStatus, navigate, isFxFlow, setPassportVerifiedInDb]);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -138,12 +141,12 @@ const SuccessScreen = () => {
           className={`flex items-center justify-center text-[16px] font-medium transition-transform active:scale-95 rounded-full font-sans disabled:opacity-50`}
           style={{
             backgroundImage: isDarkMode ? `url(${darkBgCta})` : 'none',
-            backgroundColor: isDarkMode ? 'transparent' : '#000000',
-            color: isDarkMode ? undefined : '#FFFFFF',
-            backgroundSize: '100% 100%',
+            backgroundColor: isDarkMode ? '#5260FE' : '#000000',
+            color: '#FFFFFF',
+            backgroundSize: 'cover',
             backgroundPosition: 'center',
-            width: '362px',
-            height: '48px'
+            width: '100%',
+            height: '52px'
           }}
         >
           {kycStatus === 'verified' 

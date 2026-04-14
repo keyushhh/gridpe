@@ -24,10 +24,11 @@ import iconPending from "@/assets/pending.svg";
 
 const FxPassportGate = () => {
     const navigate = useNavigate();
-    const { walletTier, isPassportVerified } = useUser();
+    const { walletTier, isPassportVerified, fetchProfileData } = useUser();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
     const mainBg = useAsset("main-bg");
+    const [isLoading, setIsLoading] = React.useState(true);
 
     // Mapping for assets and tier names
     const tierConfig: Record<string, { dark: string; light: string; text: string }> = {
@@ -40,16 +41,44 @@ const FxPassportGate = () => {
     const currentTier = tierConfig[walletTier] || tierConfig['Pro'];
 
     React.useEffect(() => {
+        let cancelled = false;
+        const checkAccess = async () => {
+            try {
+                await fetchProfileData();
+            } catch (err) {
+                console.error('Failed to fetch profile in FxPassportGate:', err);
+            }
+            if (!cancelled) {
+                setIsLoading(false);
+            }
+        };
+        checkAccess();
+        return () => { cancelled = true; };
+    }, [fetchProfileData]);
+
+    React.useEffect(() => {
+        if (isLoading) return;
         if (walletTier === 'Starter') {
             navigate('/fx-intro');
         } else if (isPassportVerified) {
             navigate('/fx-exchange');
         }
-    }, [walletTier, isPassportVerified, navigate]);
+    }, [isLoading, walletTier, isPassportVerified, navigate]);
+
+    if (isLoading) {
+        return (
+            <div className={`min-h-screen w-full flex items-center justify-center ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}>
+                <svg className={`animate-spin h-8 w-8 ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+            </div>
+        );
+    }
 
     return (
         <div
-            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}
+            className={`min-h-screen w-full overflow-y-auto no-scrollbar flex flex-col items-center relative animate-in fade-in duration-500 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}
             style={{
                 backgroundImage: `url(${mainBg})`,
                 backgroundSize: "cover",
@@ -59,26 +88,23 @@ const FxPassportGate = () => {
             }}
         >
             {/* Header */}
-            <div
-                className="w-full px-5 flex items-center justify-between z-10 mb-[21px] relative"
-                style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
-            >
+            <div className="shrink-0 relative flex items-center justify-between w-full px-5 pt-safe pt-4 pb-0 z-50">
                 <button
                     onClick={() => navigate(-1)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95 ${isDarkMode ? "bg-white/10 backdrop-blur-md" : "bg-white border border-[#E9EAEB]"}`}
                 >
                     <ChevronLeft className={`w-6 h-6 ${isDarkMode ? "text-white" : "text-black"}`} />
                 </button>
-                <h1 className={`${isDarkMode ? "text-white" : "text-black"} text-[24px] font-medium font-sans`}>
+                <h1 className={`${isDarkMode ? "text-white" : "text-black"} text-[22px] font-medium font-sans absolute left-1/2 -translate-x-1/2`}>
                     FX Exchange
                 </h1>
-                <div className="w-10" />
+                <div className="w-10 h-10" />
             </div>
 
-            <div className="w-full max-w-[360px] px-5 flex flex-col items-center flex-1">
+            <div className="w-full max-w-sm px-5 flex flex-col items-center flex-1 pb-10">
                 {/* Tier Container */}
                 <div
-                    className="w-[360px] h-[101px] rounded-[20px] relative overflow-hidden mt-2 shrink-0"
+                    className="w-full h-[101px] rounded-[20px] relative overflow-hidden mt-6 shrink-0"
                     style={{
                         backgroundImage: `url(${isDarkMode ? currentTier.dark : currentTier.light})`,
                         backgroundSize: 'cover',
@@ -97,18 +123,19 @@ const FxPassportGate = () => {
                 </div>
 
                 {/* Lottie Animation */}
-                <div className="w-full aspect-square max-w-[280px] -mt-4 relative z-0">
+                <div className="w-full aspect-square max-w-[260px] -mt-2 relative z-0 flex items-center justify-center">
                     <DotLottieReact
                         src="https://lottie.host/288d606e-e2aa-4ba6-bc35-eb24029c38e8/BufkfUcJsW.lottie"
                         loop
                         autoplay
+                        style={{ width: '100%', height: '100%' }}
                     />
                 </div>
 
                 {/* Steps Section */}
-                <div className="w-full px-8 -mt-2 space-y-0 relative">
+                <div className="w-full px-4 -mt-4 mb-8 space-y-0 relative">
                     {/* Vertical Dotted Line */}
-                    <div className={`absolute left-[44px] top-[14px] bottom-[14px] w-[1px] border-l border-dashed ${isDarkMode ? "border-white/20" : "border-[#E9EAEB]"}`} />
+                    <div className={`absolute left-[28px] top-[14px] bottom-[14px] w-[1px] border-l border-dashed ${isDarkMode ? "border-white/20" : "border-[#E9EAEB]"}`} />
 
                     {/* Step 1 */}
                     <div className="flex items-center gap-4 relative py-3">
@@ -128,24 +155,24 @@ const FxPassportGate = () => {
 
                     {/* Step 3 */}
                     <div className="flex items-center gap-4 relative py-3">
-                        <div className={`w-6 h-6 rounded-full ${isDarkMode ? "bg-[#0a0a12]" : "bg-[#CCFFDE]"} relative z-10 flex items-center justify-center`}>
-                            {isDarkMode && <img src={iconPending} alt="Pending" className="w-6 h-6" />}
+                        <div className={`w-6 h-6 rounded-full ${isDarkMode ? (isDarkMode ? "bg-[#0a0a12]" : "bg-white") : "bg-[#CCFFDE]"} border ${isDarkMode ? "border-white/20" : "border-[#E9EAEB]"} relative z-10 flex items-center justify-center overflow-hidden`}>
+                            {isDarkMode ? <img src={iconPending} alt="Pending" className="w-6 h-6 opacity-30" /> : <div className="w-2 h-2 rounded-full bg-[#1CB956]" />}
                         </div>
-                        <span className={`${isDarkMode ? "text-white" : "text-black"} text-[14px] font-medium font-satoshi`}>FX Enabled</span>
+                        <span className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium font-satoshi`}>FX Enabled</span>
                     </div>
                 </div>
 
                 {/* Actions */}
-                <div className="w-full mt-auto pt-4 pb-safe pb-4 flex flex-col items-center">
+                <div className="w-full mt-auto flex flex-col items-center pb-safe pb-4">
                     <button
                         onClick={() => navigate('/kyc-form?flow=fx')}
-                        className="w-full h-[48px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform"
+                        className="w-full h-[52px] bg-[#5260FE] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
                     >
                         Continue with Passport KYC
                     </button>
                     <button
                         onClick={() => navigate(-1)}
-                        className={`mt-[18px] ${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium active:scale-95 transition-transform`}
+                        className={`mt-5 ${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium active:scale-95 transition-transform hover:underline underline-offset-4`}
                     >
                         Maybe Later
                     </button>

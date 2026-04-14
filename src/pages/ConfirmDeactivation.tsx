@@ -78,7 +78,7 @@ const ConfirmDeactivation = () => {
   };
 
   const handleBack = () => {
-    navigate("/delete-account", { state: { originPath } });
+    navigate(-1);
   };
 
   const handleCancel = () => {

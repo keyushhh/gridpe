@@ -76,6 +76,7 @@ interface UserContextType extends UserState {
   /* Wallet Tier */
   setWalletTier: (tier: WalletTier) => void;
   setPassportVerified: (verified: boolean) => void;
+  setPassportVerifiedInDb: (verified: boolean) => Promise<void>;
   scheduleDowngrade: (tier: WalletTier, effectiveDate: string) => void;
   cancelDowngrade: () => void;
   completeScheduledDowngrade: () => void;
@@ -572,6 +573,35 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, isPassportVerified: verified }));
   };
 
+  const setPassportVerifiedInDb = async (verified: boolean) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || USER_ID;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          is_passport_verified: verified,
+          kyc_status: verified ? 'verified' : state.kycStatus 
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      
+      setState(prev => ({ ...prev, isPassportVerified: verified, kycStatus: verified ? 'verified' : prev.kycStatus }));
+
+      // Immediate localStorage sync — closes the timing window where the app
+      // could be killed before the batched useEffect persistence runs.
+      const stored = localStorage.getItem('gridpe_user_state');
+      const parsed = stored ? JSON.parse(stored) : {};
+      localStorage.setItem('gridpe_user_state', JSON.stringify({ ...parsed, isPassportVerified: verified }));
+
+      console.log('Passport verification status updated in DB:', verified);
+    } catch (err) {
+      console.error('Failed to update passport verification in DB:', err);
+    }
+  };
+
   const scheduleDowngrade = async (tier: WalletTier, effectiveDate: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -724,6 +754,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     refreshBalance,
     refreshTransactions,
     fetchProfileData,
+    setPassportVerifiedInDb,
     addMoney,
   };
 

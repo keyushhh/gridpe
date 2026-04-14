@@ -44,7 +44,7 @@ const DeleteAccountMobile = () => {
   };
 
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || "/settings");
+    navigate((location.state as any)?.originPath || "/settings", { replace: true });
   };
 
   const handleGoBack = () => {

@@ -124,7 +124,7 @@ const DeleteAccountOTP = () => {
           {/* Helper Links - Below Input */}
           <div className="flex justify-between w-full max-w-[364px] mt-4 px-1">
             <button
-              onClick={() => navigate("/delete-account-mobile", { state: location.state })}
+              onClick={() => navigate("/delete-account-mobile", { state: location.state, replace: true })}
               className="text-[14px] font-sans text-[#5260FE] underline opacity-80"
             >
               Wrong number? Fix it here.
