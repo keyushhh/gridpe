@@ -420,7 +420,7 @@ const OnboardingScreen = () => {
       saveBiometricEnabled(biometricEnabled);
 
       console.log("MPIN Setup Complete!", { biometricEnabled });
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (err) {
       console.error("Unexpected error in MPIN setup:", err);
       setGeneralError("An unexpected error occurred. Please try again.");
@@ -435,7 +435,7 @@ const OnboardingScreen = () => {
     // Developer Bypass for Live Mode debugging
     if (pinToVerify === '8787' || pinToVerify === '9999') {
       console.log("Developer Bypass Triggered");
-      navigate("/home");
+      navigate("/home", { replace: true });
       return;
     }
 
@@ -471,7 +471,7 @@ const OnboardingScreen = () => {
 
       if (hashedInput === targetHash) {
         setMpinSuccess(true);
-        setTimeout(() => navigate("/home"), 500);
+        setTimeout(() => navigate("/home", { replace: true }), 500);
       } else {
         setMpinError("Wrong MPIN. Try again?");
         setMpin("");
