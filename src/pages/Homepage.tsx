@@ -29,6 +29,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 import OrderDetailsSheet from "@/components/OrderDetailsSheet";
 import { useUser } from "@/contexts/UserContext";
+import { formatINR } from "@/utils/format";
 import { cancelOrder } from "@/lib/orders";
 import { useTheme } from "next-themes";
 import NotAvailable from "./NotAvailable";
@@ -598,7 +599,7 @@ const Homepage = () => {
                 {isLoading ? (
                   <Skeleton width={160} height={40} />
                 ) : (
-                  <>₹{showBalance ? walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "******"}</>
+                  <>{showBalance ? formatINR(walletBalance, { showDecimals: true }) : "******"}</>
                 )}
               </p>
               <button
@@ -626,7 +627,7 @@ const Homepage = () => {
                     Balance Alert
                   </p>
                   <p className="text-[#FF4248]/80 text-[12px] font-medium font-satoshi mt-1 leading-tight">
-                    You have {balanceAlert.days} days to use ₹{Math.floor(balanceAlert.excess).toLocaleString('en-IN')} before it expires due to {balanceAlert.targetTier} limit.
+                    You have {balanceAlert.days} days to use {formatINR(Math.floor(balanceAlert.excess))} before it expires due to {balanceAlert.targetTier} limit.
                   </p>
                 </div>
               </div>

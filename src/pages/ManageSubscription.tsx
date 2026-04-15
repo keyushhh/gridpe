@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
 import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tiers } from "@/lib/walletTiers";
+import { formatINR } from "@/utils/format";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 // Import Assets
@@ -116,7 +117,7 @@ const ManageSubscription = () => {
 
                         <div className="flex items-baseline gap-1 mt-[5px]">
                             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[32px] font-bold font-satoshi`}>
-                                ₹{walletLimit.toLocaleString('en-IN')}
+                                {formatINR(walletLimit)}
                             </span>
                             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium font-satoshi opacity-70`}>
                                 / wallet limit

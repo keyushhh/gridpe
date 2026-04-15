@@ -22,6 +22,7 @@ import iconPassport from "@/assets/icon-passport.png";
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import bgLight from "@/assets/bg-light.png";
+import { formatINR } from "@/utils/format";
 import { supabase, USER_ID } from "@/lib/supabase";
 
 const currencyToCountry: Record<string, string> = {
@@ -474,7 +475,7 @@ const FxExchange = () => {
                     </span>
 
                     <span className={`absolute top-[13px] right-[22px] text-[20px] font-bold font-satoshi ${isDarkMode ? "text-white" : "text-black"}`}>
-                        ₹{walletBalance.toLocaleString('en-IN')}
+                        {formatINR(walletBalance)}
                     </span>
 
                     <p className={`absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi w-[85%] leading-tight ${isDarkMode ? "text-white" : "text-black"}`}>

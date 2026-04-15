@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { formatINR } from "@/utils/format";
 import { hapticSuccess } from "@/utils/haptics";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
@@ -8,8 +9,8 @@ import checkIconLight from "@/assets/check-icon-light.svg";
 import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import { useUser } from "@/contexts/UserContext";
-import { supabase } from "@/lib/supabase";
 import { deliverOrder } from "@/lib/orders";
+import { formatINR } from "@/utils/format";
 
 const OrderDelivered = () => {
     const navigate = useNavigate();
@@ -100,7 +101,7 @@ const OrderDelivered = () => {
                 >
                     {/* Amount heading: Satoshi - medium - 16px */}
                     <h2 className={`text-[16px] font-medium font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                        Your order for amount ₹{orderAmount.toLocaleString('en-IN')} has been delivered successfully.
+                        Your order for amount {formatINR(orderAmount)} has been delivered successfully.
                     </h2>
 
                     {/* Body text: Satoshi - regular - 16px, color #AFAFAF, 12px below heading */}

@@ -11,7 +11,8 @@ import supremeSub from "@/assets/subscriptions-summary/supreme-subscription.png"
 import subscriptionChip from "@/assets/subscription-chip.png";
 import autoRefreshIcon from "@/assets/auto-refresh.svg";
 import { useUser, WalletTier } from "@/contexts/UserContext";
-import { tierChipColorMap } from "@/lib/walletTiers";
+import { tierChipColorMap, fetchTierPrices } from "@/lib/walletTiers";
+import { formatINR } from "@/utils/format";
 
 import starterSubLight from "@/assets/subscriptions-summary/starter-subscription-light.png";
 import proSubLight from "@/assets/subscriptions-summary/pro-subscription-light.png";
@@ -53,21 +54,15 @@ const DowngradeSummary = () => {
     const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
 
     React.useEffect(() => {
-        const fetchTierPrices = async () => {
+        const loadPrices = async () => {
             try {
-                const { data, error } = await supabase.from('wallet_tiers').select('name, subscription_price');
-                if (data && !error) {
-                    const priceMap: Record<string, number> = {};
-                    data.forEach(t => {
-                        priceMap[t.name] = Number(t.subscription_price) || 0;
-                    });
-                    setTierPrices(priceMap);
-                }
+                const prices = await fetchTierPrices();
+                setTierPrices(prices);
             } catch (err) {
                 console.error("Failed to fetch tier prices", err);
             }
         };
-        fetchTierPrices();
+        loadPrices();
     }, []);
 
     const selectedTierPrice = tierPrices[tier] || 0;
@@ -299,7 +294,7 @@ const DowngradeSummary = () => {
                     <div className={`mt-[14px] w-full max-w-[362px] rounded-[12px] p-[10px] border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-[#E9EAEB]'}`}>
                         <h3 className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[12px] font-bold font-satoshi`}>Note:</h3>
                         <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[12px] font-medium font-satoshi mt-[7px]`}>
-                            Your current balance (₹{walletBalance.toLocaleString('en-IN')}) exceeds the {tier} limit (₹{nextLimit.toLocaleString('en-IN')}). <span className="text-[#FF0000] font-bold">Before downgrading... make sure your wallet balance is used</span> — once it’s gone, it’s really gone.
+                            Your current balance ({formatINR(walletBalance)}) exceeds the {tier} limit ({formatINR(nextLimit)}). <span className="text-[#FF0000] font-bold">Before downgrading... make sure your wallet balance is used</span> — once it’s gone, it’s really gone.
                         </p>
                     </div>
                 )}

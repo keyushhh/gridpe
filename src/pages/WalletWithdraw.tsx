@@ -6,12 +6,14 @@ import { supabase, USER_ID } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
-import backspaceIcon from "@/assets/backspace.png";
-import backspaceIconLight from "@/assets/backspace.png";
 import { Button } from "@/components/ui/button";
 import emptyCheckboxIcon from "@/assets/empty-checkbox.svg";
 import checkedCheckboxIcon from "@/assets/check-box-selected.png";
 import cancelCta from "@/assets/cancel-cta.png";
+
+import { formatINR } from "@/utils/format";
+import { useKeypad } from "@/hooks/useKeypad";
+import Keypad from "@/components/Keypad";
 
 import starterWithdraw from "@/assets/starter-withdraw.png";
 import proWithdraw from "@/assets/pro-withdraw.png";
@@ -50,14 +52,14 @@ const WalletWithdraw = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark' || theme === 'system';
 
-    const [amount, setAmount] = useState<string>("0.00");
+    const { amount, handleKeyPress, handleBackspace, setPillAmount, amountVal, isZero, setAmount } = useKeypad();
     const [showKeypad, setShowKeypad] = useState<boolean>(false);
     const [withdrawFull, setWithdrawFull] = useState<boolean>(false);
 
     // Backend Integration State
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+    const [, setWithdrawals] = useState<Withdrawal[]>([]);
 
     const withdrawalLimits: Record<string, number> = {
         'Starter': 3000,
@@ -68,12 +70,6 @@ const WalletWithdraw = () => {
     const currentLimit = withdrawalLimits[walletTier] || 3000;
 
     const fetchData = async () => {
-        // Fetch wallet_transactions (as specified by task requirements)
-        await supabase
-            .from("wallet_transactions")
-            .select("*")
-            .eq("user_id", USER_ID);
-
         // Fetch withdrawals history
         const { data: wData } = await supabase
             .from("withdrawals")
@@ -101,54 +97,24 @@ const WalletWithdraw = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleKeyPress = (key: string) => {
-        setAmount((prev) => {
-            if (prev === "0.00") return key === "." ? "0." : key;
-            if (key === "." && prev.includes(".")) return prev;
-            if (prev.includes(".")) {
-                const [, decimal] = prev.split(".");
-                if (decimal && decimal.length >= 2) return prev;
-            }
-            return prev + key;
-        });
+    const onKeyPress = (key: string) => {
+        handleKeyPress(key);
         if (withdrawFull) setWithdrawFull(false);
         setError(null);
     };
 
-    const handleBackspace = () => {
-        setAmount((prev) => {
-            if (prev.length <= 1) return "0.00";
-            if (prev === "0.00") return "0.00";
-            return prev.slice(0, -1);
-        });
+    const onBackspace = () => {
+        handleBackspace();
         if (withdrawFull) setWithdrawFull(false);
         setError(null);
     };
 
     const handlePillClick = (val: string) => {
-        setAmount(val);
+        setPillAmount(val);
         if (withdrawFull) setWithdrawFull(false);
         setError(null);
     };
 
-    const KeypadButton = ({ label, onClick, icon }: { label?: string; onClick?: () => void; icon?: React.ReactNode }) => (
-        <button
-            onClick={onClick}
-            className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center transition-colors group bg-black active:bg-[#5260FE]`}
-            disabled={loading}
-        >
-            {icon ? (
-                <div className="group-active:brightness-200">
-                    <div className="brightness-0 invert">{icon}</div>
-                </div>
-            ) : (
-                <span className="text-white group-active:text-white font-bold font-sans text-[32px]">{label}</span>
-            )}
-        </button>
-    );
-
-    const isZero = amount === "0.00";
-    const amountVal = parseFloat(amount);
     const canWithdraw = amountVal > 0 && amountVal <= Math.min(walletBalance, currentLimit) && walletBalance > 0 && !loading && !isRenewalPending;
 
     const handleWithdraw = () => {
@@ -205,7 +171,7 @@ const WalletWithdraw = () => {
                             WALLET BALANCE
                         </span>
                         <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[34px] font-bold font-sans mt-[10px]`}>
-                            ₹{walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {formatINR(walletBalance)}
                         </span>
                     </div>
                 </div>
@@ -223,7 +189,7 @@ const WalletWithdraw = () => {
                     <div className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-[#E9EAEB]'}`} />
 
                     <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px]`}>
-                        Total Available Balance ₹ {walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        Total Available Balance {formatINR(walletBalance)}
                     </p>
 
                     {error && (
@@ -341,31 +307,11 @@ const WalletWithdraw = () => {
                 >
                     <div className="flex flex-col gap-[10px] items-center relative z-10">
                         {showKeypad && (
-                            <>
-                                <div className="flex gap-[10px]">
-                                    <KeypadButton label="1" onClick={() => handleKeyPress("1")} />
-                                    <KeypadButton label="2" onClick={() => handleKeyPress("2")} />
-                                    <KeypadButton label="3" onClick={() => handleKeyPress("3")} />
-                                </div>
-                                <div className="flex gap-[10px]">
-                                    <KeypadButton label="4" onClick={() => handleKeyPress("4")} />
-                                    <KeypadButton label="5" onClick={() => handleKeyPress("5")} />
-                                    <KeypadButton label="6" onClick={() => handleKeyPress("6")} />
-                                </div>
-                                <div className="flex gap-[10px]">
-                                    <KeypadButton label="7" onClick={() => handleKeyPress("7")} />
-                                    <KeypadButton label="8" onClick={() => handleKeyPress("8")} />
-                                    <KeypadButton label="9" onClick={() => handleKeyPress("9")} />
-                                </div>
-                                <div className="flex gap-[10px]">
-                                    <KeypadButton label="." onClick={() => handleKeyPress(".")} />
-                                    <KeypadButton label="0" onClick={() => handleKeyPress("0")} />
-                                    <KeypadButton
-                                        onClick={handleBackspace}
-                                        icon={<img src={isDarkMode ? backspaceIcon : backspaceIconLight} alt="Backspace" className={`w-[18px] h-[18px] object-contain ${isDarkMode ? '' : 'brightness-0'}`} />}
-                                    />
-                                </div>
-                            </>
+                            <Keypad 
+                                onKeyPress={onKeyPress}
+                                onBackspace={onBackspace}
+                                isDarkMode={isDarkMode}
+                            />
                         )}
 
                         <div className={`w-full flex flex-col gap-[10px] ${showKeypad ? 'mt-[32px]' : 'mt-0'}`}>

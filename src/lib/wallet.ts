@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export interface WalletTransaction {
     id: string;
     user_id: string;
@@ -95,3 +97,54 @@ export const calculateHeldBalance = (transactions: WalletTransaction[]): number 
 
     return Math.abs(total);
 };
+
+/**
+ * Fetches and merges wallet transactions and payouts into a single sorted list.
+ */
+export const fetchUnifiedTransactionHistory = async (userId: string): Promise<WalletTransaction[]> => {
+    const [txResult, payoutResult] = await Promise.all([
+        supabase.from("wallet_transactions").select("*").eq("user_id", userId),
+        supabase.from("payouts").select("*").eq("user_id", userId)
+    ]);
+
+    let mergedData: WalletTransaction[] = [];
+
+    if (txResult.data) {
+        mergedData = txResult.data.map(tx => ({
+            ...tx,
+            date: tx.created_at
+        }));
+    }
+
+    if (payoutResult.data) {
+        payoutResult.data.forEach(p => {
+            // Avoid double counting if the payout already has a matching wallet_transaction
+            const exists = mergedData.some(m =>
+                m.description.toLowerCase().includes('withdrawal') &&
+                Math.abs(m.amount) === Math.abs(p.amount) &&
+                new Date(m.created_at).getTime() === new Date(p.created_at).getTime()
+            );
+
+            if (!exists) {
+                mergedData.push({
+                    id: p.id,
+                    user_id: p.user_id,
+                    amount: p.amount,
+                    type: 'debit',
+                    transaction_type: 'debit',
+                    status: p.status as any,
+                    created_at: p.created_at,
+                    date: p.created_at,
+                    description: 'Wallet Withdrawal',
+                    payout_method: p.payout_method,
+                    vpa: p.vpa
+                });
+            }
+        });
+    }
+
+    return mergedData.sort((a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+};
+

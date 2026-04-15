@@ -4,8 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { ChevronLeft } from "lucide-react";
 import { useUser, WalletTier } from "@/contexts/UserContext";
-import { tiers } from "@/lib/walletTiers";
+import { tiers, fetchTierPrices } from "@/lib/walletTiers";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { formatINR } from "@/utils/format";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 // Import Assets
@@ -57,21 +58,15 @@ const Subscriptions = () => {
     const [isLoadingPay, setIsLoadingPay] = React.useState(false);
 
     React.useEffect(() => {
-        const fetchTierPrices = async () => {
+        const loadPrices = async () => {
             try {
-                const { data, error } = await supabase.from('wallet_tiers').select('name, subscription_price');
-                if (data && !error) {
-                    const priceMap: Record<string, number> = {};
-                    data.forEach(t => {
-                        priceMap[t.name.toLowerCase()] = Number(t.subscription_price) || 0;
-                    });
-                    setTierPrices(priceMap);
-                }
+                const prices = await fetchTierPrices();
+                setTierPrices(prices);
             } catch (err) {
                 console.error("Failed to fetch tier prices", err);
             }
         };
-        fetchTierPrices();
+        loadPrices();
 
         const checkSubscriptionStatus = async () => {
             try {
@@ -256,7 +251,7 @@ const Subscriptions = () => {
     // Toast for loss if it just happened
     React.useEffect(() => {
         if (lastDowngradeLoss && lastDowngradeLoss > 0) {
-            showToaster(`You have lost ₹${lastDowngradeLoss.toLocaleString('en-IN')} due to the wallet downgrade.`, 'error');
+            showToaster(`You have lost ${formatINR(lastDowngradeLoss)} due to the wallet downgrade.`, 'error');
         }
     }, [lastDowngradeLoss, showToaster]);
 
@@ -329,7 +324,7 @@ const Subscriptions = () => {
 
                         <div className="flex items-baseline gap-1 mt-[5px]">
                             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[32px] font-bold font-satoshi`}>
-                                ₹{walletLimit.toLocaleString('en-IN')}
+                                {formatINR(walletLimit)}
                             </span>
                             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium font-satoshi opacity-70`}>
                                 / wallet limit
@@ -398,7 +393,7 @@ const Subscriptions = () => {
                 {!scheduledDowngrade && (
                     <>
                         <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-satoshi text-center`}>
-                            You’ve got ₹{walletLimit.toLocaleString('en-IN')} wallet limit
+                            You’ve got {formatINR(walletLimit)} wallet limit
                         </h2>
 
                         <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mt-[9px] text-center px-4">
@@ -427,7 +422,7 @@ const Subscriptions = () => {
                         <h3 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium font-satoshi`}>Until then, you still enjoy</h3>
                         <ul className="mt-[6px] flex flex-col gap-[2px]">
                             {[
-                                `₹${walletLimit.toLocaleString('en-IN')} wallet breathing room`,
+                                `${formatINR(walletLimit)} wallet breathing room`,
                                 "Fast withdrawals under 30 mins (we swear)",
                                 `₹${walletTier === 'Elite' ? '25,000' : '10,000'}/day top-ups without breaking a sweat`
                             ].map((benefit, idx) => (

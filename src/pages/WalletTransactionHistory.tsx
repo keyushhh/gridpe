@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
-import searchBg from "@/assets/search-bg.png";
 import searchIcon from "@/assets/search.svg";
 import filterIcon from "@/assets/filter.svg";
 import caretDownIcon from "@/assets/caret-down.svg";
@@ -21,6 +20,8 @@ import copyIcon from "@/assets/copy.svg";
 import transactionDetailsLightBg from "@/assets/transaction-details-light.png";
 import { useUser, WalletTransaction } from "@/contexts/UserContext";
 import { supabase, USER_ID } from "@/lib/supabase";
+import { fetchUnifiedTransactionHistory } from "@/lib/wallet";
+import { formatDate, formatINR } from "@/utils/format";
 
 const currencySymbols: Record<string, string> = {
     AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
@@ -65,57 +66,13 @@ const WalletTransactionHistory = () => {
         let currentUserId = USER_ID;
         let channel: any;
 
-        const fetchTransactions = async () => {
+        const loadTransactions = async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 currentUserId = session?.user?.id || USER_ID;
 
-                // Fetch both wallet_transactions and payouts for a truly inclusive list
-                const [txResult, payoutResult] = await Promise.all([
-                    supabase.from("wallet_transactions").select("*").eq("user_id", currentUserId),
-                    supabase.from("payouts").select("*").eq("user_id", currentUserId)
-                ]);
-
-                let mergedData: WalletTransaction[] = [];
-
-                if (txResult.data) {
-                    mergedData = txResult.data.map(tx => ({
-                        ...tx,
-                        date: tx.created_at
-                    }));
-                }
-
-                if (payoutResult.data) {
-                    payoutResult.data.forEach(p => {
-                        // Avoid double counting if the payout already has a matching wallet_transaction
-                        // (Backend bridges them, but sometimes one or the other might be missing in history)
-                        const exists = mergedData.some(m =>
-                            m.description.toLowerCase().includes('withdrawal') &&
-                            Math.abs(m.amount) === Math.abs(p.amount) &&
-                            new Date(m.created_at).getTime() === new Date(p.created_at).getTime()
-                        );
-
-                        if (!exists) {
-                            mergedData.push({
-                                id: p.id,
-                                user_id: p.user_id,
-                                amount: p.amount,
-                                type: 'debit',
-                                transaction_type: 'debit',
-                                status: p.status as any,
-                                created_at: p.created_at,
-                                date: p.created_at,
-                                description: 'Wallet Withdrawal',
-                                payout_method: p.payout_method,
-                                vpa: p.vpa
-                            });
-                        }
-                    });
-                }
-
-                setWalletTransactions(mergedData.sort((a, b) =>
-                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                ));
+                const mergedData = await fetchUnifiedTransactionHistory(currentUserId);
+                setWalletTransactions(mergedData as WalletTransaction[]);
             } catch (error) {
                 console.error("Error fetching transactions:", error);
             } finally {
@@ -123,13 +80,12 @@ const WalletTransactionHistory = () => {
             }
         };
 
-        fetchTransactions();
+        loadTransactions();
 
         // Refresh on focus
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-                console.log('App focused, refreshing transactions...');
-                fetchTransactions();
+                loadTransactions();
             }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -142,21 +98,20 @@ const WalletTransactionHistory = () => {
                 .on(
                     'postgres_changes',
                     { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${cid}` },
-                    fetchTransactions
+                    loadTransactions
                 )
                 .on(
                     'postgres_changes',
                     { event: '*', schema: 'public', table: 'payouts', filter: `user_id=eq.${cid}` },
-                    fetchTransactions
+                    loadTransactions
                 )
                 .subscribe();
         };
         setupChannel();
 
-        // Listen for refresh events
         const handleCustomRefresh = (e: CustomEvent<{ userId: string }>) => {
             if (e.detail?.userId === currentUserId) {
-                fetchTransactions();
+                loadTransactions();
             }
         };
         window.addEventListener('refresh_wallet_transactions' as any, handleCustomRefresh);
@@ -201,9 +156,7 @@ const WalletTransactionHistory = () => {
             // 1. Search Query
             const query = searchQuery.toLowerCase();
             const txDateObj = tx.created_at ? new Date(tx.created_at) : new Date(tx.date || Date.now());
-            const formattedDate = txDateObj.toLocaleDateString('en-IN', {
-                day: 'numeric', month: 'short', year: 'numeric'
-            }).toLowerCase();
+            const formattedDate = formatDate(txDateObj).toLowerCase();
             const matchesSearch = (
                 tx.description.toLowerCase().includes(query) ||
                 tx.amount.toString().includes(query) ||
@@ -520,8 +473,8 @@ const WalletTransactionHistory = () => {
                                         { label: "Exchange Rate", value: `1 ${tx.metadata.fromCurrency} = ${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.fxRate || 0).toFixed(2)}` }
                                     ] : [])
                                 },
-                                { label: "Time", value: new Date(tx.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) },
-                                { label: "Date", value: new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
+                                { label: "Time", value: formatDate(tx.created_at, { type: 'time' }) },
+                                { label: "Date", value: formatDate(tx.created_at, { type: 'long' }) },
                                 { label: "Payment Mode", value: getPaymentMode() },
                                 { label: "Status", value: getStatusLabel() }
                             ];
@@ -757,14 +710,7 @@ const WalletTransactionHistory = () => {
                         const transactions = grouped[dateKey];
                         const dateKeyParts = dateKey.split('/'); // DD/MM/YYYY from en-IN
                         const dateObj = new Date(Number(dateKeyParts[2]), Number(dateKeyParts[1]) - 1, Number(dateKeyParts[0]));
-                        const today = new Date();
-                        const isToday = dateObj.getDate() === today.getDate() &&
-                            dateObj.getMonth() === today.getMonth() &&
-                            dateObj.getFullYear() === today.getFullYear();
-
-                        const heading = isToday ? "TODAY" : dateObj.toLocaleDateString('en-GB', {
-                            day: '2-digit', month: 'short', year: 'numeric'
-                        }).toUpperCase();
+                        const heading = formatDate(dateObj, { type: 'short', showTodayYesterday: true }).toUpperCase();
 
                         return (
                             <div key={dateKey} className={index === 0 ? "" : "mt-[24px]"}>

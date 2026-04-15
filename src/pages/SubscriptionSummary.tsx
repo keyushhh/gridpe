@@ -19,7 +19,7 @@ import supremeSubLight from "@/assets/subscriptions-summary/supreme-subscription
 
 import subscriptionChip from "@/assets/subscription-chip.png";
 import autoRefreshIcon from "@/assets/auto-refresh.svg";
-import { tierChipColorMap } from "@/lib/walletTiers";
+import { tierChipColorMap, fetchTierPrices } from "@/lib/walletTiers";
 
 const subscriptionBanners: Record<string, string> = {
     Starter: starterSub,
@@ -56,21 +56,15 @@ const SubscriptionSummary = () => {
     const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
 
     React.useEffect(() => {
-        const fetchTierPrices = async () => {
+        const loadPrices = async () => {
             try {
-                const { data, error } = await supabase.from('wallet_tiers').select('name, subscription_price');
-                if (data && !error) {
-                    const priceMap: Record<string, number> = {};
-                    data.forEach(t => {
-                        priceMap[t.name.toLowerCase()] = Number(t.subscription_price) || 0;
-                    });
-                    setTierPrices(priceMap);
-                }
+                const prices = await fetchTierPrices();
+                setTierPrices(prices);
             } catch (err) {
                 console.error("Failed to fetch tier prices", err);
             }
         };
-        fetchTierPrices();
+        loadPrices();
     }, []);
 
     const selectedTierPrice = tierPrices[tier.toLowerCase()] || 0;

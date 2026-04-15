@@ -1,4 +1,5 @@
 import React from "react";
+import { formatINR } from "@/utils/format";
 import { useNavigate, useLocation } from "react-router-dom";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useTheme } from "next-themes";
@@ -140,10 +141,10 @@ const WalletUpgradeSuccess = () => {
                     Benefits include:
                 </p>
                 <ul className={`list-disc pl-4 mt-[17px] ${isDarkMode ? 'text-[#AFAFAF]' : 'text-[#4A4A4A]'} text-[16px] font-normal font-sans leading-[120%] tracking-[0px]`}>
-                    <li>Wallet limit ₹{(tierDetails?.max_wallet_balance || 15000).toLocaleString('en-IN')}</li>
+                    <li>Wallet limit {formatINR(tierDetails?.max_wallet_balance || 15000)}</li>
                     <li>Faster deposits & withdrawals</li>
                     <li>Priority support</li>
-                    <li>Deposit limit ₹{(tierDetails?.daily_topup_limit || 10000).toLocaleString('en-IN')}/day</li>
+                    <li>Deposit limit {formatINR(tierDetails?.daily_topup_limit || 10000)}/day</li>
                 </ul>
             </div>
 

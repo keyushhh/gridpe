@@ -5,6 +5,7 @@ import cancelledIco from "@/assets/cancelled-ico.svg";
 import failedLightIcon from "@/assets/failed-light.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import { useTheme } from "next-themes";
+import { formatINR } from "@/utils/format";
 
 const OrderCancelled = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const OrderCancelled = () => {
           style={{ width: "362px", backdropFilter: isDarkMode ? "blur(25px)" : "none" }}
         >
           <p className={`text-[16px] font-medium font-satoshi mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
-            Your order for amount ₹{orderAmount.toLocaleString('en-IN')} has been cancelled.
+            Your order for amount {formatINR(orderAmount)} has been cancelled.
           </p>
           <p className={`text-[14px] font-normal font-satoshi leading-[150%] mb-4 ${isDarkMode ? 'text-white/60' : 'text-[#7E7E7E]'}`}>
             Since you’ve reported the rider’s KYC and rejected to accept the order, the amount will be refunded in your wallet within 30 minutes. We will look into this matter! Thanks for keeping Grid.Pe safe.

@@ -1,6 +1,8 @@
 import { WalletTier } from "@/contexts/UserContext";
+import { supabase } from "./supabase";
 
 import starterDiamond from "@/assets/starter diamond.png";
+// ... (rest of imports remain same)
 import proDiamond from "@/assets/pro.png";
 import eliteDiamond from "@/assets/elite.png";
 import supremeDiamond from "@/assets/supreme.png";
@@ -348,4 +350,16 @@ export const tierCarouselInactiveMapDark: Record<WalletTier, string> = {
     Supreme: supremeNonselectedDark,
 };
 
-export { starterSelectedDark, starterNonselectedDark };
+/**
+ * Fetches tier subscription prices from the database.
+ */
+export const fetchTierPrices = async (): Promise<Record<string, number>> => {
+    const { data, error } = await supabase.from('wallet_tiers').select('name, subscription_price');
+    if (error) throw error;
+
+    const priceMap: Record<string, number> = {};
+    data?.forEach(t => {
+        priceMap[t.name.toLowerCase()] = Number(t.subscription_price) || 0;
+    });
+    return priceMap;
+};

@@ -3,12 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
-import bgLightMode from "@/assets/bg-light.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
-import backspaceIcon from "@/assets/backspace.png";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
 import { supabase, USER_ID } from "@/lib/supabase";
+import { formatINR } from "@/utils/format";
+import { useKeypad } from "@/hooks/useKeypad";
+import Keypad from "@/components/Keypad";
 
 declare global {
   interface Window {
@@ -21,51 +22,19 @@ const WalletAddMoney = () => {
   const { theme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
   const isDarkMode = theme === 'dark' || theme === 'system';
-  const { walletLimit, walletBalance, walletTier, refreshBalance, fetchProfileData, refreshTransactions, profile, isRenewalPending } = useUser();
+  const { walletLimit, walletBalance, walletTier, refreshBalance, fetchProfileData, refreshTransactions, isRenewalPending } = useUser();
   const currentBalance = walletBalance || 0;
   const fromWallet = location.state?.from === 'wallet';
-  const [amount, setAmount] = useState<string>("0.00");
+  
   const [isLoading, setIsLoading] = useState(false);
+  const { amount, handleKeyPress, handleBackspace, setPillAmount, amountVal, isZero } = useKeypad();
 
-  const handleKeyPress = (key: string) => {
-    setAmount((prev) => {
-      // If currently "0.00", replace with the new key (unless it's a dot)
-      if (prev === "0.00") {
-        return key === "." ? "0." : key;
-      }
-
-      // Prevent multiple dots
-      if (key === "." && prev.includes(".")) {
-        return prev;
-      }
-
-      // Limit to 2 decimal places
-      if (prev.includes(".")) {
-        const [whole, decimal] = prev.split(".");
-        if (decimal && decimal.length >= 2) {
-          return prev;
-        }
-      }
-
-      return prev + key;
-    });
-  };
-
-  const handleBackspace = () => {
-    setAmount((prev) => {
-      if (prev.length <= 1) return "0.00";
-      if (prev === "0.00") return "0.00";
-      return prev.slice(0, -1);
-    });
-  };
+  const isExceedingLimit = (amountVal + currentBalance) > walletLimit || (currentBalance + 500) > walletLimit;
 
   const handlePillClick = (val: string) => {
     if (isExceedingLimit) return;
-    setAmount(val);
+    setPillAmount(val);
   };
-
-  const currentAmount = parseFloat(amount) || 0;
-  const isExceedingLimit = (currentAmount + currentBalance) > walletLimit || (currentBalance + 500) > walletLimit;
 
   const getNextTier = (currentTier: string) => {
     const tiers = ['Starter', 'Pro', 'Elite', 'Supreme'];
@@ -77,31 +46,6 @@ const WalletAddMoney = () => {
   };
 
   const nextTier = getNextTier(walletTier);
-
-  const KeypadButton = ({ label, onClick, icon, disabled }: { label?: string; onClick?: () => void; icon?: React.ReactNode; disabled?: boolean }) => (
-    <button
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group bg-black text-white shadow-sm ${disabled ? 'opacity-20 cursor-not-allowed active:bg-black active:text-white' : ''}`}
-    >
-      {icon ? (
-        <div className={disabled ? "" : "group-active:brightness-200"}>
-          {React.isValidElement(icon) ? (
-            React.cloneElement(icon as React.ReactElement, {
-              style: { filter: disabled ? 'none' : 'brightness(0) saturate(100%) invert(1)' },
-              className: `${(icon as React.ReactElement).props.className || ''} ${disabled ? '' : 'group-active:filter-none'}`
-            })
-          ) : (
-            icon
-          )}
-        </div>
-      ) : (
-        <span className={`font-bold font-sans text-[32px] ${disabled ? 'text-white/20' : 'group-active:text-white text-white'}`}>{label}</span>
-      )}
-    </button>
-  );
-
-  const isZero = amount === "0.00";
 
   return (
     <div
@@ -150,10 +94,10 @@ const WalletAddMoney = () => {
 
         {/* Balance Text */}
         <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px] mb-[17px]`}>
-          Available Balance: ₹ {currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} • Wallet Capacity: ₹ {walletLimit.toLocaleString('en-IN')}
+          Available Balance: {formatINR(currentBalance)} • Wallet Capacity: {formatINR(walletLimit, { showSymbol: true, maximumFractionDigits: 0 })}
         </p>
 
-        {parseFloat(amount) > 0 && Math.floor(parseFloat(amount)) < 500 && (
+        {amountVal > 0 && Math.floor(amountVal) < 500 && (
           <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
             Amount needs to be ₹500 or more
           </p>
@@ -246,36 +190,14 @@ const WalletAddMoney = () => {
               backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : '#FFFFFF',
             }}
           >
-            <div className="flex flex-col gap-[10px] items-center relative z-10">
-              {/* Row 1 */}
-              <div className="flex gap-[10px]">
-                <KeypadButton label="1" onClick={() => handleKeyPress("1")} disabled={isExceedingLimit} />
-                <KeypadButton label="2" onClick={() => handleKeyPress("2")} disabled={isExceedingLimit} />
-                <KeypadButton label="3" onClick={() => handleKeyPress("3")} disabled={isExceedingLimit} />
-              </div>
-              {/* Row 2 */}
-              <div className="flex gap-[10px]">
-                <KeypadButton label="4" onClick={() => handleKeyPress("4")} disabled={isExceedingLimit} />
-                <KeypadButton label="5" onClick={() => handleKeyPress("5")} disabled={isExceedingLimit} />
-                <KeypadButton label="6" onClick={() => handleKeyPress("6")} disabled={isExceedingLimit} />
-              </div>
-              {/* Row 3 */}
-              <div className="flex gap-[10px]">
-                <KeypadButton label="7" onClick={() => handleKeyPress("7")} disabled={isExceedingLimit} />
-                <KeypadButton label="8" onClick={() => handleKeyPress("8")} disabled={isExceedingLimit} />
-                <KeypadButton label="9" onClick={() => handleKeyPress("9")} disabled={isExceedingLimit} />
-              </div>
-              {/* Row 4 */}
-              <div className="flex gap-[10px]">
-                <KeypadButton label="." onClick={() => handleKeyPress(".")} disabled={isExceedingLimit} />
-                <KeypadButton label="0" onClick={() => handleKeyPress("0")} disabled={isExceedingLimit} />
-                <KeypadButton
-                  onClick={handleBackspace}
-                  disabled={isExceedingLimit}
-                  icon={<img src={backspaceIcon} alt="Backspace" className="w-[18px] h-[18px] object-contain" />}
-                />
-              </div>
+            <Keypad 
+              onKeyPress={handleKeyPress}
+              onBackspace={handleBackspace}
+              isDarkMode={isDarkMode}
+              disabled={isExceedingLimit}
+            />
 
+            <div className="flex flex-col gap-[10px] items-center relative z-10">
               {/* CTA */}
               <div className="w-full mt-[32px]">
                 <Button
@@ -284,7 +206,7 @@ const WalletAddMoney = () => {
                       navigate('/subscriptions');
                       return;
                     }
-                    const val = parseFloat(amount);
+                    const val = amountVal;
                     if (Math.floor(val) >= 500) {
                       try {
                         setIsLoading(true);
@@ -309,7 +231,6 @@ const WalletAddMoney = () => {
 
                           // Try to extract the specific error message from the response body
                           try {
-                            // Supabase FunctionsHttpError usually has the message in the body
                             const errorResponse = (error as any).context;
                             if (errorResponse) {
                               const body = await errorResponse.json();
@@ -324,7 +245,6 @@ const WalletAddMoney = () => {
                           throw new Error(errorMessage);
                         }
 
-                        // 🛠️ THE FIX: Parse the data if Supabase returned it as a raw string
                         let order = data;
                         if (typeof data === 'string') {
                           try {
@@ -334,14 +254,13 @@ const WalletAddMoney = () => {
                           }
                         }
 
-                        // Now order.id will safely exist
                         if (!order || !order.id) {
                           console.error("Raw order data:", order);
                           throw new Error("Invalid Razorpay order response");
                         }
 
                         const options = {
-                          key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use environment variable
+                          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                           amount: order.amount,
                           currency: order.currency,
                           name: "Grid.pe",
@@ -361,7 +280,6 @@ const WalletAddMoney = () => {
                                 throw verifyError;
                               }
 
-                              // Safely parse verifyData just like we did above
                               let verification = verifyData;
                               if (typeof verifyData === 'string') {
                                 verification = JSON.parse(verifyData);
@@ -369,9 +287,6 @@ const WalletAddMoney = () => {
 
                               if (verification && verification.success) {
                                 console.log("Payment verified successfully!");
-
-                                // Sync wallet balance and profile logic with hardening delay
-                                console.log(`Verification success for ${currentUserId}, waiting 2s for DB consistency...`);
                                 await new Promise(resolve => setTimeout(resolve, 2000));
 
                                 await refreshBalance(currentUserId);
@@ -398,7 +313,7 @@ const WalletAddMoney = () => {
                             }
                           },
                           theme: {
-                            color: "#5260FE" // Matches your Grid.pe brand styling perfectly
+                            color: "#5260FE"
                           },
                           modal: {
                             ondismiss: function () {
@@ -410,9 +325,8 @@ const WalletAddMoney = () => {
                           }
                         };
 
-                        const rzp = new window.Razorpay(options);
+                        const rzp = new (window as any).Razorpay(options);
 
-                        // Catch modal close/failures gracefully
                         rzp.on('payment.failed', function (response: any) {
                           console.error("Payment Failed:", response.error);
                           setIsLoading(false);
@@ -431,7 +345,7 @@ const WalletAddMoney = () => {
                     }
                   }}
                   disabled={isLoading || isRenewalPending}
-                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${(isExceedingLimit && nextTier) || (Math.floor(parseFloat(amount)) >= 500 && !isLoading && !isRenewalPending)
+                  className={`w-full h-[48px] text-white rounded-full text-[16px] font-medium font-sans ${(isExceedingLimit && nextTier) || (Math.floor(amountVal) >= 500 && !isLoading && !isRenewalPending)
                     ? "bg-[#5260FE] hover:bg-[#5260FE]/90"
                     : "bg-[#5260FE]/50 cursor-not-allowed"
                     }`}
