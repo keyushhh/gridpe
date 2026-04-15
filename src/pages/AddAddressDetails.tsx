@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { hapticMedium } from "@/utils/haptics";
 import { ChevronLeft } from "lucide-react";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,7 @@ const AddAddressDetails = () => {
     };
 
     const handleSaveAddress = async (overrideTag?: string) => {
+        hapticMedium();
         // If saving via Sheet, we trust the caller (overrideTag)
         // But we still need to validate the main form
         if (!isFormValid) {

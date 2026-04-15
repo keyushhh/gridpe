@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import buttonRemoveCard from "@/assets/button-remove-card.png";
 import { Share } from '@capacitor/share';
+import { hapticWarning } from "@/utils/haptics";
 
 // Assets
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -214,7 +215,10 @@ const SavedAddresses = () => {
                                             <img src={shareIcon} alt="Share" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
                                         </button>
                                         <button
-                                            onClick={() => setAddressToDelete(addr)}
+                                            onClick={() => {
+                                                hapticWarning();
+                                                setAddressToDelete(addr);
+                                            }}
                                             className="opacity-70 active:opacity-100"
                                         >
                                             <img src={deleteIcon} alt="Delete" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />

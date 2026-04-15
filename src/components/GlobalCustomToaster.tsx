@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { hapticError, hapticSuccess } from '@/utils/haptics';
 import { X } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import successIcon from '@/assets/success.svg';
@@ -20,6 +21,11 @@ const GlobalCustomToaster: React.FC = () => {
     let progressInterval: NodeJS.Timeout;
 
     if (isVisible) {
+      if (type === 'error' || type === 'delete') {
+        hapticError();
+      } else if (type === 'success') {
+        hapticSuccess();
+      }
       setProgress(0);
       const startTime = Date.now();
 

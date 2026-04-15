@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Skeleton from 'react-loading-skeleton';
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ChevronDown, Home, Briefcase, Users, MapPin } from "lucide-react";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
@@ -129,6 +130,7 @@ const Homepage = () => {
   const [isUnserviceable, setIsUnserviceable] = useState<boolean>(false);
   const [currentZoneId, setCurrentZoneId] = useState<string | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch Live FX Data
   useEffect(() => {
@@ -238,7 +240,10 @@ const Homepage = () => {
       }
     };
 
-    loadData();
+    loadData().finally(() => {
+        // Give it a tiny buffer for a smooth transition
+        setTimeout(() => setIsLoading(false), 800);
+    });
 
     let channel: any;
 
@@ -498,7 +503,10 @@ const Homepage = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col pb-[120px]">
+      <div 
+        className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col pb-[120px]"
+        style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch', transform: 'translateZ(0)' }}
+      >
         {/* Header Fixed Area (Top Section always visible) */}
         <div className="shrink-0 flex flex-col safe-area-top z-50 relative pointer-events-none">
           {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
@@ -587,7 +595,11 @@ const Homepage = () => {
                 </button>
               </div>
               <p className="text-foreground text-[32px] font-normal">
-                ₹{showBalance ? walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "******"}
+                {isLoading ? (
+                  <Skeleton width={160} height={40} />
+                ) : (
+                  <>₹{showBalance ? walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "******"}</>
+                )}
               </p>
               <button
                 onClick={() => navigate('/order-cash')}

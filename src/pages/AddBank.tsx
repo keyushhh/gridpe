@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
+import { hapticMedium } from "@/utils/haptics";
 import { ChevronLeft } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import autoFetchBg from "@/assets/auto-fetch.png";
@@ -182,6 +183,7 @@ const AddBank = () => {
   };
 
   const handleButtonClick = () => {
+    hapticMedium();
     if (selection === "auto") {
       if (showOtpInput) {
         handleVerifyOtp();

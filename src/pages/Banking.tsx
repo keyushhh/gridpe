@@ -191,6 +191,8 @@ const Banking = () => {
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
+                willChange: 'transform',
+                transform: 'translateZ(0)'
             }}
         >
             {/* Light Mode Purple Glow Blob */}
@@ -222,7 +224,10 @@ const Banking = () => {
                 </div>
 
                 {/* Content */}
-                <div className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[120px] min-h-0">
+                <div 
+                    className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[120px] min-h-0"
+                    style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
+                >
 
                     {accounts.length === 0 ? (
                         /* Empty State */

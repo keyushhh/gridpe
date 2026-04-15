@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import Skeleton from 'react-loading-skeleton';
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -40,6 +41,7 @@ const WalletTransactionHistory = () => {
         method: "All"
     });
     const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown when clicking outside
@@ -116,6 +118,8 @@ const WalletTransactionHistory = () => {
                 ));
             } catch (error) {
                 console.error("Error fetching transactions:", error);
+            } finally {
+                setTimeout(() => setIsLoading(false), 600);
             }
         };
 
@@ -580,12 +584,7 @@ const WalletTransactionHistory = () => {
     return (
         <div
             className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
-            style={{
-                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
-                backgroundSize: "cover",
-                backgroundPosition: "top center",
-                backgroundRepeat: "no-repeat",
-            }}
+            style={{ willChange: 'transform', transform: 'translateZ(0)', backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none', backgroundSize: "cover", backgroundPosition: "top center", backgroundRepeat: "no-repeat" }}
         >
             {/* Light Mode Status Blob (Top Glow) */}
             {!isDarkMode && (
@@ -712,7 +711,10 @@ const WalletTransactionHistory = () => {
             </div>
 
             {/* Content area */}
-            <div className="px-5 mt-6 flex-1 min-h-0 overflow-y-auto no-scrollbar pb-safe pb-4 flex flex-col gap-6 relative">
+            <div 
+                className="px-5 mt-6 flex-1 min-0 overflow-y-auto no-scrollbar pb-safe pb-4 flex flex-col gap-6 relative"
+                style={{ willChange: 'transform', transform: 'translateZ(0)', WebkitOverflowScrolling: 'touch' }}
+            >
                 {(() => {
                     // Group by date (localized to avoid UTC shifts)
                     const grouped: { [key: string]: typeof walletTransactions } = {};
@@ -732,6 +734,14 @@ const WalletTransactionHistory = () => {
                         const bTime = new Date(Number(bParts[2]), Number(bParts[1]) - 1, Number(bParts[0])).getTime();
                         return bTime - aTime;
                     });
+
+                    if (isLoading) {
+                        return (
+                          <div className="flex flex-col gap-4">
+                            <Skeleton height={64} borderRadius={12} count={5} />
+                          </div>
+                        );
+                    }
 
                     if (sortedDates.length === 0) {
                         return (

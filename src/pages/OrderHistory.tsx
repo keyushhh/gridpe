@@ -276,7 +276,7 @@ const OrderHistory = () => {
                 >
                     <div className="flex items-start justify-between py-[14px] pl-[16px] pr-[14px]">
                         <div className="flex items-start gap-[16px]">
-                            <img src={config.icon} alt={config.label} className="w-[35px] h-[35px]" />
+                            <img src={config.icon} alt={config.label} className="w-[35px] h-[35px]" width={35} height={35} />
                             <div className="flex flex-col">
                                 <span className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                     {order.metadata?.isFx ? "FX Exchange" : (order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"))}
@@ -363,6 +363,9 @@ const OrderHistory = () => {
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+                WebkitOverflowScrolling: 'touch'
             }}
         >
             {/* Light Mode Purple Glow */}

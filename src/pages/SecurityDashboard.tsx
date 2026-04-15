@@ -25,7 +25,7 @@ import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
 import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { hapticLight } from "@/utils/haptics";
 import { Capacitor } from "@capacitor/core";
 
 const SecurityDashboard = () => {
@@ -135,18 +135,8 @@ const SecurityDashboard = () => {
     }
   };
 
-  const triggerHaptic = async () => {
-    try {
-      if (Capacitor.isNativePlatform()) {
-        await Haptics.impact({ style: ImpactStyle.Light });
-      }
-    } catch (e) {
-      console.warn('Haptics not supported', e);
-    }
-  };
-
   const handleBiometricToggle = async () => {
-    await triggerHaptic();
+    await hapticLight();
     
     if (isDeviceEnabled) {
       // Disable locally

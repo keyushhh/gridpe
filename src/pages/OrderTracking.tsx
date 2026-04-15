@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useLocation } from "react-router-dom";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -7,6 +8,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { OpenLocationCode } from "open-location-code";
 import { Order } from "@/lib/orders";
 import { supabase } from "@/lib/supabase";
+import { setBadge } from "@/utils/badge";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
@@ -26,6 +28,7 @@ const OrderTracking = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const [order, setOrder] = useState<Order | null>(location.state?.order || null);
+    const [isLoading, setIsLoading] = useState(!location.state?.order);
 
     // Map State
     const [viewState, setViewState] = useState({
@@ -166,15 +169,32 @@ const OrderTracking = () => {
                                     state: { order: payload.new }
                                 });
                             }
+
+                            // Manage app badge
+                            if (['delivered', 'success', 'cancelled', 'failed'].includes(newStatus)) {
+                                setBadge(0);
+                            } else {
+                                setBadge(1);
+                            }
                         }
                     }
                 )
                 .subscribe();
 
+            // Set initial badge if order is active
+            if (!['delivered', 'success', 'cancelled', 'failed'].includes(order.status)) {
+                setBadge(1);
+            }
+
             return () => {
                 supabase.removeChannel(channel);
                 supabase.removeChannel(orderChannel);
             };
+        } else {
+            // If no order ID, we might be loading from a deep link or direct URL
+            // Simulate/Wait for data
+            const timer = setTimeout(() => setIsLoading(false), 1500);
+            return () => clearTimeout(timer);
         }
     }, [order?.rider_id, order?.id]);
 
@@ -241,6 +261,8 @@ const OrderTracking = () => {
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
+                willChange: 'transform',
+                transform: 'translateZ(0)'
             }}
         >
             {/* Light Mode Purple Glow */}
@@ -281,29 +303,33 @@ const OrderTracking = () => {
                 className="w-full relative overflow-hidden shrink-0 rounded-b-[32px] z-0"
                 style={{ height: "305px" }}
             >
-                <Map
-                    {...viewState}
-                    onMove={evt => setViewState(evt.viewState)}
-                    style={{ width: "100%", height: "100%" }}
-                    mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-                    attributionControl={false}
-                    scrollZoom={false}
-                    dragPan={true}
-                >
-                    <Source id="route" type="geojson" data={routeGeoJson}>
-                        <Layer {...routeLayer} />
-                    </Source>
+                {isLoading ? (
+                    <Skeleton height={305} borderRadius={0} />
+                ) : (
+                    <Map
+                        {...viewState}
+                        onMove={evt => setViewState(evt.viewState)}
+                        style={{ width: "100%", height: "100%" }}
+                        mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+                        attributionControl={false}
+                        scrollZoom={false}
+                        dragPan={true}
+                    >
+                        <Source id="route" type="geojson" data={routeGeoJson}>
+                            <Layer {...routeLayer} />
+                        </Source>
 
-                    <Marker latitude={currentLat} longitude={currentLng}>
-                        <div className="animate-pulse">
-                            <img src={currentLocationIcon} alt="User" className="w-6 h-6" />
-                        </div>
-                    </Marker>
+                        <Marker latitude={currentLat} longitude={currentLng}>
+                            <div className="animate-pulse">
+                                <img src={currentLocationIcon} alt="User" className="w-6 h-6" width={24} height={24} />
+                            </div>
+                        </Marker>
 
-                    <Marker latitude={riderLat} longitude={riderLng}>
-                        <img src={riderIcon} alt="Rider" className="w-8 h-8 drop-shadow-md" />
-                    </Marker>
-                </Map>
+                        <Marker latitude={riderLat} longitude={riderLng}>
+                            <img src={riderIcon} alt="Rider" className="w-8 h-8 drop-shadow-md" width={32} height={32} />
+                        </Marker>
+                    </Map>
+                )}
             </div>
 
             <div className="px-5 mt-[20px] relative z-0">
@@ -335,7 +361,7 @@ const OrderTracking = () => {
                                 height: "31px"
                             }}
                         >
-                            <img src={isDelivered ? verifiedCircleIcon : arrivingIcon} alt="StatusIcon" className="w-full h-full" style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined} />
+                            <img src={isDelivered ? verifiedCircleIcon : arrivingIcon} alt="StatusIcon" className="w-full h-full" style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined} width={31} height={31} />
                         </div>
                     </div>
 
@@ -353,18 +379,22 @@ const OrderTracking = () => {
 
                     <div>
                         <p className={`text-[12px] font-medium font-satoshi mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            {getStatusText()}
+                            {isLoading ? <Skeleton width="40%" /> : getStatusText()}
                         </p>
                         <p className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
-                            {isDelivered
-                                ? "Your package has been handed over successfully."
-                                : order?.status === 'accepted'
-                                    ? "Your rider is heading to the pickup hub"
-                                    : order?.status === 'picked_up'
-                                        ? "Your rider is on the way to you!"
-                                        : order?.status === 'processing'
-                                            ? "We're assigning a partner to your request."
-                                            : "Your delivery partner and order are tracked in real-time."}
+                            {isLoading ? (
+                                <Skeleton count={2} />
+                            ) : (
+                                isDelivered
+                                    ? "Your package has been handed over successfully."
+                                    : order?.status === 'accepted'
+                                        ? "Your rider is heading to the pickup hub"
+                                        : order?.status === 'picked_up'
+                                            ? "Your rider is on the way to you!"
+                                            : order?.status === 'processing'
+                                                ? "We're assigning a partner to your request."
+                                                : "Your delivery partner and order are tracked in real-time."
+                            )}
                         </p>
                     </div>
                 </div>
@@ -446,7 +476,7 @@ const OrderTracking = () => {
                             <div className="flex gap-2">
                                 {(order?.otp_code || "000000").split('').map((digit, index) => (
                                     <div
-                                        key={index}
+                                        key={`otp-${index}`}
                                         className={`w-[48px] h-[64px] rounded-[7px] flex items-center justify-center text-[32px] font-bold font-satoshi relative overflow-hidden ${isDarkMode ? 'text-white' : 'text-black'}`}
                                         style={{
                                             backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#F7F8FA",

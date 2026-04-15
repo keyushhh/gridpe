@@ -38,8 +38,7 @@ const FxPassportKYC = () => {
         >
             {/* Header */}
             <div
-                className="px-5 flex items-center justify-between z-10 mb-[21px] relative"
-                style={{ paddingTop: "calc(env(safe-area-inset-top) + 4px)" }}
+                className="px-5 pt-safe pt-1 flex items-center justify-between z-10 mb-[21px] relative"
             >
                 <button
                     onClick={() => navigate(-1)}

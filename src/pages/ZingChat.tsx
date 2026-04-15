@@ -165,6 +165,8 @@ const ZingChat = () => {
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
+                willChange: 'transform',
+                transform: 'translateZ(0)'
             }}
         >
             {/* Light Mode Purple Glow */}
@@ -187,6 +189,7 @@ const ZingChat = () => {
             <main
                 ref={scrollRef}
                 className="flex-1 px-5 pt-4 overflow-y-auto no-scrollbar relative z-10 flex flex-col"
+                style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
             >
                 {/* Session Markers at the top */}
                 <div className={`flex flex-col items-center gap-1 mb-8 shrink-0 transition-opacity ${isDarkMode ? 'opacity-40' : 'opacity-60'}`}>
@@ -214,12 +217,14 @@ const ZingChat = () => {
                                                 src={zingSmall}
                                                 alt="Zing"
                                                 className="w-[35px] h-[24px] object-contain mb-2"
+                                                width={35}
+                                                height={24}
                                             />
                                         )}
                                     </div>
                                 ) : (
                                     <div className="w-[40px] h-[40px] rounded-full overflow-hidden shrink-0 mb-2">
-                                        <img src={userAvatar} alt="User" className="w-full h-full object-cover" />
+                                        <img src={userAvatar} alt="User" className="w-full h-full object-cover" width={40} height={40} />
                                     </div>
                                 )}
 
@@ -334,13 +339,13 @@ const ZingChat = () => {
                             onClick={() => fileInputRef.current?.click()}
                             className={`p-1 active:scale-95 hover:scale-105 transition-transform opacity-80 cursor-pointer ${!isDarkMode ? 'grayscale invert' : ''}`}
                         >
-                            <img src={addCircleIcon} alt="Add" className="w-[22px] h-[22px] pointer-events-none" />
+                            <img src={addCircleIcon} alt="Add" className="w-[22px] h-[22px] pointer-events-none" width={22} height={22} />
                         </button>
                         <button
                             onClick={handleSend}
                             className={`p-1 active:scale-95 hover:scale-110 transition-transform cursor-pointer ${!isDarkMode ? 'grayscale invert' : ''}`}
                         >
-                            <img src={sendIcon} alt="Send" className="w-[22px] h-[22px] pointer-events-none" />
+                            <img src={sendIcon} alt="Send" className="w-[22px] h-[22px] pointer-events-none" width={22} height={22} />
                         </button>
                     </div>
                 </div>

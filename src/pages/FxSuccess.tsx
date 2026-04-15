@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { hapticSuccess } from "@/utils/haptics";
 import bgLight from "@/assets/bg-light.png";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -98,6 +99,7 @@ const FxSuccess = () => {
             }
         };
         fetchOrder();
+        hapticSuccess();
 
         let channel: any;
 
@@ -308,8 +310,7 @@ const FxSuccess = () => {
             )}
             {/* Header */}
             <div
-                className="px-5 flex items-center justify-between z-10 mb-[21px] relative"
-                style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
+                className="px-5 pt-safe pt-6 flex items-center justify-between z-10 mb-[21px] relative"
             >
                 <div className="w-6" />
                 <h1 className={isDarkMode ? 'text-[22px] font-medium font-satoshi text-white' : 'text-[18px] font-medium font-sans text-black'}>

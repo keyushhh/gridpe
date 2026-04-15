@@ -12,7 +12,11 @@ const config: CapacitorConfig & { ios?: { allowsBackForwardNavigationGestures?: 
   ios: {
     allowsLinkPreview: true,
     handleApplicationNotifications: true,
-    allowsBackForwardNavigationGestures: true
+    allowsBackForwardNavigationGestures: true,
+    scrollEnabled: true
+  },
+  android: {
+    backgroundColor: "#0a0a12"
   }
 };
 

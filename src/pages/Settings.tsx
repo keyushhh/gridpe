@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Skeleton from 'react-loading-skeleton';
 import { ChevronLeft, ChevronRight, Pencil, Lock } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
@@ -98,6 +99,7 @@ const Settings = () => {
   const securityCompleteAsset = useAsset("security-complete");
   const securityPendingAsset = useAsset("security-pending");
   const securityIncompleteAsset = useAsset("security-incomplete");
+  const [isLoading, setIsLoading] = useState(true);
 
   const iconEdit = useAsset("icon-edit");
   const iconLinkedCards = useAsset("icon-linked-cards");
@@ -135,7 +137,9 @@ const Settings = () => {
       }
     };
 
-    loadCounts();
+    loadCounts().finally(() => {
+        setTimeout(() => setIsLoading(false), 500);
+    });
   }, []);
 
   const handleLogoPress = () => {
@@ -226,22 +230,35 @@ const Settings = () => {
         {/* Profile */}
         <div className="px-5 mt-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img
-              src={profileImage || avatarImg}
-              className="w-14 h-14 rounded-full object-cover"
-            />
+            {isLoading ? (
+              <Skeleton circle width={56} height={56} />
+            ) : (
+              <img
+                src={profileImage || avatarImg}
+                className="w-14 h-14 rounded-full object-cover"
+              />
+            )}
             <div>
-              <h2 className="text-foreground text-[18px] font-medium">
-                {name || "No Name? Who are you?"}
-              </h2>
-              <div className="flex items-center gap-1">
-                <span className="text-black dark:text-muted-foreground text-[14px]">{phoneNumber || email}</span>
-                <img
-                  src={verifiedPng}
-                  className="w-4 h-4 object-contain"
-                  alt="Verified"
-                />
-              </div>
+              {isLoading ? (
+                <div className="flex flex-col gap-1 w-[160px]">
+                  <Skeleton height={20} width="100%" />
+                  <Skeleton height={14} width="60%" />
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-foreground text-[18px] font-medium">
+                    {name || "Guest User"}
+                  </h2>
+                  <div className="flex items-center gap-1">
+                    <span className="text-black dark:text-muted-foreground text-[14px]">{phoneNumber || email}</span>
+                    <img
+                      src={verifiedPng}
+                      className="w-4 h-4 object-contain"
+                      alt="Verified"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <button

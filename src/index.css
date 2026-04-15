@@ -60,6 +60,8 @@
     @apply border-border;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
 
   html,
@@ -97,12 +99,18 @@
     overflow-y: auto;
     overscroll-behavior-x: auto;
     touch-action: pan-y;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   html {
     font-family: 'Satoshi', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {

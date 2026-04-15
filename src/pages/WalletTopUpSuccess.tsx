@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { hapticSuccess } from "@/utils/haptics";
 import successIcon from "@/assets/success.svg";
 import checkIcon from "@/assets/check-icon.svg";
 import elipseGreenIcon from "@/assets/elipse-green.svg";
@@ -20,6 +21,7 @@ const WalletTopUpSuccess = () => {
         const amountDisplay = creditAmount || totalAmount;
         if (amountDisplay) {
             setFormattedAmount(amountDisplay.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            hapticSuccess();
         }
 
         // Process the transaction only once (for instance, activation)
@@ -31,7 +33,7 @@ const WalletTopUpSuccess = () => {
     }, [creditAmount, totalAmount, activateWallet, paymentMethod]);
 
     return (
-        <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans bg-white dark:bg-[#0F1115] dark:bg-[url('@/assets/success-bg.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat">
+        <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans safe-area-top bg-white dark:bg-[#0F1115] dark:bg-[url('@/assets/success-bg.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat">
             {/* Green Glowing Orb at the top */}
             <div
                 className="absolute top-[-150px] left-1/2 transform -translate-x-1/2 w-[500px] h-[400px] pointer-events-none z-0"

@@ -296,7 +296,7 @@ const FxExchange = () => {
                 />
             )}
             {/* Header */}
-            <div className="px-5 pt-4 pb-6 flex items-center justify-between">
+            <div className="px-5 pt-safe pt-4 pb-6 flex items-center justify-between">
                 <button
                     onClick={() => navigate('/home')}
                     className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}

@@ -344,6 +344,8 @@ const OrderDetails = () => {
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
+                willChange: 'transform',
+                transform: 'translateZ(0)'
             }}
         >
             {/* Light Mode Glow - Green for Success, Red/Orange for others if needed, but user asked for Green for Order Success */}
@@ -421,10 +423,13 @@ const OrderDetails = () => {
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar px-5 flex flex-col items-center">
+            <div 
+                className="flex-1 overflow-y-auto no-scrollbar px-5 flex flex-col items-center"
+                style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
+            >
                 {/* Main Icon */}
                 <div className="w-[62px] h-[62px] mb-[35px]">
-                    <img src={statusConfig.mainIcon} alt="Status" className="w-full h-full object-contain" />
+                    <img src={statusConfig.mainIcon} alt="Status" className="w-full h-full object-contain" width={62} height={62} />
                 </div>
 
                 {/* Status Text */}
@@ -685,7 +690,7 @@ const OrderDetails = () => {
                             <div>
                                 {cancelReasons.map((reason, index) => (
                                     <div
-                                        key={index}
+                                        key={reason}
                                         onClick={() => setCancelReason(index)}
                                         className={`w-full h-[44px] flex items-center px-[12px] cursor-pointer ${index !== cancelReasons.length - 1 ? (isDarkMode ? 'border-b border-white/5' : 'border-b border-[#E9EAEB]') : ''
                                             } ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'} transition-colors`}

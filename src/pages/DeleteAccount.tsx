@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { hapticWarning } from "@/utils/haptics";
 import { ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -24,6 +25,7 @@ const DeleteAccount = () => {
   };
 
   const handleProceed = () => {
+    hapticWarning();
     const state = { originPath };
     if (selectedOption === 'deactivate') {
       navigate('/confirm-deactivation', { state });

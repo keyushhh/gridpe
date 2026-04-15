@@ -241,6 +241,8 @@ const MyCards = () => {
                 backgroundSize: "cover",
                 backgroundPosition: "top center",
                 backgroundRepeat: "no-repeat",
+                willChange: 'transform',
+                transform: 'translateZ(0)'
             }}
             onClick={() => {
                 if (!isStacked && cards.length > 1) {
@@ -268,7 +270,10 @@ const MyCards = () => {
                 </div>
 
                 {/* Content */}
-                <div className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-none scrollbar-hide pb-[120px]">
+                <div 
+                    className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[120px] min-h-0"
+                    style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
+                >
 
                     {cards.length === 0 ? (
                         /* Empty State */

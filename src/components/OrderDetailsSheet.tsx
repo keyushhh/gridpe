@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, Info, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { hapticWarning } from "@/utils/haptics";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Order } from "@/lib/orders";
@@ -671,7 +672,10 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                     <div className="flex flex-col gap-3">
                         {isProcessing && (
                             <button
-                                onClick={() => onCancel?.(order.id)}
+                                onClick={() => {
+                                    hapticWarning();
+                                    onCancel?.(order.id);
+                                }}
                                 className="mx-auto rounded-full flex items-center justify-center text-white text-[16px] font-bold active:scale-95 transition-transform mb-6"
                                 style={{
                                     width: '364px',

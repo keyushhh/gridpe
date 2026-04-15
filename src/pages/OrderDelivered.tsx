@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { hapticSuccess } from "@/utils/haptics";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
@@ -25,8 +26,11 @@ const OrderDelivered = () => {
     useEffect(() => {
         // Redundancy check: ensure status is updated in Supabase via RPC to trigger rewards
         if (location.state?.order?.id && profile?.id) {
+            hapticSuccess();
             deliverOrder(location.state.order.id, profile.id, location.state.isFx)
                 .catch(err => console.error("Failed to mark order as delivered:", err));
+        } else {
+            hapticSuccess();
         }
 
         const timer = setInterval(() => {

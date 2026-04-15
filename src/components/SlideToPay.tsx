@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from "next-themes";
+import { hapticMedium } from "@/utils/haptics";
 import { ChevronRight } from 'lucide-react';
 import slideTrack from '@/assets/slide-to-pay-track.png';
 import slideSuccess from '@/assets/slide-to-pay-success.png';
@@ -59,6 +60,7 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({ onComplete, className = 
     const maxDrag = trackWidth - thumbWidth - (trackWidth * 0.05);
 
     if (dragX > maxDrag * 0.85) {
+      hapticMedium();
       setCompleted(true);
       setDragX(maxDrag);
       setTimeout(() => {

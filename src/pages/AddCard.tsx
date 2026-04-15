@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { hapticMedium } from "@/utils/haptics";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -169,6 +170,7 @@ const AddCard = () => {
   };
 
   const handleSaveCard = async () => {
+    hapticMedium();
     if (!validateForm()) return;
 
     try {
@@ -206,7 +208,7 @@ const AddCard = () => {
   // Helper to focus input when error is clicked
   const handleErrorClick = (field: string, ref: React.RefObject<HTMLInputElement>) => {
     clearError(field);
-    setTimeout(() => ref.current?.focus(), 0);
+    requestAnimationFrame(() => ref.current?.focus());
   };
 
   return (

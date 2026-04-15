@@ -35,6 +35,7 @@ import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import Map, { Marker } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { calculateDistance, HUB_COORDS, normalizeCity } from "@/lib/utils";
+import { setBadge } from "@/utils/badge";
 
 interface SavedAddress {
     id?: string;
@@ -483,6 +484,9 @@ const FxExchangeSummary = () => {
                 const orderData = await createOrderDirectly(addressId, cleanedReceiveAmount, cleanedHoldAmount, customerPhoneNumber, pickupAddress, dAddressText);
                 const finalOrderId = orderData.id;
 
+                // Update app badge
+                setBadge(1);
+
                 // Refresh balance after successful order & hold
                 await refreshBalance();
 
@@ -542,6 +546,7 @@ const FxExchangeSummary = () => {
                         const finalRetryOrderId = retryData.id;
 
                         if (finalRetryOrderId) {
+                            setBadge(1);
                             navigate(`/fx-success/${finalRetryOrderId}`, {
                                 state: {
                                     totalAmount: amount,

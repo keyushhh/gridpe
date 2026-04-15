@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from "next-themes";
+import { hapticMedium, hapticWarning } from "@/utils/haptics";
 import popupBg from '../assets/popup-bg-remove.png';
 
 interface ConfirmationModalProps {
@@ -69,6 +70,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                const destructiveActions = ['Remove Card', 'Remove Account', 'Yes, Delete', 'Delete', 'Remove'];
+                if (destructiveActions.some(action => primaryText.includes(action))) {
+                  hapticWarning();
+                } else {
+                  hapticMedium();
+                }
                 onPrimaryClick();
               }}
               className="w-full h-[48px] relative active:scale-95 transition-transform flex items-center justify-center"

@@ -71,5 +71,7 @@
     </dict>
     <key>NSLocalNetworkUsageDescription</key>
     <string>We need access to your local network to connect to the development server for live reloading during development.</string>
+    <key>NSUserNotificationUsageDescription</key>
+    <string>Grid.Pe uses badges to show your active order status.</string>
 </dict>
 </plist>

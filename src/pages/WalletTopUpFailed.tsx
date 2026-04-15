@@ -39,7 +39,7 @@ const WalletTopUpFailed: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans bg-white dark:bg-[#0F1115] dark:bg-[url('@/assets/error-bg.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat">
+    <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans safe-area-top bg-white dark:bg-[#0F1115] dark:bg-[url('@/assets/error-bg.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat">
       {/* Red Glowing Orb at the top */}
       <div
         className="absolute top-[-150px] left-1/2 transform -translate-x-1/2 w-[500px] h-[400px] pointer-events-none z-0"

@@ -265,7 +265,11 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                 {/* Main Sheet */}
                 <div
                     className="absolute top-[14px] left-0 right-0 bottom-0 rounded-t-[22px] overflow-hidden flex flex-col"
-                    style={{ backgroundColor: isDarkMode ? '#000000' : '#FFFFFF' }}
+                    style={{ 
+                        backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
+                        willChange: 'transform',
+                        transform: 'translateZ(0)'
+                    }}
                 >
 
                     {/* Header */}
@@ -295,7 +299,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                         <InputOTPGroup className="gap-4">
                                             {[0, 1, 2, 3].map(index => (
                                                 <MaskedInputOTPSlot
-                                                    key={index}
+                                                    key={`verify-${index}`}
                                                     index={index}
                                                     className={`flex items-center justify-center h-[54px] w-[81px] rounded-[12px] border-none text-[32px] font-bold transition-all bg-cover bg-center ring-1 ${isDarkMode ? 'text-white' : 'text-black'
                                                         } ${verifyStatus === 'error' ? 'ring-red-500' :

@@ -28,6 +28,7 @@ import { createAddress, getAuthUserId } from "@/lib/addresses";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
 import { calculateDistance, HUB_COORDS, normalizeCity } from "@/lib/utils";
+import { setBadge } from "@/utils/badge";
 
 interface SavedAddress {
     id?: string;
@@ -459,6 +460,9 @@ const OrderCashSummary = () => {
 
                 const orderData = await createOrderDirectly(addressId!, customerPhoneNumber, pAddress, dAddressText);
                 const orderId = orderData.id;
+                
+                // Update app badge
+                setBadge(1);
 
                 // Refresh balance after successful order & hold
                 await refreshBalance();
@@ -520,6 +524,7 @@ const OrderCashSummary = () => {
                         const retryOrderId = retryData.id;
 
                         if (retryOrderId) {
+                            setBadge(1);
                             navigate(`/order-details/${retryOrderId}`, {
                                 state: {
                                     totalAmount: totalAmount,

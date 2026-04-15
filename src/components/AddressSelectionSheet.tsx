@@ -295,7 +295,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
         }
     };
 
-    if (!isOpen) return null;
+if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[60] flex items-end justify-center">
@@ -311,7 +311,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                 style={{
                     height: "794px",
                     boxShadow: "0px -4px 20px rgba(0, 0, 0, 0.5)",
-                    bottom: 0
+                    bottom: 0,
+                    willChange: 'transform',
+                    transform: 'translateZ(0)',
+                    WebkitOverflowScrolling: 'touch'
                 }}
             >
                 {/* Header */}
@@ -447,10 +450,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
 
                         return (
                             <div
-                                key={idx}
+                                key={addr.id || idx}
                                 onClick={() => handleSelectAddress(addr)}
                                 className={`rounded-[12px] p-[11px] relative border ${cardBg} ${cardBorder}`}
-                                style={{ maxHeight: "131px" }}
+                                style={{ maxHeight: "131px", willChange: 'transform', transform: 'translateZ(0)' }}
                             >
                                 {/* Header Row */}
                                 <div className="flex justify-between items-start mb-4">

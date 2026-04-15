@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { hapticLight } from "@/utils/haptics";
 import addNavIcon from "@/assets/add-nav.svg";
 import navHome from "@/assets/nav-home.svg";
 import navHomeInactive from "@/assets/nav-home-inactive.png";
@@ -55,7 +56,10 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
       
       {/* Home */}
       <button
-        onClick={() => navigate("/home")}
+        onClick={() => {
+          hapticLight();
+          navigate("/home");
+        }}
         className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img
@@ -72,7 +76,10 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
 
       {/* Cards */}
       <button
-        onClick={() => navigate("/cards")}
+        onClick={() => {
+          hapticLight();
+          navigate("/cards");
+        }}
         className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img
@@ -90,7 +97,10 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
       {/* Center FAB Space */}
       <div className="flex items-center justify-center -mt-6">
         <button
-          onClick={() => navigate("/wallet-add-money")}
+          onClick={() => {
+            hapticLight();
+            navigate("/wallet-add-money");
+          }}
           className="w-[68px] h-[68px] rounded-full flex items-center justify-center transition-transform active:scale-90 z-20"
           style={{
             boxShadow: isDarkMode ? '0 8px 16px rgba(0, 0, 0, 0.4)' : '0 4px 12px rgba(0,0,0,0.15)'
@@ -106,7 +116,10 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
 
       {/* Rewards */}
       <button
-        onClick={() => navigate("/rewards")}
+        onClick={() => {
+          hapticLight();
+          navigate("/rewards");
+        }}
         className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img
@@ -123,7 +136,10 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
 
       {/* More */}
       <button
-        onClick={() => navigate("/more")}
+        onClick={() => {
+          hapticLight();
+          navigate("/more");
+        }}
         className="flex flex-col items-center justify-center gap-1 w-12 h-12"
       >
         <img

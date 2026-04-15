@@ -4,7 +4,14 @@ import { Capacitor } from "@capacitor/core";
 import { CapacitorSwipeBackPlugin } from '@notnotsamuel/capacitor-swipe-back';
 import { useEffect } from "react";
 import { supabase } from "./lib/supabase";
+import { fetchActiveOrders } from "./lib/orders";
+import { setBadge } from "./utils/badge";
+import { registerPushNotifications } from "./utils/pushNotifications";
+import { SkeletonTheme } from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import { useTheme } from "next-themes";
 import GlobalCustomToaster from "./components/GlobalCustomToaster";
+import NetworkBanner from "./components/NetworkBanner";
 import Index from "./pages/Index";
 import Homepage from "./pages/Homepage";
 import Settings from "./pages/Settings";
@@ -162,6 +169,10 @@ const App = () => {
       });
     }
 
+    // Register push notifications
+    registerPushNotifications();
+
+    // Cleanup listeners
     return () => {
       listener.then(handle => handle.remove());
       if (backListener) {
@@ -170,19 +181,55 @@ const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const checkActiveOrders = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        const activeOrders = await fetchActiveOrders(session.user.id);
+        if (activeOrders.length > 0) {
+          setBadge(1);
+        } else {
+          setBadge(0);
+        }
+      }
+    };
+
+    checkActiveOrders();
+    
+    // Also listen for auth state changes to re-check
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        checkActiveOrders();
+      } else if (event === 'SIGNED_OUT') {
+        setBadge(0);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === 'dark';
+
   return (
-    <div className="app-container">
-      <GlobalCustomToaster />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-          {/* ... existing routes ... */}
-          <Route path="/" element={<Index />} />
-          <Route path="/home" element={<Homepage />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/kyc-intro" element={<KYCIntro />} />
-          <Route path="/kyc-form" element={<KYCForm />} />
-          <Route path="/kyc-success" element={<SuccessScreen />} />
-          <Route path="/profile-edit" element={<ProfileEdit />} />
+    <SkeletonTheme
+      baseColor={isDarkMode ? "#1A1C20" : "#F3F4F6"}
+      highlightColor={isDarkMode ? "#2A2D35" : "#E5E7EB"}
+    >
+      <div className="app-container">
+        <GlobalCustomToaster />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <NetworkBanner />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/home" element={<Homepage />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/kyc-intro" element={<KYCIntro />} />
+            <Route path="/kyc-form" element={<KYCForm />} />
+            <Route path="/kyc-success" element={<SuccessScreen />} />
+            <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="/cards" element={<MyCards />} />
           <Route path="/cards/add" element={<AddCard />} />
           <Route path="/card-remove-success" element={<CardRemoveSuccess />} />
@@ -266,6 +313,7 @@ const App = () => {
         </Routes>
       </BrowserRouter>
     </div>
+    </SkeletonTheme>
   );
 };
 
