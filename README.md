@@ -1,127 +1,104 @@
-# Grid.Pe 🚀
+# Grid.Pe
+A hybrid modern platform for on-demand cash delivery, digital wallet management, and live FX exchange.
 
-> A modern, feature-rich customer application offering a digital wallet, cash delivery, foreign exchange (FX), and an AI-powered assistant.
+## Overview
+Grid.Pe is a pioneering fintech application designed to bridge the gap between digital finance and physical cash liquidity. Built as a comprehensive hybrid platform, it provides users with a robust digital wallet to store funds, a seamless order system to get cash delivered to their doorstep, and a unified foreign exchange interface for live currency conversion. It is specifically tailored to address the needs of underbanked regions and individuals reliant on secure, immediate, and convenient access to physical currency.
 
-Grid.Pe is a comprehensive financial and utility platform built for seamless user experiences across web and mobile. Whether managing a digital wallet, ordering cash for direct delivery, performing currency exchange, or verifying identity through robust KYC, Grid.Pe offers a state-of-the-art solution. 
+For developers landing on this repository, Grid.Pe is constructed using a React + Vite frontend packaged via Capacitor into native iOS and Android apps, while backed by full Supabase BAAS integration. From deep OS-level biometric security down to complex native haptics, the app implements standard, FAANG-level mobile UI/UX paradigms while handling sensitive financial data natively.
 
-## 🌟 Key Features
+## Features
+- **Customer App features**
+  - Zing AI Chatbot: Custom-built LLM assistant with image parsing capabilities (`tesseract.js` + cloud AI logic).
+  - Rewards workflows with an integrated ticket helpdesk system.
+  - Native gesture integrations, customized haptic feedback, and unified dark/light themes.
+  - Interactive map integration for accurate real-time address tagging via MapLibre GL and Plus Codes.
+  
+- **Authentication & Security features**
+  - Passkey & Biometric integrations directly hooked via Capacitor standard secure storage plugins.
+  - Multi-factor authentication (SMS OTP + MPIN + Biometrics).
+  - Advanced multi-stage Identity & KYC verification (Document scanning, Live Selfie, Liveness detection with `react-webcam`).
+  - Active lifecycle hooks for secure account retrieval and remote data deletion pipelines.
+  
+- **Wallet & Payments features**
+  - Tiered wallet limits synchronized to KYC levels.
+  - In-app integrations to top-up via verified internal bank loops (`AddBank`/`AddCard` integrations).
+  - Granular split payout tracking covering bank accounts, wallets, and UPI pipelines.
+  - Subscription tier tracking allowing power users lowered service fees.
+  
+- **Order Management features**
+  - Complete On-Demand Cash flow. (Order -> Pending Hub Assignment -> Rider Assignment -> Safe Code OTP -> Dropped).
+  - Specialized FX Exchange engine. Tracks and orders live spot currency; requires Passport KYC explicitly modeled out on the UI layer.
+  - Deep telemetry across Delivery Hubs and Rider Geolocation paths.
+  - Specific post-delivery workflows for viewing/verifying rider's KYC data guaranteeing safety.
 
-### 💰 Digital Wallet & Finance
-- **Wallet Management**: Top up, withdraw, and track balances effortlessly.
-- **Transaction History**: Detailed view of all incoming and outgoing funds.
-- **Bank & Card Linking**: Securely add and manage payment methods via Stripe/other APIs.
-- **Subscriptions**: Tiered wallet and subscription management for power users.
+## Tech Stack
+| Layer | Technology | Purpose |
+| --- | --- | --- |
+| **Frontend** | React 18 (TypeScript) | Core UI logic and rendering interface |
+| **Build Tool** | Vite | Rapid frontend bundling, optimizing and minifying tree-shakes |
+| **Native Runtime** | Capacitor (v8) | Secure bridging to Native OS local APIs (Haptics, Biometrics, Secure Storage) |
+| **Backend / DB** | Supabase (PostgreSQL) | Fully handled data/RPC queries and strict Row-Level-Security parameters |
+| **Auth** | Supabase Auth + Biometrics | Passwordless OTPs, Session PKCE exchanges, linked internal native biometrics |
+| **Storage** | Supabase Storage | Encrypted document parsing pipelines, Avatar uploads |
+| **Payments / Logic**| Supabase Edge Functions | Internal handling of FX Live Rates proxying, Zing AI loops, Ledgering |
+| **Push Notifications**| Capacitor Push / APNS+FCM | Routing critical order state updates directly to native OS payload handlers |
 
-### 💵 Cash Delivery & FX (Foreign Exchange)
-- **Order Cash**: Schedule and track physical cash deliveries directly to saved addresses.
-- **Live FX Rates & Exchange**: View live foreign exchange rates and execute currency conversions.
-- **Order Tracking**: Real-time status updates and geolocation from order placement to delivery.
+## Project Structure
+- `src/assets` — Static iconography, Lottie assets, global image assets.
+- `src/components` — Reusable, atomic UI elements (Sheets, Modals, Forms, Maps).
+- `src/contexts` — Global React providers (UserContext, CustomToaster).
+- `src/hooks` — Shared logical encapsulations (local haptics, sensitive field inputs).
+- `src/lib` — Core integrations communicating to Backend/RPC wrappers (`wallet`, `orders`).
+- `src/pages` — Core distinct route-rendered app functional screens (80+ specialized modules).
+- `src/types` — Strongly typed entity shapes mapping symmetrically to Postgres structures.
+- `src/utils` — Pure utility formatters (Crypto hashes, Bank logic parsing, Badge handlers).
+- `supabase` — Local schema setup, Postgres edge functions, and CLI migration flags.
 
-### 🛡️ Security & KYC
-- **Comprehensive KYC**: Multi-step identity verification including document upload and live selfies.
-- **Secure Authentication**: MPIN login, and secure session management.
-- **Account Control**: Advanced settings for profile management, data privacy, and secure account deletion.
-
-### 🤖 Zing Chatbot & Support
-- **AI Assistant (Zing)**: Interactive chatbot capable of handling user queries and analyzing image attachments.
-- **Help & Support Ticket System**: For seamless user assistance and issue reporting.
-
-### 📱 Cross-Platform Ready
-- **PWA & Mobile Ready**: Built as a responsive web app and fully packaged for iOS and Android using Capacitor.
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend Framework**: React 18, Vite
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS, shadcn-ui, class-variance-authority, clsx
-- **Backend & Auth**: Supabase (Database, Storage, Auth), Clerk
-- **Mobile Environment**: Capacitor (Native implementations for iOS & Android)
-- **Maps & Location**: MapLibre GL, React Map GL, open-location-code
-- **State & Data Fetching**: React Query
-- **Form Management**: React Hook Form, Zod validation
-- **Animations/UI Enhancements**: Lottie, Framer Motion (via shadcn), Embla Carousel, Canvas Confetti
-
----
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-
-- Node.js & npm (v18+ recommended)
-- A Supabase project for backend services & database
+- Node 22 (LTS ecosystem Recommended)
+- Native Build Tooling (Xcode 15+ / Android Studio Hedgehog+)
+- Active Supabase remote instance + defined Variable configuration.
 
 ### Installation
-
-1. **Clone the repository and install dependencies:**
-   ```sh
-   # Install dependencies
-   npm install
-   ```
-
-2. **Environment Variables:**
-   Create a `.env` file in the root directory and add your necessary environment variables (e.g., Supabase URL, API keys, Map API keys). 
-
-3. **Start the development server:**
-   ```sh
-   # Auto-reloading development server
-   npm run dev
-   ```
-   The application will be available at `http://localhost:5173` (or the port specified by Vite).
-
----
-
-## 📱 Mobile Development (iOS & Android)
-
-This project uses [Capacitor](https://capacitorjs.com/) to wrap the web app into native iOS and Android applications. Make sure you have Xcode/Android Studio installed depending on your target OS.
-
-### Build the Web Assets
-```sh
-# Generate the production bundle in the 'dist' directory
-npm run build
+```bash
+npm install
 ```
 
-### iOS Setup
-```sh
+### Running the dev server
+```bash
+npm run dev
+# Alternatively, to run isolated over the local network (for testing on hardware):
+npm run dev:mobile
+```
+
+### Building for iOS
+```bash
+npm run build
 npm run dev:ios
-# Or manually:
+# Or manually step-by-step:
 npx cap add ios
-npx cap sync ios
+npx cap sync
 npx cap open ios
 ```
+*Requires an active Apple Developer Provisioning Profile for a physical device build.*
 
-### Android Setup
-```sh
+### Building for Android
+```bash
+npm run build
 npx cap add android
-npx cap sync android
+npx cap sync
 npx cap open android
 ```
 
----
+## Environment Variables
+| Variable | Description | Required |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | Root endpoint targeting the Supabase controller cluster. | Yes |
+| `VITE_SUPABASE_ANON_KEY` | Public access key for authenticated limited-scope queries. | Yes |
+| `VITE_MAP_API_KEY` | Controls map vector layer mapping (Provider Agnostic). | Yes |
+| `VITE_TESSERACT_WORKER_URL` | Target path identifying local OCR extraction configurations. | Optional |
 
-## 📸 App Walkthrough & User Flows
-
-> **Note**: Add your own high-fidelity screenshots to the placeholders below to showcase the beautiful UI of the app.
-
-### Core User Journey
-
-1. **Onboarding & KYC**: New users register, verify their mobile via OTP, and complete the comprehensive KYC process (uploading passport/ID and completing a liveness selfie check) to unlock financial features.
-2. **Funding the Wallet**: Users link their bank account or credit card securely to seamlessly top up their Grid.Pe wallet.
-3. **Placing an Order**: From the dashboard, users can select `Order Cash` or `Exchange FX`, securely process the payment, and schedule a delivery window to their preferred address.
-4. **Order Tracking**: After an order is placed, users have access to real-time maps and statuses to track the assigned rider securely until delivery.
-5. **Getting Support**: Users can interact with the **Zing AI Chatbot** (which supports image analysis) or submit a conventional help ticket if any trouble arises.
-
-### App Screenshots
-
-| Home Dashboard | Wallet Overview | Zing Chatbot | Cash Delivery |
-| :---: | :---: | :---: | :---: |
-| ![Home](https://via.placeholder.com/250x500?text=Home+Screen) | ![Wallet](https://via.placeholder.com/250x500?text=Wallet+Screen) | ![Zing Chat](https://via.placeholder.com/250x500?text=Zing+Chat) | ![Cash](https://via.placeholder.com/250x500?text=Cash+Delivery) |
-
----
-
-## 📝 License
-
-*(Insert your proprietary or open-source license information here).*
-
----
+## Contributing
+Follow standard fork-and-pull-request workflows. Ensure that strict Typescript interfaces are added to `src/types/database.ts` on schema alterations. Run `npm run lint` and verify build compatibility down to `vite build` prior to marking PRs ready for review.
