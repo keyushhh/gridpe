@@ -11,11 +11,7 @@ import { formatINR } from "@/utils/format";
 import { useKeypad } from "@/hooks/useKeypad";
 import Keypad from "@/components/Keypad";
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+
 
 const WalletAddMoney = () => {
   const navigate = useNavigate();
@@ -31,7 +27,7 @@ const WalletAddMoney = () => {
 
   const isExceedingLimit = (amountVal + currentBalance) > walletLimit || (currentBalance + 500) > walletLimit;
 
-  const handlePillClick = (val: string) => {
+  const handleAmountSelect = (val: string) => {
     if (isExceedingLimit) return;
     setPillAmount(val);
   };
@@ -58,13 +54,11 @@ const WalletAddMoney = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Light Mode Purple Glow (Top Center) */}
       {!isDarkMode && (
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
-      {/* Header - Standard Single Row */}
       <div className="px-5 pt-4 pb-2 flex items-center justify-between z-10">
-        {/* Back Button */}
+
         <button
           onClick={() => fromWallet ? navigate(-1) : navigate("/home")}
           className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
@@ -72,27 +66,26 @@ const WalletAddMoney = () => {
           <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
 
-        {/* Title - Centered */}
+
         <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
           Wallet
         </h1>
 
-        {/* Spacer for centering */}
+
         <div className="w-10" />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col items-center pt-[60px]">
-        {/* Amount Display */}
+
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
           <span className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
           <span className={`text-[32px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
         </div>
 
-        {/* Divider */}
+
         <div className="w-[238px] h-[1px] bg-[#373737] mt-[4.5px]" />
 
-        {/* Balance Text */}
+
         <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px] mb-[17px]`}>
           Available Balance: {formatINR(currentBalance)} • Wallet Capacity: {formatINR(walletLimit, { showSymbol: true, maximumFractionDigits: 0 })}
         </p>
@@ -103,12 +96,12 @@ const WalletAddMoney = () => {
           </p>
         )}
 
-        {/* Pills */}
+
         <div className="flex gap-4 mb-8">
           {["500", "1000", "1500"].map((val) => (
             <button
               key={val}
-              onClick={() => handlePillClick(val)}
+              onClick={() => handleAmountSelect(val)}
               className="relative h-[30px] flex items-center justify-center px-3 py-[6px] transition-transform active:scale-95"
             >
               {isDarkMode && (
@@ -131,10 +124,8 @@ const WalletAddMoney = () => {
           ))}
         </div>
 
-        {/* Spacer to push everything else down to bottom */}
         <div className="flex-1" />
 
-        {/* Info Container */}
         <div className="w-full px-5 pb-[16px]">
           <div
             className="w-full h-[81px] rounded-[13px] flex flex-col justify-center"
@@ -166,9 +157,8 @@ const WalletAddMoney = () => {
         </div>
 
 
-        {/* Keypad Container */}
         <div className={`w-full relative rounded-t-[32px] overflow-hidden ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
-          {/* Gradient Border Wrapper (Dark Mode Only) */}
+
           {isDarkMode && (
             <div
               className="absolute inset-0 rounded-t-[32px] pointer-events-none"
@@ -183,7 +173,7 @@ const WalletAddMoney = () => {
             />
           )}
 
-          {/* Inner Content Background */}
+
           <div
             className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
             style={{
@@ -198,7 +188,7 @@ const WalletAddMoney = () => {
             />
 
             <div className="flex flex-col gap-[10px] items-center relative z-10">
-              {/* CTA */}
+
               <div className="w-full mt-[32px]">
                 <Button
                   onClick={async () => {
@@ -231,7 +221,7 @@ const WalletAddMoney = () => {
 
                           // Try to extract the specific error message from the response body
                           try {
-                            const errorResponse = (error as any).context;
+                            const errorResponse = (error as { context?: { json: () => Promise<{ error?: string }> } }).context;
                             if (errorResponse) {
                               const body = await errorResponse.json();
                               if (body && body.error) {
@@ -251,6 +241,7 @@ const WalletAddMoney = () => {
                             order = JSON.parse(data);
                           } catch (e) {
                             console.error("Could not parse data string:", data);
+                            throw new Error("Failed to parse payment order response");
                           }
                         }
 
@@ -266,7 +257,7 @@ const WalletAddMoney = () => {
                           name: "Grid.pe",
                           description: "Wallet Top-up",
                           order_id: order.id,
-                          handler: async function (response: any) {
+                          handler: async function (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) {
                             try {
                               const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-payment", {
                                 body: {
@@ -286,7 +277,6 @@ const WalletAddMoney = () => {
                               }
 
                               if (verification && verification.success) {
-                                console.log("Payment verified successfully!");
                                 await new Promise(resolve => setTimeout(resolve, 2000));
 
                                 await refreshBalance(currentUserId);
@@ -325,13 +315,13 @@ const WalletAddMoney = () => {
                           }
                         };
 
-                        const rzp = new (window as any).Razorpay(options);
+                        const rzp = new window.Razorpay(options);
 
-                        rzp.on('payment.failed', function (response: any) {
-                          console.error("Payment Failed:", response.error);
+                        rzp.on('payment.failed', function (paymentError: { error: { code: string; description: string } }) {
+                          console.error("Payment Failed:", paymentError.error);
                           setIsLoading(false);
                           navigate("/wallet-topup-failed", {
-                            state: { error: response.error.description || "Payment failed at the gateway." }
+                            state: { error: paymentError.error.description || "Payment failed at the gateway." }
                           });
                         });
 

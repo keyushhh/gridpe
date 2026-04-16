@@ -1,33 +1,6 @@
 import { supabase, USER_ID } from './supabase';
-
-export interface BankAccount {
-  id: string;
-  user_id: string;
-  bank_name: string;
-  account_type: string;
-  account_number: string; // Plain text for insertion
-  masked_number?: string; // From view
-  encrypted_raw?: string; // Encrypted text/ID from view
-  account_holder_name: string;
-  ifsc_code: string;
-  branch_name: string;
-  is_default: boolean;
-  created_at?: string;
-  logo_url?: string;
-}
-
-export interface Payout {
-  id: string;
-  user_id: string;
-  bank_account_id?: string | null;
-  upi_id?: string | null;
-  wallet_name?: string | null;
-  payout_method: 'bank_account' | 'upi' | 'wallet';
-  amount: number;
-  status: 'pending' | 'success' | 'failed';
-  currency: string;
-  created_at?: string;
-}
+import { BankAccount, Payout } from '@/types';
+export type { BankAccount, Payout };
 
 export const fetchBankAccounts = async (userId: string = USER_ID) => {
   const { data, error } = await supabase
@@ -44,18 +17,6 @@ export const createBankAccount = async (account: Omit<BankAccount, 'id' | 'creat
   const { data, error } = await supabase
     .from('bank_accounts')
     .insert(account)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data as BankAccount;
-};
-
-export const updateBankAccount = async (id: string, updates: Partial<BankAccount>) => {
-  const { data, error } = await supabase
-    .from('bank_accounts')
-    .update(updates)
-    .eq('id', id)
     .select()
     .single();
 

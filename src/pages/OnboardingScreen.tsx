@@ -6,6 +6,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { LockOpen } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAsset } from "@/hooks/useAsset";
+import { Profile } from "@/types";
 import logo from "@/assets/gridpe-logo.svg";
 import otpInputField from "@/assets/otp-input-field.png";
 import toggleOn from "@/assets/toggle-on.svg";
@@ -101,7 +102,6 @@ const OnboardingScreen = () => {
   // Supabase Auth Listener (Separate from initial check)
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`Auth Event: ${event}`);
       if (event === 'SIGNED_IN' && session?.user) {
         // Explicit Login: treat as Login (isExplicitLogin = true)
         handleSession(session.user, true);
@@ -197,7 +197,6 @@ const OnboardingScreen = () => {
   };
 
   const handleSession = async (user: User, isExplicitLogin: boolean) => {
-    console.log(`handleSession started for user: ${user?.id}, mode: ${isExplicitLogin ? 'LOGIN' : 'RESTORE'}`);
 
     if (!user) {
       setIsAuthChecking(false);
@@ -208,7 +207,6 @@ const OnboardingScreen = () => {
     let profileError = null;
 
     try {
-      console.log("HandleSession: Fetching profile for", user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -217,9 +215,9 @@ const OnboardingScreen = () => {
 
       profileData = data;
       profileError = error;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("HandleSession: Fetch threw", err);
-      profileError = err;
+      profileError = err instanceof Error ? err : new Error(String(err));
     }
 
     const socialName = user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.preferred_username;
@@ -228,13 +226,12 @@ const OnboardingScreen = () => {
     // 2. Handle Profile Logic (Social links can lead to missing profiles on first landing)
     if (!profileData && !profileError) {
       // Profile Not Found - Create it
-      console.log("Profile not found in handleSession. Creating new profile...");
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert({
           id: user.id,
           phone: user.phone || null,
-          name: socialName || user.email || 'Guest User',
+          full_name: socialName || user.email || 'Guest User',
           mpin_set: false,
           kyc_status: 'incomplete'
         })
@@ -244,24 +241,23 @@ const OnboardingScreen = () => {
       if (createError) {
         console.error("Error creating profile in handleSession:", createError);
         // Fallback to minimal object to avoid blocking the user
-        currentProfile = { id: user.id, mpin_set: false } as any;
+        currentProfile = { id: user.id, mpin_set: false } as Profile;
       } else {
-        console.log("Profile created successfully in handleSession");
         currentProfile = newProfile;
       }
     } else if (profileError) {
       console.error("Non-missing-row error fetching profile:", profileError);
       // Fallback
-      currentProfile = { id: user.id, mpin_set: false } as any;
+      currentProfile = { id: user.id, mpin_set: false } as Profile;
     }
 
     // Profile Exists (or just created)
     if (profileData) {
       // Optional: Update name if social login provides newer info
-      if (socialName && profileData.name !== socialName) {
+      if (socialName && profileData.full_name !== socialName) {
         const { data: updatedProfile, error: updateError } = await supabase
           .from('profiles')
-          .update({ name: socialName })
+          .update({ full_name: socialName })
           .eq('id', user.id)
           .select()
           .single();
@@ -291,12 +287,10 @@ const OnboardingScreen = () => {
       // Login Mode
       if (isMpinSet) {
         // Existing User -> Enter MPIN
-        console.log("Login Mode: MPIN set. Requesting MPIN.");
         setShowMpinLogin(true);
         setIsAuthChecking(false);
       } else {
         // New User (or incomplete) -> Create MPIN
-        console.log("Login Mode: MPIN not set. Showing Setup.");
         setShowOtpInput(false);
         setShowMpinSetup(true);
         setIsAuthChecking(false);
@@ -305,14 +299,12 @@ const OnboardingScreen = () => {
       // Restore Mode (App Launch)
       if (isMpinSet) {
         // Valid Session -> Enter MPIN
-        console.log("Restore Mode: MPIN set. Requesting MPIN.");
         setShowMpinLogin(true);
         setIsAuthChecking(false);
       } else {
         // User is logged in but has no MPIN. 
         // This happens after a fresh Social Login redirect.
         // Don't sign out! Just show the MPIN setup.
-        console.log("Restore Mode: MPIN NOT set. Showing Setup instead of force-signout.");
         setShowOtpInput(false);
         setShowMpinSetup(true);
         setIsAuthChecking(false);
@@ -332,7 +324,6 @@ const OnboardingScreen = () => {
       const cleanNumber = digitsOnly.slice(-10); // Take last 10 digits
       const phoneToSend = `+91${cleanNumber}`;
 
-      console.log(`Verifying OTP for ${phoneToSend}`);
 
       const { data, error } = await supabase.auth.verifyOtp({
         phone: phoneToSend,
@@ -351,9 +342,10 @@ const OnboardingScreen = () => {
       } else {
         setOtpError("Session validation failed. Please try again.");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      setOtpError("Something went wrong. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong.";
+      setOtpError(`${errorMessage} Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -400,7 +392,7 @@ const OnboardingScreen = () => {
         })
         .eq('id', user.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Failed to update MPIN status:", error);
@@ -409,7 +401,6 @@ const OnboardingScreen = () => {
         return;
       }
 
-      console.log("MPIN status updated on server:", updatedProfile);
       setProfile(updatedProfile);
 
       // Save biometric preference and secure MPIN if enabled
@@ -419,11 +410,11 @@ const OnboardingScreen = () => {
       }
       saveBiometricEnabled(biometricEnabled);
 
-      console.log("MPIN Setup Complete!", { biometricEnabled });
       navigate("/home", { replace: true });
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Unexpected error in MPIN setup:", err);
-      setGeneralError("An unexpected error occurred. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setGeneralError(`${errorMessage} Please try again.`);
       setIsLoading(false);
     }
   };
@@ -434,7 +425,6 @@ const OnboardingScreen = () => {
 
     // Developer Bypass for Live Mode debugging
     if (pinToVerify === '8787' || pinToVerify === '9999') {
-      console.log("Developer Bypass Triggered");
       navigate("/home", { replace: true });
       return;
     }
@@ -458,7 +448,7 @@ const OnboardingScreen = () => {
           .select('mpin_hash')
           .eq('id', user.id)
           .maybeSingle();
-        targetHash = fetchedProfile?.mpin_hash;
+        targetHash = fetchedProfile?.mpin_hash ?? null;
       }
 
       if (!targetHash) {
@@ -477,9 +467,10 @@ const OnboardingScreen = () => {
         setMpin("");
         setIsLoading(false);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Login verification error:", err);
-      setGeneralError("Verification failed. Check connection.");
+      const errorMessage = err instanceof Error ? err.message : "Verification failed.";
+      setGeneralError(`${errorMessage} Check connection.`);
       setIsLoading(false);
     }
   };
@@ -728,7 +719,6 @@ const OnboardingScreen = () => {
               <button
                 onClick={() => {
                   if (resendTimer === 0) {
-                    console.log("Resend OTP");
                     setOtp(""); // Clear previous OTP
                     handleRequestOTP();
                   }

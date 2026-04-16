@@ -39,17 +39,6 @@ const ProfileEdit = () => {
   const [isEditing, setIsEditing] = useState(false); // Default to read-only
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Effect to handle email changes
-  useEffect(() => {
-    if (email !== contextEmail && contextEmailVerified) {
-      // If email changes after being verified, unverify it locally
-      setEmailVerified(false);
-    } else if (email === contextEmail && contextEmailVerified) {
-      // If reverted to original verified email, restore verified status
-      setEmailVerified(true);
-    }
-  }, [email, contextEmail, contextEmailVerified]);
-
   const helperText = contextImage
     ? "Add or update your profile photo."
     : "Tap to add your beautiful mugshot. Or cat. We’re not picky.";
@@ -68,7 +57,7 @@ const ProfileEdit = () => {
     emailHelperText = "Second thoughts? Do it for the plot (again).";
   }
 
-  const handleCtaClick = () => {
+  const handleSaveProfile = () => {
     if (!isEditing) {
       setIsEditing(true);
     } else {
@@ -146,9 +135,7 @@ const ProfileEdit = () => {
         <div className="w-10" /> {/* Spacer */}
       </div>
 
-      {/* Content */}
       <div className="px-5 mt-8">
-        {/* Profile Photo Section */}
         <div className="bg-white dark:bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-[#E9EAEB] dark:border-white/10 h-[101px]">
           <img
             src={profileImage || avatarImg}
@@ -185,13 +172,11 @@ const ProfileEdit = () => {
           </div>
         </div>
 
-        {/* Personal Information */}
         <div className="mt-8">
           <p className="mb-[10px] text-muted-foreground text-[14px] font-bold tracking-wider">
             PERSONAL INFORMATION
           </p>
 
-          {/* Name Input */}
           <Input
             placeholder="What should we call you?"
             value={name}
@@ -206,7 +191,6 @@ const ProfileEdit = () => {
             }}
           />
 
-          {/* Phone Number (Read Only) */}
           <div className="space-y-2 mt-[21px]">
             <div
               className="w-full h-[48px] rounded-full flex items-center px-6 justify-between border-[#E6E8EB] dark:border-none opacity-70 cursor-not-allowed"
@@ -235,7 +219,6 @@ const ProfileEdit = () => {
             </p>
           </div>
 
-          {/* Email Input */}
           <div className="mt-[32px]">
             <div className="relative">
               <Input
@@ -252,7 +235,6 @@ const ProfileEdit = () => {
                 }}
               />
 
-              {/* Verification UI */}
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
                 {emailVerified ? (
                   <img
@@ -282,9 +264,8 @@ const ProfileEdit = () => {
             </p>
           </div>
 
-          {/* CTA Buttons - Pushed up by 50px (115 - 50 = 65px) */}
           <Button
-            onClick={handleCtaClick}
+            onClick={handleSaveProfile}
             className="w-full h-[48px] rounded-full text-[16px] font-medium bg-[#5260FE] hover:bg-[#5260FE]/90 text-white border-none mt-[65px]"
           >
             {ctaLabel}
@@ -305,7 +286,6 @@ const ProfileEdit = () => {
         </div>
       </div>
 
-      {/* Footer Info */}
       <div className="px-5 pb-safe pb-4 opacity-40 flex flex-col items-start mt-auto">
         <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
         <p className="text-sm mt-1">This is not where you find love.</p>

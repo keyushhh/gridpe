@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { hapticSuccess } from "@/utils/haptics";
+import { formatINR } from "@/utils/format";
 import successIcon from "@/assets/success.svg";
 import checkIcon from "@/assets/check-icon.svg";
 import elipseGreenIcon from "@/assets/elipse-green.svg";
@@ -20,7 +21,7 @@ const WalletTopUpSuccess = () => {
         // Display the amount that actually landed in the wallet
         const amountDisplay = creditAmount || totalAmount;
         if (amountDisplay) {
-            setFormattedAmount(amountDisplay.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            setFormattedAmount(formatINR(amountDisplay, { showSymbol: false }));
             hapticSuccess();
         }
 

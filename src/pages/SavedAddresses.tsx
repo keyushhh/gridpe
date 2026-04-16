@@ -48,8 +48,9 @@ const SavedAddresses = () => {
                 const data = await fetchAddresses(userId);
                 setAddresses(data);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Failed to load addresses", e);
+            showToaster("Failed to load saved addresses. Please try again.", "error");
         } finally {
             setLoading(false);
         }
@@ -77,7 +78,10 @@ const SavedAddresses = () => {
                     if (parsed.id === idToDelete) {
                         localStorage.removeItem("gridpe_user_address");
                     }
-                } catch (err) { }
+                } catch (err) {
+                    console.warn("Corrupted selection data found during delete.");
+                    localStorage.removeItem("gridpe_user_address");
+                }
             }
         } catch (e: any) {
             console.error("Failed to delete address", e);
@@ -93,8 +97,11 @@ const SavedAddresses = () => {
                 text: `Address Details:\n${addr.label}\n${addressText}`,
                 dialogTitle: `Share ${addr.label}`,
             });
-        } catch (e) {
+        } catch (e: any) {
             console.error("Failed to share address", e);
+            if (e.message !== 'Share canceled') {
+                showToaster("Failed to share address. Feature might be unsupported.", "error");
+            }
         }
     };
 

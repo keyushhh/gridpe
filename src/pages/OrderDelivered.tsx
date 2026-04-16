@@ -10,7 +10,7 @@ import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import { useUser } from "@/contexts/UserContext";
 import { deliverOrder } from "@/lib/orders";
-import { formatINR } from "@/utils/format";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 const OrderDelivered = () => {
     const navigate = useNavigate();
@@ -18,6 +18,7 @@ const OrderDelivered = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const { profile } = useUser();
+    const { showToaster } = useCustomToaster();
     const [seconds, setSeconds] = useState(30);
 
     // Fallback amount if not passed in state
@@ -29,7 +30,10 @@ const OrderDelivered = () => {
         if (location.state?.order?.id && profile?.id) {
             hapticSuccess();
             deliverOrder(location.state.order.id, profile.id, location.state.isFx)
-                .catch(err => console.error("Failed to mark order as delivered:", err));
+                .catch(err => {
+                    console.error("Failed to mark order as delivered:", err);
+                    showToaster(`Failed to complete delivery status: ${err.message || 'Please contact support.'}`, 'error');
+                });
         } else {
             hapticSuccess();
         }

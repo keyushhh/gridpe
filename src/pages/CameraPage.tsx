@@ -28,7 +28,6 @@ const CameraPage = () => {
       const { data: { text } } = await worker.recognize(imageSrc);
       await worker.terminate();
 
-      console.log("OCR Result:", text);
 
       // Simple regex for card number (16 digits, possibly with spaces)
       const cardNumberMatch = text.replace(/\s/g, '').match(/\d{16}/);

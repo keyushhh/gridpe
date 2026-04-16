@@ -31,7 +31,7 @@ const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: currentYear - 1920 + 1 }, (_, i) => currentYear - i);
 
-export function GlassCalendar({ selected, onSelect, onClose, disableFutureDates = false, disablePastDates = false, className }: GlassCalendarProps) {
+function GlassCalendar({ selected, onSelect, onClose, disableFutureDates = false, disablePastDates = false, className }: GlassCalendarProps) {
   const [currentDate, setCurrentDate] = useState(selected || new Date());
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);

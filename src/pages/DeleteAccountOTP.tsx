@@ -43,7 +43,6 @@ const DeleteAccountOTP = () => {
 
   const handleDelete = () => {
     if (otp.length === 6) {
-      console.log("Deleting account...", { ...location.state, otp });
       navigate("/account-deleted");
     }
   };

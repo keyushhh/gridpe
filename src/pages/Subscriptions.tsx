@@ -149,7 +149,6 @@ const Subscriptions = () => {
                 type: "subscription_renewal",
                 tier_name: selectedTierName
             };
-            console.log("[DEBUG] Sending Renewal Payload:", payload);
 
             const response = await fetch(functionUrl, {
                 method: 'POST',
@@ -171,7 +170,11 @@ const Subscriptions = () => {
             // 🛠️ The FIX: Parse the data if Supabase returned it as a raw string
             let order = data;
             if (typeof data === 'string') {
-                try { order = JSON.parse(data); } catch (e) { }
+                try {
+                    order = JSON.parse(data);
+                } catch (e) {
+                    throw new Error("Failed to parse subscription order response");
+                }
             }
 
             const options = {
@@ -181,7 +184,7 @@ const Subscriptions = () => {
                 order_id: order.id,
                 name: "Grid.pe",
                 description: `${selectedTierName.toUpperCase()} Renewal`,
-                handler: async function (response: any) {
+                handler: async function (response) {
                     try {
                         setIsLoadingPay(true);
                         const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-subscription`;
@@ -216,9 +219,10 @@ const Subscriptions = () => {
                                 },
                             });
                         }
-                    } catch (err: any) {
-                        console.error("Renewal verification error:", err.message || err);
-                        alert(`Payment successful, but verification failed: ${err.message || 'Please contact support.'}`);
+                    } catch (err: unknown) {
+                        const errorMessage = err instanceof Error ? err.message : 'Please contact support.';
+                        console.error("Renewal verification error:", errorMessage);
+                        alert(`Payment successful, but verification failed: ${errorMessage}`);
                     } finally {
                         setIsLoadingPay(false);
                         setIsSubscriptionActive(true); // Optimistically set active
@@ -232,18 +236,19 @@ const Subscriptions = () => {
                 theme: { color: "#5260FE" }
             };
 
-            const rzp = new (window as any).Razorpay(options);
+            const rzp = new window.Razorpay(options);
 
-            rzp.on('payment.failed', function (response: any) {
-                console.error("Payment Failed:", response.error);
+            rzp.on('payment.failed', function (paymentError: { error: { code: string; description: string } }) {
+                console.error("Payment Failed:", paymentError.error);
                 setIsLoadingPay(false);
             });
 
             rzp.open();
 
-        } catch (err: any) {
-            console.error("Renewal error:", err.message);
-            alert("Error: " + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+            console.error("Renewal error:", errorMessage);
+            alert("Error: " + errorMessage);
             setIsLoadingPay(false);
         }
     };
@@ -358,8 +363,8 @@ const Subscriptions = () => {
                             {nextTier && isSubscriptionActive && !scheduledDowngrade && (
                                 <button
                                     onClick={handleUpgrade}
-                                    disabled={isProPlus && (paymentStatus === 'pending' || isRenewalPending || (profile as any)?.subscription_status === 'pending')}
-                                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium font-satoshi flex items-center justify-center ${isProPlus && (paymentStatus === 'pending' || isRenewalPending || (profile as any)?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE] active:scale-95 transition-transform mb-3'}`}
+                                    disabled={isProPlus && (paymentStatus === 'pending' || isRenewalPending || profile?.subscription_status === 'pending')}
+                                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium font-satoshi flex items-center justify-center ${isProPlus && (paymentStatus === 'pending' || isRenewalPending || profile?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE] active:scale-95 transition-transform mb-3'}`}
                                 >
                                     Upgrade Now ₹{upgradePrice}/month
                                 </button>

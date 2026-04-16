@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { hapticWarning } from "@/utils/haptics";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Order } from "@/lib/orders";
+import { Order } from "@/types";
 import processingIcon from "@/assets/processing.svg";
 import successIcon from "@/assets/success.svg";
 import failedIcon from "@/assets/failed.svg";

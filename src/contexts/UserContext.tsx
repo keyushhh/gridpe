@@ -1,27 +1,10 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase, USER_ID } from '@/lib/supabase';
-import { calculateBalance, calculateHeldBalance, WalletTransaction as LibWalletTransaction, Payout } from '@/lib/wallet';
+import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
+import { calculateBalance, calculateHeldBalance } from '@/lib/wallet';
+import { WalletTier, WalletTransaction, Profile as UserProfile, Tables } from '@/types';
 
-/* -------------------- Types -------------------- */
-
-export type WalletTier = 'Starter' | 'Pro' | 'Elite' | 'Supreme';
-
-interface UserProfile {
-  id: string;
-  phone: string | null;
-  name: string | null;
-  created_at?: string;
-  mpin_set?: boolean;
-  mpin_hash?: string | null;
-  mpin_created_at?: string | null;
-  reward_points?: number;
-  referral_code?: string;
-  subscription_status?: string;
-  is_passport_verified?: boolean;
-  biometric_on?: boolean;
-}
-
-export interface WalletTransaction extends LibWalletTransaction { }
+export type { WalletTier };
 
 interface UserState {
   phoneNumber: string;
@@ -53,7 +36,7 @@ interface UserState {
   isFxEnabled: boolean;
 
   /* Tier Object */
-  wallet_tiers: any | null;
+  wallet_tiers: Tables['wallet_tiers'] | null;
   subscriptionPrice: number;
   paymentStatus: 'pending' | 'completed' | null;
   isRenewalPending: boolean;
@@ -83,7 +66,7 @@ interface UserContextType extends UserState {
   refreshBalance: (userId?: string) => Promise<void>;
   refreshTransactions: (userId?: string) => Promise<void>;
   fetchProfileData: (userId?: string) => Promise<void>;
-  addMoney: (amount: number) => Promise<{ success: boolean; error?: any }>;
+  addMoney: (amount: number) => Promise<{ success: boolean; error?: Error | PostgrestError | string }>;
 }
 
 /* -------------------- Constants -------------------- */
@@ -165,12 +148,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (profileError) throw profileError;
 
       if (profileData) {
-        let tierData = profileData.wallet_tiers as any;
+        let tierData = profileData.wallet_tiers as unknown as Tables['wallet_tiers'] | Tables['wallet_tiers'][] | null;
         if (Array.isArray(tierData)) {
           tierData = tierData[0];
         }
 
-        let schedData = profileData.scheduled_tier as any;
+        let schedData = profileData.scheduled_tier as unknown as { name: string } | { name: string }[] | null;
         if (Array.isArray(schedData)) schedData = schedData[0];
         let schedParsedName: string | null = null;
         if (schedData && schedData.name) {
@@ -213,7 +196,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             kyc_status: profileData.kyc_status,
             mpin_hash: profileData.mpin_hash,
             biometric_on: !!profileData.biometric_on
-          } as any,
+          } as UserProfile,
           rewardPoints: Number(profileData.reward_points || 0),
           isPassportVerified: !!profileData.is_passport_verified,
           isWalletActivated: prev.isWalletActivated || 
@@ -221,7 +204,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             profileData.subscription_status === 'completed' ||
             !!profileData.is_passport_verified
         }));
-        console.log('Profile and tier data refreshed via JOIN from Supabase');
       } else {
         console.warn('No profile found for user:', userId, '- Attempting to create one...');
 
@@ -241,7 +223,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         if (createError) {
           console.error('Failed to auto-create profile:', createError);
         } else if (newProfile) {
-          console.log('Minimal profile created for user:', userId);
           // Re-fetch to get joined tier data (the default tier should be there)
           return fetchProfileData();
         }
@@ -276,7 +257,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   /* Real-time KYC Status Subscription */
   useEffect(() => {
-    let channel: any;
+    let channel: RealtimeChannel | null = null;
 
     const setupKycSubscription = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -284,7 +265,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (!currentUserId) return;
 
-      console.log('Setting up KYC Realtime sync for userId:', currentUserId);
 
       channel = supabase.channel(`kyc-status-sync-${currentUserId}`)
         .on(
@@ -296,7 +276,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             filter: `id=eq.${currentUserId}`
           },
           (payload) => {
-            console.log('Profile updated, refreshing all data:', payload);
             fetchProfileData(currentUserId);
           }
         )
@@ -318,7 +297,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = overrideUserId || user?.id || USER_ID;
 
-      console.log('Reading balance for userId:', userId);
 
       // Read directly from the wallets table to avoid calculation drift
       const { data: walletData, error: walletError } = await supabase
@@ -341,9 +319,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', userId)
         .eq('status', 'held');
 
-      const held = Math.floor(calculateHeldBalance(txData as LibWalletTransaction[] || []));
+      const held = Math.floor(calculateHeldBalance(txData as WalletTransaction[] || []));
 
-      console.log('Balance read from wallets (floored):', flooredBalance, 'Held:', held, 'for userId:', userId);
       
       // Auto-activate if user has balance or held funds
       const shouldBeActivated = flooredBalance > 0 || held > 0;
@@ -399,7 +376,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   // 2. Dynamic Realtime Sync (Dependent on userId)
   useEffect(() => {
-    let channel: any;
+    let channel: RealtimeChannel | null = null;
 
     const setupSync = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -407,7 +384,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (!currentUserId) return;
 
-      console.log('Setting up Realtime sync for userId:', currentUserId);
 
       channel = supabase.channel(`user-context-wallet-sync-${currentUserId}`)
         .on(
@@ -419,7 +395,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             filter: `user_id=eq.${currentUserId}`
           },
           (payload) => {
-            console.log('Wallet table updated, refreshing balance:', payload);
             fetchAndCalculateBalance(currentUserId);
           }
         )
@@ -432,7 +407,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             filter: `user_id=eq.${currentUserId}`
           },
           () => {
-            console.log('Wallet transactions updated, recalculating balance...');
             fetchAndCalculateBalance(currentUserId);
           }
         )
@@ -445,7 +419,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             filter: `user_id=eq.${currentUserId}`
           },
           () => {
-            console.log('Payouts updated, recalculating balance...');
             fetchAndCalculateBalance(currentUserId);
           }
         )
@@ -456,7 +429,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       if (channel) {
-        console.log('Cleaning up Realtime sync...');
         supabase.removeChannel(channel);
       }
     };
@@ -537,9 +509,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .from('wallet_tiers')
         .select('id')
         .ilike('name', tier)
-        .single();
+        .maybeSingle();
 
       if (tierError) throw tierError;
+      if (!tierData) throw new Error(`Tier ${tier} not found`);
 
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || USER_ID;
@@ -596,7 +569,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const parsed = stored ? JSON.parse(stored) : {};
       localStorage.setItem('gridpe_user_state', JSON.stringify({ ...parsed, isPassportVerified: verified }));
 
-      console.log('Passport verification status updated in DB:', verified);
     } catch (err) {
       console.error('Failed to update passport verification in DB:', err);
     }
@@ -607,11 +579,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || USER_ID;
 
-      console.log('[scheduleDowngrade] Calling RPC with:', {
-        p_user_id: userId,
-        p_tier_name: tier,
-        p_tier_change_date: effectiveDate
-      });
 
       const { data: rpcResult, error: rpcError } = await supabase.rpc('schedule_downgrade', {
         p_user_id: userId,
@@ -624,14 +591,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw rpcError;
       }
 
-      console.log('[scheduleDowngrade] RPC SUCCESS:', rpcResult);
 
       // Set optimistic local state immediately
       setState(prev => ({ ...prev, scheduledDowngrade: { tier, effectiveDate } }));
 
       // Re-fetch from DB to confirm the write actually persisted
       await fetchProfileData();
-      console.log('[scheduleDowngrade] Profile data re-fetched from DB after RPC');
     } catch (error) {
       console.error('[scheduleDowngrade] Failed to schedule downgrade via RPC:', error);
     }
@@ -664,9 +629,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           .from('wallet_tiers')
           .select('id, max_wallet_balance')
           .ilike('name', newTier)
-          .single();
+          .maybeSingle();
 
         if (tierError) throw tierError;
+        if (!tierData) throw new Error(`Tier ${newTier} not found`);
 
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id || USER_ID;
@@ -694,13 +660,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           throw rpcError;
         }
 
-        console.log('[completeScheduledDowngrade] RPC SUCCESS:', rpcResult);
 
         // 3. Refresh everything so the UI updates immediately
         await refreshBalance(userId);
         await fetchProfileData();
 
-        console.log('[completeScheduledDowngrade] UI refreshed after forfeiture');
       } catch (err) {
         console.error('Failed to complete downgrade:', err);
       }

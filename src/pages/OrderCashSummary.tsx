@@ -30,22 +30,7 @@ import { useUser } from "@/contexts/UserContext";
 import { calculateDistance, HUB_COORDS, normalizeCity } from "@/lib/utils";
 import { setBadge } from "@/utils/badge";
 
-interface SavedAddress {
-    id?: string;
-    tag: string;
-    house: string;
-    area: string;
-    landmark?: string;
-    name: string;
-    phone: string;
-    displayAddress: string;
-    city: string;
-    state: string;
-    postcode: string;
-    plusCode?: string;
-    latitude?: number;
-    longitude?: number;
-}
+import { SavedAddress } from "@/types";
 
 const OrderCashSummary = () => {
     const navigate = useNavigate();
@@ -256,9 +241,11 @@ const OrderCashSummary = () => {
                     const updatedAddr = { ...savedAddress, id: addressId };
                     setSavedAddress(updatedAddr);
                     localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
-                } catch (addrErr: any) {
+                    localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
+                } catch (addrErr: unknown) {
                     console.error("Failed to save address before order", addrErr);
-                    showToaster(`Failed to save address: ${addrErr.message || "Please try again."}`, 'error');
+                    const errorMessage = addrErr instanceof Error ? addrErr.message : "Please try again.";
+                    showToaster(`Failed to save address: ${errorMessage}`, 'error');
                     return;
                 }
             }
@@ -276,7 +263,6 @@ const OrderCashSummary = () => {
             }
 
             if (!zoneId) {
-                console.log("Location not served. Redirecting to Not Available screen.");
                 navigate('/not-available');
                 return;
             }
@@ -319,9 +305,6 @@ const OrderCashSummary = () => {
                         .select('id, location_name, city')
                         .eq('city', normalizeCity(savedAddress.city));
                     
-                    console.log('HUB FETCH - City:', normalizeCity(savedAddress.city));
-                    console.log('HUB FETCH - result:', hubs);
-                    console.log('HUB FETCH - error:', hubsError);
                         
                     if (hubs && hubs.length > 0) {
                         // Use the first active hub for the city as coordinates are missing for individual hubs
@@ -333,20 +316,20 @@ const OrderCashSummary = () => {
                     }
                 }
                 
-                console.log('Selected hub ID value:', pickupLocation, typeof pickupLocation);
 
-                // Fetch customer's phone number from profiles table
-                const { data: userProfile } = await supabase
+                const { data: userProfile, error: userError } = await supabase
                     .from('profiles')
                     .select('phone')
                     .eq('id', userId)
                     .single();
 
-                const customerPhoneNumber = userProfile?.phone || null;
+                if (userError || !userProfile?.phone) {
+                    throw new Error("Please add a phone number to your profile to proceed.");
+                }
 
-                const deliveryAddressText = (savedAddress as any).address_line 
-                    || (savedAddress as any).full_address 
-                    || savedAddress.tag 
+                const customerPhoneNumber = userProfile.phone;
+
+                const deliveryAddressText = savedAddress.displayAddress 
                     || getAddressDisplay();
 
                 const { data: earnings, error: earningsError } = await supabase.rpc('calculate_rider_earning', {
@@ -401,14 +384,6 @@ const OrderCashSummary = () => {
 
             const createOrderDirectly = async (aid: string, phone: string | null, pAddress: string | null, dAddressText: string) => {
                 const payload = getOrderPayload(aid, phone, pAddress, dAddressText);
-                
-                console.log('ORDER PAYLOAD CHECK:', {
-                    pickup_location: payload.pickup_location,
-                    delivery_address_text: payload.delivery_address_text,
-                    customer_phone_number: payload.customer_phone_number,
-                    hub_id: payload.hub_id,
-                    selectedHubId: pickupLocation
-                });
 
                 if (!payload.hub_id) console.error("DEBUG: hub_id is NULL");
 
@@ -416,9 +391,7 @@ const OrderCashSummary = () => {
                 if (!payload.pickup_location) console.error("DEBUG: pickup_location (hub address) fetch failed or is NULL");
                 if (!payload.delivery_address_text) console.error("DEBUG: delivery_address_text is NULL");
 
-                console.log("Inserting order directly:", payload);
 
-                console.log("FINAL ORDER PAYLOAD (CASH):", payload);
 
                 const { data, error } = await supabase
                     .from('orders')
@@ -439,24 +412,25 @@ const OrderCashSummary = () => {
             };
 
             try {
-                // Fetch context variables from profiles table
-                const { data: userProfile } = await supabase
+                const { data: userProfile, error: profileError } = await supabase
                     .from('profiles')
                     .select('phone')
                     .eq('id', userId)
-                    .single();
-                const customerPhoneNumber = userProfile?.phone || null;
+                    .maybeSingle();
+
+                if (profileError || !userProfile?.phone) {
+                    throw new Error("A valid phone number is required to place an order.");
+                }
+
+                const customerPhoneNumber = userProfile.phone;
 
                 let pAddress = pickupAddress;
                 // pickupLocation is the UUID, pickupAddress is the TEXT
                 
-                const dAddressText = (savedAddress as any).address_line 
-                    || (savedAddress as any).full_address 
-                    || savedAddress.tag 
+                const dAddressText = savedAddress.displayAddress 
                     || getAddressDisplay();
 
                 // VERIFICATION LOG:
-                console.log("Explicitly creating order with address_id:", addressId);
 
                 const orderData = await createOrderDirectly(addressId!, customerPhoneNumber, pAddress, dAddressText);
                 const orderId = orderData.id;
@@ -474,16 +448,16 @@ const OrderCashSummary = () => {
                         order: orderData
                     }
                 });
-            } catch (orderError: any) {
+            } catch (orderError: unknown) {
                 console.error("First order attempt failed:", orderError);
 
+                const err = orderError as { message?: string; code?: string };
                 // Handle Stale Address ID (Foreign Key Violation)
-                const isAddressError = orderError.message?.toLowerCase().includes('foreign key') ||
-                    orderError.message?.toLowerCase().includes('address_id') ||
-                    orderError.code === '23503';
+                const isAddressError = err.message?.toLowerCase().includes('foreign key') ||
+                    err.message?.toLowerCase().includes('address_id') ||
+                    err.code === '23503';
 
                 if (isAddressError && savedAddress) {
-                    console.log("Possible address issue detected. Syncing address to DB...");
                     try {
                         const newAddress = await createAddress({
                             user_id: userId,
@@ -505,19 +479,19 @@ const OrderCashSummary = () => {
                         setSavedAddress(updatedAddr);
                         localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
-                        console.log("Retrying order with new address_id:", newAddressId);
                         
-                        // Re-fetch phone number for retry from profiles table
-                        const { data: retryProfile } = await supabase
+                        const { data: retryProfile, error: retryError } = await supabase
                             .from('profiles')
                             .select('phone')
                             .eq('id', userId)
                             .single();
-                        
-                        const retryPhone = retryProfile?.phone || null;
-                        const retryDAddressText = (updatedAddr as any).address_line 
-                            || (updatedAddr as any).full_address 
-                            || updatedAddr.tag 
+
+                        if (retryError || !retryProfile || !retryProfile.phone) {
+                            throw new Error("A valid phone number is required to proceed.");
+                        }
+
+                        const retryPhone = retryProfile.phone;
+                        const retryDAddressText = updatedAddr.displayAddress 
                             || getAddressDisplay();
 
                         const retryData = await createOrderDirectly(newAddressId, retryPhone, pickupAddress, retryDAddressText);
@@ -544,9 +518,10 @@ const OrderCashSummary = () => {
                 throw orderError;
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Final catch in handlePay:", error);
-            showToaster(`Order Failed: ${error.message || "Please try again."}`, 'error');
+            const errorMessage = error instanceof Error ? error.message : "Please try again.";
+            showToaster(`Order Failed: ${errorMessage}`, 'error');
         }
     };
 

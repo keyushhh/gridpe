@@ -56,7 +56,6 @@ const WalletWithdraw = () => {
     const [showKeypad, setShowKeypad] = useState<boolean>(false);
     const [withdrawFull, setWithdrawFull] = useState<boolean>(false);
 
-    // Backend Integration State
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [, setWithdrawals] = useState<Withdrawal[]>([]);
@@ -70,7 +69,6 @@ const WalletWithdraw = () => {
     const currentLimit = withdrawalLimits[walletTier] || 3000;
 
     const fetchData = async () => {
-        // Fetch withdrawals history
         const { data: wData } = await supabase
             .from("withdrawals")
             .select("*")
@@ -109,7 +107,7 @@ const WalletWithdraw = () => {
         setError(null);
     };
 
-    const handlePillClick = (val: string) => {
+    const handleAmountSelect = (val: string) => {
         setPillAmount(val);
         if (withdrawFull) setWithdrawFull(false);
         setError(null);
@@ -142,7 +140,6 @@ const WalletWithdraw = () => {
                 />
             )}
 
-            {/* Header */}
             <div className="px-5 pt-4 flex items-center justify-between z-10 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
@@ -157,7 +154,6 @@ const WalletWithdraw = () => {
             </div>
 
             <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar" onClick={() => setShowKeypad(false)}>
-                {/* Banner Section */}
                 <div className="px-5 mb-8 mt-[39px] z-10 shrink-0">
                     <div
                         className={`w-full h-[120px] rounded-[18px] flex flex-col justify-start pt-4 px-6 relative overflow-hidden ${isDarkMode ? '' : 'border border-[#E9EAEB]'}`}
@@ -176,7 +172,6 @@ const WalletWithdraw = () => {
                     </div>
                 </div>
 
-                {/* Main Content */}
                 <div className="flex flex-col items-center pt-[32px] z-10 shrink-0">
                     <div
                         onClick={(e) => { e.stopPropagation(); setShowKeypad(true); }}
@@ -210,7 +205,7 @@ const WalletWithdraw = () => {
                         {["500", "1000", "5000"].map((val) => (
                             <button
                                 key={val}
-                                onClick={(e) => { e.stopPropagation(); handlePillClick(val); }}
+                                onClick={(e) => { e.stopPropagation(); handleAmountSelect(val); }}
                                 className="relative h-[30px] flex items-center justify-center px-3 py-[6px] transition-transform active:scale-95 disabled:opacity-50"
                                 disabled={parseFloat(val) > walletBalance || parseFloat(val) > currentLimit}
                             >
@@ -290,7 +285,6 @@ const WalletWithdraw = () => {
                 </div>
             </div>
 
-            {/* Keypad Section */}
             <div
                 className={`w-full relative rounded-t-[32px] overflow-hidden shrink-0 ${isDarkMode ? '' : 'bg-[#FAFAFA] border-t border-[#E9EAEB]'}`}
                 onClick={(e) => e.stopPropagation()}

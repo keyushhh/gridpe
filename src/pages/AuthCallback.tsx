@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 const AuthCallback = () => {
   useEffect(() => {
     const handleAuth = async () => {
-      console.log("AuthCallback: Checking for session...");
       
       // Robust Token Extraction for HashRouter
       // HashRouter puts its own route after the first #/
@@ -12,7 +11,6 @@ const AuthCallback = () => {
       // Example: /#/auth/v1/callback#access_token=...&refresh_token=...
       
       const fullUrl = window.location.href;
-      console.log("Full Redirect URL:", fullUrl);
 
       // 1. Manually extract tokens if they are in the fragment
       let tokensFound = false;
@@ -21,7 +19,6 @@ const AuthCallback = () => {
       const fragment = hashParts.find(p => p.includes('access_token='));
 
       if (fragment) {
-        console.log("AuthCallback: Found tokens in fragment, attempting manual session set...");
         const params = new URLSearchParams(fragment.startsWith('/') ? fragment.slice(1) : fragment);
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
@@ -33,7 +30,6 @@ const AuthCallback = () => {
           });
           
           if (!error) {
-            console.log("AuthCallback: Session set successfully from tokens");
             tokensFound = true;
           } else {
             console.error("AuthCallback: Error setting session:", error);
@@ -46,7 +42,6 @@ const AuthCallback = () => {
         const searchParams = new URLSearchParams(window.location.search);
         const code = searchParams.get('code');
         if (code) {
-          console.log("AuthCallback: Code found, exchanging for session...");
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (!error) tokensFound = true;
         else console.error("AuthCallback: Exchange error:", error);
@@ -56,11 +51,9 @@ const AuthCallback = () => {
       // 3. Final Check & Redirect
       const { data: { session } } = await supabase.auth.getSession();
       if (session || tokensFound) {
-        console.log("AuthCallback: User Logged In. Landing on Home.");
         // We use window.location.href to break out of any stale router state
         window.location.href = `${window.location.origin}/#/`;
       } else {
-        console.log("AuthCallback: No session found after 3s. Bailing to Onboarding.");
         setTimeout(() => {
           window.location.href = `${window.location.origin}/#/`;
         }, 3000);

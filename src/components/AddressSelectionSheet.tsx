@@ -5,15 +5,11 @@ import { X, Search, Plus, MapPin, MessageSquareMore } from "lucide-react";
 import { reverseGeocode, forwardGeocode } from "@/utils/geoUtils";
 import { Geolocation } from '@capacitor/geolocation';
 import { OpenLocationCode } from "open-location-code";
-import { fetchAddresses, deleteAddress, Address } from "@/lib/addresses";
+import { fetchAddresses, deleteAddress } from "@/lib/addresses";
+import { Address, SavedAddress } from "@/types";
 import { supabase } from "@/lib/supabase";
 
 // Assets
-import locationIcon from "@/assets/location-pin.svg"; // Fallback, will try to use specific assets
-import addPlusIcon from "@/assets/add plus.svg";
-import currentLocationIcon from "@/assets/current-location.svg";
-import navIcon from "@/assets/navigation icon.svg";
-import chatIcon from "@/assets/chat.svg";
 import chevronRight from "@/assets/chevron right.svg";
 import homeIcon from "@/assets/HomeTag.svg";
 import workIcon from "@/assets/Work.svg";
@@ -23,28 +19,11 @@ import editIcon from "@/assets/edit.svg";
 import shareIcon from "@/assets/share.svg";
 import deleteIcon from "@/assets/delete.svg";
 import selectedAddressBg from "@/assets/selected-address.png";
-import popBgDefault from "@/assets/pop-bg-default.png";
 import buttonCancelWide from "@/assets/button-cancel-wide.png";
 import searchBg from "@/assets/search-bg.png";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import buttonRemoveCard from "@/assets/button-remove-card.png";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
-
-// Adapted to match UI needs while using DB Address type
-interface SavedAddress extends Partial<Address> {
-    id?: string;
-    tag: string; // Mapped from label
-    house: string; // Mapped from apartment
-    area: string; // Mapped from area
-    landmark?: string;
-    name: string; // Local only
-    phone: string; // Local only
-    displayAddress: string; // Constructed
-    city: string;
-    state: string;
-    postcode: string;
-    plusCode?: string;
-}
 
 interface AddressSelectionSheetProps {
     isOpen: boolean;
@@ -107,6 +86,13 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                         // Map DB Address to SavedAddress UI Model
                         const mapped: SavedAddress[] = data.map(d => ({
                             id: d.id,
+                            user_id: d.user_id,
+                            created_at: d.created_at,
+                            label: d.label,
+                            apartment: d.apartment,
+                            contact_name: d.contact_name,
+                            contact_phone: d.contact_phone,
+                            plus_code: d.plus_code,
                             tag: d.label || "Home",
                             house: d.apartment || "",
                             area: d.area || "",
@@ -123,8 +109,9 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                         }));
                         setSavedAddresses(mapped);
                     }
-                } catch (e) {
+                } catch (e: any) {
                     console.error("Failed to load addresses", e);
+                    showToaster("Failed to load your saved addresses.", "error");
                 }
 
                 // Load Selected Address from local state only (active session)
@@ -133,7 +120,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                 if (current) {
                     try {
                         setSelectedAddress(JSON.parse(current));
-                    } catch (e) { }
+                    } catch (e) {
+                        localStorage.removeItem("gridpe_user_address");
+                        console.warn("Corrupted local address data cleared.");
+                    }
                 }
             }
         };
@@ -150,7 +140,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                 const results = await forwardGeocode(query, 12.9716, 77.5946); // Default bias
                 setSearchResults(results);
             } catch (e) {
-                console.error(e);
+                console.error("Search failed", e);
+                showToaster("Search failed. Please try again.", "error");
             }
         } else {
             setSearchResults([]);
@@ -187,7 +178,15 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                 const area = result.address?.suburb || result.address?.neighbourhood || result.address?.city || "Current Location";
                 setCurrentLocationName(area);
 
-                const tempAddr: SavedAddress = {
+                const addressToSave: SavedAddress = {
+                    id: '',
+                    user_id: '',
+                    created_at: new Date().toISOString(),
+                    label: null,
+                    apartment: null,
+                    contact_name: null,
+                    contact_phone: null,
+                    plus_code: fullCode,
                     tag: "Current Location",
                     house: "",
                     area: area,
@@ -197,11 +196,12 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                     city: result.address?.city || "",
                     state: result.address?.state || "",
                     postcode: result.address?.postcode || "",
+                    latitude: latitude,
+                    longitude: longitude,
                     plusCode: fullCode
                 };
-
-                localStorage.setItem("gridpe_user_address", JSON.stringify(tempAddr));
-                onAddressSelect(tempAddr);
+                localStorage.setItem("gridpe_user_address", JSON.stringify(addressToSave));
+                onAddressSelect(addressToSave);
                 onClose();
             }
         } catch (e) {

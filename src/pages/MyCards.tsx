@@ -49,24 +49,18 @@ const MyCards = () => {
     const [isStacked, setIsStacked] = useState(true);
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
-    // Tutorial State: 0 = none, 1 = tap, 2 = long press
     const [tutorialStep, setTutorialStep] = useState(0);
 
-    // Confirmation Modal State
     const [confirmAction, setConfirmAction] = useState<'remove' | 'default' | null>(null);
 
-    // Track visibility per card
     const [visibleCardIds, setVisibleCardIds] = useState<Record<string, boolean>>({});
 
-    // Long press refs
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const isLongPressRef = useRef(false);
 
     const fetchAllCards = async () => {
-        // 1. Get Local Storage Cards
         const localCards = getCards();
 
-        // 2. Fetch from Supabase
         try {
             const { data: dbCards, error } = await supabase
                 .from('bank_cards')
@@ -86,7 +80,6 @@ const MyCards = () => {
                     backgroundIndex: (localCards.length + index % 6) + 1
                 }));
 
-                // Combine (avoiding duplicates if possible, but for now just show both)
                 setCards([...localCards, ...mappedDbCards]);
                 setIsStacked(localCards.length + mappedDbCards.length > 1);
             } else {
@@ -105,7 +98,6 @@ const MyCards = () => {
 
         if (location.state?.cardAdded) {
             setShowSuccessModal(true);
-            // Clean up state so refresh doesn't trigger it again
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
@@ -129,7 +121,6 @@ const MyCards = () => {
         }
     };
 
-    // Click outside to collapse FAB or Close Menu
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -148,7 +139,7 @@ const MyCards = () => {
     }, [isFabExpanded, selectedCardId]);
 
     const toggleCardVisibility = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent stack expansion when clicking eye
+        e.stopPropagation();
         setVisibleCardIds(prev => ({
             ...prev,
             [id]: !prev[id]
@@ -179,7 +170,6 @@ const MyCards = () => {
         return `**** **** **** ${last4}`;
     };
 
-    // --- Long Press Handlers ---
     const startPress = (id: string) => {
         if (isStacked) return;
         isLongPressRef.current = false;
@@ -223,13 +213,11 @@ const MyCards = () => {
         }
     }, [isStacked]);
 
-    // Sort cards: Default first
     const sortedCards = [...cards].sort((a, b) => {
         if (a.isDefault === b.isDefault) return 0;
         return a.isDefault ? -1 : 1;
     });
 
-    // Calculate blur class based on modals OR tutorial
     const contentBlurClass = showSuccessModal || tutorialStep > 0 ? 'blur-sm brightness-50' : '';
 
     return (
@@ -250,7 +238,6 @@ const MyCards = () => {
                 }
             }}
         >
-            {/* Light Mode Purple Glow Blob */}
             {!isDarkMode && (
                 <div
                     className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
@@ -262,21 +249,17 @@ const MyCards = () => {
                     }}
                 />
             )}
-            {/* Main Content with conditional blur */}
             <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass}`}>
-                {/* Header */}
                 <div className="px-5 pt-4 flex items-center justify-center relative z-10">
                     <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[20px] font-medium text-center w-full`}>My Cards</h1>
                 </div>
 
-                {/* Content */}
                 <div 
                     className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[120px] min-h-0"
                     style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
                 >
 
                     {cards.length === 0 ? (
-                        /* Empty State */
                         <div
                             className={`w-full rounded-2xl p-4 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                             style={isDarkMode ? {
@@ -304,7 +287,6 @@ const MyCards = () => {
                             </p>
                         </div>
                     ) : (
-                        /* Cards View (Stacked or List) */
                         <div className={`transition-all duration-500 ease-in-out ${isStacked ? 'mt-4 relative h-[320px] w-full mx-auto' : 'flex flex-col gap-4'}`}>
                             {sortedCards.map((card, index) => {
                                 const bgSrc = cardBackgrounds[(card.backgroundIndex - 1) % 6];
@@ -312,7 +294,6 @@ const MyCards = () => {
                                 const isVisible = visibleCardIds[card.id] || false;
                                 const isSelected = selectedCardId === card.id;
 
-                                // Layout constants
                                 const chipTop = isDefault ? 34 : 21;
                                 const nameTop = isDefault ? 42 : 26;
                                 const labelTop = isDefault ? 86 : 70;
@@ -322,7 +303,6 @@ const MyCards = () => {
                                 const cardHeightValue = isDefault ? 212 : 192;
                                 const cardHeight = `${cardHeightValue}px`;
 
-                                // Stacking Logic
                                 const stackOffset = 15;
                                 const stackScale = 0.05;
 
@@ -354,7 +334,6 @@ const MyCards = () => {
                                         onClick={(e) => handleCardClick(e, card.id)}
                                         style={stackedStyle}
                                     >
-                                        {/* The Card Visual */}
                                         <div
                                             className={`relative w-full rounded-[16px] overflow-hidden shrink-0 transition-all duration-[250ms] ease-in-out ${isStacked ? 'hover:brightness-110' : ''}`}
                                             style={{
@@ -367,7 +346,6 @@ const MyCards = () => {
                                                 zIndex: 2, // Above the menu
                                             }}
                                         >
-                                            {/* Default Tag */}
                                             {isDefault && (
                                                 <div
                                                     className="absolute top-0 left-0 w-full h-[24px] flex items-center justify-center z-10"
@@ -378,7 +356,6 @@ const MyCards = () => {
                                             )}
 
                                             <div className="relative w-full h-full px-[26px]">
-                                                {/* Chip */}
                                                 <div
                                                     className="absolute right-[26px] w-[40px] h-[30px] flex justify-end transition-all"
                                                     style={{ top: `${chipTop}px` }}
@@ -386,7 +363,6 @@ const MyCards = () => {
                                                     <img src={chipIcon} alt="Chip" className="h-[28px] object-contain" />
                                                 </div>
 
-                                                {/* Name */}
                                                 <div
                                                     className="absolute left-[26px] right-[70px] transition-all"
                                                     style={{ top: `${nameTop}px` }}
@@ -396,7 +372,6 @@ const MyCards = () => {
                                                     </p>
                                                 </div>
 
-                                                {/* Label */}
                                                 <div
                                                     className="absolute left-[26px] transition-all"
                                                     style={{ top: `${labelTop}px` }}
@@ -404,7 +379,6 @@ const MyCards = () => {
                                                     <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi">Card Number</p>
                                                 </div>
 
-                                                {/* Number + Eye */}
                                                 <div
                                                     className="absolute left-[26px] right-[26px] flex items-center justify-between transition-all"
                                                     style={{ top: `${numberTop}px` }}
@@ -423,7 +397,6 @@ const MyCards = () => {
                                                     </button>
                                                 </div>
 
-                                                {/* Expiry & CVV */}
                                                 <div
                                                     className="absolute left-[26px] flex gap-8 transition-all"
                                                     style={{ top: `${expiryTop}px` }}
@@ -442,7 +415,6 @@ const MyCards = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Network Logo */}
                                                 <div
                                                     className="absolute right-[26px] h-[24px] transition-all"
                                                     style={{ bottom: `${logoBottom}px` }}
@@ -454,7 +426,6 @@ const MyCards = () => {
                                             </div>
                                         </div>
 
-                                        {/* Action Menu (Extending from behind) */}
                                         {!isStacked && isSelected && (
                                             <div
                                                 className="w-full h-[66px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
@@ -472,9 +443,7 @@ const MyCards = () => {
                                                 }}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                {/* Light mode glow blobs */}
                                                 {!isDarkMode && isDefault && (
-                                                    /* Single red blob for remove-only */
                                                     <div
                                                         className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
                                                         style={{
@@ -488,7 +457,6 @@ const MyCards = () => {
                                                     />
                                                 )}
                                                 {!isDarkMode && !isDefault && (
-                                                    /* Two blobs: red left, yellow right */
                                                     <>
                                                         <div
                                                             className="absolute rounded-full pointer-events-none"
@@ -518,7 +486,6 @@ const MyCards = () => {
                                                 )}
                                                 <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
 
-                                                    {/* Default Card: Remove Only */}
                                                     {isDefault ? (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
@@ -528,7 +495,6 @@ const MyCards = () => {
                                                             <span className="text-[#FF3B30] text-[14px] font-medium">Remove Card</span>
                                                         </button>
                                                     ) : (
-                                                        /* Non-Default: Remove (First) | Set Default (Second) */
                                                         <div className="w-full flex items-center h-[24px]">
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
@@ -538,7 +504,6 @@ const MyCards = () => {
                                                                 <span className="text-[#FF3B30] text-[14px] font-medium">Remove Card</span>
                                                             </button>
 
-                                                            {/* Divider */}
                                                             <div className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`} />
 
                                                             <button
@@ -557,13 +522,10 @@ const MyCards = () => {
                                 );
                             })}
 
-                            {/* Cards Count (Only in Stacked View) */}
                             {isStacked && (
                                 <div
                                     className="absolute w-full flex items-center justify-center transition-all duration-300 delay-100"
                                     style={{
-                                        // Position below the front card. Front card top is approx 30-45px + 212px height.
-                                        // Formula: (N-1)*15 + 212 + 20px padding
                                         top: `${(sortedCards.length - 1) * 15 + 212 + 24}px`
                                     }}
                                 >
@@ -573,7 +535,6 @@ const MyCards = () => {
                                 </div>
                             )}
 
-                            {/* Cards Count (In List View, standard flow) */}
                             {!isStacked && (
                                 <div className="w-full flex items-center justify-center mt-2 pb-[100px]">
                                     <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-satoshi`}>
@@ -586,7 +547,6 @@ const MyCards = () => {
                 </div>
             </div>
 
-            {/* FAB / Add Button */}
             <div
                 id="fab-container"
                 className={`fixed z-50 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex items-center overflow-hidden ${contentBlurClass} ${tutorialStep > 0 ? 'pointer-events-none' : ''}`}
@@ -631,12 +591,10 @@ const MyCards = () => {
                 </button>
             </div>
 
-            {/* Bottom Navigation */}
             <div className={contentBlurClass}>
                 <BottomNavigation activeTab="cards" isHidden={confirmAction !== null} />
             </div>
 
-            {/* Confirmation Modal */}
             <ConfirmationModal
                 isOpen={confirmAction !== null}
                 onClose={closeConfirmation}
@@ -668,9 +626,7 @@ const MyCards = () => {
 
             {showSuccessModal && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
-                    {/* Background blur overlay */}
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-                    {/* Popup Box — 362x199px, radius 13px */}
                     <div
                         className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? 'border border-white/10' : ''}`}
                         style={isDarkMode ? {
@@ -687,7 +643,6 @@ const MyCards = () => {
                             height: '199px',
                         }}
                     >
-                        {/* Icon — 26x26, 22px from top */}
                         <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
                             <img
                                 src={isDarkMode ? popupCardIcon : cardLineIcon}
@@ -701,7 +656,6 @@ const MyCards = () => {
                             />
                         </div>
 
-                        {/* Header — Satoshi Bold 16px, 12px below icon */}
                         <h2
                             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
                             style={{ marginTop: '12px' }}
@@ -709,7 +663,6 @@ const MyCards = () => {
                             Card Added Successfully
                         </h2>
 
-                        {/* Inner Container — 318x73px, radius 16px, 24px below heading */}
                         <div
                             className={`${isDarkMode ? 'bg-black' : 'bg-white'} flex items-center px-4`}
                             style={{
@@ -741,13 +694,11 @@ const MyCards = () => {
                 </div>
             )}
 
-            {/* Tutorial Overlay */}
             {tutorialStep > 0 && (
                 <div
                     className="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
                     onClick={handleTutorialClick}
                 >
-                    {/* Content */}
                     <div className="flex flex-col items-center text-center max-w-[320px] pb-32 animate-in zoom-in-95 duration-300">
                         {tutorialStep === 1 && (
                             <>

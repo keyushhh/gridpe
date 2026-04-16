@@ -62,7 +62,6 @@ const ZingChat = () => {
     const fetchZingReply = async (input: string) => {
         setIsThinking(true);
         try {
-            console.log("Calling Zing AI");
 
             const { data, error } = await supabase.functions.invoke("zing-ai", {
                 body: {
@@ -75,7 +74,6 @@ const ZingChat = () => {
                 throw error;
             }
 
-            console.log("Zing AI Response:", data);
 
             const zingReply: Message = {
                 id: Date.now().toString(),
@@ -103,7 +101,7 @@ const ZingChat = () => {
         }
     };
 
-    const handleAction = (action: string) => {
+    const handleQuickAction = (action: string) => {
         setHasInteracted(true);
         const userMsg: Message = {
             id: Date.now().toString(),
@@ -173,7 +171,6 @@ const ZingChat = () => {
             {!isDarkMode && (
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
-            {/* Header */}
             <header className="px-5 pt-4 pb-4 flex items-center relative z-20 shrink-0">
                 <button
                     onClick={() => navigate(-1)}
@@ -185,19 +182,16 @@ const ZingChat = () => {
                 <h1 className={`w-full text-center text-[18px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Chat with Zing</h1>
             </header>
 
-            {/* Chat Area */}
             <main
                 ref={scrollRef}
                 className="flex-1 px-5 pt-4 overflow-y-auto no-scrollbar relative z-10 flex flex-col"
                 style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
             >
-                {/* Session Markers at the top */}
                 <div className={`flex flex-col items-center gap-1 mb-8 shrink-0 transition-opacity ${isDarkMode ? 'opacity-40' : 'opacity-60'}`}>
                     <span className={`text-[12px] font-medium font-satoshi tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>Session Started</span>
                     <span className={`text-[12px] font-medium font-satoshi tracking-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>Today {sessionTime.current}</span>
                 </div>
 
-                {/* Spacer to push only messages to the bottom */}
                 <div className="flex-1" />
 
                 <div className="flex flex-col gap-6">
@@ -270,7 +264,7 @@ const ZingChat = () => {
                                             {msg.actions.map(action => (
                                                 <button
                                                     key={action}
-                                                    onClick={() => handleAction(action)}
+                                                    onClick={() => handleQuickAction(action)}
                                                     className={`h-[36px] px-4 rounded-full text-[13px] font-medium font-satoshi transition-colors ${isDarkMode
                                                         ? 'bg-[#5260FE]/20 border border-[#5260FE]/40 text-[#A5ADFF] active:bg-[#5260FE]/30'
                                                         : 'bg-[#5260FE]/10 border border-[#5260FE]/20 text-[#5260FE] active:bg-[#5260FE]/20'
@@ -310,7 +304,6 @@ const ZingChat = () => {
                 <div className="h-[28px] shrink-0" />
             </main>
 
-            {/* Input Bar */}
             <div className="px-5 pb-20 relative z-20 mt-auto">
                 <input
                     type="file"

@@ -12,6 +12,7 @@ import checkboxOff from '@/assets/check-box-outline-blank.png';
 import { ChevronLeft } from 'lucide-react';
 import bgDarkMode from '@/assets/bg-dark-mode.png';
 import { useTheme } from 'next-themes';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 
 const DeliveryCaution = () => {
     const navigate = useNavigate();
@@ -19,6 +20,7 @@ const DeliveryCaution = () => {
     const { order } = location.state || {};
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
+    const { showToaster } = useCustomToaster();
     const [step, setStep] = useState<'caution' | 'mismatch' | 'identify' | 'verification_progress' | 'verification_success' | 'otp_display'>('caution');
     const [displayOtp] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
     const [selectedOption, setSelectedOption] = useState<string | null>('yes');
@@ -51,7 +53,10 @@ const DeliveryCaution = () => {
         } else if (step === 'verification_success') {
             // "Get OTP" action -> Update status to delivered and show OTP Display
             if (order?.id && order.user_id) {
-                deliverOrder(order.id, order.user_id, order.metadata?.isFx || false).catch(err => console.error("Failed to mark order as delivered:", err));
+                deliverOrder(order.id, order.user_id, order.metadata?.isFx || false).catch(err => {
+                    console.error("Failed to mark order as delivered:", err);
+                    showToaster(`Delivery update failed: ${err.message || 'Please contact support.'}`, 'error');
+                });
             }
             setStep('otp_display');
         } else if (step === 'otp_display') {
@@ -77,9 +82,11 @@ const DeliveryCaution = () => {
     };
 
     const handleCancel = () => {
-        console.log("Cancelling delivery for order:", order?.id);
         if (order?.id) {
-            cancelOrder(order.id, 'Identity Mismatch', 'User chose not to proceed due to identity mismatch').catch(err => console.error("Failed to cancel order:", err));
+            cancelOrder(order.id, 'Identity Mismatch', 'User chose not to proceed due to identity mismatch').catch(err => {
+                console.error("Failed to cancel order:", err);
+                showToaster(`Cancellation failed: ${err.message || 'Please try again.'}`, 'error');
+            });
         }
         navigate('/order-cancelled');
     };

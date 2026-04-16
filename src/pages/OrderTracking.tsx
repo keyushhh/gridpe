@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { ChevronLeft, Bike } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { OpenLocationCode } from "open-location-code";
-import { Order } from "@/lib/orders";
+import { Order } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { setBadge } from "@/utils/badge";
 import { useTheme } from "next-themes";
@@ -128,7 +128,6 @@ const OrderTracking = () => {
                         filter: `order_id=eq.${order.id}`
                     },
                     (payload: any) => {
-                        console.log('Rider location update:', payload);
                         if (payload.new && payload.new.current_lat && payload.new.current_lng) {
                             setRiderLocation({
                                 lat: payload.new.current_lat,
@@ -151,7 +150,6 @@ const OrderTracking = () => {
                         filter: `id=eq.${order.id}`
                     },
                     (payload: any) => {
-                        console.log('Order status update:', payload);
                         if (payload.new) {
                             const newStatus = payload.new.status;
                             setOrder(payload.new);

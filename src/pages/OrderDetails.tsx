@@ -4,6 +4,7 @@ import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from "open-location-code";
 import { supabase } from "@/lib/supabase";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import successBg from "@/assets/success-bg.png";
 import errorBg from "@/assets/error-bg.png";
 import popBgDefault from "@/assets/pop-bg-default.png";
@@ -21,9 +22,11 @@ import closeIcon from "@/assets/cross-icon.svg";
 import cancelIcon from "@/assets/cancel-ico.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
-import { Order, getOrderById, cancelOrder as lib_cancelOrder } from "@/lib/orders";
+import { getOrderById, cancelOrder as lib_cancelOrder } from "@/lib/orders";
+import { Order } from "@/types";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 const OrderDetails = () => {
     const navigate = useNavigate();
@@ -32,18 +35,17 @@ const OrderDetails = () => {
     const { theme } = useTheme();
     const { refreshBalance } = useUser();
     const isDarkMode = theme === 'dark';
+    const { showToaster } = useCustomToaster();
 
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Map State
     const [viewState, setViewState] = useState({
         latitude: 12.9716,
         longitude: 77.5946,
         zoom: 13
     });
 
-    // UI State
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showInfoPopup, setShowInfoPopup] = useState(false);
     const [showCancelPopup, setShowCancelPopup] = useState(false);
@@ -61,11 +63,9 @@ const OrderDetails = () => {
         "Other"
     ];
 
-    // Refs for click outside
     const menuRef = useRef<HTMLDivElement>(null);
     const hamburgerRef = useRef<HTMLButtonElement>(null);
 
-    // Fetch Order logic
     useEffect(() => {
         const fetchOrder = async () => {
             if (location.state?.order && location.state.order.addresses) {
@@ -93,7 +93,7 @@ const OrderDetails = () => {
         fetchOrder();
 
         // Real-time subscription
-        let channel: any;
+        let channel: RealtimeChannel | null = null;
 
         const setupSubscription = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -109,8 +109,8 @@ const OrderDetails = () => {
                             filter: `id=eq.${orderId}`
                         },
                         (payload) => {
-                            console.log('Order real-time update:', payload);
-                            setOrder(prev => prev ? { ...prev, ...payload.new } : null);
+                            const updatedOrder = payload.new as unknown as Order;
+                            setOrder(prev => prev ? { ...prev, ...updatedOrder } : null);
                         }
                     )
                     .subscribe();
@@ -126,7 +126,7 @@ const OrderDetails = () => {
         };
     }, [orderId, location.state]);
 
-    // Timer Logic (mock countdown for "Assigning partner")
+    // Assigning partner countdown
     useEffect(() => {
         if (order?.status === 'processing' && timer > 0) {
             const interval = setInterval(() => {
@@ -146,11 +146,8 @@ const OrderDetails = () => {
         } else if ((order?.status === 'cancelled' || order?.status === 'failed') && redirectTimer === 0) {
             navigate("/home");
         }
-    }, [redirectTimer, order?.status, navigate]);
+    }, [order?.status, redirectTimer, navigate]);
 
-    // Wallet debit is now handled automatically via secure Postgres Triggers on the backend.
-
-    // Click outside to close menu
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
@@ -171,14 +168,11 @@ const OrderDetails = () => {
         };
     }, [isMenuOpen]);
 
-    // Decode Plus Code or use default
     useEffect(() => {
         const addr = order?.addresses || location.state?.savedAddress;
         if (addr?.plus_code) {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const olc = new OpenLocationCode() as any;
-                const decoded = olc.decode(addr.plus_code);
+                const decoded = OpenLocationCode.decode(addr.plus_code);
                 setViewState({
                     latitude: decoded.latitudeCenter,
                     longitude: decoded.longitudeCenter,
@@ -205,29 +199,22 @@ const OrderDetails = () => {
 
             await lib_cancelOrder(order.id, reasonType, reasonText);
 
-            // Optimistic update
             setOrder({
                 ...order,
                 status: 'cancelled',
-                metadata: {
-                    ...(order.metadata || {}),
+                meta_data: {
+                    ...(order.meta_data || {}),
                     cancelled_by: 'user',
                     cancel_reason_type: reasonType,
                     cancel_reason_text: reasonText,
                     cancelled_at: new Date().toISOString()
-                }
+                } as any
             });
             setShowCancelPopup(false);
 
-            // Navigate to cancelled screen (or re-render this screen as cancelled)
-            // The requirement says "Order Details screen... Render different layouts based on status".
-            // So we should just stay here and let the UI update to "cancelled" state.
-            // However, existing flow navigated to '/order-cancelled'.
-            // Let's stick to the new requirement: "Order Details screen... Render... cancelled".
-            // So we update state and stay here.
-
-        } catch (e) {
+        } catch (e: any) {
             console.error("Failed to cancel order", e);
+            showToaster(`Failed to cancel order: ${e.message || 'Please contact support.'}`, 'error');
         }
     };
 
@@ -235,7 +222,6 @@ const OrderDetails = () => {
         const addr = order?.addresses || location.state?.savedAddress;
         if (!addr) return "Unknown Location";
 
-        // Handle both Address (apartment) and SavedAddress (house) interfaces
         const house = addr.apartment || addr.house;
         const area = addr.area;
 
@@ -244,11 +230,11 @@ const OrderDetails = () => {
         return fullString.length > 20 ? fullString.substring(0, 20) + "..." : fullString;
     };
 
-    const routeGeoJson: any = {
-        type: "Feature",
+    const routeGeoJson = {
+        type: "Feature" as const,
         properties: {},
         geometry: {
-            type: "LineString",
+            type: "LineString" as const,
             coordinates: [
                 [viewState.longitude, viewState.latitude],
                 [viewState.longitude + 0.002, viewState.latitude + 0.002],
@@ -256,9 +242,9 @@ const OrderDetails = () => {
         },
     };
 
-    const routeLayer: any = {
+    const routeLayer = {
         id: "route-line",
-        type: "line",
+        type: "line" as const,
         paint: {
             "line-color": "#5260FE",
             "line-width": 2,
@@ -270,7 +256,7 @@ const OrderDetails = () => {
         return <div className="h-full w-full bg-black flex items-center justify-center text-white">Loading...</div>;
     }
 
-    // --- CONFIG FOR DIFFERENT STATES ---
+
     const getStatusConfig = (currentOrder: Order) => {
         // Default / Processing
         let config = {
@@ -308,8 +294,7 @@ const OrderDetails = () => {
                 statusAmount: currentOrder.total_amount || currentOrder.amount,
                 showMap: false,
                 deliveryText: "Payment Failed",
-                // @ts-ignore
-                deliverySubText: currentOrder.metadata?.failure_reason || "Something went wrong.",
+                deliverySubText: (currentOrder.meta_data?.type === 'CASH_ORDER' ? currentOrder.meta_data.cancel_reason_text : "") || "Something went wrong.",
                 transactionNote: "If any amount was deducted, it will be refunded instantly.",
                 canCancel: false
             };
@@ -322,8 +307,7 @@ const OrderDetails = () => {
                 statusAmount: currentOrder.total_amount || currentOrder.amount,
                 showMap: false,
                 deliveryText: "Order Cancelled",
-                // @ts-ignore
-                deliverySubText: currentOrder.metadata?.cancel_reason_type || "Order cancelled by user.",
+                deliverySubText: (currentOrder.meta_data?.type === 'CASH_ORDER' ? currentOrder.meta_data.cancel_reason_type : "") || "Order cancelled by user.",
                 transactionNote: "Refund has been initiated to your wallet.",
                 canCancel: false
             };
@@ -334,7 +318,6 @@ const OrderDetails = () => {
 
     const statusConfig = getStatusConfig(order);
 
-    // --- RENDER ---
     return (
         <div
             className="h-full w-full overflow-hidden flex flex-col safe-area-top animate-in fade-in duration-500 relative"
@@ -348,16 +331,15 @@ const OrderDetails = () => {
                 transform: 'translateZ(0)'
             }}
         >
-            {/* Light Mode Glow - Green for Success, Red/Orange for others if needed, but user asked for Green for Order Success */}
+            {/* Dynamic theme glow */}
             {!isDarkMode && (
                                 <div className={`absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0 ${['success', 'delivered', 'processing', 'pending', 'out_for_delivery', 'arrived', 'accepted', 'picked_up'].includes(order?.status || '') ? 'bg-[#0D992F]' : 'bg-[#FF3B30]'}`} />
                 // Using Red for failed/cancelled to be semantic, Green for success/processing/pending/etc.
             )}
 
 
-            {/* Header */}
             <div className="flex-none px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-[21px] relative">
-                <div className="w-6" /> {/* Spacer */}
+                <div className="w-6" />
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {statusConfig.headerTitle}
                 </h1>
@@ -388,7 +370,6 @@ const OrderDetails = () => {
                             Need Help?
                         </button>
 
-                        {/* Divider (Only if canCancel) */}
                         {statusConfig.canCancel && <div className="w-full h-[0.5px]" />}
 
                         {/* Cancel Order (Only if canCancel) */}
@@ -437,7 +418,6 @@ const OrderDetails = () => {
                     {statusConfig.statusTitle}
                 </h2>
 
-                {/* Amount */}
                 <p className={`text-[25px] font-medium font-sans mb-[39px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     ₹{(statusConfig.statusAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
@@ -500,7 +480,7 @@ const OrderDetails = () => {
                                     interactive={false}
                                 >
                                     {/* Dashed Route Line */}
-                                    <Source id="route" type="geojson" data={routeGeoJson as any}>
+                                    <Source id="route" type="geojson" data={routeGeoJson}>
                                         <Layer {...routeLayer} />
                                     </Source>
 
@@ -652,22 +632,18 @@ const OrderDetails = () => {
                             backgroundRepeat: 'no-repeat',
                         } : {}}
                     >
-                        {/* Icon */}
                         <div className="w-[32px] h-[32px] mb-[16px]">
                             <img src={cancelIcon} alt="Cancel" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                         </div>
 
-                        {/* Header */}
                         <h2 className={`text-[18px] font-bold font-sans mb-[8px] text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Cancel Order?
                         </h2>
 
-                        {/* Subtext */}
                         <p className={`w-full text-[12px] font-medium font-satoshi text-center leading-[140%] mb-[24px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             We’re not mad. Just disappointed. Help us understand why you’re cancelling. It helps us improve your experience (and emotionally prepare for this moment).
                         </p>
 
-                        {/* Reason List Container */}
                         <div
                             className="flex flex-col mb-[24px] overflow-hidden w-full"
                             style={{
@@ -676,17 +652,14 @@ const OrderDetails = () => {
                                 border: isDarkMode ? 'none' : '1px solid #E9EAEB'
                             }}
                         >
-                            {/* Title inside container */}
                             <div className="pt-[14px] px-[12px]">
                                 <p className={`text-[12px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                     Reason for Cancellation? (Required)
                                 </p>
                             </div>
 
-                            {/* Divider */}
                             <div className={`mt-[14px] w-full h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
 
-                            {/* List */}
                             <div>
                                 {cancelReasons.map((reason, index) => (
                                     <div
@@ -712,7 +685,6 @@ const OrderDetails = () => {
                                 ))}
                             </div>
 
-                            {/* Other Input */}
                             {cancelReason === 5 && (
                                 <div className="w-full p-[12px] animate-in fade-in slide-in-from-top-2 duration-200">
                                     <textarea
@@ -725,7 +697,6 @@ const OrderDetails = () => {
                             )}
                         </div>
 
-                        {/* Buttons */}
                         <div className="w-full flex gap-[12px] justify-center">
                             <button
                                 onClick={() => setShowCancelPopup(false)}

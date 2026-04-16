@@ -1,68 +1,9 @@
 import { supabase } from './supabase';
-import { Address } from './addresses';
-
-export interface Order {
-  id: string;
-  user_id: string;
-  amount: number;
-  status: string; // 'processing', 'out_for_delivery', 'delivered', 'cancelled'
-  payment_mode: string; // 'wallet', 'cash', 'upi'
-  address_id: string | null;
-  created_at?: string;
-  updated_at?: string;
-  transaction_number?: string;
-  order_type?: 'CASH_ORDER' | 'FX_EXCHANGE';
-  rider_id?: string | null;
-  otp_code?: string | null;
-  service_fee?: number;
-  total_amount?: number;
-  delivery_fee?: number;
-  metadata?: {
-    failure_reason?: string;
-    cancelled_by?: string;
-    cancel_reason_type?: string;
-    cancelled_at?: string;
-    [key: string]: any;
-  };
-  addresses?: Address;
-  address?: Address; // Fallback for some components
-  rider?: {
-    id: string;
-    full_name: string;
-    email?: string;
-    phone_number?: string;
-    kyc_dob?: string;
-    kyc_gender?: string;
-    kyc_type?: string; 
-    kyc_number?: string;
-    kyc_photo?: string;
-    kyc_id_url?: string;
-  };
-}
-
-// Security: Explicitly exclude sensitive financial data for rider-facing views.
-export const RIDER_ORDER_SELECT = `
-  id, 
-  user_id, 
-  status, 
-  rider_earnings, 
-  delivery_tip, 
-  delivery_fee, 
-  pickup_location, 
-  delivery_address_text, 
-  customer_phone_number, 
-  otp_code, 
-  delivery_location, 
-  created_at, 
-  accepted_at, 
-  city, 
-  zone_id, 
-  hub_id
-`.replace(/\s+/g, '');
+import { Order } from '@/types';
 
 // Internal helper to fetch addresses for a list of orders
-const fetchAddressesForOrders = async (orders: any[]) => {
-  const addressIds = Array.from(new Set(orders.map(o => o.address_id).filter(Boolean)));
+const fetchAddressesForOrders = async <T extends { address_id: string | null }>(orders: T[]): Promise<(T & { addresses?: any })[]> => {
+  const addressIds = Array.from(new Set(orders.map(o => o.address_id).filter((id): id is string => !!id)));
   if (addressIds.length === 0) return orders;
 
   const { data: addresses, error } = await supabase
@@ -80,9 +21,9 @@ const fetchAddressesForOrders = async (orders: any[]) => {
 };
 
 // Internal helper to normalize orders from different tables
-const normalizeOrder = (o: any, type: 'CASH_ORDER' | 'FX_EXCHANGE'): Order => ({
+const normalizeOrder = (o: Order, type: 'CASH_ORDER' | 'FX_EXCHANGE'): Order => ({
   ...o,
-  amount: type === 'CASH_ORDER' ? (o.total_amount || o.item_value) : (o.total_amount || o.amount_total),
+  amount: type === 'CASH_ORDER' ? (o.total_amount || o.amount) : (o.total_amount || o.amount),
   order_type: type,
   created_at: o.created_at || o.updated_at,
   // Ensure addresses field is handled
@@ -124,8 +65,6 @@ export const getOrderById = async (orderId: string) => {
   return orderData;
 };
 
-
-
 export const fetchActiveOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
@@ -159,7 +98,6 @@ export const cancelOrder = async (orderId: string, reasonType: string, reasonTex
   if (!session?.user?.id) throw new Error("Unauthorized");
   const userId = session.user.id;
 
-  console.log('Attempting to cancel orderId:', orderId);
 
   // 1. Fetch order details for diagnostic logging
   const { data: order, error: fetchError } = await supabase
@@ -171,7 +109,6 @@ export const cancelOrder = async (orderId: string, reasonType: string, reasonTex
   if (fetchError || !order) throw new Error("Order not found");
 
   // Add requested log for confirmation
-  console.log('Refund amount:', order.total_amount, 'vs item value:', order.amount);
 
   // 2. Perform atomic cancellation update via RPC
   // This RPC handles: Order status update, FULL total_amount refund, and transaction record.
@@ -183,11 +120,12 @@ export const cancelOrder = async (orderId: string, reasonType: string, reasonTex
   });
 
   if (rpcError) throw rpcError;
-  if (!data || data.success === false) {
-    throw new Error(data?.error || "Failed to cancel order");
+  const result = data as { success: boolean; error?: string } | null;
+  if (!result || result.success === false) {
+    throw new Error(result?.error || "Failed to cancel order");
   }
 
-  return data;
+  return result;
 };
 
 export const deliverOrder = async (orderId: string, userId: string, isFx: boolean = false) => {
@@ -198,7 +136,8 @@ export const deliverOrder = async (orderId: string, userId: string, isFx: boolea
   });
 
   if (error) throw error;
-  if (data?.success === false) throw new Error(data.error || 'Failed to complete order');
+  const result = data as { success: boolean; error?: string } | null;
+  if (result?.success === false) throw new Error(result.error || 'Failed to complete order');
 };
 
 export const dev_seedMockOrders = async (userId: string) => {
@@ -210,7 +149,7 @@ export const dev_seedMockOrders = async (userId: string) => {
     .eq('user_id', userId)
     .limit(1);
 
-  const addressId = addrData?.[0]?.id || null;
+  const addressId = (addrData as { id: string }[] | null)?.[0]?.id || null;
 
   // For seeding, we'll insert into the unified orders table
   const mockOrders = [
@@ -223,7 +162,7 @@ export const dev_seedMockOrders = async (userId: string) => {
       payment_mode: 'wallet',
       address_id: addressId,
       created_at: new Date(Date.now() - 3600000).toISOString(),
-      meta_data: { item_value: 1250.50 }
+      meta_data: { type: 'CASH_ORDER', item_value: 1250.50 }
     },
     {
       user_id: userId,
@@ -235,6 +174,8 @@ export const dev_seedMockOrders = async (userId: string) => {
       address_id: addressId,
       created_at: new Date(Date.now() - 86400000).toISOString(),
       meta_data: {
+        type: 'CASH_ORDER',
+        item_value: 840.00,
         cancelled_by: 'user',
         cancel_reason_type: 'I changed my mind',
         cancelled_at: new Date(Date.now() - 86300000).toISOString()
@@ -244,46 +185,4 @@ export const dev_seedMockOrders = async (userId: string) => {
 
   const { error } = await supabase.from('orders').insert(mockOrders);
   if (error) throw error;
-};
-
-/** 
- * RIDER-SPECIFIC HELPERS (Secure)
- * These utilize RIDER_ORDER_SELECT to ensure sensitive financial data 
- * is never sent to rider-facing application components.
- */
-
-export const getRiderOrderById = async (orderId: string) => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(RIDER_ORDER_SELECT)
-    .eq('id', orderId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data;
-};
-
-export const fetchAvailableOrders = async (city: string) => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(RIDER_ORDER_SELECT)
-    .eq('status', 'pending')
-    .eq('city', city)
-    .is('rider_id', null)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data;
-};
-
-export const fetchRiderActiveOrders = async (riderId: string) => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(RIDER_ORDER_SELECT)
-    .eq('rider_id', riderId)
-    .in('status', ['accepted', 'picked_up', 'arrived'])
-    .order('updated_at', { ascending: false });
-
-  if (error) throw error;
-  return data;
 };

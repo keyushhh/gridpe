@@ -130,7 +130,7 @@ export const assets = {
     },
     "pe-logo": {
         dark: peLogo,
-        light: peLogo, // TODO: Replace with light mode asset
+        light: peLogo,
     },
     "wallet-logo": {
         dark: walletLogo,
@@ -138,15 +138,15 @@ export const assets = {
     },
     "switch-tab-bg": {
         dark: switchTabBg,
-        light: switchTabBg, // TODO: Replace with light mode asset
+        light: switchTabBg,
     },
     "selected-tab-bg": {
         dark: selectedTabBg,
-        light: selectedTabBg, // TODO: Replace with light mode asset
+        light: selectedTabBg,
     },
     "button-primary": {
         dark: buttonPrimary,
-        light: buttonPrimary, // TODO: Replace with light mode asset
+        light: buttonPrimary,
     },
 
     // Add more assets here as we refactor other pages

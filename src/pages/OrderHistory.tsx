@@ -11,7 +11,8 @@ import failedIcon from "@/assets/failed.svg";
 import checkIcon from "@/assets/check.svg";
 import crossIcon from "@/assets/cross.svg";
 import { supabase } from "@/lib/supabase";
-import { fetchActiveOrders, fetchPastOrders, Order, cancelOrder, dev_seedMockOrders } from "@/lib/orders";
+import { fetchActiveOrders, fetchPastOrders, cancelOrder, dev_seedMockOrders } from "@/lib/orders";
+import { Order } from "@/types";
 import OrderDetailsSheet from "@/components/OrderDetailsSheet";
 import { toast } from "@/components/ui/use-toast";
 
@@ -100,7 +101,6 @@ const OrderHistory = () => {
                             filter: `user_id=eq.${session.user.id}`
                         },
                         (payload) => {
-                            console.log('Real-time order update:', payload);
                             loadOrders();
                         }
                     )
@@ -131,9 +131,10 @@ const OrderHistory = () => {
             const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).toLowerCase();
             const monthStr = date.toLocaleDateString('en-GB', { month: 'long' }).toLowerCase();
 
-            const typeStr = order.metadata?.isFx ? "fx exchange" : "cash order".toLowerCase();
-            const currencyStr = (order.metadata?.toCurrency as string || "").toLowerCase();
-            const receiveAmountStr = order.metadata?.receiveAmount?.toString() || "";
+            const meta = order.meta_data as any;
+            const typeStr = meta?.isFx ? "fx exchange" : "cash order".toLowerCase();
+            const currencyStr = (meta?.toCurrency as string || "").toLowerCase();
+            const receiveAmountStr = meta?.receiveAmount?.toString() || "";
 
             return amountStr.includes(query) ||
                 dateStr.includes(query) ||
@@ -211,8 +212,13 @@ const OrderHistory = () => {
             setIsSheetOpen(false);
             // Refresh counts
             loadOrders();
-        } catch (e) {
+        } catch (e: any) {
             console.error("Failed to cancel order", e);
+            toast({
+                variant: "destructive",
+                title: "Cancellation Failed",
+                description: e.message || "Please try again later."
+            });
         }
     };
 
@@ -279,7 +285,7 @@ const OrderHistory = () => {
                             <img src={config.icon} alt={config.label} className="w-[35px] h-[35px]" width={35} height={35} />
                             <div className="flex flex-col">
                                 <span className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {order.metadata?.isFx ? "FX Exchange" : (order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"))}
+                                    {(order.meta_data as any)?.isFx ? "FX Exchange" : ((order.meta_data as any)?.item_value ? `Ordered ₹${(order.meta_data as any).item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order"))}
                                 </span>
                                 <div className="flex items-center gap-2 pt-4">
                                     <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black/50'}`}>
@@ -294,8 +300,8 @@ const OrderHistory = () => {
 
                         <div className="h-[35px] flex items-center">
                             <span className={`text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                {order.metadata?.isFx
-                                    ? `${currencySymbols[order.metadata.toCurrency as string] || ''}${Number(order.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                {(order.meta_data as any)?.isFx
+                                    ? `${currencySymbols[(order.meta_data as any)?.toCurrency as string] || ''}${Number((order.meta_data as any)?.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                     : `₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                                 }
                             </span>

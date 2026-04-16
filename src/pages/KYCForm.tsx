@@ -33,7 +33,6 @@ const KYCForm = () => {
 
   // DEBUG: Log status on mount to catch aggressive redirects
   useEffect(() => {
-    console.log("KYCForm MOUNTED. Status:", kycStatus, "Flow:", flow);
   }, [kycStatus, flow]);
 
   // Cleanup SDK instance firmly on unmount so camera/socket drops
@@ -72,12 +71,8 @@ const KYCForm = () => {
 
   const handleContinue = async () => {
     // Console logs to debug the redirection logic
-    console.log('Current KYC Status:', kycStatus);
-    console.log('Is Upgrade Flow:', isUpgradeFlow);
-    console.log('Is Passport Verified:', isPassportVerified);
 
     // 0. Persistence Gate - DISABLED per user request to break the redirect loop
-    console.log("Attempting to trigger Didit for User:", profile?.id);
 
     setIsSubmitting(true);
     try {
@@ -113,8 +108,6 @@ const KYCForm = () => {
       
       const finalUrl = `${targetUrl}?vendor_data=${customerUuid}&reverify=true&webhook=true&metadata=${encodeURIComponent(JSON.stringify({ user_type: 'customer', flow: metaFlow }))}`;
 
-      console.log("CRITICAL: Attempting to trigger Didit for User:", profile?.id);
-      console.log("Final URL:", finalUrl);
       
       window.open(finalUrl, '_blank');
       

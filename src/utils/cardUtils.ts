@@ -24,13 +24,10 @@ export const getCards = (): Card[] => {
 export const addCard = (card: Omit<Card, "id" | "isDefault" | "backgroundIndex">): Card => {
   const currentCards = getCards();
 
-  // New card logic
   const newCard: Card = {
     ...card,
     id: Date.now().toString(),
-    // First card is default
     isDefault: currentCards.length === 0,
-    // Assign a background index (1-6) based on count
     backgroundIndex: (currentCards.length % 6) + 1
   };
 
@@ -46,7 +43,6 @@ export const removeCard = (id: string): void => {
 
   const remainingCards = currentCards.filter(c => c.id !== id);
 
-  // If we removed the default card, assign default to the first remaining card
   if (cardToRemove.isDefault && remainingCards.length > 0) {
     remainingCards[0].isDefault = true;
   }

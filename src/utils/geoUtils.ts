@@ -7,12 +7,12 @@ export const getDistance = (lat1: number, lon1: number, lat2: number, lon2: numb
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c; // Distance in km
-  return d * 1000; // Return in meters
+  const d = R * c;
+  return d * 1000;
 };
 
 export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): string => {
-  const d = getDistance(lat1, lon1, lat2, lon2) / 1000; // Convert back to km for formatting logic
+  const d = getDistance(lat1, lon1, lat2, lon2) / 1000;
 
   if (d < 1) {
     return `${Math.round(d * 1000)} m away`;
@@ -51,7 +51,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeR
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
       {
         headers: {
-          'User-Agent': 'gridpe-clone/1.0', // Good practice to identify your app
+          'User-Agent': 'gridpe-clone/1.0',
         },
       }
     );
@@ -82,9 +82,8 @@ export const forwardGeocode = async (query: string, userLat?: number, userLng?: 
     try {
         let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&addressdetails=1&countrycodes=in`;
 
-        // If user location is provided, add viewbox bias
         if (userLat !== undefined && userLng !== undefined) {
-            const delta = 0.5; // Roughly 50km
+            const delta = 0.5;
             const viewbox = `${userLng - delta},${userLat + delta},${userLng + delta},${userLat - delta}`;
             url += `&viewbox=${viewbox}&bounded=0`;
         }
@@ -101,7 +100,6 @@ export const forwardGeocode = async (query: string, userLat?: number, userLng?: 
 
         let data: GeocodeResult[] = await response.json();
 
-        // If user location is provided, sort results by distance
         if (userLat !== undefined && userLng !== undefined) {
             data = data.sort((a, b) => {
                 const distA = getDistance(userLat, userLng, parseFloat(a.lat), parseFloat(a.lon));

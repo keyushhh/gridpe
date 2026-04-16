@@ -15,8 +15,6 @@ export interface BankAccount {
   backgroundIndex?: number;
 }
 
-const STORAGE_KEY = "gridpe_user_bank_accounts";
-
 // Export available banks for the Linked Accounts flow
 export const AVAILABLE_BANKS: BankAccount[] = [
   {
@@ -27,7 +25,7 @@ export const AVAILABLE_BANKS: BankAccount[] = [
     ifsc: "HDFC0001234",
     branch: "HDFC Bank, Koramangala Branch",
     logo: hdfcLogo,
-    isDefault: false, // Default status handled by logic
+    isDefault: false,
   },
   {
     id: "2",
@@ -61,34 +59,6 @@ export const AVAILABLE_BANKS: BankAccount[] = [
   }
 ];
 
-export const getBankAccounts = (): BankAccount[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-export const saveBankAccounts = (accounts: BankAccount[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
-};
-
-export const addSelectedAccounts = (newAccounts: BankAccount[]) => {
-  const existing = getBankAccounts();
-
-  // Filter out duplicates based on ID
-  const uniqueNew = newAccounts.filter(na => !existing.some(ea => ea.id === na.id));
-
-  if (uniqueNew.length === 0) return existing;
-
-  const updated = [...existing, ...uniqueNew];
-
-  // Ensure one default exists if we have accounts
-  if (updated.length > 0 && !updated.some(a => a.isDefault)) {
-      updated[0].isDefault = true;
-  }
-
-  saveBankAccounts(updated);
-  return updated;
-};
-
 export const fetchBankDetails = async (ifsc: string) => {
   try {
     const response = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
@@ -106,47 +76,5 @@ export const getBankLogo = (bankName: string) => {
   if (name.includes("idfc")) return idfcLogo;
   if (name.includes("axis")) return axisLogo;
   if (name.includes("kotak")) return kotakLogo;
-  // Fallback to HDFC logo for demo purposes if no match, or a generic one if available.
-  // Using HDFC as a safe fallback for now as per "official png logos" request constraint.
   return hdfcLogo;
-};
-
-export const addManualAccount = (account: BankAccount) => {
-  const existing = getBankAccounts();
-
-  // Check for duplicates
-  if (existing.some(acc => acc.accountNumber === account.accountNumber && acc.ifsc === account.ifsc)) {
-    return existing;
-  }
-
-  // If this is the first account, make it default
-  if (existing.length === 0) {
-    account.isDefault = true;
-  }
-
-  const updated = [...existing, account];
-  saveBankAccounts(updated);
-  return updated;
-};
-
-export const removeBankAccount = (id: string) => {
-  const accounts = getBankAccounts();
-  const updated = accounts.filter((acc) => acc.id !== id);
-
-  if (updated.length > 0 && accounts.find(a => a.id === id)?.isDefault) {
-      updated[0].isDefault = true;
-  }
-
-  saveBankAccounts(updated);
-  return updated;
-};
-
-export const setDefaultBankAccount = (id: string) => {
-  const accounts = getBankAccounts();
-  const updated = accounts.map(acc => ({
-    ...acc,
-    isDefault: acc.id === id
-  }));
-  saveBankAccounts(updated);
-  return updated;
 };

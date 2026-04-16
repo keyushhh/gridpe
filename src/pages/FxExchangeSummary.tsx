@@ -30,29 +30,12 @@ import infoIcon from "@/assets/delivery-tip-info.svg";
 import chevronSmall from "@/assets/chevron-small.svg";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
-// createAddress already imported above
+import { SavedAddress } from "@/types";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import Map, { Marker } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { calculateDistance, HUB_COORDS, normalizeCity } from "@/lib/utils";
 import { setBadge } from "@/utils/badge";
-
-interface SavedAddress {
-    id?: string;
-    tag: string;
-    house: string;
-    area: string;
-    landmark?: string;
-    name: string;
-    phone: string;
-    displayAddress: string;
-    city: string;
-    state: string;
-    postcode: string;
-    plusCode?: string;
-    latitude?: number;
-    longitude?: number;
-}
 
 const FxExchangeSummary = () => {
     const navigate = useNavigate();
@@ -295,7 +278,6 @@ const FxExchangeSummary = () => {
             }
 
             if (!zoneId) {
-                console.log("Location not served. Redirecting to Not Available screen.");
                 navigate('/not-available');
                 return;
             }
@@ -340,9 +322,6 @@ const FxExchangeSummary = () => {
                         .select('id, location_name, city')
                         .eq('city', normalizeCity(savedAddress.city));
 
-                    console.log('HUB FETCH - City:', normalizeCity(savedAddress.city));
-                    console.log('HUB FETCH - result:', hubs);
-                    console.log('HUB FETCH - error:', hubsError);
 
                     if (hubs && hubs.length > 0) {
                         // Use the first active hub for the city as coordinates are missing for individual hubs
@@ -354,16 +333,18 @@ const FxExchangeSummary = () => {
                     }
                 }
 
-                console.log('Selected hub ID value:', pickupLocation, typeof pickupLocation);
 
-                // Fetch customer's phone number from profiles table
-                const { data: userProfile } = await supabase
+                const { data: userProfile, error: userError } = await supabase
                     .from('profiles')
                     .select('phone')
                     .eq('id', userId)
                     .single();
 
-                const customerPhoneNumber = userProfile?.phone || null;
+                if (userError || !userProfile?.phone) {
+                    throw new Error("Please add a phone number to your profile to proceed.");
+                }
+
+                const customerPhoneNumber = userProfile.phone;
 
                 const deliveryAddressText = (savedAddress as any).address_line 
                     || (savedAddress as any).full_address 
@@ -431,23 +412,13 @@ const FxExchangeSummary = () => {
                     }
                 };
 
-                console.log('ORDER PAYLOAD CHECK (FX):', {
-                    pickup_location: payload.pickup_location,
-                    delivery_address_text: payload.delivery_address_text,
-                    customer_phone_number: payload.customer_phone_number,
-                    hub_id: payload.hub_id,
-                    selectedHubId: pickupLocation
-                });
-
                 if (!payload.hub_id) console.error("DEBUG: hub_id is NULL");
 
                 if (!payload.customer_phone_number) console.error("DEBUG: (FX) customer_phone_number fetch failed or is NULL");
                 if (!payload.pickup_location) console.error("DEBUG: (FX) pickup_location (hub address) fetch failed or is NULL");
                 if (!payload.delivery_address_text) console.error("DEBUG: (FX) delivery_address_text is NULL");
 
-                console.log("Inserting FX order directly:", payload);
 
-                console.log("FINAL ORDER PAYLOAD (FX):", payload);
 
                 const { data, error } = await supabase
                     .from('orders')
@@ -468,13 +439,16 @@ const FxExchangeSummary = () => {
             };
 
             try {
-                // Fetch context variables from profiles table
-                const { data: userProfile } = await supabase
+                const { data: userProfile, error: profileError } = await supabase
                     .from('profiles')
                     .select('phone')
                     .eq('id', userId)
                     .single();
-                const customerPhoneNumber = userProfile?.phone || null;
+
+                if (profileError || !userProfile?.phone) {
+                    throw new Error("A valid phone number is required to place an order.");
+                }
+                const customerPhoneNumber = userProfile.phone;
 
                 const dAddressText = (savedAddress as any).address_line 
                     || (savedAddress as any).full_address 
@@ -508,7 +482,6 @@ const FxExchangeSummary = () => {
                     orderError.code === '23503';
 
                 if (isAddressError && savedAddress) {
-                    console.log("Stale address ID detected. Creating new address record...");
                     try {
                         const newAddress = await createAddress({
                             user_id: userId,
@@ -530,13 +503,17 @@ const FxExchangeSummary = () => {
                         setSavedAddress(updatedAddr);
                         localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
 
-                        // Re-fetch context for retry from profiles table
-                        const { data: retryProfile } = await supabase
+                        const { data: retryProfile, error: retryError } = await supabase
                             .from('profiles')
                             .select('phone')
                             .eq('id', userId)
                             .single();
-                        const retryPhone = retryProfile?.phone || null;
+
+                        if (retryError || !retryProfile?.phone) {
+                            throw new Error("A valid phone number is required to proceed.");
+                        }
+
+                        const retryPhone = retryProfile.phone;
                         const retryDAddressText = (updatedAddr as any).address_line 
                             || (updatedAddr as any).full_address 
                             || updatedAddr?.tag 

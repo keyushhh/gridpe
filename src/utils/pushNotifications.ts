@@ -25,7 +25,6 @@ export const registerPushNotifications = async () => {
 
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
       // App is in foreground — show a toast with notification title and body
-      console.log('Notification received in foreground:', notification);
     });
 
     PushNotifications.addListener('pushNotificationActionPerformed', (action) => {

@@ -1,30 +1,5 @@
 import { supabase } from "./supabase";
-
-export interface WalletTransaction {
-    id: string;
-    user_id: string;
-    type: 'credit' | 'debit' | 'held' | 'deposit';
-    transaction_type?: 'credit' | 'debit' | 'held' | 'deposit'; // Legacy field
-    amount: number;
-    status: string;
-    created_at: string;
-    description: string;
-    reference_id?: string;
-    metadata?: Record<string, unknown>;
-    date?: string; // used locally for legacy mapping
-    payout_method?: string;
-    vpa?: string;
-}
-
-export interface Payout {
-    id: string;
-    user_id: string;
-    amount: number;
-    status: string;
-    created_at: string;
-    payout_method?: string;
-    vpa?: string;
-}
+import { WalletTransaction, Payout } from "@/types";
 
 /**
  * Calculates the total wallet balance based on transaction history and payouts.

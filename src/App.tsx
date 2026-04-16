@@ -102,19 +102,13 @@ import NotAvailable from "./pages/NotAvailable";
 
 const App = () => {
   useEffect(() => {
-    // Handle deep links for OAuth
+    // Sync Supabase session from OAuth deep links
     const listener = CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
       if (url.startsWith('gridpe://')) {
         console.log("App opened with URL:", url); // Debug logging
 
-        // Extract params from fragment (#) or query (?)
-        // Supabase usually sends params in fragment for implicit flow
-        // But for PKCE flow (default in v2) it sends 'code' in query?
-        // Let's handle generic case:
-
-        // Check for #access_token=...
+        // Handle PKCE/Implicit flow tokens from URL fragments or queries
         if (url.includes('access_token') && url.includes('refresh_token')) {
-          // Parse fragment
           const fragment = url.split('#')[1];
           const params = new URLSearchParams(fragment);
           const access_token = params.get('access_token');
@@ -128,10 +122,8 @@ const App = () => {
             if (error) console.error("Set session error:", error);
             else console.log("Session set from tokens");
           }
-        }
-        // Check for ?code=... (PKCE) or #code=...
-        else {
-          // Robust parsing for code in query or fragment
+        } else {
+          // Alternative: exchange code for session
           const codeMatch = url.match(/[?#&]code=([^&]+)/);
           if (codeMatch && codeMatch[1]) {
             const code = codeMatch[1];
@@ -157,7 +149,7 @@ const App = () => {
       console.warn('Swipe back plugin failed to load', e);
     }
 
-    // Handle hardware back button for Android
+    // Hardware back button (Android)
     let backListener: Promise<{ remove: () => void }> | null = null;
     if (Capacitor.getPlatform() === 'android') {
       backListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
@@ -169,10 +161,9 @@ const App = () => {
       });
     }
 
-    // Register push notifications
     registerPushNotifications();
 
-    // Cleanup listeners
+
     return () => {
       listener.then(handle => handle.remove());
       if (backListener) {
@@ -196,7 +187,6 @@ const App = () => {
 
     checkActiveOrders();
     
-    // Also listen for auth state changes to re-check
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         checkActiveOrders();

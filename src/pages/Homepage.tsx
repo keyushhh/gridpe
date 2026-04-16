@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import Skeleton from 'react-loading-skeleton';
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ChevronDown, Home, Briefcase, Users, MapPin } from "lucide-react";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { ChevronDown, Home, Briefcase, Users, MapPin, Eye, EyeOff } from "lucide-react";
 import { OpenLocationCode } from "open-location-code";
-import { fetchRecentOrders, fetchActiveOrders, Order } from "@/lib/orders";
+import { fetchRecentOrders, fetchActiveOrders } from "@/lib/orders";
+import { Order, SavedAddress, Rider } from "@/types";
 import { supabase, USER_ID } from "@/lib/supabase";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { useAsset } from "@/hooks/useAsset";
 import addIcon from "@/assets/add-icon.svg";
 import currencyIcon from "@/assets/currency.svg";
@@ -47,21 +49,6 @@ const currencySymbols: Record<string, string> = {
   KRW: '₩', MXN: '$', MYR: 'RM', NOK: 'kr', NZD: '$', PHP: '₱', PLN: 'zł', RON: 'lei',
   SEK: 'kr', SGD: '$', THB: '฿', TRY: '₺', USD: '$', ZAR: 'R'
 };
-
-interface SavedAddress {
-  tag: string;
-  house: string;
-  area: string;
-  landmark?: string;
-  name: string;
-  phone: string;
-  displayAddress: string;
-  city: string;
-  state: string;
-  postcode: string;
-  latitude?: number;
-  longitude?: number;
-}
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -123,7 +110,7 @@ const Homepage = () => {
 
   // FX Live Data states
   const [fxRate, setFxRate] = useState<number>(90.61);
-  const [fxHistory, setFxHistory] = useState<any[]>([]);
+  const [fxHistory, setFxHistory] = useState<unknown[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>("16 Feb, 6:15 AM UTC");
   const [isLoadingFx, setIsLoadingFx] = useState<boolean>(true);
 
@@ -246,7 +233,7 @@ const Homepage = () => {
         setTimeout(() => setIsLoading(false), 800);
     });
 
-    let channel: any;
+    let channel: RealtimeChannel | null = null;
 
     const setupSubscription = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -262,7 +249,6 @@ const Homepage = () => {
               filter: `user_id=eq.${session.user.id}`
             },
             (payload) => {
-              console.log('Homepage order real-time update:', payload);
               loadData();
             }
           )
@@ -293,8 +279,7 @@ const Homepage = () => {
   useEffect(() => {
     if (activeOrder?.addresses?.plus_code) {
       try {
-        const olc = new OpenLocationCode() as any;
-        const decoded = olc.decode(activeOrder.addresses.plus_code);
+        const decoded = OpenLocationCode.decode(activeOrder.addresses.plus_code);
         setViewState({
           latitude: decoded.latitudeCenter,
           longitude: decoded.longitudeCenter,
@@ -345,7 +330,7 @@ const Homepage = () => {
     checkAvailability();
   }, [savedAddress]);
 
-  const handleAddressSelect = (address: any | null) => {
+  const handleAddressSelect = (address: SavedAddress | null) => {
     setSavedAddress(address);
     if (address) {
       setIsAddressSheetOpen(false);
@@ -400,7 +385,7 @@ const Homepage = () => {
           sub: "Assigning a delivery partner in the next 2 minutes."
         };
       case 'accepted':
-        const riderName = (activeOrder as any).rider?.full_name || "Rider";
+        const riderName = activeOrder.rider?.full_name || "Rider";
         return {
           title: <>Rider is on the way to pickup!</>,
           sub: `${riderName} is heading to the store.`
@@ -484,9 +469,9 @@ const Homepage = () => {
     },
   };
 
-  const routeLayer: any = {
+  const routeLayer = {
     id: "route-line",
-    type: "line",
+    type: "line" as const,
     paint: {
       "line-color": "#5260FE",
       "line-width": 2,
@@ -599,7 +584,7 @@ const Homepage = () => {
                 {isLoading ? (
                   <Skeleton width={160} height={40} />
                 ) : (
-                  <>{showBalance ? formatINR(walletBalance, { showDecimals: true }) : "******"}</>
+                  <>{showBalance ? formatINR(walletBalance) : "******"}</>
                 )}
               </p>
               <button
@@ -862,10 +847,10 @@ const Homepage = () => {
                             <div className="absolute left-[75%] top-[64px] w-[0.2px] h-[3px] bg-black/20 dark:bg-white/20" />
                             <div className="absolute top-[66px] left-0 right-0 h-[10px] pointer-events-none">
                               <span className="absolute left-[25%] -translate-x-1/2 text-[5px] text-black/50 dark:text-white/30 font-satoshi font-medium uppercase min-w-[40px] text-center">
-                                {fxHistory.length > 5 ? fxHistory[Math.floor(fxHistory.length * 0.2)].date : '28 Jul'}
+                                {fxHistory.length > 5 ? (fxHistory[Math.floor(fxHistory.length * 0.2)] as { date: string }).date : '28 Jul'}
                               </span>
                               <span className="absolute left-[75%] -translate-x-1/2 text-[5px] text-black/50 dark:text-white/30 font-satoshi font-medium uppercase min-w-[40px] text-center">
-                                {fxHistory.length > 0 ? fxHistory[fxHistory.length - 1].date : '8 Aug'}
+                                {fxHistory.length > 0 ? (fxHistory[fxHistory.length - 1] as { date: string }).date : '8 Aug'}
                               </span>
                             </div>
                           </div>
@@ -932,7 +917,7 @@ const Homepage = () => {
                               <img src={getStatusIcon(tx.status)} alt="Status" className="w-[26px] h-[26px]" />
                               <div className="ml-[7px] flex flex-col">
                                 <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}>
-                                  {tx.metadata?.isFx ? "FX Exchange" : (tx.metadata?.item_value ? `Ordered ₹${tx.metadata.item_value} Cash` : (tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"))}
+                                  {tx.meta_data?.isFx ? "FX Exchange" : (tx.meta_data?.item_value ? `Ordered ₹${tx.meta_data.item_value} Cash` : (tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"))}
                                 </span>
                                 <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
                                   {new Date(tx.created_at).toLocaleDateString('en-IN', {
@@ -944,8 +929,8 @@ const Homepage = () => {
 
                             <div className="text-right">
                               <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}>
-                                {tx.metadata?.isFx
-                                  ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                {tx.meta_data?.isFx
+                                  ? `${currencySymbols[tx.meta_data.toCurrency as string] || ''}${Number(tx.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                   : `₹${(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                 }
                               </span>

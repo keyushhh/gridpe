@@ -40,7 +40,6 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             try {
                 // Get current session
                 const { data: { session } } = await supabase.auth.getSession();
-                console.log("LegalPage: Current session user:", session?.user?.id);
                 setHasSession(!!session?.user);
 
                 const { data: results, error: fetchError } = await supabase
@@ -69,7 +68,6 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                             .maybeSingle();
 
                         if (consentError) console.error("LegalPage: Error checking consent:", consentError);
-                        console.log(`LegalPage: Consent record for ${type}:`, consent);
                         setIsAccepted(!!consent);
                     } else {
                         setIsAccepted(false);

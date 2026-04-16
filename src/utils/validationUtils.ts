@@ -3,7 +3,6 @@
 export const luhnCheck = (val: string) => {
     let sum = 0;
     let shouldDouble = false;
-    // Iterate from right to left
     for (let i = val.length - 1; i >= 0; i--) {
         let intVal = parseInt(val.charAt(i));
 
@@ -22,7 +21,7 @@ export const luhnCheck = (val: string) => {
 
 // Validate Expiry Date (MM/YY)
 export const validateExpiry = (val: string): string | null => {
-    if (val.length !== 5) return "Invalid date."; // Needs MM/YY length
+    if (val.length !== 5) return "Invalid date.";
     const parts = val.split('/');
     if (parts.length !== 2) return "Invalid format.";
 
@@ -32,10 +31,9 @@ export const validateExpiry = (val: string): string | null => {
     if (isNaN(month) || isNaN(year)) return "Invalid numbers.";
     if (month < 1 || month > 12) return "Invalid month.";
 
-    const currentYear = new Date().getFullYear() % 100; // Get last 2 digits of year
+    const currentYear = new Date().getFullYear() % 100;
     const currentMonth = new Date().getMonth() + 1;
 
-    // Check if expired
     if (year < currentYear || (year === currentYear && month <= currentMonth)) {
         return "This card is expired.";
     }
@@ -48,11 +46,8 @@ export const validateCVV = (val: string, cardType: string | null): string | null
     if (!val) return "CVV is required.";
     const len = val.length;
 
-    // Amex is usually 4, others 3. But for this app, we mainly see 3.
-    // If we support Amex later, we can adjust.
-    // Standard check: 3 digits.
     if (len < 3) return "Invalid CVV.";
-    if (len > 4) return "Invalid CVV."; // Just in case
+    if (len > 4) return "Invalid CVV.";
 
     return null;
 };

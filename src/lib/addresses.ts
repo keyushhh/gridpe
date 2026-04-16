@@ -1,22 +1,6 @@
 import { supabase, USER_ID } from './supabase';
 import { OpenLocationCode } from "open-location-code";
-
-export interface Address {
-  id: string;
-  user_id: string;
-  label: string | null;
-  apartment: string | null;
-  landmark: string | null;
-  area: string | null;
-  city: string | null;
-  state: string | null;
-  latitude: number;
-  longitude: number;
-  plus_code: string | null;
-  contact_name: string | null;
-  contact_phone: string | null;
-  created_at?: string;
-}
+import { Address } from '@/types';
 
 /**
  * Ensures a Plus Code is in global format.

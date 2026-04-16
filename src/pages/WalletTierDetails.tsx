@@ -17,12 +17,10 @@ const WalletTierDetails = () => {
 
     if (!currentTier) return null;
 
-    // Choose expand card image based on theme
     const expandImage = isDarkMode
         ? currentTier.headerImage
         : tierExpandCardMapLight[currentTier.name];
 
-    // Choose chip style based on theme
     const chipStyle = isDarkMode
         ? {
             backgroundImage: `url(${currentTier.chip})`,
@@ -46,7 +44,6 @@ const WalletTierDetails = () => {
                 backgroundRepeat: "no-repeat",
             }}
         >
-            {/* Light Mode Status Blob (Top Glow) */}
             {!isDarkMode && (
                 <div
                     className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
@@ -59,7 +56,6 @@ const WalletTierDetails = () => {
                 />
             )}
 
-            {/* Header Section */}
             <div className="relative flex items-center justify-between px-5 pt-4 pb-2 shrink-0 z-50">
                 <button
                     onClick={() => navigate(-1)}
@@ -73,10 +69,9 @@ const WalletTierDetails = () => {
                 <h1 className={`text-[22px] font-medium text-center absolute left-1/2 -translate-x-1/2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Wallet Settings
                 </h1>
-                <div className="w-10 h-10" /> {/* Spacer */}
+                <div className="w-10 h-10" />
             </div>
 
-            {/* Content Container */}
             <div
                 className="relative w-[362px] mx-auto flex flex-col mt-[28px] px-[14px] pt-[14px] pb-6 rounded-[20px]"
                 style={{
@@ -86,7 +81,6 @@ const WalletTierDetails = () => {
                     border: !isDarkMode ? "1px solid #F2F2F7" : "none",
                 }}
             >
-                {/* Chip Badge */}
                 <div
                     className="absolute flex items-center justify-center rounded-full text-[10px] font-medium text-white z-20"
                     style={{
@@ -100,7 +94,6 @@ const WalletTierDetails = () => {
                     {currentTier.badge}
                 </div>
 
-                {/* Wallet Limit Header */}
                 <div className="flex flex-col items-start pl-[63px]">
                     <span className={`text-[15px] font-medium tracking-normal ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         {currentTier.name.toUpperCase()}
@@ -116,7 +109,6 @@ const WalletTierDetails = () => {
                     </div>
                 </div>
 
-                {/* Info Container */}
                 <div
                     className={`w-[334px] mt-[16px] rounded-[13px] p-[10px] overflow-y-auto no-scrollbar ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
                     style={{
@@ -134,7 +126,6 @@ const WalletTierDetails = () => {
                         ),
                     }}
                 >
-                    {/* Info List */}
                     <div className="flex flex-col gap-[10px]">
                         {/* Verification */}
                         <div>
@@ -218,7 +209,7 @@ const WalletTierDetails = () => {
                     const isUpgrade = viewedTierIndex > currentTierIndex;
                     const isCurrent = viewedTierIndex === currentTierIndex;
 
-                    const handleAction = () => {
+                    const handleTierAction = () => {
                         if (scheduledDowngrade) return;
                         if (isUpgrade) {
                             navigate(currentTier.buttonAction, {
@@ -257,7 +248,7 @@ const WalletTierDetails = () => {
 
                     return (
                         <button
-                            onClick={handleAction}
+                            onClick={handleTierAction}
                             disabled={!!scheduledDowngrade}
                             className={`w-full h-[52px] rounded-full bg-[#6C72FF] text-white text-[16px] font-medium transition-transform flex items-center justify-center shadow-lg shadow-[#6C72FF]/20 mt-[20px] ${scheduledDowngrade ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                         >

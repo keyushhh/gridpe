@@ -103,7 +103,6 @@ const SubscriptionSummary = () => {
                 type: "tier_upgrade",
                 tier_name: selectedTierName
             };
-            console.log("[DEBUG] Sending Upgrade Payload:", payload);
 
             const response = await fetch(functionUrl, {
                 method: 'POST',
@@ -125,7 +124,11 @@ const SubscriptionSummary = () => {
             // 🛠️ The FIX: Parse if raw string
             let order = data;
             if (typeof data === 'string') {
-                try { order = JSON.parse(data); } catch (e) { }
+                try {
+                    order = JSON.parse(data);
+                } catch (e) {
+                    throw new Error("Failed to parse subscription order response");
+                }
             }
 
             // 2. Open Razorpay using the order_id
@@ -137,7 +140,6 @@ const SubscriptionSummary = () => {
                 name: "Grid.pe",
                 description: `${selectedTierName.toUpperCase()} Upgrade`,
                 handler: async function (response: any) {
-                    console.log("Payment success!", response);
                     try {
                         setIsLoading(true);
                         const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-subscription`;

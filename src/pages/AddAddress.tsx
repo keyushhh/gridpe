@@ -58,7 +58,6 @@ const AddAddress = () => {
 
   // Hybrid Search (Plus Code & Text)
   const performSearch = async (query: string) => {
-    console.log("performSearch called with:", query);
     if (!query) {
       setSearchResults([]);
       setShowDropdown(false);
@@ -71,7 +70,6 @@ const AddAddress = () => {
 
     if (match) {
       const potentialCode = match[0].toUpperCase();
-      console.log("Potential Plus Code found:", potentialCode);
 
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,7 +80,6 @@ const AddAddress = () => {
         const recoveredCode = olc.recoverNearest(potentialCode, refLat, refLng);
 
         if (olc.isValid(recoveredCode)) {
-          console.log("Valid code recovered:", recoveredCode);
           const codeArea = olc.decode(recoveredCode);
           const lat = codeArea.latitudeCenter;
           const lng = codeArea.longitudeCenter;
@@ -103,13 +100,11 @@ const AddAddress = () => {
           }
         }
       } catch (err) {
-        console.log("Plus code resolution failed, falling back to text search", err);
       }
     }
 
     // 2. Text Search (Nominatim)
     try {
-      console.log("Calling Nominatim search...");
       // Pass user location or map center to bias results
       const centerLat = userLocation ? userLocation.lat : viewState.latitude;
       const centerLng = userLocation ? userLocation.lng : viewState.longitude;
@@ -125,11 +120,9 @@ const AddAddress = () => {
   const fetchAddress = async (lat: number, lng: number, overrideUserLocation?: { lat: number, lng: number }) => {
     setIsLoading(true);
     try {
-      console.log("Fetching address for", lat, lng);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const olc = new OpenLocationCode() as any;
       const fullCode = olc.encode(lat, lng);
-      console.log("Generated Full Code:", fullCode);
 
       setPlusCode(fullCode);
 
@@ -180,7 +173,6 @@ const AddAddress = () => {
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    console.log("Input changed:", val);
     setSearchQuery(val);
     debouncedSearch(val);
   };
@@ -199,11 +191,9 @@ const AddAddress = () => {
 
   const fetchUserLocation = useCallback(async () => {
     try {
-      console.log("Checking location permissions...");
       const hasPermission = await checkLocationPermission();
 
       if (!hasPermission) {
-        console.log("Location permission denied or not granted.");
         return;
       }
 
@@ -216,7 +206,6 @@ const AddAddress = () => {
       });
 
       const { latitude, longitude } = position.coords;
-      console.log("Got fresh location:", latitude, longitude);
 
       setUserLocation({
         lat: latitude,
