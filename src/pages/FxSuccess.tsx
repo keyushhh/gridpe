@@ -26,7 +26,8 @@ import infoIcon from "@/assets/delivery-tip-info.svg";
 import closeIcon from "@/assets/cross-icon.svg";
 import radioFilled from "@/assets/radio-fill.svg";
 import radioEmpty from "@/assets/radio-empty.svg";
-import { Order, getOrderById, cancelOrder } from "@/lib/orders";
+import { getOrderById, cancelOrder } from "@/lib/orders";
+import { Order } from "@/types";
 import { useUser } from "@/contexts/UserContext";
 
 const currencySymbols: Record<string, string> = {
@@ -219,8 +220,8 @@ const FxSuccess = () => {
     };
 
     if (loading || !order || !order.status) {
-        return <div className={`h-screen w-full flex items-center justify-center font-sans ${isDarkMode ? "bg-[#0a0a12] text-white" : "bg-[#FFFFFF] text-black"}`}>
-            <div className="flex flex-col items-center gap-4">
+        return <div className={`h-screen w-full flex items-start justify-center font-sans pt-safe pt-4 ${isDarkMode ? "bg-[#0a0a12] text-white" : "bg-[#FFFFFF] text-black"}`}>
+            <div className="flex flex-col items-center gap-4 mt-20">
                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm font-medium">Securing your order...</p>
             </div>
@@ -233,7 +234,7 @@ const FxSuccess = () => {
             mainIcon: isDarkMode ? checkIcon : checkIconLight,
             headerTitle: "Order Successful",
             statusTitle: "We’ll notify you once your FX cash is ready for delivery.",
-            statusAmount: isFx ? (location.state?.receiveAmount || currentOrder.metadata?.receive_amount || currentOrder.metadata?.receiveAmount || currentOrder.amount) : currentOrder.amount,
+            statusAmount: isFx ? (location.state?.receiveAmount || (currentOrder.meta_data as any)?.receive_amount || (currentOrder.meta_data as any)?.receiveAmount || currentOrder.amount) : currentOrder.amount,
             showMap: true,
             deliveryText: "We’re assigning a delivery\npartner soon!",
             deliverySubText: "Assigning a delivery partner in the next 2 minutes.",
@@ -277,7 +278,7 @@ const FxSuccess = () => {
                 showMap: false,
                 deliveryText: "Order Cancelled",
                 // @ts-ignore
-                deliverySubText: currentOrder.metadata?.cancel_reason_type || "Order cancelled by user.",
+                deliverySubText: (currentOrder.meta_data as any)?.cancel_reason_type || "Order cancelled by user.",
                 transactionNote: "Refund has been initiated to your wallet.",
                 canCancel: false
             };
@@ -310,7 +311,7 @@ const FxSuccess = () => {
             )}
             {/* Header */}
             <div
-                className="px-5 pt-safe pt-6 flex items-center justify-between z-10 mb-[21px] relative"
+                className="px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-[21px] relative"
             >
                 <div className="w-6" />
                 <h1 className={isDarkMode ? 'text-[22px] font-medium font-satoshi text-white' : 'text-[18px] font-medium font-sans text-black'}>
@@ -444,7 +445,7 @@ const FxSuccess = () => {
 
                     <div className="flex justify-between items-center mb-[8px]">
                         <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Transaction Number</span>
-                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{order?.transaction_number || 'N/A'}</span>
+                        <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{order?.id?.substring(0, 8).toUpperCase() || 'N/A'}</span>
                     </div>
 
                     <div className="flex justify-between items-center mb-[8px]">
@@ -469,7 +470,7 @@ const FxSuccess = () => {
                     {isFx && (
                         <div className="flex justify-between items-center mb-[8px]">
                             <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-normal' : 'text-black'}`}>Final Amount (Cash)</span>
-                            <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{currencySymbol}{(order.metadata?.receive_amount || order.metadata?.receiveAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}>{currencySymbol}{((order.meta_data as any)?.receive_amount || (order.meta_data as any)?.receiveAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     )}
 

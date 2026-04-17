@@ -98,6 +98,10 @@ import ZingChat from "./pages/ZingChat";
 import NotFound from "./pages/NotFound";
 import DeliveryCaution from "./pages/DeliveryCaution";
 import NotAvailable from "./pages/NotAvailable";
+import { Button } from "@/components/ui/button";
+import DemoButtons from "./pages/DemoButtons";
+import RefractionLab from "./labs/RefractionLab";
+import { LiquidGlassFilters } from "./components/ui/LiquidGlassFilters";
 
 
 const App = () => {
@@ -210,6 +214,7 @@ const App = () => {
     >
       <div className="app-container">
         <GlobalCustomToaster />
+        <LiquidGlassFilters />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <NetworkBanner />
           <Routes>
@@ -298,7 +303,8 @@ const App = () => {
           <Route path="/downgrade-summary" element={<DowngradeSummary />} />
           <Route path="/auth/v1/callback" element={<AuthCallback />} />
           <Route path="/delivery-caution" element={<DeliveryCaution />} />
-          <Route path="/not-available" element={<NotAvailable />} />
+          <Route path="/demo-glass" element={<DemoButtons />} />
+          <Route path="/labs" element={<RefractionLab />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

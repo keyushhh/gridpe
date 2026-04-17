@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Order, fetchRecentOrders } from "@/lib/orders";
+import { fetchRecentOrders } from "@/lib/orders";
+import { Order } from "@/types";
 import { supabase } from "@/lib/supabase";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import searchBg from "@/assets/search-bg.png";
@@ -20,6 +21,7 @@ import walletBlackIcon from "@/assets/wallet-black.svg";
 import partnerBlackIcon from "@/assets/partner-black.svg";
 import chatBlackIcon from "@/assets/chat-black.svg";
 import { useTheme } from "next-themes";
+import searchIcon from "@/assets/search-icon.svg";
 
 const HelpSupport = () => {
     const navigate = useNavigate();
@@ -62,14 +64,16 @@ const HelpSupport = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 pt-safe pt-4 pb-4 flex items-center relative z-10 shrink-0 mb-[41px]">
+            <header className="px-5 pt-safe pt-4 pb-4 flex items-center relative z-10 shrink-0 mb-[10px]">
                 <button
                     onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
+                    className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-full border relative z-20 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-[#E6E8EB]'}`}
                 >
                     <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                 </button>
-                <h1 className={`w-full text-center text-[22px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support</h1>
+                <div className="absolute inset-x-0 flex justify-center pointer-events-none">
+                    <h1 className={`text-[22px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support</h1>
+                </div>
             </header>
 
             <main className="flex-1 px-5 relative z-10">
@@ -81,18 +85,27 @@ const HelpSupport = () => {
 
                 {/* Search Bar */}
                 <div
-                    className={`w-full h-[44px] flex items-center px-4 mb-[32px] overflow-hidden rounded-full ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
-                    style={isDarkMode ? {
-                        backgroundImage: `url(${searchBg})`,
-                        backgroundSize: '100% 100%',
-                        backgroundRepeat: 'no-repeat'
-                    } : {}}
+                    className="w-full h-[44px] flex items-center mb-[32px] overflow-hidden rounded-full glass-container glass-physics-search relative"
                 >
-                    <input
-                        type="text"
-                        placeholder='Example: "Account delete"'
-                        className={`bg-transparent font-satoshi text-[14px] w-full outline-none ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-[#7E7E7E]'}`}
-                    />
+                    <div className="glass-lens" />
+                    <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                    <span className="glass-rim-v2" />
+                    
+                    <div className="flex items-center w-full h-full pl-[12px] relative z-10">
+                        <img 
+                            src={searchIcon} 
+                            alt="" 
+                            className="w-6 h-6 shrink-0" 
+                            style={{ 
+                                filter: isDarkMode ? 'brightness(0) invert(1) opacity(0.8)' : 'opacity(0.8)' 
+                            }} 
+                        />
+                        <input
+                            type="text"
+                            placeholder='Example: "Account delete"'
+                            className={`flex-1 bg-transparent font-satoshi text-[14px] outline-none ml-[16px] ${isDarkMode ? 'text-white/80 placeholder:text-white/80' : 'text-black/80 placeholder:text-black/80'}`}
+                        />
+                    </div>
                 </div>
 
                 {/* Recent Order Section */}
@@ -145,7 +158,7 @@ const HelpSupport = () => {
 
                                 <div className="absolute top-[17px] left-[65px] flex flex-col">
                                     <span className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        {recentOrder.metadata?.item_value ? `Ordered ₹${recentOrder.metadata.item_value} Cash` : (recentOrder.addresses?.label ? `Order to ${recentOrder.addresses.label}` : "Cash Order")}
+                                        {(recentOrder.meta_data as any)?.item_value ? `Ordered ₹${(recentOrder.meta_data as any).item_value} Cash` : (recentOrder.addresses?.label ? `Order to ${recentOrder.addresses.label}` : "Cash Order")}
                                     </span>
                                     <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
                                         Today | 12:00 PM

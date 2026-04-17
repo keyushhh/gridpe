@@ -44,6 +44,9 @@
     --surface-elevated: 0 0% 100%;
     --text-secondary: 215 16% 47%;
     --link-color: 234 89% 60%;
+
+    --text-secondary: 215 16% 47%;
+    --link-color: 234 89% 60%;
   }
 
   .dark {
@@ -52,6 +55,13 @@
     --input: 217 33% 17%;
     /* Darker background for inputs in dark mode */
     --border: 217 33% 17%;
+
+    /* Grid.Pe Pure Physics Glass (Dark Mode) */
+    --glass-refraction: 43;
+    --glass-blur: 5px;
+    --glass-specular-intensity: 0.25;
+    --glass-specular-angle: 31deg;
+    --glass-tint: transparent;
   }
 }
 
@@ -175,8 +185,7 @@
   }
 
   .input-surface {
-    background: hsl(var(--input));
-    border: 1px solid hsl(var(--border));
+    @apply bg-input border-border border;
   }
 
   .social-button {
@@ -213,6 +222,108 @@
     user-select: none;
     -webkit-user-select: none;
   }
+
+  /* Stable 'Clean Rim' Liquid Glass Utility */
+  .glass-container {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 9999px;
+    /* Force Pill Shape Clipping (Specifically for SVG Filters) */
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+  }
+
+  .glass-lens {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.8);
+    -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.8);
+    background: var(--glass-tint, transparent);
+    /* Re-integrating the Physics Layer */
+    filter: url(#liquid-glass-physics);
+    pointer-events: none;
+    z-index: 1;
+    will-change: filter, backdrop-filter;
+    border-radius: inherit;
+    overflow: hidden;
+  }
+
+  .dark .glass-lens {
+    background: var(--glass-tint, transparent);
+  }
+
+  .glass-rim-v2 {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: inherit;
+    padding: 1px;
+    /* The 'Stardust'-prevention stroke width */
+    /* Master 'Contour Stroke' logic */
+    background: conic-gradient(from var(--glass-specular-angle, 135deg), transparent, white, transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: var(--glass-specular-intensity, 0.6);
+    mix-blend-mode: plus-lighter;
+  }
+
+  /* Scoped Density: Pure Physics Clear (Support CTA) */
+  .glass-physics-clear {
+    --glass-refraction: 12;
+    --glass-blur: 2px;
+    --glass-tint: transparent;
+    --glass-specular-intensity: 0.2;
+    --glass-specular-angle: 80deg;
+  }
+
+  /* Scoped Density: Internal Banner CTA (Check Security) */
+  .glass-physics-cta {
+    --glass-refraction: 8;
+    --glass-blur: 2px;
+    --glass-tint: transparent;
+    --glass-specular-intensity: 0.3;
+    --glass-specular-angle: 108deg;
+  }
+
+  /* Scoped Density: High-Density Glass (Help Search Bar) */
+  .glass-physics-search {
+    --glass-refraction: 45;
+    --glass-blur: 4px;
+    --glass-specular-intensity: 0.5;
+    --glass-specular-angle: 0deg;
+    --glass-specular-color: #E0E7FF;
+    /* Inner Glow for shape definition */
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-physics-search .glass-lens {
+    filter: url(#liquid-glass-physics-search);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
+  }
+
+  .glass-physics-search .glass-rim-v2 {
+    background: conic-gradient(from var(--glass-specular-angle, 0deg), transparent, var(--glass-specular-color, white), transparent);
+    mix-blend-mode: color-dodge;
+    opacity: var(--glass-specular-intensity);
+  }
+}
+
+.dark .glass-physics-search {
+  --glass-tint: #000000BA;
+  --glass-tint-opacity: 0.73;
+}
+
+:root:not(.dark) .glass-physics-search {
+  --glass-tint: #FFFFFFB5;
+  --glass-tint-opacity: 0.71;
+  /* Light Mode Specifics: Ambient Dropshadow + Inner Glow + #E6E8EB stroke at 20% */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 0 0 0.5px rgba(255, 255, 255, 0.4);
+  border: 0.5px solid rgba(230, 232, 235, 0.2);
 }
 
 /* Safe area padding for mobile */
@@ -220,9 +331,11 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
+
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
   }

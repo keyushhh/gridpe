@@ -1,7 +1,13 @@
 import { PushNotifications } from '@capacitor/push-notifications';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
 
 export const registerPushNotifications = async () => {
+  if (!Capacitor.isNativePlatform()) {
+    console.log('Skipping push notification registration on non-native platform');
+    return;
+  }
+
   try {
     const permission = await PushNotifications.requestPermissions();
     if (permission.receive !== 'granted') return;

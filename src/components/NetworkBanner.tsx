@@ -7,27 +7,32 @@ const NetworkBanner: React.FC = () => {
   const [showBackOnline, setShowBackOnline] = useState(false);
 
   useEffect(() => {
+    let handlerPromise: any;
+
     // Initial status check
     Network.getStatus().then((s) => {
       setStatus(s);
     });
 
     // Listen for changes
-    const handler = Network.addListener('networkStatusChange', (s) => {
-      setStatus((prev) => {
-        if (prev && !prev.connected && s.connected) {
-          // We were offline and are now online
-          setShowBackOnline(true);
-          setTimeout(() => {
-            setShowBackOnline(false);
-          }, 3000); // 3 seconds total including animation
-        }
-        return s;
+    const setupListener = async () => {
+      handlerPromise = await Network.addListener('networkStatusChange', (s) => {
+        setStatus((prev) => {
+          if (prev && !prev.connected && s.connected) {
+            setShowBackOnline(true);
+            setTimeout(() => setShowBackOnline(false), 3000);
+          }
+          return s;
+        });
       });
-    });
+    };
+
+    setupListener();
 
     return () => {
-      handler.remove();
+      if (handlerPromise && typeof handlerPromise.remove === 'function') {
+        handlerPromise.remove();
+      }
     };
   }, []);
 

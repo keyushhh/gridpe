@@ -610,7 +610,7 @@ const FxExchangeSummary = () => {
 
             {/* Header */}
             <div
-                className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6"
+                className="flex-none px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-6"
             >
                 <button
                     onClick={() => navigate(-1)}

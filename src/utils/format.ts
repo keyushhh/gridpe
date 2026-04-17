@@ -12,9 +12,12 @@ export const formatINR = (amount: number, options: {
     showSymbol = true 
   } = options;
 
+  const minDigits = Math.max(0, Math.min(20, minimumFractionDigits));
+  const maxDigits = Math.max(minDigits, Math.min(20, maximumFractionDigits));
+
   const formatted = amount.toLocaleString('en-IN', {
-    minimumFractionDigits,
-    maximumFractionDigits
+    minimumFractionDigits: minDigits,
+    maximumFractionDigits: maxDigits
   });
 
   return showSymbol ? `₹${formatted}` : formatted;

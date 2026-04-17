@@ -50,20 +50,12 @@ const SecurityDashboard = () => {
   const mainBg = useAsset("main-bg");
 
   const getStatusBanner = () => {
-    // Height 80px, Badge Icon, Centered Header, Secondary Text
-    // Padding: top 17px, left 17px, bottom 15px
-    const commonClasses = "w-full h-[80px] rounded-xl flex items-center justify-between px-4 cursor-pointer relative overflow-hidden pt-[17px] pl-[17px] pb-[15px]";
-    const bgStyle = (img: string) => ({
-      backgroundImage: `url(${img})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF'
-    });
-
-    const bannerAssets = {
-      complete: securityCompleteAsset,
-      pending: securityPendingAsset,
-      incomplete: securityIncompleteAsset
+    // Shared Color Schema with Settings.tsx (21% opacity bg, 100% border)
+    const colors: Record<string, string> = {
+      incomplete: "#FF1E1E",
+      pending: "#FF1E1E",
+      in_review: "#FACC15",
+      verified: "#1CB956"
     };
 
     const statusLabel = {
@@ -80,28 +72,29 @@ const SecurityDashboard = () => {
       verified: "Your security setup looks good and completed."
     };
 
-    const statusColor = {
-      incomplete: "#FF1E1E",
-      pending: "#FF1E1E",
-      in_review: "#FACC15",
-      verified: "#1CB956"
-    };
-
-    const currentBannerAsset = kycStatus === 'verified' ? securityCompleteAsset : (kycStatus === 'in_review' ? securityPendingAsset : securityIncompleteAsset);
+    const currentColor = colors[kycStatus] || colors.incomplete;
+    const bannerBg = `rgba(${parseInt(currentColor.slice(1, 3), 16)}, ${parseInt(currentColor.slice(3, 5), 16)}, ${parseInt(currentColor.slice(5, 7), 16)}, 0.21)`;
 
     return (
       <div
-        className={commonClasses}
-        style={bgStyle(currentBannerAsset)}
+        className="w-full min-h-[80px] rounded-xl flex items-center justify-between px-4 cursor-pointer relative overflow-hidden backdrop-blur-[25px] border transition-all duration-300"
+        style={{
+          backgroundColor: bannerBg,
+          borderColor: currentColor,
+          borderWidth: '0.63px',
+          paddingTop: '17px',
+          paddingLeft: '17px',
+          paddingBottom: '15px'
+        }}
         onClick={kycStatus !== 'verified' ? () => navigate("/kyc-intro") : undefined}
       >
-        <div className="flex flex-col justify-center w-full h-full">
+        <div className="flex flex-col justify-center w-full h-full relative z-10">
           <div className="flex items-center gap-2">
             {!isDarkMode ? (
               <div
                 className="w-[24px] h-[24px]"
                 style={{
-                  backgroundColor: statusColor[kycStatus],
+                  backgroundColor: currentColor,
                   WebkitMaskImage: `url(${kycBadge})`,
                   maskImage: `url(${kycBadge})`,
                   WebkitMaskSize: 'contain',
@@ -320,8 +313,7 @@ const SecurityDashboard = () => {
       className="h-full w-full overflow-hidden flex flex-col relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
-        // Remove background image in Dark Mode as requested to fix the "frame" issue.
-        backgroundImage: isDarkMode ? 'none' : 'none',
+        backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',
         backgroundSize: "cover",
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",

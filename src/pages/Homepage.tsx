@@ -35,6 +35,8 @@ import { formatINR } from "@/utils/format";
 import { cancelOrder } from "@/lib/orders";
 import { useTheme } from "next-themes";
 import NotAvailable from "./NotAvailable";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // Tag Icons
 import homeIcon from "@/assets/HomeTag.svg";
@@ -587,18 +589,20 @@ const Homepage = () => {
                   <>{showBalance ? formatINR(walletBalance) : "******"}</>
                 )}
               </p>
-              <button
+              <Button
                 onClick={() => navigate('/order-cash')}
-                className="flex items-center justify-center gap-2 px-6 py-3 text-foreground text-[14px] font-medium h-12 w-[180px] bg-black dark:bg-transparent rounded-full dark:rounded-none"
-                style={{
-                  backgroundImage: orderCashBg ? `url(${orderCashBg})` : 'none',
-                  backgroundSize: "100% 100%",
-                  backgroundRepeat: "no-repeat",
-                }}
+                variant={isDarkMode ? "glass" : "default"}
+                className={cn(
+                  "w-[160px] h-[44px] shadow-xl transition-all",
+                  !isDarkMode && "bg-black hover:bg-black/90 text-white rounded-full"
+                )}
               >
                 <img src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
-                <span className="text-white dark:text-foreground">Order Cash</span>
-              </button>
+                <span className={cn(
+                  "font-medium",
+                  isDarkMode ? "text-white dark:text-foreground" : "text-white"
+                )}>Order Cash</span>
+              </Button>
             </div>
 
             {/* Balance Alert Banner */}
@@ -917,7 +921,7 @@ const Homepage = () => {
                               <img src={getStatusIcon(tx.status)} alt="Status" className="w-[26px] h-[26px]" />
                               <div className="ml-[7px] flex flex-col">
                                 <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}>
-                                  {tx.meta_data?.isFx ? "FX Exchange" : (tx.meta_data?.item_value ? `Ordered ₹${tx.meta_data.item_value} Cash` : (tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"))}
+                                  {(tx.meta_data as any)?.isFx ? "FX Exchange" : ((tx.meta_data as any)?.item_value ? `Ordered ₹${(tx.meta_data as any).item_value} Cash` : (tx.addresses?.label ? `Order to ${tx.addresses.label}` : "Cash Order"))}
                                 </span>
                                 <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
                                   {new Date(tx.created_at).toLocaleDateString('en-IN', {
@@ -929,8 +933,8 @@ const Homepage = () => {
 
                             <div className="text-right">
                               <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}>
-                                {tx.meta_data?.isFx
-                                  ? `${currencySymbols[tx.meta_data.toCurrency as string] || ''}${Number(tx.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                {(tx.meta_data as any)?.isFx
+                                  ? `${currencySymbols[(tx.meta_data as any).toCurrency as string] || ''}${Number((tx.meta_data as any).receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                   : `₹${(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                 }
                               </span>

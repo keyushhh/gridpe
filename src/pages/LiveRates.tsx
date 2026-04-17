@@ -105,6 +105,7 @@ const LiveRates = () => {
 
     const [isSelectingFrom, setIsSelectingFrom] = useState(false);
     const [isSelectingTo, setIsSelectingTo] = useState(false);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
     const currentFrom = isSwapped ? toCurrency : fromCurrency;
     const currentTo = isSwapped ? fromCurrency : toCurrency;
@@ -134,6 +135,43 @@ const LiveRates = () => {
         fetchCurrencies();
     }, []);
 
+    const fetchHistoricalData = async (from: string, to: string, range: string) => {
+        try {
+            setIsLoadingHistory(true);
+            const endDate = new Date().toISOString().split('T')[0];
+            let startDate = new Date();
+            
+            switch (range) {
+                case '1D': startDate.setDate(startDate.getDate() - 2); break; // 2 days for trend
+                case '5D': startDate.setDate(startDate.getDate() - 5); break;
+                case '1M': startDate.setMonth(startDate.getMonth() - 1); break;
+                case '1Y': startDate.setFullYear(startDate.getFullYear() - 1); break;
+                case '5Y': startDate.setFullYear(startDate.getFullYear() - 5); break;
+                case 'Max': startDate.setFullYear(2000, 0, 1); break;
+                default: startDate.setMonth(startDate.getMonth() - 1);
+            }
+            
+            const startDateStr = startDate.toISOString().split('T')[0];
+            const response = await fetch(`https://api.frankfurter.dev/v1/${startDateStr}..${endDate}?base=${from}&symbols=${to}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.rates) {
+                    const formattedHistory = Object.entries(data.rates).map(([date, rates]: [string, any]) => ({
+                        date,
+                        rate: rates[to]
+                    }));
+                    setHistory(formattedHistory);
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching historical data:", err);
+            setHistory([]);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    };
+
     useEffect(() => {
         const fetchRates = async () => {
             try {
@@ -157,13 +195,14 @@ const LiveRates = () => {
                     throw new Error('Edge function error');
                 }
 
-                // Historical Data is temporarily unavailable via Edge Function
-                setHistory([]);
+                // Fetch real historical data from Frankfurter API
+                fetchHistoricalData(currentFrom, currentTo, activeRange);
             } catch (err) {
                 console.error("Error fetching rates:", err);
                 if (currentTo === 'INR') {
                     setFxRate(83.45);
                 }
+                setHistory([]);
             }
         };
         fetchRates();
@@ -310,7 +349,14 @@ const LiveRates = () => {
 
                     {/* Chart */}
                     <div className="flex-1 w-full relative">
-                        {history.length > 0 ? (
+                        {isLoadingHistory ? (
+                             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5260FE]"></div>
+                                <p className={`text-[12px] mt-4 ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
+                                    Fetching historical trends...
+                                </p>
+                             </div>
+                        ) : history.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={history} margin={{ top: 10, right: 13, left: 14, bottom: 24 }}>
                                     <defs>

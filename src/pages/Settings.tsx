@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import Skeleton from 'react-loading-skeleton';
 import { ChevronLeft, ChevronRight, Pencil, Lock } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -27,52 +28,41 @@ import darkbgCta from "@/assets/darkbg-cta.png";
 type SecurityStatus = "verified" | "in_review" | "pending" | "incomplete";
 
 const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, pending: string, incomplete: string }, isDarkMode: boolean) => {
-  // Base styles for the frame (Light Mode Only)
+  // Base styles for the frame
   const baseFrame = "w-10 h-10 rounded-full flex items-center justify-center border";
 
-  if (isDarkMode) {
-    // In Dark Mode, no frame styling (transparent/default)
-    return {
-      bg: status === "verified" ? assets.complete : (status === "in_review" || status === "pending" ? assets.pending : assets.incomplete),
-      label: status === "verified" ? "Account secured" : (status === "in_review" || status === "pending" ? "Pending" : "Incomplete"),
-      textColor: status === "verified" ? "text-green-500" : (status === "in_review" || status === "pending" ? "text-yellow-500" : "text-red-400"),
-      frameClass: "w-10 h-10 flex items-center justify-center", // No border/bg
-      frameStyle: {},
-      blobColor: null
-    };
-  }
+  // Shared Color Schema (21% opacity bg, 100% border)
+  const colors = {
+    verified: { 
+      bg: "rgba(28, 185, 86, 0.21)", // #1CB956
+      border: "#1CB956",
+      text: isDarkMode ? "text-green-500" : "text-[#0B902B]"
+    },
+    pending: { 
+      bg: "rgba(250, 204, 21, 0.21)", // #FACC15
+      border: "#FACC15",
+      text: isDarkMode ? "text-yellow-500" : "text-[#FACC15]"
+    },
+    incomplete: { 
+      bg: "rgba(255, 30, 30, 0.21)", // #FF1E1E
+      border: "#FF1E1E",
+      text: isDarkMode ? "text-red-400" : "text-[#FF1E1E]"
+    }
+  };
 
-  // Light Mode Styles
-  switch (status) {
-    case "verified":
-      return {
-        bg: assets.complete,
-        label: "Account secured",
-        textColor: "text-[#0B902B]",
-        frameClass: `${baseFrame} border-[#0B902B]`,
-        frameStyle: { backgroundColor: "rgba(28, 185, 86, 0.21)" }, // #1CB956 @ 21%
-        blobColor: "#1CB956"
-      };
-    case "in_review":
-    case "pending":
-      return {
-        bg: assets.pending,
-        label: "Pending",
-        textColor: "text-[#FACC15]", // Or keep yellow-500? Using hex to match boundary
-        frameClass: `${baseFrame} border-[#FACC15]`,
-        frameStyle: { backgroundColor: "rgba(250, 204, 21, 0.21)" }, // #FACC15 @ 21%
-        blobColor: "#FACC15"
-      };
-    default: // incomplete
-      return {
-        bg: assets.incomplete,
-        label: "Incomplete",
-        textColor: "text-[#FF1E1E]",
-        frameClass: `${baseFrame} border-[#FF1E1E]`,
-        frameStyle: { backgroundColor: "rgba(255, 30, 30, 0.21)" }, // #FF1E1E @ 21%
-        blobColor: "#FF1E1E"
-      };
-  }
+  const state = status === "verified" ? "verified" : (status === "in_review" || status === "pending" ? "pending" : "incomplete");
+  const config = colors[state];
+
+  return {
+    bg: assets[status === "verified" ? "complete" : (status === "in_review" || status === "pending" ? "pending" : "incomplete")],
+    label: status === "verified" ? "Account secured" : (status === "in_review" || status === "pending" ? "Pending" : "Incomplete"),
+    textColor: config.text,
+    bannerBg: config.bg,
+    bannerBorder: config.border,
+    frameClass: isDarkMode ? "w-10 h-10 flex items-center justify-center" : `${baseFrame} border-[${config.border}]`,
+    frameStyle: isDarkMode ? {} : { backgroundColor: config.bg, borderColor: config.border },
+    blobColor: isDarkMode ? null : config.border
+  };
 };
 
 // 🔔 haptic helper (safe on all platforms)
@@ -138,7 +128,7 @@ const Settings = () => {
     };
 
     loadCounts().finally(() => {
-        setTimeout(() => setIsLoading(false), 500);
+      setTimeout(() => setIsLoading(false), 500);
     });
   }, []);
 
@@ -215,15 +205,20 @@ const Settings = () => {
           </div>
           <button
             onClick={() => navigate("/help")}
-            className="px-4 py-2 rounded-full flex items-center gap-2 active:scale-95 transition-transform"
-            style={{
-              backgroundImage: isDarkMode ? `url(${darkbgCta})` : "none",
-              backgroundColor: isDarkMode ? "transparent" : "#000000",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
+            className={cn(
+              "px-4 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden relative",
+              isDarkMode ? "glass-container glass-physics-clear grow-0" : "bg-black"
+            )}
+            style={!isDarkMode ? { backgroundColor: "#000000" } : {}}
           >
-            <span className="text-white text-[14px] font-medium">+ Support</span>
+            {isDarkMode && (
+              <>
+                <div className="glass-lens" />
+                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                <span className="glass-rim-v2" />
+              </>
+            )}
+            <span className="relative z-10 text-white text-[14px] font-medium">+ Support</span>
           </button>
         </div>
 
@@ -275,11 +270,12 @@ const Settings = () => {
 
         {/* Security */}
         <div className="mx-5 mt-3">
-          <div
-            className="rounded-[13px] p-4 flex items-center justify-between"
+          <div 
+            className="rounded-[13px] border backdrop-blur-[25px] min-h-[72px] flex items-center justify-between p-4 transition-all duration-300"
             style={{
-              backgroundImage: `url(${securityConfig.bg})`,
-              backgroundSize: "cover",
+              backgroundColor: securityConfig.bannerBg,
+              borderColor: securityConfig.bannerBorder,
+              borderWidth: '0.63px'
             }}
           >
             <div className="flex items-center gap-3">
@@ -299,15 +295,20 @@ const Settings = () => {
             </div>
             <button
               onClick={() => navigate("/security-dashboard", { state: { originPath: "/settings" } })}
-              className="px-4 h-[32px] flex items-center justify-center rounded-full text-[12px] text-white font-medium active:scale-95 transition-transform"
-              style={{
-                backgroundImage: isDarkMode ? `url(${darkbgCta})` : "none",
-                backgroundColor: isDarkMode ? "transparent" : "#000000",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
+              className={cn(
+                "px-4 h-[32px] flex items-center justify-center rounded-full text-[12px] text-white font-medium active:scale-95 transition-transform overflow-hidden relative",
+                isDarkMode ? "glass-container glass-physics-cta min-w-[120px]" : "bg-black"
+              )}
+              style={!isDarkMode ? { backgroundColor: "#000000" } : {}}
             >
-              Check Security
+              {isDarkMode && (
+                <>
+                  <div className="glass-lens" />
+                  <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                  <span className="glass-rim-v2" />
+                </>
+              )}
+              <span className="relative z-10">Check Security</span>
             </button>
           </div>
         </div>

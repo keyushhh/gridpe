@@ -279,8 +279,7 @@ const OrderTracking = () => {
                     }}
                 >
                     <div
-                        className="safe-area-top px-5 flex items-center justify-between"
-                        style={{ paddingTop: "24px" }}
+                        className="pt-safe pt-4 px-5 flex items-center justify-between"
                     >
                         <button
                             onClick={() => navigate('/home')}
