@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import BackButton from "@/components/ui/BackButton";
 import { cn } from "@/lib/utils";
 import Skeleton from 'react-loading-skeleton';
-import { ChevronLeft, ChevronRight, Pencil, Lock } from "lucide-react";
+import { ChevronRight, Pencil, Lock } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useAsset } from "@/hooks/useAsset";
@@ -195,12 +196,7 @@ const Settings = () => {
         {/* Header */}
         <div className="px-5 pt-safe pt-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/home")}
-              className="w-10 h-10 rounded-full border border-[#E6E8EB] dark:border-white/20 flex items-center justify-center"
-            >
-              <ChevronLeft className="w-5 h-5 text-foreground" />
-            </button>
+            <BackButton onClick={() => navigate("/home")} />
             <h1 className="text-foreground text-[18px] font-semibold">Settings</h1>
           </div>
           <button

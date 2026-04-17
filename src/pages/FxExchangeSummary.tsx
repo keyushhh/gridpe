@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, X, ChevronRight } from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/contexts/UserContext";
@@ -612,12 +612,7 @@ const FxExchangeSummary = () => {
             <div
                 className="flex-none px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-6"
             >
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95 ${isDarkMode ? "bg-white/10 backdrop-blur-md" : "bg-white border border-[#E6E8EB]"}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? "text-white" : "text-black"}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     FX Exchange
                 </h1>

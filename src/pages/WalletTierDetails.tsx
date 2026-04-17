@@ -1,6 +1,5 @@
-import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import { tiers, tierChipColorMap, tierExpandCardMapLight } from "@/lib/walletTiers";
@@ -57,15 +56,8 @@ const WalletTierDetails = () => {
             )}
 
             <div className="relative flex items-center justify-between px-5 pt-4 pb-2 shrink-0 z-50">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md active:scale-95 transition-transform ${isDarkMode
-                        ? 'bg-white/10'
-                        : 'bg-[#F5F5F5] border border-[#E9EAEB]'
-                        }`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
                 <h1 className={`text-[22px] font-medium text-center absolute left-1/2 -translate-x-1/2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Wallet Settings
                 </h1>

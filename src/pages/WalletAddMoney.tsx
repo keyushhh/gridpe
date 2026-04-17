@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
@@ -58,13 +58,7 @@ const WalletAddMoney = () => {
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       <div className="px-5 pt-4 pb-2 flex items-center justify-between z-10">
-
-        <button
-          onClick={() => fromWallet ? navigate(-1) : navigate("/home")}
-          className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
-        >
-          <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+        <BackButton onClick={() => fromWallet ? navigate(-1) : navigate("/home")} />
 
 
         <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>

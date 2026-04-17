@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, Area, AreaChart, CartesianGrid } from "recharts";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import ArrowDownUp from "@/assets/Arrow/Arrow_Down_Up.svg";
@@ -245,12 +245,7 @@ const LiveRates = () => {
             )}
             {/* Header */}
             <div className="px-5 pt-safe pt-4 pb-2 flex items-center justify-between">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
-                >
-                    <ChevronLeft className={`w-5 h-5 ${isDarkMode ? "text-white" : "text-black"}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
                 <h1 className="text-[18px] font-bold">Live Rates</h1>
                 <div className="w-10" />
             </div>

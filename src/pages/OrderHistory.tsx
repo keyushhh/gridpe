@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import searchIcon from "@/assets/search.svg";
@@ -417,12 +416,7 @@ const OrderHistory = () => {
 
             {/* Header */}
             <div className="pt-4 px-5 flex items-center justify-center relative mb-[26px] z-10 h-[88px]">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`absolute left-5 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full backdrop-blur-md z-20 ${isDarkMode ? 'bg-white/5 border border-white/10 active:bg-white/10' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 flex-shrink-0 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} className="absolute left-5" />
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {showOnlyRewards ? "Reward History" : (showOnlyPast ? "Help & Support" : "Order History")}
                 </h1>

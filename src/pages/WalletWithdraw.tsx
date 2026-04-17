@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useUser } from "@/contexts/UserContext";
 import { supabase, USER_ID } from "@/lib/supabase";
 import { useTheme } from "next-themes";
@@ -141,12 +141,7 @@ const WalletWithdraw = () => {
             )}
 
             <div className="px-5 pt-4 flex items-center justify-between z-10 shrink-0">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-[#F5F5F5] border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
                 <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans`}>
                     Withdraw
                 </h1>

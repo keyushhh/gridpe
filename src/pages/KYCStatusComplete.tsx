@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useAsset } from "@/hooks/useAsset";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -45,12 +45,10 @@ const KYCStatusComplete = () => {
 
       {/* Header */}
       <div className="px-5 pt-4 flex items-center relative z-10 mb-8">
-        <button
-          onClick={handleGoBack}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+        <div className="absolute left-5">
+          <BackButton onClick={handleGoBack} />
+        </div>
+
         <h1 className={`${isDarkMode ? 'text-white font-satoshi' : 'text-black font-sans'} text-[22px] font-medium w-full text-center`}>KYC</h1>
       </div>
 

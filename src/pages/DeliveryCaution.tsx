@@ -9,9 +9,9 @@ import radioOn from '@/assets/radio-fill.svg';
 import radioOff from '@/assets/radio-empty.svg';
 import checkboxOn from '@/assets/check-box-selected.png';
 import checkboxOff from '@/assets/check-box-outline-blank.png';
-import { ChevronLeft } from 'lucide-react';
 import bgDarkMode from '@/assets/bg-dark-mode.png';
 import { useTheme } from 'next-themes';
+import BackButton from '@/components/ui/BackButton';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 
 const DeliveryCaution = () => {
@@ -110,12 +110,11 @@ const DeliveryCaution = () => {
             }}
         >
             {/* Back Button */}
-            <button
+            <BackButton 
                 onClick={handleBack}
-                className={`absolute top-12 left-5 w-10 h-10 flex items-center justify-center rounded-full z-50 transition-all active:scale-90 ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
-            >
-                <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-            </button>
+                className="absolute top-12 left-5 z-50"
+            />
+
 
             {/* Light Mode Yellow Orb */}
             {!isDarkMode && (

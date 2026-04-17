@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { Button } from "@/components/ui/button";
@@ -93,12 +93,10 @@ const ForgotMpin = () => {
 
       {/* Header */}
       <div className="px-5 pt-4 flex items-center justify-center relative z-10">
-        <button
-          onClick={() => navigate(-1)}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+        <div className="absolute left-5">
+          <BackButton onClick={() => navigate(-1)} />
+        </div>
+
         {/* Header Title: Centered */}
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans text-center`}>Forgot MPIN?</h1>
       </div>

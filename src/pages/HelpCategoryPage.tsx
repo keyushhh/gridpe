@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronDown, ChevronUp, ChevronRight } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { ChevronDown, ChevronUp, ChevronRight } from "lucide-react";
 import { helpCategories } from "@/lib/helpData";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -49,12 +50,10 @@ const HelpCategoryPage = () => {
             <div className="relative z-20 h-full w-full flex flex-col overflow-y-auto no-scrollbar pb-safe pb-4">
                 {/* Header */}
                 <header className="px-5 pt-safe pt-4 pb-4 flex items-center justify-center relative z-10 shrink-0 mb-[41px]">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md z-20 ${isDarkMode ? 'bg-white/5 border border-white/10 active:bg-white/10' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
-                    >
-                        <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                    </button>
+                    <div className="absolute left-5 z-20">
+                        <BackButton onClick={() => navigate(-1)} />
+                    </div>
+
                     <h1 className={`text-[22px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support</h1>
                 </header>
 

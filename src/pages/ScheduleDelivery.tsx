@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import GlassCalendar from "@/components/GlassCalendar";
 import timeIcon from "@/assets/time-icon.png";
@@ -219,12 +218,8 @@ const ScheduleDelivery = () => {
 
             {/* Header */}
             <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6 font-sans">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10 border-white/10' : 'bg-white border-[#E6E8EB] border'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
                 <h1 className={`text-[18px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Schedule Delivery
                 </h1>

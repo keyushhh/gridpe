@@ -1,6 +1,5 @@
-import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import infoIcon from "@/assets/infopurple.svg";
@@ -82,12 +81,8 @@ const OrderSummary = () => {
 
             {/* Header */}
             <div className="px-5 pt-4 pb-2 flex items-center justify-between relative z-10 shrink-0">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
 
                 <h1 className={`text-[19px] font-medium leading-[120%] font-sans absolute left-1/2 -translate-x-1/2 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Order Summary

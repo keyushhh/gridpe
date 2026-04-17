@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tiers } from "@/lib/walletTiers";
 import { formatINR } from "@/utils/format";
@@ -70,12 +70,10 @@ const ManageSubscription = () => {
         >
             {/* Header */}
             <header className="px-5 pt-4 pb-2 flex items-center relative z-10 shrink-0">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full border active:bg-white/10 absolute left-5 ${isDarkMode ? 'border-white/20' : 'border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`${isDarkMode ? 'text-white' : 'text-black'} w-6 h-6`} />
-                </button>
+                <div className="absolute left-5">
+                    <BackButton onClick={() => navigate(-1)} />
+                </div>
+
                 <h1 className={`w-full text-center ${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-satoshi`}>
                     Manage Subscription
                 </h1>

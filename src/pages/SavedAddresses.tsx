@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Search, X } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { Search, X } from "lucide-react";
 import { fetchAddresses, deleteAddress, Address } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "next-themes";
@@ -148,12 +148,8 @@ const SavedAddresses = () => {
 
             {/* Header */}
             <div className="relative z-10 px-5 safe-area-top pt-4 pb-4 flex items-center justify-between">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-black/10 bg-white/50'} flex items-center justify-center backdrop-blur-md active:scale-95 transition-transform`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
                 <h1 className={`text-[18px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Saved Addresses</h1>
                 <div className="w-10" /> {/* Spacer */}
             </div>

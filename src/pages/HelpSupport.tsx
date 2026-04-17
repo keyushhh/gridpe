@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { fetchRecentOrders } from "@/lib/orders";
 import { Order } from "@/types";
 import { supabase } from "@/lib/supabase";
@@ -22,6 +22,8 @@ import partnerBlackIcon from "@/assets/partner-black.svg";
 import chatBlackIcon from "@/assets/chat-black.svg";
 import { useTheme } from "next-themes";
 import searchIcon from "@/assets/search-icon.svg";
+
+import BackButton from "@/components/ui/BackButton";
 
 const HelpSupport = () => {
     const navigate = useNavigate();
@@ -65,16 +67,12 @@ const HelpSupport = () => {
             )}
             {/* Header */}
             <header className="px-5 pt-safe pt-4 pb-4 flex items-center relative z-10 shrink-0 mb-[10px]">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-full border relative z-20 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-[#E6E8EB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
                 <div className="absolute inset-x-0 flex justify-center pointer-events-none">
                     <h1 className={`text-[22px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support</h1>
                 </div>
             </header>
+
 
             <main className="flex-1 px-5 relative z-10">
                 {/* Hero Section */}

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
@@ -89,12 +89,8 @@ const FxPassportGate = () => {
         >
             {/* Header */}
             <div className="shrink-0 relative flex items-center justify-between w-full px-5 pt-safe pt-4 pb-0 z-50">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95 ${isDarkMode ? "bg-white/10 backdrop-blur-md" : "bg-white border border-[#E9EAEB]"}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? "text-white" : "text-black"}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
                 <h1 className={`${isDarkMode ? "text-white" : "text-black"} text-[22px] font-medium font-sans absolute left-1/2 -translate-x-1/2`}>
                     FX Exchange
                 </h1>

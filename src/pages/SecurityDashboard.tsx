@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { ChevronRight } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import bannerIncomplete from "@/assets/banner-incomplete.png";
@@ -333,12 +333,8 @@ const SecurityDashboard = () => {
       )}
       {/* Header - Fixed */}
       <div className="px-5 pt-safe pt-4 flex items-center justify-between relative z-50 flex-none">
-        <button
-          onClick={() => navigate(originPath)}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center backdrop-blur-md`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+        <BackButton onClick={() => navigate(originPath)} />
+
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>Security & Kyc</h1>
         <div className="w-10 h-10" /> {/* Spacer for centering */}
       </div>

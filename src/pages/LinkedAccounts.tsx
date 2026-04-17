@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTheme } from "next-themes";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/button";
 
 // Assets
@@ -63,12 +63,8 @@ const LinkedAccounts = () => {
     >
       {/* Header */}
       <div className="px-5 pt-4 flex items-center justify-between shrink-0 z-10">
-        <button
-          onClick={() => navigate(-1)}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
-        </button>
+        <BackButton onClick={() => navigate(-1)} />
+
         <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-semibold`}>
           Linked Bank Accounts
         </h1>

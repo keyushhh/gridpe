@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser, WalletTier } from "@/contexts/UserContext";
@@ -385,12 +385,8 @@ const WalletCreated = () => {
             {/* Header Container */}
             <div className="shrink-0 flex items-center justify-between w-full px-5 pt-4 pb-2 z-10">
                 {/* Back Button */}
-                <button
-                    onClick={() => navigate('/home')}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate('/home')} />
+
 
                 {/* Title */}
                 <h1 className={`text-[20px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { hapticMedium } from "@/utils/haptics";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Button } from "@/components/ui/button";
 import SaveAddressSheet from "@/components/SaveAddressSheet";
@@ -301,13 +301,9 @@ const AddAddressDetails = () => {
                         className="flex items-center sticky top-0 z-50 transition-colors"
                         style={{ opacity: headerOpacity, pointerEvents: headerOpacity === 0 ? 'none' : 'auto', paddingTop: 'env(safe-area-inset-top)' }}
                     >
-                        <button
-                            onClick={() => navigate(-1)}
-                            className={`w-10 h-10 flex items-center justify-center mr-2 rounded-full border transition-colors ${isDarkMode ? 'border-white/20 active:bg-white/10' : 'border-[#E6E8EB] active:bg-gray-100 hover:bg-gray-50'}`}
-                        >
-                            <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`} />
-                        </button>
+                        <BackButton onClick={() => navigate(-1)} className="mr-2" />
                         <h1 className={`flex-1 text-center text-[22px] font-medium font-satoshi pr-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>
+
                             {isEditMode ? "Edit Address" : "Add New Address"}
                         </h1>
                     </div>

@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import BackButton from "@/components/ui/BackButton";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "next-themes";
-import { ChevronLeft } from "lucide-react";
 import { useUser, WalletTier } from "@/contexts/UserContext";
 import { tiers, fetchTierPrices } from "@/lib/walletTiers";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
@@ -277,12 +275,10 @@ const Subscriptions = () => {
             )}
             {/* Header */}
             <header className="px-5 pt-safe pt-4 pb-2 flex items-center relative z-10 shrink-0">
-                <button
-                    onClick={() => navigate('/more')}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full border active:bg-white/10 absolute left-5 ${isDarkMode ? 'border-white/20' : 'border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`${isDarkMode ? 'text-white' : 'text-black'} w-6 h-6`} />
-                </button>
+                <div className="absolute left-5">
+                    <BackButton onClick={() => navigate('/more')} />
+                </div>
+
                 <h1 className={`w-full text-center ${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-satoshi`}>
                     Subscriptions
                 </h1>

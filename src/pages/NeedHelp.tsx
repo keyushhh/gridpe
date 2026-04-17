@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, Circle, CheckCircle2 } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { Circle, CheckCircle2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Order } from "@/lib/orders";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -124,12 +124,8 @@ const NeedHelp = () => {
             )}
             {/* Header */}
             <header className="px-5 pt-safe pt-4 pb-4 flex items-center justify-between relative z-10 shrink-0">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
                 <h1 className={`text-[20px] font-medium font-satoshi flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>Need Help?</h1>
             </header>
 

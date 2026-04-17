@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
-import { ChevronLeft } from "lucide-react";
-import { useUser } from "@/contexts/UserContext";
-import { useAsset } from "@/hooks/useAsset";
+import BackButton from "@/components/ui/BackButton";
 
 const Wallet = () => {
     const navigate = useNavigate();
@@ -37,12 +34,8 @@ const Wallet = () => {
             {/* Header Container (Fixed) */}
             <div className="shrink-0 w-full relative z-10 pt-4 px-5">
                 {/* Back Button */}
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`absolute left-5 top-4 w-10 h-10 flex items-center justify-center rounded-full z-20 transition-all ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} className="absolute left-5 top-4" />
+
 
                 {/* Logo */}
                 <div className="flex justify-center">

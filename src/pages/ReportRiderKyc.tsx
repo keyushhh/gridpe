@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
@@ -59,12 +59,8 @@ const ReportRiderKyc = () => {
                 className="px-5 flex items-center justify-between shrink-0"
                 style={{ paddingTop: "24px" }}
             >
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full relative z-20 ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
 
                 <h1 className={`text-[22px] font-medium font-satoshi flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Report Rider KYC

@@ -1,6 +1,5 @@
-import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import warningBg from "@/assets/warning-background.png";
 import checkIcon from "@/assets/check-icon.svg";
 
@@ -32,12 +31,8 @@ const VerifyRiderKyc = () => {
                 className="safe-area-top px-5 flex items-center justify-between"
                 style={{ paddingTop: "24px" }}
             >
-                <button
-                    onClick={() => navigate(-1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md relative z-20"
-                >
-                    <ChevronLeft className="text-white w-6 h-6" />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
 
                 <h1 className="text-white text-[24px] font-medium font-satoshi flex-1 text-center pr-10">
                     Rider KYC

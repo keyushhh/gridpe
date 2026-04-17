@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
@@ -65,13 +64,10 @@ const WalletWithdrawSuccess = () => {
 
             {/* Header */}
             <div className="px-5 pt-4 flex items-center justify-center relative z-10 shrink-0">
-                <button
-                    onClick={() => navigate("/wallet-created")}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md absolute left-5 ${isDarkMode ? 'bg-white/10' : 'bg-[#F2F2F2] border border-[#E9EAEB]'
-                        }`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <div className="absolute left-5">
+                    <BackButton onClick={() => navigate("/wallet-created")} />
+                </div>
+
                 <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium leading-[120%] font-satoshi`}>
                     Withdraw
                 </h1>

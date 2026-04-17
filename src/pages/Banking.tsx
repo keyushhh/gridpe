@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useTheme } from "next-themes";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, X, Eye, EyeOff } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { X, Eye, EyeOff } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import savedCardsBg from "@/assets/saved-card-bg.png";
 import addIcon from "@/assets/my-cards-add-icon.png";
@@ -199,12 +198,8 @@ const Banking = () => {
             <div className={`flex flex-col flex-1 transition-all duration-300 ${contentBlurClass} min-h-0 overflow-hidden`}>
 
                 <div className="px-5 pt-4 flex items-center justify-between shrink-0 relative z-10">
-                    <button
-                        onClick={() => navigate("/settings")}
-                        className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
-                    >
-                        <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
-                    </button>
+                    <BackButton onClick={() => navigate("/settings")} />
+
                     <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-semibold`}>Banking</h1>
                     <div className="w-10" />
                 </div>

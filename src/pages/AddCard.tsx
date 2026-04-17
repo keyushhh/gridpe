@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { hapticMedium } from "@/utils/haptics";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import cardPreviewBg from "@/assets/card-preview-bg.png";
@@ -236,13 +237,9 @@ const AddCard = () => {
       )}
 
       {/* Header */}
-      <div className="px-5 pt-4 flex items-center justify-between relative z-10">
-        <button
-          onClick={() => navigate(-1)}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 hover:bg-white/10' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center transition-colors`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+      <div className="px-5 pt-4 flex items-center justify-between relative z-50">
+        <BackButton onClick={() => navigate(-1)} />
+
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium absolute left-1/2 -translate-x-1/2`}>Add Card</h1>
         <div className="w-10" />
       </div>

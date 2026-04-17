@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import chartLineIcon from "@/assets/chart-line.svg";
 import arrowSwapIcon from "@/assets/Arrow/Arrow_Down_Up.svg";
 import arrowSwapIconLight from "@/assets/Arrow_Down_Up-light.svg";
@@ -298,12 +298,7 @@ const FxExchange = () => {
             )}
             {/* Header */}
             <div className="px-5 pt-safe pt-4 pb-6 flex items-center justify-between">
-                <button
-                    onClick={() => navigate('/home')}
-                    className={`w-10 h-10 rounded-full border ${isDarkMode ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
-                >
-                    <ChevronLeft className={`w-5 h-5 ${isDarkMode ? "text-white" : "text-black"}`} />
-                </button>
+                <BackButton onClick={() => navigate('/home')} />
                 <h1 className="text-[18px] font-bold">FX Exchange</h1>
                 <button
                     onClick={() => navigate('/live-rates', { state: { from: currentFrom, to: currentTo } })}

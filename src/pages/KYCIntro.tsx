@@ -1,6 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ChevronLeft, X } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { X } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import iconKyc from "@/assets/icon-kyc.svg";
@@ -57,12 +57,8 @@ const KYCIntro = () => {
 
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-safe pt-4 pb-2 relative z-10">
-        <button
-          onClick={() => navigate(-1)}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+        <BackButton onClick={() => navigate(-1)} />
+
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>KYC</h1>
         <div className="w-10" /> {/* Spacer for centering */}
       </div>

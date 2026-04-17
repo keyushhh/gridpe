@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { hapticMedium } from "@/utils/haptics";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import autoFetchBg from "@/assets/auto-fetch.png";
 import manualEntryBg from "@/assets/manual-entry.png";
@@ -221,12 +221,8 @@ const AddBank = () => {
     >
       {/* Header */}
       <div className="px-5 pt-4 flex items-center justify-between shrink-0 z-10">
-        <button
-          onClick={() => navigate(-1)}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'} flex items-center justify-center transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
-        </button>
+        <BackButton onClick={() => navigate(-1)} />
+
         <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-semibold`}>Banking</h1>
         <div className="w-10" /> {/* Spacer */}
       </div>

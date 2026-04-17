@@ -1,8 +1,7 @@
-import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useTheme } from "next-themes";
+import BackButton from "@/components/ui/BackButton";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
 import { supabase, USER_ID } from "@/lib/supabase";
@@ -212,12 +211,10 @@ const SubscriptionSummary = () => {
         >
             {/* Header */}
             <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-4 pb-0 z-10">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full active:scale-95 transition-transform ${isDarkMode ? 'bg-white/10 backdrop-blur-md' : 'bg-white border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <div className="absolute left-5">
+                    <BackButton onClick={() => navigate(-1)} />
+                </div>
+
                 <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium leading-[120%] font-satoshi`}>
                     Monthly Subscription
                 </h1>

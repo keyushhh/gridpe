@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { User, Session } from "@supabase/supabase-js";
@@ -173,12 +173,10 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             )}
             {/* Header */}
             <div className="px-4 pt-safe pt-4 relative flex items-center justify-center min-h-[64px]">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`absolute left-4 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-transform active:scale-95 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-foreground' : 'text-black'}`} />
-                </button>
+                <div className="absolute left-4">
+                    <BackButton onClick={() => navigate(-1)} />
+                </div>
+
                 <h1 className={`${isDarkMode ? 'text-foreground' : 'text-black'} text-[18px] font-bold`}>
                     {type === "terms" ? "Terms & Conditions" : "Privacy Policy"}
                 </h1>

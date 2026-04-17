@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useUser, WalletTier } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import { tiers, tierIconMap } from "@/lib/walletTiers";
@@ -114,12 +114,10 @@ const DowngradePlan = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             <header className="px-5 pt-4 pb-2 flex items-center relative z-10">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full border active:bg-white/10 absolute left-5 ${isDarkMode ? 'border-white/20' : 'border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`${isDarkMode ? 'text-white' : 'text-black'} w-6 h-6`} />
-                </button>
+                <div className="absolute left-5">
+                    <BackButton onClick={() => navigate(-1)} />
+                </div>
+
                 <h1 className={`w-full text-center ${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-satoshi`}>
                     Downgrade Plan
                 </h1>

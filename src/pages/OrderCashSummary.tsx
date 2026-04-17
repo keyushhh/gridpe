@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, X } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { X } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import locationIcon from "@/assets/location.svg";
@@ -578,12 +578,8 @@ const OrderCashSummary = () => {
             )}
 
             <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6">
-                <button
-                    onClick={() => navigate("/order-cash")}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-white border border-[#E6E8EB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <BackButton onClick={() => navigate("/order-cash")} />
+
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Order Cash
                 </h1>

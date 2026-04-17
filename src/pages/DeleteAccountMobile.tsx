@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import inputFieldBg from "@/assets/input-field-bg.png";
@@ -76,12 +76,10 @@ const DeleteAccountMobile = () => {
       )}
 
       <div className="px-5 pt-safe pt-4 flex items-center relative z-50 mb-8">
-        <button
-          onClick={handleGoBack}
-          className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/20 bg-black/20 backdrop-blur-md' : 'border-[#E6E8EB] bg-white'} flex items-center justify-center absolute left-5`}
-        >
-          <ChevronLeft className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+        <div className="absolute left-5">
+          <BackButton onClick={handleGoBack} />
+        </div>
+
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans w-full text-center`}>Delete Account</h1>
       </div>
 

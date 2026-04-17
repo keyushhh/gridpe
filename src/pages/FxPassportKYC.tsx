@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Camera, CheckCircle2, Loader2 } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { Camera, CheckCircle2, Loader2 } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 
@@ -40,12 +41,8 @@ const FxPassportKYC = () => {
             <div
                 className="px-5 pt-safe pt-1 flex items-center justify-between z-10 mb-[21px] relative"
             >
-                <button
-                    onClick={() => navigate(-1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md active:scale-95 transition-transform"
-                >
-                    <ChevronLeft className="w-6 h-6 text-white" />
-                </button>
+                <BackButton onClick={() => navigate(-1)} />
+
                 <h1 className="text-white text-[22px] font-medium font-sans">
                     Passport Verification
                 </h1>

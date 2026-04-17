@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { supabase, USER_ID } from "@/lib/supabase";
 import { useTheme } from "next-themes";
@@ -8,6 +7,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
 import infoContainerBg from "@/assets/order-cash-info-bg.png";
 import backspaceIcon from "@/assets/backspace.png";
+import BackButton from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/button";
 
 const OrderCash = () => {
@@ -95,12 +95,8 @@ const OrderCash = () => {
       {/* Header - Standard Single Row */}
       <div className="px-5 pt-4 flex items-center justify-between z-10">
         {/* Back Button */}
-        <button
-          onClick={() => navigate("/home")}
-          className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
-        >
-          <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-        </button>
+        <BackButton onClick={() => navigate("/home")} />
+
 
         {/* Title - Centered */}
         <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>

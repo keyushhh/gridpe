@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
-import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useLocation } from "react-router-dom";
+import BackButton from "@/components/ui/BackButton";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { ChevronLeft, Bike } from "lucide-react";
+import { Bike } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { OpenLocationCode } from "open-location-code";
 import { Order } from "@/types";
@@ -281,12 +280,8 @@ const OrderTracking = () => {
                     <div
                         className="pt-safe pt-4 px-5 flex items-center justify-between"
                     >
-                        <button
-                            onClick={() => navigate('/home')}
-                            className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md relative z-20 ${isDarkMode ? 'bg-white/10' : 'bg-white border border-[#E9EAEB]'}`}
-                        >
-                            <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                        </button>
+                        <BackButton onClick={() => navigate('/home')} />
+
 
                         <h1 className={`text-[18px] font-medium font-sans flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Order Tracking

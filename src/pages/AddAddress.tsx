@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import Map, { ViewState, ViewStateChangeEvent, MapRef } from "react-map-gl/maplibre";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from "open-location-code";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
@@ -364,12 +365,8 @@ const AddAddress = () => {
           <div className="pt-safe px-5">
             {/* Header */}
             <div className="flex items-center">
-              <button
-                onClick={() => navigate(-1)}
-                className="w-10 h-10 flex items-center justify-center mr-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-              >
-                <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-              </button>
+              <BackButton onClick={() => navigate(-1)} className="mr-2" />
+
               <h1 className={`flex-1 text-center text-lg font-medium pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>Add New Address</h1>
             </div>
           </div>

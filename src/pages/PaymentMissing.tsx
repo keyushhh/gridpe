@@ -1,6 +1,5 @@
-import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 
 // Assets
@@ -48,12 +47,10 @@ const PaymentMissing = () => {
 
             {/* Header */}
             <div className="shrink-0 relative flex items-center justify-center w-full px-5 pt-4 pb-2 z-10">
-                <button
-                    onClick={() => navigate(-1)}
-                    className={`absolute left-5 w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md ${isDarkMode ? 'bg-white/10' : 'bg-[#F2F2F2] border border-[#E9EAEB]'}`}
-                >
-                    <ChevronLeft className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-                </button>
+                <div className="absolute left-5">
+                    <BackButton onClick={() => navigate(-1)} />
+                </div>
+
                 <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-satoshi`}>
                     Withdraw
                 </h1>

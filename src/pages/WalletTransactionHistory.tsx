@@ -1,8 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import Skeleton from 'react-loading-skeleton';
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import searchIcon from "@/assets/search.svg";
@@ -556,13 +553,8 @@ const WalletTransactionHistory = () => {
             {/* Header Container */}
             <div className="shrink-0 flex items-center justify-between w-full px-5 pt-4 pb-2 z-10 relative">
                 {/* Back Button */}
-                <button
-                    onClick={(e) => { e.stopPropagation(); navigate(-1); }}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-[#F5F5F5] dark:bg-white/10 backdrop-blur-md border border-[#E9EAEB] dark:border-white/10"
-                    style={{ zIndex: 20 }}
-                >
-                    <ChevronLeft className="w-6 h-6 text-black dark:text-white" />
-                </button>
+                <BackButton onClick={(e) => { e?.stopPropagation(); navigate(-1); }} />
+
 
                 {/* Title */}
                 <h1 className="text-black dark:text-white text-[22px] font-medium leading-[120%] text-center">
