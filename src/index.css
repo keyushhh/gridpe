@@ -57,9 +57,9 @@
     --border: 217 33% 17%;
 
     /* Grid.Pe Liquid Glass Tokens (Dark Mode) */
-    --glass-refraction: 3;
+    --glass-refraction: 0;
     --glass-blur: 1px;
-    --glass-tint: #000000b0;
+    --glass-tint: #00000036;
     --glass-tint-rgb: 0, 0, 0;
     --glass-tint-opacity: 0.5;
     --glass-specular-intensity: 0;
@@ -273,9 +273,9 @@
     mix-blend-mode: plus-lighter;
   }
 
-  /* Scoped Density: Pure Physics Clear (Support CTA) */
-  .glass-physics-clear {
-    /* Inherits all properties from global .dark tokens or inline overrides */
+  /* Scoped Density: Pure Physics Glass (Order Inner Containers) */
+  .dark .glass-physics-clear {
+    /* Inherits all properties from the updated global .dark tokens above */
   }
 
   /* Scoped Density: Internal Banner CTA (Check Security) */

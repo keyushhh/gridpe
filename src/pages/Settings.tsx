@@ -199,13 +199,16 @@ const Settings = () => {
             <BackButton onClick={() => navigate("/home")} />
             <h1 className="text-foreground text-[18px] font-semibold">Settings</h1>
           </div>
-          <button
+            <button
             onClick={() => navigate("/help")}
             className={cn(
               "px-4 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden relative",
               isDarkMode ? "glass-container glass-physics-clear grow-0" : "bg-black"
             )}
-            style={!isDarkMode ? { backgroundColor: "#000000" } : {}}
+            style={{
+              ...(!isDarkMode ? { backgroundColor: "#000000" } : {}),
+              '--glass-specular-intensity': '0.2'
+            } as any}
           >
             {isDarkMode && (
               <>

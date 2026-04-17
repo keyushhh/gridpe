@@ -205,7 +205,8 @@ const NeedHelp = () => {
                     className={`w-full mb-4 pb-[14px] glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
                     style={{
                         minHeight: '309px',
-                        '--glass-radius': '12px'
+                        '--glass-radius': '12px',
+                        '--glass-specular-intensity': '0.2'
                     } as any}
                 >
                     {isDarkMode && (
@@ -249,7 +250,8 @@ const NeedHelp = () => {
                     className={`w-full mb-4 glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
                     style={{
                         minHeight: '166px',
-                        '--glass-radius': '12px'
+                        '--glass-radius': '12px',
+                        '--glass-specular-intensity': '0.2'
                     } as any}
                 >
                     {isDarkMode && (
