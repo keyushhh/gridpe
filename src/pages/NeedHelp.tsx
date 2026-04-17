@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { Circle, CheckCircle2 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Order } from "@/lib/orders";
+import { Order } from "@/types";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import processingIcon from "@/assets/processing.svg";
 import successIcon from "@/assets/success.svg";
@@ -129,7 +130,7 @@ const NeedHelp = () => {
                 <h1 className={`text-[20px] font-medium font-satoshi flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>Need Help?</h1>
             </header>
 
-            <main className="flex-1 px-5 pt-4 overflow-hidden relative z-10">
+            <main className="flex-1 px-5 pt-4 overflow-y-auto scrollbar-hide relative z-10 pb-32">
                 {/* Order Summary Card (Mirrored from Bottom Sheet) */}
                 <div
                     className="relative mb-6 mx-auto overflow-hidden"
@@ -140,7 +141,7 @@ const NeedHelp = () => {
                             ? `linear-gradient(${config.bgColor}${hexAlpha}, ${config.bgColor}${hexAlpha}) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box`
                             : `${config.bgColor}36`, // 36 is ~21% opacity in hex
                         border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
-                        borderRadius: '13px',
+                        borderRadius: '12px',
                         backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                         WebkitBackdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                     }}
@@ -155,98 +156,110 @@ const NeedHelp = () => {
                         </div>
                     </div>
 
-                    {/* Inner Frame */}
                     <div
-                        className="absolute top-[25px] left-0 w-full rounded-[13px]"
+                        className={`!absolute top-[25px] left-0 w-full glass-container z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
                         style={{
                             height: '112px',
-                            backgroundImage: isDarkMode ? `url(${innerFrameBg})` : 'none',
-                            backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF',
-                            backgroundSize: '100% 100%',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat',
-                            border: !isDarkMode ? '1px solid #E9EAEB' : 'none'
-                        }}
+                            '--glass-radius': '12px'
+                        } as any}
                     >
-                        <img src={config.icon} alt="" className="absolute top-[17px] left-[17px] w-[35px] h-[35px]" style={!isDarkMode ? { filter: config.statusFilter } : undefined} />
+                        {isDarkMode && (
+                            <>
+                                <div className="glass-lens" />
+                                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                <span className="glass-rim-v2" />
+                            </>
+                        )}
 
-                        <div className="absolute top-[17px] left-[65px] flex flex-col">
-                            <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                {order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
+                        <div className="relative z-10 w-full h-full">
+                            <img src={config.icon} alt="" className="absolute top-[17px] left-[17px] w-[35px] h-[35px]" style={!isDarkMode ? { filter: config.statusFilter } : undefined} />
+
+                            <div className="absolute top-[17px] left-[65px] flex flex-col">
+                                <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                    {(order.meta_data as any)?.item_value ? `Ordered ₹${(order.meta_data as any).item_value} Cash` : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
+                                </span>
+                                <span className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
+                                    {formatOrderDate(order.created_at)}
+                                </span>
+                            </div>
+
+                            <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                             </span>
-                            <span className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
-                                {formatOrderDate(order.created_at)}
-                            </span>
-                        </div>
 
-                        <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
+                            <div className={`absolute left-[12px] h-[1px] ${isDarkMode ? 'bg-[#363636]' : 'bg-[#E9EAEB]'}`} style={{ top: '65px', width: '338px' }} />
 
-                        <div className={`absolute left-[12px] h-[1px] ${isDarkMode ? 'bg-[#363636]' : 'bg-[#E9EAEB]'}`} style={{ top: '65px', width: '338px' }} />
-
-                        <div className="absolute left-[17px] right-[17px] flex justify-between items-center px-0" style={{ top: '78px' }}>
-                            <span className={`text-[12px] font-satoshi font-medium ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>Order ID</span>
-                            <span className={`text-[12px] font-bold font-satoshi tracking-wider uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                DTP{order.id.substring(0, 8).toUpperCase()}
-                            </span>
+                            <div className="absolute left-[17px] right-[17px] flex justify-between items-center px-0" style={{ top: '78px' }}>
+                                <span className={`text-[12px] font-satoshi font-medium ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>Order ID</span>
+                                <span className={`text-[12px] font-bold font-satoshi tracking-wider uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                    DTP{order.id.substring(0, 8).toUpperCase()}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Issue Category Section */}
                 <section
-                    className={`w-full mb-4 pb-[14px] overflow-hidden ${!isDarkMode ? 'bg-white border border-[#E9EAEB] rounded-[13px]' : ''}`}
-                    style={isDarkMode ? {
-                        height: '309px',
-                        backgroundImage: `url(${optionBg})`,
-                        backgroundSize: '100% 100%',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
-                    } : {
-                        height: '309px'
-                    }}
+                    className={`w-full mb-4 pb-[14px] glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+                    style={{
+                        minHeight: '309px',
+                        '--glass-radius': '12px'
+                    } as any}
                 >
-                    <div className="pt-[14px] px-[14px] pb-[14px]">
-                        <h3 className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Issue Category</h3>
-                    </div>
+                    {isDarkMode && (
+                        <>
+                            <div className="glass-lens" />
+                            <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                            <span className="glass-rim-v2" />
+                        </>
+                    )}
+                    
+                    <div className="relative z-10">
+                        <div className="pt-[14px] px-[14px] pb-[14px]">
+                            <h3 className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Issue Category</h3>
+                        </div>
 
-                    <div className={`w-full h-[1px] ${isDarkMode ? 'bg-[#747474]/23' : 'bg-[#E9EAEB]'}`} />
+                        <div className={`w-full h-[1px] ${isDarkMode ? 'bg-[#747474]/23' : 'bg-[#E9EAEB]'}`} />
 
-                    <div className="flex flex-col">
-                        {ISSUE_CATEGORIES.map((cat, idx) => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`flex items-center gap-[12px] px-[14px] py-[8.5px] ${idx < ISSUE_CATEGORIES.length - 1 ? (isDarkMode ? 'border-b border-white/5' : 'border-b border-[#E9EAEB]') : ''}`}
-                            >
-                                {selectedCategory === cat ? (
-                                    <div className="w-[18px] h-[18px] rounded-full bg-[#5260FE] flex items-center justify-center shrink-0">
-                                        <div className="w-[6px] h-[6px] rounded-full bg-white" />
-                                    </div>
-                                ) : (
-                                    <div className={`w-[18px] h-[18px] rounded-full border-2 shrink-0 ${isDarkMode ? 'border-[#5260FE]' : 'border-[#E6E8EB]'}`} />
-                                )}
-                                <span className={`text-[14px] font-satoshi font-normal text-left leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>{cat}</span>
-                            </button>
-                        ))}
+                        <div className="flex flex-col">
+                            {ISSUE_CATEGORIES.map((cat, idx) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`flex items-center gap-[12px] px-[14px] py-[8.5px] ${idx < ISSUE_CATEGORIES.length - 1 ? (isDarkMode ? 'border-b border-white/5' : 'border-b border-[#E9EAEB]') : ''}`}
+                                >
+                                    {selectedCategory === cat ? (
+                                        <div className="w-[18px] h-[18px] rounded-full bg-[#5260FE] flex items-center justify-center shrink-0">
+                                            <div className="w-[6px] h-[6px] rounded-full bg-white" />
+                                        </div>
+                                    ) : (
+                                        <div className={`w-[18px] h-[18px] rounded-full border-2 shrink-0 ${isDarkMode ? 'border-[#5260FE]' : 'border-[#E6E8EB]'}`} />
+                                    )}
+                                    <span className={`text-[14px] font-satoshi font-normal text-left leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>{cat}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </section>
 
                 {/* Description Section */}
                 <section
-                    className={`w-full overflow-hidden ${!isDarkMode ? 'bg-white border border-[#E9EAEB] rounded-[13px]' : ''}`}
-                    style={isDarkMode ? {
-                        height: '166px',
-                        backgroundImage: `url(${textInputBg})`,
-                        backgroundSize: '100% 100%',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat'
-                    } : {
-                        height: '166px'
-                    }}
+                    className={`w-full mb-4 glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+                    style={{
+                        minHeight: '166px',
+                        '--glass-radius': '12px'
+                    } as any}
                 >
-                    <div className="p-[14px]">
+                    {isDarkMode && (
+                        <>
+                            <div className="glass-lens" />
+                            <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                            <span className="glass-rim-v2" />
+                        </>
+                    )}
+
+                    <div className="relative z-10 p-[14px]">
                         <h3 className={`text-[14px] font-medium font-satoshi mb-[14px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Describe your issue (Optional)</h3>
                         <div className="relative">
                             <textarea

@@ -56,12 +56,14 @@
     /* Darker background for inputs in dark mode */
     --border: 217 33% 17%;
 
-    /* Grid.Pe Pure Physics Glass (Dark Mode) */
-    --glass-refraction: 43;
-    --glass-blur: 5px;
-    --glass-specular-intensity: 0.25;
-    --glass-specular-angle: 31deg;
-    --glass-tint: transparent;
+    /* Grid.Pe Liquid Glass Tokens (Dark Mode) */
+    --glass-refraction: 10;
+    --glass-blur: 1px;
+    --glass-tint: #0000002a;
+    --glass-tint-rgb: 0, 0, 0;
+    --glass-tint-opacity: 0.5;
+    --glass-specular-intensity: 0.2;
+    --glass-specular-angle: 0deg;
   }
 }
 
@@ -228,7 +230,7 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    border-radius: 9999px;
+    border-radius: var(--glass-radius, 9999px);
     /* Force Pill Shape Clipping (Specifically for SVG Filters) */
     -webkit-mask-image: -webkit-radial-gradient(white, black);
     mask-image: radial-gradient(white, black);
@@ -321,9 +323,9 @@
 :root:not(.dark) .glass-physics-search {
   --glass-tint: #FFFFFFB5;
   --glass-tint-opacity: 0.71;
-  /* Light Mode Specifics: Ambient Dropshadow + Inner Glow + #E6E8EB stroke at 20% */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 0 0 0.5px rgba(255, 255, 255, 0.4);
-  border: 0.5px solid rgba(230, 232, 235, 0.2);
+  /* Light Mode Specifics: Ambient Dropshadow + Inner Glow + Inline Stroke */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(230, 232, 235, 0.4);
 }
 
 /* Safe area padding for mobile */
