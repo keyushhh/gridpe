@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
@@ -227,7 +228,14 @@ const OrderHistory = () => {
         return (
             <div
                 key={order.id}
-                className="w-full rounded-[13px] overflow-hidden mb-[16px] cursor-pointer active:opacity-90 transition-opacity"
+                className="w-full rounded-[12px] overflow-hidden mb-[16px] cursor-pointer active:opacity-90 transition-opacity relative"
+                style={{
+                    height: '100px',
+                    background: isDarkMode
+                        ? `${config.bgColor}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}`
+                        : `${config.bgColor}36`,
+                    border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
+                }}
                 onClick={() => {
                     if (showOnlyPast) {
                         navigate('/help/report', { state: { order } });
@@ -247,13 +255,6 @@ const OrderHistory = () => {
             >
                 {/* Top Container */}
                 <div className="w-full h-[25px] flex items-center px-[18px] relative overflow-hidden">
-                    <div
-                        className="absolute top-0 left-0 w-full h-full"
-                        style={{
-                            backgroundColor: config.bgColor || config.color,
-                            opacity: config.bgOpacity
-                        }}
-                    />
                     <div className="relative z-10 flex items-center mt-[2px]">
                         <img src={config.statusIcon} alt="" className="w-3 h-3 mr-[4px]" style={{ filter: config.iconFilter }} />
                         <span
@@ -265,21 +266,24 @@ const OrderHistory = () => {
                     </div>
                 </div>
 
-                {/* Main Content Container */}
+                {/* Main Content Container (Inner Frame) */}
                 <div
-                    className="w-full relative rounded-b-[13px]"
+                    className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border-x border-b border-[#E9EAEB]' : ''}`}
                     style={{
-                        height: '67px',
-                        backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
-                        border: isDarkMode
-                            ? ((order.status === 'success' || order.status === 'delivered')
-                                ? '0.6px solid rgba(28, 185, 86, 0.3)'
-                                : '0.6px solid rgba(255, 255, 255, 0.12)')
-                            : '1px solid #E9EAEB',
-                        marginTop: '-1px'
-                    }}
+                        height: '75px',
+                        '--glass-radius': '0 0 12px 12px',
+                        '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)'
+                    } as any}
                 >
-                    <div className="flex items-start justify-between py-[14px] pl-[16px] pr-[14px]">
+                    {isDarkMode && (
+                        <>
+                            <div className="glass-lens" />
+                            <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                            <span className="glass-rim-v2" />
+                        </>
+                    )}
+
+                    <div className="relative z-10 flex items-start justify-between py-[14px] pl-[16px] pr-[14px]">
                         <div className="flex items-start gap-[16px]">
                             <img src={config.icon} alt={config.label} className="w-[35px] h-[35px]" width={35} height={35} />
                             <div className="flex flex-col">
@@ -415,11 +419,13 @@ const OrderHistory = () => {
             )}
 
             {/* Header */}
-            <div className="pt-4 px-5 flex items-center justify-center relative mb-[26px] z-10 h-[88px]">
-                <BackButton onClick={() => navigate(-1)} className="absolute left-5" />
-                <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                    {showOnlyRewards ? "Reward History" : (showOnlyPast ? "Help & Support" : "Order History")}
-                </h1>
+            <div className="pt-4 px-5 flex items-center relative mb-[26px] z-10 h-[88px] shrink-0">
+                <BackButton onClick={() => navigate(-1)} />
+                <div className="absolute inset-x-0 flex justify-center pointer-events-none">
+                    <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                        {showOnlyRewards ? "Reward History" : (showOnlyPast ? "Help & Support" : "Order History")}
+                    </h1>
+                </div>
             </div>
 
             {/* Search Bar */}

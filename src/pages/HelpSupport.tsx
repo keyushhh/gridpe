@@ -88,15 +88,15 @@ const HelpSupport = () => {
                     <div className="glass-lens" />
                     <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
                     <span className="glass-rim-v2" />
-                    
+
                     <div className="flex items-center w-full h-full pl-[12px] relative z-10">
-                        <img 
-                            src={searchIcon} 
-                            alt="" 
-                            className="w-6 h-6 shrink-0" 
-                            style={{ 
-                                filter: isDarkMode ? 'brightness(0) invert(1) opacity(0.8)' : 'opacity(0.8)' 
-                            }} 
+                        <img
+                            src={searchIcon}
+                            alt=""
+                            className="w-6 h-6 shrink-0"
+                            style={{
+                                filter: isDarkMode ? 'brightness(0) invert(1) opacity(0.8)' : 'opacity(0.8)'
+                            }}
                         />
                         <input
                             type="text"
@@ -116,11 +116,11 @@ const HelpSupport = () => {
                             className="relative mb-[12px] mx-auto overflow-hidden cursor-pointer active:scale-[0.98] transition-all"
                             style={{
                                 width: '363px',
-                                height: '92px',
+                                height: '100px',
                                 background: isDarkMode
                                     ? 'rgba(28, 185, 86, 0.21)'
                                     : '#1CB95636', // ~21% opacity
-                                borderRadius: '13px',
+                                borderRadius: '12px',
                                 backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                                 border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
                                 backgroundImage: isDarkMode ? 'linear-gradient(rgba(28, 185, 86, 0.21), rgba(28, 185, 86, 0.21)), linear-gradient(to bottom, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.20))' : 'none',
@@ -139,33 +139,39 @@ const HelpSupport = () => {
                             </div>
 
                             <div
-                                className="absolute bottom-0 left-0 w-[362px] rounded-[13px]"
+                                className={`!absolute top-[25px] left-0 w-[362px] glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
                                 style={{
-                                    height: '67px',
-                                    backgroundImage: isDarkMode ? `url(${helpInnerBg})` : 'none',
-                                    backgroundColor: isDarkMode ? 'transparent' : '#FFFFFF',
-                                    backgroundSize: '100% 100%',
-                                    backgroundPosition: 'center',
-                                    backgroundRepeat: 'no-repeat',
-                                    border: !isDarkMode ? '1px solid #E9EAEB' : 'none'
-                                }}
+                                    height: '75px',
+                                    '--glass-radius': '0 0 12px 12px',
+                                    '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)'
+                                } as any}
                             >
-                                <div className="absolute top-[17px] left-[17px] w-[35px] h-[35px] flex items-center justify-center">
-                                    <img src={successIcon} alt="" className="w-full h-full" />
-                                </div>
+                                {isDarkMode && (
+                                    <>
+                                        <div className="glass-lens" />
+                                        <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                        <span className="glass-rim-v2" />
+                                    </>
+                                )}
 
-                                <div className="absolute top-[17px] left-[65px] flex flex-col">
-                                    <span className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        {(recentOrder.meta_data as any)?.item_value ? `Ordered ₹${(recentOrder.meta_data as any).item_value} Cash` : (recentOrder.addresses?.label ? `Order to ${recentOrder.addresses.label}` : "Cash Order")}
-                                    </span>
-                                    <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
-                                        Today | 12:00 PM
+                                <div className="relative z-10 w-full h-full">
+                                    <div className="absolute top-[17px] left-[17px] w-[35px] h-[35px] flex items-center justify-center">
+                                        <img src={successIcon} alt="" className="w-full h-full" />
+                                    </div>
+
+                                    <div className="absolute top-[17px] left-[65px] flex flex-col">
+                                        <span className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                            {(recentOrder.meta_data as any)?.item_value ? `Ordered ₹${(recentOrder.meta_data as any).item_value} Cash` : (recentOrder.addresses?.label ? `Order to ${recentOrder.addresses.label}` : "Cash Order")}
+                                        </span>
+                                        <span className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}>
+                                            Today | 12:00 PM
+                                        </span>
+                                    </div>
+
+                                    <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                        ₹{recentOrder.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </span>
                                 </div>
-
-                                <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    ₹{recentOrder.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                </span>
                             </div>
                         </div>
 

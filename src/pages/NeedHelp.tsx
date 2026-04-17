@@ -138,8 +138,8 @@ const NeedHelp = () => {
                         width: '362px',
                         height: '137px',
                         background: isDarkMode
-                            ? `linear-gradient(${config.bgColor}${hexAlpha}, ${config.bgColor}${hexAlpha}) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box`
-                            : `${config.bgColor}36`, // 36 is ~21% opacity in hex
+                            ? `${config.bgColor}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}`
+                            : `${config.bgColor}36`,
                         border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
                         borderRadius: '12px',
                         backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
@@ -157,10 +157,11 @@ const NeedHelp = () => {
                     </div>
 
                     <div
-                        className={`!absolute top-[25px] left-0 w-full glass-container z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+                        className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
                         style={{
                             height: '112px',
-                            '--glass-radius': '12px'
+                            '--glass-radius': '12px',
+                            '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)'
                         } as any}
                     >
                         {isDarkMode && (
@@ -214,7 +215,7 @@ const NeedHelp = () => {
                             <span className="glass-rim-v2" />
                         </>
                     )}
-                    
+
                     <div className="relative z-10">
                         <div className="pt-[14px] px-[14px] pb-[14px]">
                             <h3 className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Issue Category</h3>

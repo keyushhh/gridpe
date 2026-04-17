@@ -57,12 +57,12 @@
     --border: 217 33% 17%;
 
     /* Grid.Pe Liquid Glass Tokens (Dark Mode) */
-    --glass-refraction: 10;
+    --glass-refraction: 3;
     --glass-blur: 1px;
-    --glass-tint: #0000002a;
+    --glass-tint: #000000b0;
     --glass-tint-rgb: 0, 0, 0;
     --glass-tint-opacity: 0.5;
-    --glass-specular-intensity: 0.2;
+    --glass-specular-intensity: 0;
     --glass-specular-angle: 0deg;
   }
 }
@@ -265,8 +265,8 @@
     /* The 'Stardust'-prevention stroke width */
     /* Master 'Contour Stroke' logic */
     background: conic-gradient(from var(--glass-specular-angle, 135deg), transparent, white, transparent);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, var(--glass-rim-mask, linear-gradient(#fff 0 0));
+    mask: linear-gradient(#fff 0 0) content-box, var(--glass-rim-mask, linear-gradient(#fff 0 0));
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: var(--glass-specular-intensity, 0.6);
@@ -275,11 +275,7 @@
 
   /* Scoped Density: Pure Physics Clear (Support CTA) */
   .glass-physics-clear {
-    --glass-refraction: 12;
-    --glass-blur: 2px;
-    --glass-tint: transparent;
-    --glass-specular-intensity: 0.2;
-    --glass-specular-angle: 80deg;
+    /* Inherits all properties from global .dark tokens or inline overrides */
   }
 
   /* Scoped Density: Internal Banner CTA (Check Security) */
