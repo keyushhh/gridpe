@@ -596,6 +596,7 @@ const Homepage = () => {
                   "w-[160px] h-[44px] shadow-xl transition-all",
                   !isDarkMode && "bg-black hover:bg-black/90 text-white rounded-full"
                 )}
+                style={isDarkMode ? { '--glass-specular-intensity': '0.2' } as any : {}}
               >
                 <img src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
                 <span className={cn(
