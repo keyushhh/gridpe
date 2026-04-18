@@ -177,10 +177,18 @@ const HelpSupport = () => {
 
                         <button
                             onClick={() => navigate('/order-history', { state: { showOnlyPast: true } })}
-                            className={`w-[363px] h-[42px] rounded-[12px] flex items-center justify-between px-4 transition-all ${isDarkMode ? 'bg-black/20 border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
+                            className={`w-[363px] h-[42px] rounded-[12px] flex items-center justify-between px-4 transition-all overflow-hidden relative ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
+                            style={isDarkMode ? { '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any : {}}
                         >
-                            <span className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Need help with previous orders?</span>
-                            <ChevronRight className={`${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'} w-5 h-5`} />
+                            {isDarkMode && (
+                                <>
+                                    <div className="glass-lens" />
+                                    <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                    <span className="glass-rim-v2" />
+                                </>
+                            )}
+                            <span className={`relative z-10 text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Need help with previous orders?</span>
+                            <ChevronRight className={`relative z-10 ${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'} w-5 h-5`} />
                         </button>
                     </div>
                 )}
@@ -189,8 +197,17 @@ const HelpSupport = () => {
                 <div className="mb-[20px]">
                     <h3 className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}>BROWSE CATEGORIES</h3>
                     <div
-                        className={`w-[363px] rounded-[12px] overflow-hidden flex flex-col gap-0 transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-[#E9EAEB]'}`}
+                        className={`w-[363px] rounded-[12px] overflow-hidden relative flex flex-col gap-0 transition-colors ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
+                        style={isDarkMode ? { '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any : {}}
                     >
+                        {isDarkMode && (
+                            <>
+                                <div className="glass-lens" />
+                                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                <span className="glass-rim-v2" />
+                            </>
+                        )}
+                        <div className="relative z-10">
                         {[
                             {
                                 icon: isDarkMode ? generalIssuesIcon : generalBlackIcon,
@@ -229,24 +246,33 @@ const HelpSupport = () => {
                         ))}
                     </div>
                 </div>
+            </div>
 
-                {/* Contact Us */}
+            {/* Contact Us */}
                 <div className="mb-10">
                     <h3 className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}>CONTACT US</h3>
                     <button
                         onClick={() => navigate('/help/chat')}
-                        className={`w-[363px] h-[72px] rounded-[13px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10 active:bg-white/5' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
+                        className={`w-[363px] h-[72px] rounded-[12px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'glass-container glass-physics-clear active:bg-white/5' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
+                        style={isDarkMode ? { '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any : {}}
                     >
-                        <div className="absolute top-[12px] left-[12px] w-[25px] h-[25px] flex items-center justify-center">
+                        {isDarkMode && (
+                            <>
+                                <div className="glass-lens" />
+                                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                <span className="glass-rim-v2" />
+                            </>
+                        )}
+                        <div className="absolute top-[12px] left-[12px] w-[25px] h-[25px] flex items-center justify-center z-10">
                             <img src={isDarkMode ? chatIcon : chatBlackIcon} alt="" className="w-[18px] h-[18px]" />
                         </div>
-                        <div className="flex flex-col items-start w-full pl-[36px]">
+                        <div className="flex flex-col items-start w-full pl-[36px] z-10">
                             <h4 className={`text-[14px] font-regular font-satoshi mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Chat with us</h4>
                             <p className={`text-[12px] font-medium font-satoshi leading-tight text-left ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
                                 Zing is here to help! Chat with Zing to clear your doubts.
                             </p>
                         </div>
-                        <ChevronRight className={`absolute top-[12px] right-[14px] w-5 h-5 ${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'}`} />
+                        <ChevronRight className={`absolute top-[12px] right-[14px] w-5 h-5 z-10 ${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'}`} />
                     </button>
                 </div>
             </main>
