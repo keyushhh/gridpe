@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
@@ -34,7 +34,7 @@ const SelectPaymentMethod = () => {
     const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [loading, setLoading] = useState(true);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const loadBanks = async () => {
             try {
                 const accounts = await fetchBankAccounts();

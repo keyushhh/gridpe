@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import BackButton from "@/components/ui/BackButton";
@@ -53,11 +53,11 @@ const Subscriptions = () => {
     const { showToaster } = useCustomToaster();
     const queryClient = useQueryClient();
 
-    const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
-    const [isSubscriptionActive, setIsSubscriptionActive] = React.useState<boolean>(true);
-    const [isLoadingPay, setIsLoadingPay] = React.useState(false);
+    const [tierPrices, setTierPrices] = useState<Record<string, number>>({});
+    const [isSubscriptionActive, setIsSubscriptionActive] = useState<boolean>(true);
+    const [isLoadingPay, setIsLoadingPay] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const loadPrices = async () => {
             try {
                 const prices = await fetchTierPrices();
@@ -254,7 +254,7 @@ const Subscriptions = () => {
     };
 
     // Toast for loss if it just happened
-    React.useEffect(() => {
+    useEffect(() => {
         if (lastDowngradeLoss && lastDowngradeLoss > 0) {
             showToaster(`You have lost ${formatINR(lastDowngradeLoss)} due to the wallet downgrade.`, 'error');
         }

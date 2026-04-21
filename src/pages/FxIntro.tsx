@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { useUser } from "@/contexts/UserContext";
@@ -13,7 +13,7 @@ const FxIntro = () => {
     const mainBg = useAsset("main-bg");
     const fxBanner = useAsset("fx-banner");
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (walletTier !== "Starter") {
             navigate("/fx-exchange");
         }

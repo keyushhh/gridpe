@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import BackButton from "@/components/ui/BackButton";
@@ -53,10 +53,10 @@ const SubscriptionSummary = () => {
     const queryClient = useQueryClient();
     const { setWalletTier, walletTier, scheduleDowngrade, subscriptionPrice, profile, paymentStatus, scheduledDowngrade, fetchProfileData } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [tierPrices, setTierPrices] = useState<Record<string, number>>({});
 
-    React.useEffect(() => {
+    useEffect(() => {
         const loadPrices = async () => {
             try {
                 const prices = await fetchTierPrices();

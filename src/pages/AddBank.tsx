@@ -1,4 +1,4 @@
-﻿import React, {  useState, useEffect  } from 'react';
+import React, {  useState, useEffect  } from 'react';
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { hapticMedium } from "@/utils/haptics";
@@ -119,7 +119,9 @@ const AddBank = () => {
       account_holder_name: "Test User",
       ifsc_code: "HDFC0001234",
       branch_name: "HDFC Bank, Main Branch",
-      is_default: true
+      is_default: true,
+      logo_url: null,
+      created_at: new Date().toISOString()
     };
 
     navigate("/banking", { state: { accountsAdded: true, selectedAccounts: [mockAccount] } });
@@ -149,6 +151,7 @@ const AddBank = () => {
         ifsc_code: ifscCode,
         branch_name: formattedBranch,
         is_default: false,
+        logo_url: null,
       };
 
       const savedAccount = await createBankAccount(newAccount);

@@ -38,7 +38,7 @@ interface RewardTransaction {
         amount: number;
         status: string;
         order_type: string;
-        metadata: any;
+        meta_data: any;
     };
 }
 
@@ -347,7 +347,7 @@ const Rewards = () => {
                                                 <img src={getStatusIcon(status)} alt="Status" className="w-[26px] h-[26px]" />
                                                 <div className="ml-[7px] flex flex-col">
                                                     <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}>
-                                                        {order ? (order.metadata?.isFx ? "FX Exchange" : (order.metadata?.item_value ? `Ordered ₹${order.metadata.item_value} Cash` : "Cash Order")) : tx.description}
+                                                        {order ? (order.meta_data?.isFx ? "FX Exchange" : (order.meta_data?.item_value ? `Ordered ₹${order.meta_data.item_value} Cash` : "Cash Order")) : tx.description}
                                                     </span>
                                                     <div className="flex items-center gap-1.5 mt-0.5">
                                                         <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
@@ -363,8 +363,8 @@ const Rewards = () => {
                                             <div className="text-right">
                                                 <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}>
                                                     {order ? (
-                                                        order.metadata?.isFx
-                                                            ? `${currencySymbols[order.metadata.toCurrency as string] || ''}${Number(order.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                                                        order.meta_data?.isFx
+                                                            ? `${currencySymbols[order.meta_data.toCurrency as string] || ''}${Number(order.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                                                             : `₹${(order.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                                                     ) : '-'}
                                                 </span>

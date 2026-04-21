@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import BackButton from "@/components/ui/BackButton";
@@ -51,9 +51,9 @@ const DowngradeSummary = () => {
     const { tier } = location.state || { tier: "" };
 
     const bannerImage = isDarkMode ? (subscriptionBanners[tier] || starterSub) : (subscriptionBannersLight[tier] || starterSubLight);
-    const [tierPrices, setTierPrices] = React.useState<Record<string, number>>({});
+    const [tierPrices, setTierPrices] = useState<Record<string, number>>({});
 
-    React.useEffect(() => {
+    useEffect(() => {
         const loadPrices = async () => {
             try {
                 const prices = await fetchTierPrices();

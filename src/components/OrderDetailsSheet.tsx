@@ -263,7 +263,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
                             <div className="absolute top-[17px] left-[65px] flex flex-col">
                                 <span className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {order.metadata?.isFx ? "FX Exchange" : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
+                                    {(order.meta_data as any)?.isFx ? "FX Exchange" : (order.addresses?.label ? `Order to ${order.addresses.label}` : "Cash Order")}
                                 </span>
                                 <span className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-black/50'}`}>
                                     {formatOrderDate(order.created_at)}
@@ -271,8 +271,8 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                             </div>
 
                             <span className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                {order.metadata?.isFx
-                                    ? `${currencySymbols[order.metadata.toCurrency as string] || ''}${Number(order.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                {(order.meta_data as any)?.isFx
+                                    ? `${currencySymbols[(order.meta_data as any).toCurrency as string] || ''}${Number((order.meta_data as any).receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                     : `₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                                 }
                             </span>
@@ -645,7 +645,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
                             <div className="flex flex-col gap-[12px] px-1">
                                 <p className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {order.metadata?.cancellation_reason || (order.status === 'cancelled' ? 'Order was cancelled by the user.' : 'Payment was declined by your bank.')}
+                                    {(order.meta_data as any)?.cancellation_reason || (order.meta_data as any)?.cancel_reason_text || (order.status === 'cancelled' ? 'Order was cancelled by the user.' : 'Payment was declined by your bank.')}
                                 </p>
 
                                 <div className="flex justify-between items-center">

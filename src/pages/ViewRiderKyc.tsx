@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useTheme } from "next-themes";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
@@ -22,7 +22,7 @@ const ViewRiderKyc = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const isDarkMode = theme === 'dark' || theme === 'system';
     const [isRevealed, setIsRevealed] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [rotation, setRotation] = useState(0);

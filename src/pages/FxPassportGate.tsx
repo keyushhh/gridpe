@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
@@ -28,7 +28,7 @@ const FxPassportGate = () => {
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
     const mainBg = useAsset("main-bg");
-    const [isLoading, setIsLoading] = React.useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Mapping for assets and tier names
     const tierConfig: Record<string, { dark: string; light: string; text: string }> = {
@@ -40,7 +40,7 @@ const FxPassportGate = () => {
 
     const currentTier = tierConfig[walletTier] || tierConfig['Pro'];
 
-    React.useEffect(() => {
+    useEffect(() => {
         let cancelled = false;
         const checkAccess = async () => {
             try {
@@ -56,7 +56,7 @@ const FxPassportGate = () => {
         return () => { cancelled = true; };
     }, [fetchProfileData]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isLoading) return;
         if (walletTier === 'Starter') {
             navigate('/fx-intro');

@@ -1,4 +1,4 @@
-import React, {  useState  } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { X, ChevronRight } from "lucide-react";
@@ -73,7 +73,7 @@ const FxExchangeSummary = () => {
     const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
     const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const addressStr = localStorage.getItem("gridpe_user_address");
         if (addressStr) {
             try {

@@ -1,6 +1,8 @@
 import { Tables } from './database';
 
-export type Profile = Tables['profiles'];
+export type Profile = Tables['profiles'] & {
+  referral_code?: string;
+};
 
 export type Address = Tables['addresses'];
 

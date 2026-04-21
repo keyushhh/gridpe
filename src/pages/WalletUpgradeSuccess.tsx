@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { formatINR } from "@/utils/format";
 import { useNavigate, useLocation } from "react-router-dom";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
@@ -19,16 +19,16 @@ const WalletUpgradeSuccess = () => {
     const isDarkMode = theme === 'dark' || theme === 'system';
     const queryClient = useQueryClient();
     const { setWalletTier, fetchProfileData } = useUser();
-    const [tierDetails, setTierDetails] = React.useState<{
+    const [tierDetails, setTierDetails] = useState<{
         name: string;
         max_wallet_balance: number;
         daily_topup_limit: number;
     } | null>(null);
-    const [isLoading, setIsLoading] = React.useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     const isDowngrade = flow === 'downgrade' || message?.toLowerCase().includes('downgrade');
 
-    React.useEffect(() => {
+    useEffect(() => {
         const loadTierDetails = async () => {
             if (!tier) {
                 setIsLoading(false);
