@@ -1,3 +1,4 @@
+﻿import React from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
@@ -149,7 +150,7 @@ const OrderSummary = () => {
                             Wallet top up
                         </span>
                         <span className={`text-[14px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            ₹{parsedAmount}
+                            â‚¹{parsedAmount}
                         </span>
                     </div>
 
@@ -167,7 +168,7 @@ const OrderSummary = () => {
                             />
                         </div>
                         <span className={`text-[14px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            ₹{processingFee.toFixed(2)}
+                            â‚¹{processingFee.toFixed(2)}
                         </span>
                     </div>
 
@@ -177,7 +178,7 @@ const OrderSummary = () => {
                             Platform Fee
                         </span>
                         <span className={`text-[14px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            ₹{platformFee.toFixed(2)}
+                            â‚¹{platformFee.toFixed(2)}
                         </span>
                     </div>
 
@@ -191,7 +192,7 @@ const OrderSummary = () => {
                             Total Payable
                         </span>
                         <span className={`text-[15px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            ₹{totalPayable.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            â‚¹{totalPayable.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                         </span>
                     </div>
                 </div>
@@ -237,3 +238,4 @@ const OrderSummary = () => {
 };
 
 export default OrderSummary;
+

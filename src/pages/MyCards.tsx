@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
+import React, {  useState, useEffect, useRef  } from 'react';
 import { X, Eye, EyeOff } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -679,17 +680,23 @@ const MyCards = () => {
                     </div>
                     <button
                         onClick={() => setShowSuccessModal(false)}
-                        className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${!isDarkMode ? 'border-none' : ''}`}
-                        style={isDarkMode ? {
-                            backgroundImage: `url(${buttonCloseBg})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                        } : {
-                            backgroundColor: '#5260FE',
-                        }}
+                        className={cn(
+                            "relative z-10 mt-6 px-8 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden",
+                            isDarkMode ? "glass-container glass-physics-clear grow-0" : "bg-black"
+                        )}
+                        style={{
+                            '--glass-specular-intensity': '0.2'
+                        } as any}
                     >
-                        <X className={`w-4 h-4 ${isDarkMode ? 'text-foreground' : 'text-white'}`} />
-                        <span className={`${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px]`}>Close</span>
+                        {isDarkMode && (
+                            <>
+                                <div className="glass-lens" />
+                                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                <span className="glass-rim-v2" />
+                            </>
+                        )}
+                        <X className="w-4 h-4 text-white relative z-10" />
+                        <span className="text-white text-[14px] font-sans relative z-10">Close</span>
                     </button>
                 </div>
             )}
@@ -732,3 +739,4 @@ const MyCards = () => {
 };
 
 export default MyCards;
+

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+﻿import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams , Navigate } from 'react-router-dom';
 import BackButton from "@/components/ui/BackButton";
 import { Check, X } from "lucide-react";
 import { useTheme } from "next-themes";

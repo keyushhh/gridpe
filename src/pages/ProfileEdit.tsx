@@ -1,6 +1,6 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
-import { useState, useRef, useEffect } from "react";
+import React, {  useState, useRef, useEffect  } from 'react';
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { useAsset } from "@/hooks/useAsset";
@@ -41,7 +41,7 @@ const ProfileEdit = () => {
 
   const helperText = contextImage
     ? "Add or update your profile photo."
-    : "Tap to add your beautiful mugshot. Or cat. We’re not picky.";
+    : "Tap to add your beautiful mugshot. Or cat. Weâ€™re not picky.";
 
   const ctaLabel = isEditing ? "Save My Identity" : "Edit My Identity";
 
@@ -50,7 +50,7 @@ const ProfileEdit = () => {
   const isEmailModified = email !== contextEmail;
   const wasVerified = contextEmailVerified;
 
-  let emailHelperText = "Verify your email. C’mon, do it for the plot!";
+  let emailHelperText = "Verify your email. Câ€™mon, do it for the plot!";
   if (emailVerified) {
     emailHelperText = "Nice, now we trust you. As a promise, no spams! ;)";
   } else if (wasVerified && isEmailModified) {
@@ -291,3 +291,4 @@ const ProfileEdit = () => {
 };
 
 export default ProfileEdit;
+

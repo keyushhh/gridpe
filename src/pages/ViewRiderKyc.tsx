@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useTheme } from "next-themes";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { QRCodeSVG } from "qrcode.react";

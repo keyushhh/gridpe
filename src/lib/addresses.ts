@@ -1,6 +1,7 @@
 import { supabase, USER_ID } from './supabase';
 import { OpenLocationCode } from "open-location-code";
 import { Address } from '@/types';
+export type { Address };
 
 /**
  * Ensures a Plus Code is in global format.

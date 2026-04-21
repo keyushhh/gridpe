@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import React, {  useState, useEffect  } from 'react';
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { hapticMedium } from "@/utils/haptics";
@@ -230,9 +230,9 @@ const AddBank = () => {
       {/* Content */}
       <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-32">
         <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium leading-relaxed mb-8`}>
-          Whether you like shortcuts or full control —
+          Whether you like shortcuts or full control â€”
           <br />
-          we’ve got you.
+          weâ€™ve got you.
         </p>
 
         {/* Options */}
@@ -293,7 +293,7 @@ const AddBank = () => {
               {/* Description */}
               <div className="pl-9">
                 <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[13px] leading-relaxed`}>
-                  Let Anumati do the digging. We’ll fetch your linked<br />
+                  Let Anumati do the digging. Weâ€™ll fetch your linked<br />
                   accounts in a snap.<br />
                   Safe, fast, and totally RBI-approved.
                 </p>
@@ -538,3 +538,4 @@ const AddBank = () => {
 };
 
 export default AddBank;
+

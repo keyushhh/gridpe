@@ -1,3 +1,4 @@
+﻿import React, {  useState, useEffect, useRef  } from 'react';
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -411,7 +412,7 @@ const ScheduleDelivery = () => {
                     Amount will be held from wallet
                 </p>
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                    You won’t be charged unless the delivery is completed.
+                    You wonâ€™t be charged unless the delivery is completed.
                 </p>
                 <SlideToPay onComplete={() => { }} />
             </div>
@@ -420,3 +421,4 @@ const ScheduleDelivery = () => {
 };
 
 export default ScheduleDelivery;
+

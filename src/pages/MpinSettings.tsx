@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { X } from "lucide-react";
@@ -13,6 +14,7 @@ import popupBg from "@/assets/popup-bg.png";
 import buttonCloseBg from "@/assets/button-close.png";
 import mpinIcon from "@/assets/mpin-icon.png";
 import mpinPopupLight from "@/assets/mpin-popup-light.png";
+import { cn } from "@/lib/utils";
 
 const MpinSettings = () => {
   const navigate = useNavigate();
@@ -45,7 +47,7 @@ const MpinSettings = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Light Mode Status Blob (Top Glow — Purple) */}
+      {/* Light Mode Status Blob (Top Glow â€” Purple) */}
       {!isDarkMode && (
         <div
           className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
@@ -170,7 +172,7 @@ const MpinSettings = () => {
               height: '199px',
             }}
           >
-            {/* Icon — 26x26, 22px from top */}
+            {/* Icon â€” 26x26, 22px from top */}
             <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
               <img
                 src={mpinIcon}
@@ -184,7 +186,7 @@ const MpinSettings = () => {
               />
             </div>
 
-            {/* Header — Satoshi Bold 16px, 12px below icon */}
+            {/* Header â€” Satoshi Bold 16px, 12px below icon */}
             <h2
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
               style={{ marginTop: '12px' }}
@@ -192,7 +194,7 @@ const MpinSettings = () => {
               MPIN Updated!
             </h2>
 
-            {/* Body Pill — 318x73px, radius 16px, 24px below heading */}
+            {/* Body Pill â€” 318x73px, radius 16px, 24px below heading */}
             <div
               className={`${isDarkMode ? 'bg-[#090909]' : 'bg-white'} flex items-center px-4`}
               style={{
@@ -203,32 +205,38 @@ const MpinSettings = () => {
               }}
             >
               <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[120%] text-left font-sans`}>
-                All set. Just don't write it on a sticky note. Or worse—use 1234 again.
+                All set. Just don't write it on a sticky note. Or worseâ€”use 1234 again.
               </p>
             </div>
           </div>
 
           {/* Close Button */}
-          <button
-            onClick={async () => {
-              setShowSuccessPopup(false);
-              resetForDemo();
-              await supabase.auth.signOut();
-              localStorage.clear();
-              navigate('/security-dashboard');
-            }}
-            className="relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 w-[160px]"
-            style={isDarkMode ? {
-              backgroundImage: `url(${buttonCloseBg})`,
-              backgroundSize: '100% 100%',
-              backgroundPosition: 'center',
-            } : {
-              backgroundColor: '#5260FE',
-            }}
-          >
-            <X className="w-4 h-4 text-white" />
-            <span className="text-white text-[14px] font-medium">Close</span>
-          </button>
+            <button
+                onClick={async () => {
+                    setShowSuccessPopup(false);
+                    resetForDemo();
+                    await supabase.auth.signOut();
+                    localStorage.clear();
+                    navigate('/security-dashboard');
+                }}
+                className={cn(
+                            "relative z-10 mt-6 px-8 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden",
+                            isDarkMode ? "glass-container glass-physics-clear grow-0" : "bg-black"
+                        )}
+                        style={{
+                            '--glass-specular-intensity': '0.2'
+                        } as any}
+                    >
+                        {isDarkMode && (
+                            <>
+                                <div className="glass-lens" />
+                                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                <span className="glass-rim-v2" />
+                            </>
+                        )}
+                        <X className="w-4 h-4 text-white relative z-10" />
+                        <span className="text-white text-[14px] font-sans relative z-10">Close</span>
+                    </button>
         </div>
       )}
     </div>
@@ -236,3 +244,4 @@ const MpinSettings = () => {
 };
 
 export default MpinSettings;
+

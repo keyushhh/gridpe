@@ -1,4 +1,7 @@
-import { useNavigate, useLocation } from "react-router-dom";
+﻿import { useState, useEffect } from "react";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { useNavigate, useLocation , Navigate } from 'react-router-dom';
 import BackButton from "@/components/ui/BackButton";
 import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -424,7 +427,7 @@ const OrderTracking = () => {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        Hi, I’m {riderName || order?.rider?.full_name || (order?.rider_id ? 'Assigning...' : 'Partner')},<br />
+                                        Hi, Iâ€™m {riderName || order?.rider?.full_name || (order?.rider_id ? 'Assigning...' : 'Partner')},<br />
                                         your delivery partner
                                     </p>
                                 </div>
@@ -529,3 +532,4 @@ const OrderTracking = () => {
 };
 
 export default OrderTracking;
+

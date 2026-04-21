@@ -172,7 +172,8 @@ const OrderDetails = () => {
         const addr = order?.addresses || location.state?.savedAddress;
         if (addr?.plus_code) {
             try {
-                const decoded = OpenLocationCode.decode(addr.plus_code);
+                const olc = new OpenLocationCode() as any;
+                const decoded = olc.decode(addr.plus_code);
                 setViewState({
                     latitude: decoded.latitudeCenter,
                     longitude: decoded.longitudeCenter,

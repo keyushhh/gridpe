@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate , Navigate } from 'react-router-dom';
 import BackButton from "@/components/ui/BackButton";
 import { cn } from "@/lib/utils";
 import Skeleton from 'react-loading-skeleton';
@@ -66,7 +66,7 @@ const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, p
   };
 };
 
-// 🔔 haptic helper (safe on all platforms)
+// ðŸ”” haptic helper (safe on all platforms)
 const triggerHaptic = () => {
   if (navigator?.vibrate) {
     navigator.vibrate(10);
@@ -463,7 +463,7 @@ const Settings = () => {
             onTouchEnd={handleLogoRelease}
           >
             <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
-            <p className="text-sm mt-2">App Version v1.0.0 — 100% drama compatible.</p>
+            <p className="text-sm mt-2">App Version v1.0.0 â€” 100% drama compatible.</p>
           </div>
         </div>
       </div>
@@ -472,3 +472,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

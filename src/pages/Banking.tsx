@@ -1,3 +1,6 @@
+import { useTheme } from 'next-themes';
+import { cn } from "@/lib/utils";
+import React, {  useState, useEffect, useRef  } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { X, Eye, EyeOff } from "lucide-react";
@@ -233,7 +236,7 @@ const Banking = () => {
                             </div>
                             <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
                             <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
-                                You don’t have any bank accounts added yet.
+                                You donâ€™t have any bank accounts added yet.
                                 <br />
                                 Please add a bank account to proceed.
                             </p>
@@ -571,7 +574,7 @@ const Banking = () => {
                     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
                         {/* Background blur overlay */}
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-                        {/* Popup Box — 362x199px, radius 13px */}
+                        {/* Popup Box â€” 362x199px, radius 13px */}
                         <div
                             className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? 'border border-white/10' : ''}`}
                             style={isDarkMode ? {
@@ -588,7 +591,7 @@ const Banking = () => {
                                 height: '199px',
                             }}
                         >
-                            {/* Icon — 26x26, 22px from top */}
+                            {/* Icon â€” 26x26, 22px from top */}
                             <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
                                 <img
                                     src={isDarkMode ? popupCardIcon : cardLineIcon}
@@ -609,7 +612,7 @@ const Banking = () => {
                                 Bank Account Added Successfully
                             </h2>
 
-                            {/* Inner Container — 318x73px, radius 16px, 24px below heading */}
+                            {/* Inner Container â€” 318x73px, radius 16px, 24px below heading */}
                             <div
                                 className={`${isDarkMode ? 'bg-black' : 'bg-white'} flex items-center px-4`}
                                 style={{
@@ -625,19 +628,25 @@ const Banking = () => {
                             </div>
                         </div>
                         <button
-                            onClick={() => setShowSuccessModal(false)}
-                            className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${!isDarkMode ? 'border-none' : ''}`}
-                            style={isDarkMode ? {
-                                backgroundImage: `url(${buttonCloseBg})`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                            } : {
-                                backgroundColor: '#5260FE',
-                            }}
-                        >
-                            <X className={`w-4 h-4 ${isDarkMode ? 'text-foreground' : 'text-white'}`} />
-                            <span className={`${isDarkMode ? 'text-foreground' : 'text-white'} text-[14px]`}>Close</span>
-                        </button>
+                        onClick={() => setShowSuccessModal(false)}
+                        className={cn(
+                            "relative z-10 mt-6 px-8 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden",
+                            isDarkMode ? "glass-container glass-physics-clear grow-0" : "bg-black"
+                        )}
+                        style={{
+                            '--glass-specular-intensity': '0.2'
+                        } as any}
+                    >
+                        {isDarkMode && (
+                            <>
+                                <div className="glass-lens" />
+                                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                <span className="glass-rim-v2" />
+                            </>
+                        )}
+                        <X className="w-4 h-4 text-white relative z-10" />
+                        <span className="text-white text-[14px] font-sans relative z-10">Close</span>
+                    </button>
                     </div>
                 )
             }
@@ -683,3 +692,6 @@ const Banking = () => {
 };
 
 export default Banking;
+
+
+

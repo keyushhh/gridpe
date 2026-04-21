@@ -14,6 +14,7 @@ export interface DepositMetadata {
   gateway?: string;
   reference_id?: string;
   description?: string;
+  [key: string]: any;
 }
 
 export interface WithdrawalMetadata {
@@ -22,18 +23,21 @@ export interface WithdrawalMetadata {
   bank_account_id?: string;
   upi_id?: string;
   wallet_name?: string;
+  [key: string]: any;
 }
 
 export interface OrderPaymentMetadata {
   type: 'order_payment';
   order_id: string;
   order_type?: string;
+  [key: string]: any;
 }
 
 export interface RewardMetadata {
   type: 'reward';
   activity: string;
   points: number;
+  [key: string]: any;
 }
 
 export type TransactionMetadata = DepositMetadata | WithdrawalMetadata | OrderPaymentMetadata | RewardMetadata;

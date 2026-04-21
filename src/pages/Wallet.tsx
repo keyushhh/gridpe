@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
+import { useUser } from "@/contexts/UserContext";
+import { useAsset } from "@/hooks/useAsset";
 import BackButton from "@/components/ui/BackButton";
 
 const Wallet = () => {

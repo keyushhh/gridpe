@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+﻿import React, { useState, useEffect } from "react";
+import { useNavigate , Link } from 'react-router-dom';
 import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
@@ -107,7 +107,7 @@ const ForgotMpin = () => {
         <p className={`mt-[46px] ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-left leading-relaxed max-w-[340px]`}>
           {step === 'REQUEST'
             ? `We'll send a one-time password (OTP) to your registered number ending in ••${last4}`
-            : `OTP sent! If it doesn't show up in 30 seconds, don't stare at the screen—just tap resend.`
+            : `OTP sent! If it doesn't show up in 30 seconds, don't stare at the screenâ€”just tap resend.`
           }
         </p>
 
@@ -184,3 +184,4 @@ const ForgotMpin = () => {
 };
 
 export default ForgotMpin;
+

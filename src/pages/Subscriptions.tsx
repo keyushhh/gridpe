@@ -1,4 +1,6 @@
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import BackButton from "@/components/ui/BackButton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUser, WalletTier } from "@/contexts/UserContext";

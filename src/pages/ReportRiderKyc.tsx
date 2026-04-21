@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";

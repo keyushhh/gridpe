@@ -32,6 +32,7 @@ import buttonCloseBg from "@/assets/button-close.png";
 import popupCardIcon from "@/assets/card-ico.svg";
 import cardIcon from "@/assets/card-icon.svg";
 import deliveryTipLightBg from "@/assets/delivery-tip-light.png";
+import { cn } from "@/lib/utils";
 
 const currencySymbols: Record<string, string> = {
     AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
@@ -754,17 +755,25 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                             </div>
                         </div>
                         <button
-                            onClick={() => setShowDeliveryTipPopup(false)}
-                            className={`relative z-10 mt-6 px-8 py-3 rounded-full flex items-center justify-center gap-2 ${isDarkMode ? '' : 'bg-[#5260FE] shadow-lg'}`}
-                            style={isDarkMode ? {
-                                backgroundImage: `url(${buttonCloseBg})`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                            } : {}}
-                        >
-                            <X className={`w-4 h-4 ${isDarkMode ? 'text-black' : 'text-white'}`} />
-                            <span className={`text-[14px] font-sans ${isDarkMode ? 'text-black' : 'text-white'}`}>Close</span>
-                        </button>
+                        onClick={() => setShowDeliveryTipPopup(false)}
+                        className={cn(
+                            "relative z-10 mt-6 px-8 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden",
+                            isDarkMode ? "glass-container glass-physics-clear grow-0" : "bg-black"
+                        )}
+                        style={{
+                            '--glass-specular-intensity': '0.2'
+                        } as any}
+                    >
+                        {isDarkMode && (
+                            <>
+                                <div className="glass-lens" />
+                                <div className="absolute inset-0 z-[1] pointer-events-none" style={{ backgroundColor: 'var(--glass-tint)' }} />
+                                <span className="glass-rim-v2" />
+                            </>
+                        )}
+                        <X className="w-4 h-4 text-white relative z-10" />
+                        <span className="text-white text-[14px] font-sans relative z-10">Close</span>
+                    </button>
                     </div>
                 )}
             </div>
