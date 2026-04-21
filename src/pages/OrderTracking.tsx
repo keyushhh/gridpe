@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useNavigate, useLocation , Navigate } from 'react-router-dom';
@@ -108,12 +108,13 @@ const OrderTracking = () => {
             const fetchRider = async () => {
                 const { data, error } = await supabase
                     .from('riders')
-                    .select('full_name, phone_number')
+                    .select('id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number')
                     .eq('id', order.rider_id)
                     .single();
 
                 if (data && !error) {
                     setRiderName(data.full_name);
+                    setOrder(prev => prev ? { ...prev, rider: data } : null);
                 }
             };
             fetchRider();
@@ -154,7 +155,7 @@ const OrderTracking = () => {
                     (payload: any) => {
                         if (payload.new) {
                             const newStatus = payload.new.status;
-                            setOrder(payload.new);
+                            setOrder(prev => prev ? { ...prev, ...payload.new } : payload.new);
 
                             // Navigate to delivered screen when order is complete
                             if (newStatus === 'delivered') {
@@ -398,61 +399,71 @@ const OrderTracking = () => {
             {/* Rider Details Container */}
             <div className="px-[15px] mt-[16px] relative z-0">
                 <div
-                    className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[9px] overflow-hidden"
+                    className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px] overflow-hidden"
                     style={{
-                        height: "340px",
+                        height: order?.rider_id ? "340px" : "auto",
                         maxWidth: "362px",
                         backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
                         backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
                         border: isDarkMode ? "0.63px solid rgba(255, 255, 255, 0.12)" : "1px solid #E9EAEB",
                     }}
                 >
-                    <div className="flex items-start gap-[12px] mb-6">
-                        {/* Photo Frame */}
-                        <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
-                            <img
-                                src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
-                                alt="Rider"
-                                className="w-full h-full object-cover"
-                            />
-                            {/* Verified Tag Bar */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
-                                <img src={verifiedIcon} alt="V" className="w-[12px] h-[12px]" />
-                                <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
+                    {order?.rider_id ? (
+                        <div className="flex items-start gap-[12px] mb-6">
+                            {/* Photo Frame */}
+                            <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
+                                <img
+                                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
+                                    alt="Rider"
+                                    className="w-full h-full object-cover"
+                                />
+                                {/* Verified Tag Bar */}
+                                <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
+                                    <img src={verifiedIcon} alt="V" className="w-[12px] h-[12px]" />
+                                    <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Rider Info */}
-                        <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        Hi, Iâ€™m {riderName || order?.rider?.full_name || (order?.rider_id ? 'Assigning...' : 'Partner')},<br />
-                                        your delivery partner
-                                    </p>
+                            {/* Rider Info */}
+                            <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                            Hi, Iâ€™m {riderName || order?.rider?.full_name || 'Partner'},<br />
+                                            your delivery partner
+                                        </p>
+                                    </div>
+                                    <button
+                                        className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20"
+                                    >
+                                        <img src={callIcon} alt="Call" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
+                                    </button>
                                 </div>
                                 <button
-                                    className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20"
+                                    onClick={() => navigate(`/view-rider-kyc/${order.id}`, { state: { order } })}
+                                    className="mt-[15px] rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
+                                    style={{
+                                        width: "248px",
+                                        height: "36px",
+                                        backgroundColor: "#1CB956",
+                                    }}
                                 >
-                                    <img src={callIcon} alt="Call" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
+                                    View KYC
                                 </button>
                             </div>
-                            <button
-                                onClick={() => navigate('/view-rider-kyc')}
-                                className="mt-[15px] rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
-                                style={{
-                                    width: "248px",
-                                    height: "36px",
-                                    backgroundColor: "#1CB956",
-                                }}
-                            >
-                                View KYC
-                            </button>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="mb-6">
+                            <p className={`text-[16px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                                Hi, please wait while we connect your order to a nearby rider.
+                            </p>
+                        </div>
+                    )}
 
                     <p className={`text-[14px] font-normal font-satoshi leading-snug mb-[8px] ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
-                        Your delivery partner is KYC Verified. Please check the KYC details while accepting the order.
+                        {order?.rider_id 
+                            ? "Your delivery partner is KYC Verified. Please check the KYC details while accepting the order." 
+                            : "Average assignment time: < 2 mins"}
                     </p>
 
                     <div className={`h-[1px] w-full mb-[12px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />

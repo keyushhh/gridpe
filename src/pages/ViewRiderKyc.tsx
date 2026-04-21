@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
+import { getOrderById } from "@/lib/orders";
 import BackButton from "@/components/ui/BackButton";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -21,16 +23,68 @@ import votersBG from "@/assets/kyc_cards_riders/voters_bg.png";
 const ViewRiderKyc = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { orderId } = useParams<{ orderId: string }>();
+    const [order, setOrder] = useState<any>(location.state?.order);
+    const [rider, setRider] = useState<any>(order?.rider);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const { theme } = useTheme();
+
     const isDarkMode = theme === 'dark' || theme === 'system';
     const [isRevealed, setIsRevealed] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [rotation, setRotation] = useState(0);
 
-    const order = location.state?.order;
-    const rider = order?.rider;
+    useEffect(() => {
+        const loadAllData = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
 
-    if (!rider) {
+                let currentOrder = order;
+
+                // 1. Fetch Order if missing
+                if (!currentOrder && orderId) {
+                    const fetchedOrder = await getOrderById(orderId);
+                    if (fetchedOrder) {
+                        setOrder(fetchedOrder);
+                        currentOrder = fetchedOrder;
+                    } else {
+                        setError("Order not found");
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+
+                // 2. Fetch Rider if missing but we have rider_id
+                if (!rider && currentOrder?.rider_id) {
+                    const { data, error: riderError } = await supabase
+                        .from('riders')
+                        .select('id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number')
+                        .eq('id', currentOrder.rider_id)
+                        .single();
+
+                    if (data && !riderError) {
+                        setRider(data);
+                    } else {
+                        console.error("Rider fetch error:", riderError);
+                        setError("Rider information not available");
+                    }
+                } else if (!rider && !currentOrder?.rider_id) {
+                    setError("No rider assigned to this order yet");
+                }
+            } catch (err: any) {
+                console.error("Data loading error:", err);
+                setError("Failed to load identity data");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadAllData();
+    }, [orderId]);
+
+    if (isLoading) {
         return (
             <div className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}>
                 <div className="flex flex-col items-center gap-4">
@@ -38,6 +92,24 @@ const ViewRiderKyc = () => {
                     <p className={`text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
                         Loading Identity Data...
                     </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !rider) {
+        return (
+            <div className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center p-6 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}>
+                <div className="text-center">
+                    <p className={`text-[18px] font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                        {error || "Rider Not Found"}
+                    </p>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="px-6 py-2 bg-[#5260FE] text-white rounded-full font-medium"
+                    >
+                        Go Back
+                    </button>
                 </div>
             </div>
         );

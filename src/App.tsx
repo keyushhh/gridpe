@@ -273,7 +273,7 @@ const App = () => {
           <Route path="/select-payment-method" element={<SelectPaymentMethod />} />
           <Route path="/withdraw-otp" element={<WithdrawOTP />} />
           <Route path="/wallet-withdraw-failed" element={<WalletWithdrawFailed />} />
-          <Route path="/view-rider-kyc" element={<ViewRiderKyc />} />
+          <Route path="/view-rider-kyc/:orderId" element={<ViewRiderKyc />} />
           <Route path="/verify-rider-kyc" element={<VerifyRiderKyc />} />
           <Route path="/report-rider-kyc" element={<ReportRiderKyc />} />
           <Route path="/kyc-report-success" element={<KycReportSuccess />} />
