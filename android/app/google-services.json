@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "60389326929",
+    "project_id": "grid-pe",
+    "storage_bucket": "grid-pe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:60389326929:android:cda536aeb6820e1a083870",
+        "android_client_info": {
+          "package_name": "com.gridpe.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGfMN0ZJprITMserI1bV5TF6dkwDBOfUE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

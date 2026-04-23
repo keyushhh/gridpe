@@ -1,4 +1,4 @@
-﻿import { useNavigate , Navigate } from 'react-router-dom';
+import { useNavigate , Navigate } from 'react-router-dom';
 import BackButton from "@/components/ui/BackButton";
 import { cn } from "@/lib/utils";
 import Skeleton from 'react-loading-skeleton';
@@ -25,6 +25,7 @@ import verifiedPng from "@/assets/verified.png";
 import { Switch } from "@/components/ui/switch";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import darkbgCta from "@/assets/darkbg-cta.png";
+import DiditSDK from '@didit-protocol/sdk-web';
 
 type SecurityStatus = "verified" | "in_review" | "pending" | "incomplete";
 
@@ -149,9 +150,8 @@ const Settings = () => {
 
   const handleLogout = () => {
     // Purge Didit Cache & Destroy Instances securely
-    const { DiditSDK } = window as any;
-    if (DiditSDK?.DiditSdk?.shared?.destroy) {
-      DiditSDK.DiditSdk.shared.destroy();
+    if (DiditSDK?.shared?.destroy) {
+      DiditSDK.shared.destroy();
     }
 
     // Clear session/state

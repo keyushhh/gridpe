@@ -28,8 +28,7 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="grid.pe" />
   <meta name="twitter:description" content="grid.pe" />
-  <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script defer src="https://unpkg.com/@didit-protocol/sdk-web/dist/didit-sdk.umd.min.js"></script>
+
   <script>
     window.onerror = function(msg, url, line, col, error) {
       document.body.innerHTML += '<div style="color:red; background:white; padding:20px; position:absolute; top:0; left:0; right:0; z-index:9999; font-size:12px; word-wrap:break-word; max-height: 50vh; overflow-y: auto;"><b>JS Error:</b> ' + msg + '<br><b>URL:</b> ' + url + '<br><b>Line:</b> ' + line + '</div>';
@@ -42,6 +41,7 @@
 
 <body>
   <div id="root"></div>
+  <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

@@ -160,10 +160,13 @@ const OnboardingScreen = () => {
       const digitsOnly = phoneNumber.replace(/\D/g, '');
       const cleanNumber = digitsOnly.slice(-10); // Take last 10 digits
       const phoneToSend = `+91${cleanNumber}`;
+      console.log("OTP REQUEST STARTING - phone:", phoneToSend);
 
       const { error } = await supabase.auth.signInWithOtp({
         phone: phoneToSend,
       });
+
+      console.log("OTP REQUEST COMPLETE - error:", JSON.stringify(error));
 
       if (error) {
         setPhoneError(error.message);

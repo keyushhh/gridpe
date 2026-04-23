@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams , Navigate } from 'react-router-dom';
 import BackButton from "@/components/ui/BackButton";
 import { Check, X } from "lucide-react";
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { supabase, USER_ID } from "@/lib/supabase";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
+import DiditSDK from '@didit-protocol/sdk-web';
 
 const KYCForm = () => {
   const navigate = useNavigate();
@@ -39,11 +40,10 @@ const KYCForm = () => {
   // Cleanup SDK instance firmly on unmount so camera/socket drops
   useEffect(() => {
     return () => {
-      const { DiditSDK } = window as any;
-      if (DiditSDK?.DiditSdk?.shared) {
+      if (DiditSDK?.shared) {
         try {
-          if (typeof DiditSDK.DiditSdk.shared.close === 'function') DiditSDK.DiditSdk.shared.close();
-          if (typeof DiditSDK.DiditSdk.shared.destroy === 'function') DiditSDK.DiditSdk.shared.destroy();
+          if (typeof DiditSDK.shared.close === 'function') DiditSDK.shared.close();
+          if (typeof DiditSDK.shared.destroy === 'function') DiditSDK.shared.destroy();
         } catch (e) {
           console.warn('Didit SDK cleanup warning:', e);
         }
@@ -78,9 +78,8 @@ const KYCForm = () => {
     setIsSubmitting(true);
     try {
       // 1. Defensively destroy any lingering SDK traces
-      const { DiditSDK } = window as any;
-      if (DiditSDK?.DiditSdk?.shared?.destroy) {
-        DiditSDK.DiditSdk.shared.destroy();
+      if (DiditSDK?.shared?.destroy) {
+        DiditSDK.shared.destroy();
       }
 
       // 2. Set preliminary pending status in database (ONLY if not already verified)

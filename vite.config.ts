@@ -6,18 +6,33 @@ import { componentTagger } from "lovable-tagger";
 const removeCrossorigin = () => ({
   name: 'remove-crossorigin',
   transformIndexHtml(html: string) {
-    return html.replace(/crossorigin/g, '');
+    // Only remove crossorigin from link tags, not script tags
+    return html.replace(/<link([^>]*)\scrossorigin(?:="[^"]*")?([^>]*)>/g, '<link$1$2>');
   }
 });
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   base: "./",
   server: {
     host: "::",
     port: 8080,
   },
-  plugins: [react(), removeCrossorigin(), mode === "development" && componentTagger()].filter(Boolean),
+  build: {
+    target: 'esnext',
+    modulePreload: {
+      polyfill: false,
+    },
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: false,
+      },
+    },
+  },
+  plugins: [
+    react(),
+    removeCrossorigin(),
+    mode === "development" && componentTagger()
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -109,8 +109,13 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<UserState>(() => {
-    const stored = localStorage.getItem(USER_STORAGE_KEY);
-    return stored ? { ...defaultState, ...JSON.parse(stored) } : defaultState;
+    try {
+      const stored = localStorage.getItem(USER_STORAGE_KEY);
+      return stored ? { ...defaultState, ...JSON.parse(stored) } : defaultState;
+    } catch (error) {
+      console.error("Failed to load user state from localStorage:", error);
+      return defaultState;
+    }
   });
 
   /* Persist to localStorage */
@@ -130,7 +135,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const fetchProfileData = useCallback(async (overrideUserId?: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = overrideUserId || session?.user?.id || USER_ID;
+      if (!session && !overrideUserId) return;
+
+      const userId = overrideUserId || session?.user?.id;
 
       // Optimized Consolidated Join Query
       const { data: profileData, error: profileError } = await supabase
@@ -235,7 +242,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       console.error('Failed to fetch profile data:', error);
       // Fallback but still calculate balance
       const { data: { session } } = await supabase.auth.getSession();
-      await fetchAndCalculateBalance(overrideUserId || session?.user?.id || USER_ID);
+      if (session?.user?.id || overrideUserId) {
+        await fetchAndCalculateBalance(overrideUserId || session?.user?.id);
+      }
     }
   }, []);
 
@@ -294,8 +303,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   /* Real-time Wallet Balance Reading */
   const fetchAndCalculateBalance = async (overrideUserId?: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const userId = overrideUserId || user?.id || USER_ID;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && !overrideUserId) return;
+
+      const userId = overrideUserId || session?.user?.id;
 
 
       // Read directly from the wallets table to avoid calculation drift

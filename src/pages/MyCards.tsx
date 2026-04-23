@@ -256,7 +256,7 @@ const MyCards = () => {
                 </div>
 
                 <div 
-                    className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[120px] min-h-0"
+                    className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[calc(120px+env(safe-area-inset-bottom))] min-h-0"
                     style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
                 >
 

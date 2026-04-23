@@ -29,18 +29,11 @@ interface RazorpayInstance {
   on: (event: string, handler: (response: any) => void) => void;
 }
 
-interface DiditSDKInstance {
-  init: (options: any) => void;
-  on: (event: string, handler: (data: any) => void) => void;
-  show: () => void;
-}
-
 declare global {
   interface Window {
     Razorpay: {
       new (options: RazorpayOptions): RazorpayInstance;
     };
-    DiditSDK: DiditSDKInstance;
   }
 }
 

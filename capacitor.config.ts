@@ -5,8 +5,6 @@ const config: CapacitorConfig & { ios?: { allowsBackForwardNavigationGestures?: 
   appName: 'Grid.Pe',
   webDir: 'dist',
   server: {
-    url: 'http://192.168.29.136:8080',
-    cleartext: true,
     androidScheme: 'https'
   },
   ios: {
@@ -16,7 +14,10 @@ const config: CapacitorConfig & { ios?: { allowsBackForwardNavigationGestures?: 
     scrollEnabled: true
   },
   android: {
-    backgroundColor: "#0a0a12"
+    "backgroundColor": "#000000",
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
   }
 };
 

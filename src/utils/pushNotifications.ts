@@ -12,6 +12,7 @@ export const registerPushNotifications = async () => {
     const permission = await PushNotifications.requestPermissions();
     if (permission.receive !== 'granted') return;
 
+    await PushNotifications.removeAllListeners();
     await PushNotifications.register();
 
     PushNotifications.addListener('registration', async ({ value: token }) => {

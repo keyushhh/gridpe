@@ -165,7 +165,11 @@ const App = () => {
       });
     }
 
-    registerPushNotifications();
+    CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        registerPushNotifications();
+      }
+    });
 
 
     return () => {
