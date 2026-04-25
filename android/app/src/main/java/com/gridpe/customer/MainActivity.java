@@ -1,12 +1,8 @@
 package com.gridpe.customer;
 
 import android.os.Bundle;
-import android.webkit.WebView;
 import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
-import android.os.Build;
-import android.view.View;
-import androidx.core.view.WindowCompat;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -14,18 +10,19 @@ public class MainActivity extends BridgeActivity {
         // Handle splash screen transition
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getWindow().setDecorFitsSystemWindows(false);
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        
+        // Mute the SystemBars plugin's automatic padding which causes the grey box bug.
+        // Capacitor 8's SystemBars plugin adds a listener that forces paddingBottom 
+        // to match the keyboard height, even if disabled in config.
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(
+                (android.view.View) getBridge().getWebView().getParent(),
+                (v, insets) -> {
+                    // Do nothing and return insets to prevent the grey padding gap.
+                    return insets;
+                }
             );
         }
-        getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
-        getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
     }
 
     @SuppressWarnings("deprecation")

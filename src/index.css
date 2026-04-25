@@ -124,7 +124,9 @@ html.font-pending body {
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
-    /* Removed global overflow-y: scroll as per request */
+    /* `scroll` (vs `auto`) keeps Android's compositor on a fixed-size scrolling
+       layer, avoiding mid-scroll re-layouts when a scrollbar would appear. */
+    overflow-y: scroll;
     overscroll-behavior: none;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
@@ -357,6 +359,12 @@ html.font-pending body {
   }
 
   .pb-safe {
+    /* Only apply safe area bottom on iOS. Android's env() can 
+       incorrectly include the keyboard height in edge-to-edge mode. */
+    padding-bottom: 16px;
+  }
+
+  .ios-platform .pb-safe {
     padding-bottom: max(env(safe-area-inset-bottom), 16px);
   }
 
@@ -365,6 +373,10 @@ html.font-pending body {
   }
 
   .safe-area-bottom {
+    padding-bottom: 16px;
+  }
+
+  .ios-platform .safe-area-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 16px);
   }
 }
@@ -392,17 +404,4 @@ html.font-pending body {
 ::view-transition-new(root) {
   z-index: 9999;
   animation: expandCircle 0.5s ease-in both;
-}
-
-/* Onboarding Android Fixes */
-@media screen and (max-height: 600px) {
-  html, body, #root {
-    height: 100% !important;
-    min-height: 100% !important;
-    background-color: #0A0A12 !important;
-  }
-}
-
-.android-platform .onboarding-container {
-  overflow-y: scroll;
 }

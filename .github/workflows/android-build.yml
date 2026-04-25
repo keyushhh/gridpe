@@ -1,0 +1,62 @@
+# =============================================================================
+# Grid.Pe Customer App — Android Production APK Build
+# =============================================================================
+name: Build Android Production APK
+
+on:
+  workflow_dispatch:
+
+env:
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+  VITE_MAPS_API_KEY: ${{ secrets.VITE_MAPS_API_KEY }}
+  VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+  VITE_RAZORPAY_KEY_ID: ${{ secrets.VITE_RAZORPAY_KEY_ID }}
+  VITE_CORBADO_PROJECT_ID: ${{ secrets.VITE_CORBADO_PROJECT_ID }}
+  VITE_CORBADO_API_SECRET: ${{ secrets.VITE_CORBADO_API_SECRET }}
+
+jobs:
+  build-android:
+    name: Build Production APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install npm dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web app (production)
+        run: npm run build
+
+      - name: Validate web assets
+        run: ls dist || exit 1
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Build Android APK (Release)
+        working-directory: android
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GridPe-Android-APK
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk

@@ -241,9 +241,8 @@ const OnboardingScreen = () => {
     setShowMpinLogin(false);
     setGeneralError("");
 
-    // Force a full WebView reload that wipes the entire back stack — `replace`
-    // (not `href =`) drops the current entry so swipe/back can't return here.
-    window.location.replace("/");
+    // Force a full WebView reload that wipes the entire back stack.
+    window.location.href = "/";
   };
 
   const handleSession = async (user: User, isExplicitLogin: boolean) => {

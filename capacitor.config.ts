@@ -29,10 +29,11 @@ const config: CapacitorConfig & {
   },
   plugins: {
     Keyboard: {
-      // 'native' = adjustResize on Android. The OS shrinks the webview so
-      // the focused input stays visible. No manual padding needed in React.
-      resize: 'native',
+      resize: 'none',
       style: 'dark',
+    },
+    SystemBars: {
+      insetsHandling: 'disable'
     }
   }
 };

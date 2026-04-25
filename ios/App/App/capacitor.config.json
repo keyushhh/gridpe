@@ -13,7 +13,6 @@
 		"contentInset": "always"
 	},
 	"android": {
-		"adjustResize": false,
 		"backgroundColor": "#0A0A12",
 		"allowMixedContent": false,
 		"captureInput": true,
@@ -22,8 +21,10 @@
 	"plugins": {
 		"Keyboard": {
 			"resize": "none",
-			"style": "dark",
-			"resizeOnFullScreen": true
+			"style": "dark"
+		},
+		"SystemBars": {
+			"insetsHandling": "disable"
 		}
 	},
 	"packageClassList": [
