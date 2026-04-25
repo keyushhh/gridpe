@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const config: CapacitorConfig & { 
-  ios?: { allowsBackForwardNavigationGestures?: boolean },
+const config: CapacitorConfig & {
+  ios?: { allowsBackForwardNavigationGestures?: boolean; contentInset?: string },
   android?: { adjustResize?: boolean }
 } = {
   appId: 'com.gridpe.customer',
@@ -14,7 +14,13 @@ const config: CapacitorConfig & {
     allowsLinkPreview: true,
     handleApplicationNotifications: true,
     allowsBackForwardNavigationGestures: true,
-    scrollEnabled: true
+    // Disable native WebView scroll — the React app owns scrolling, and a
+    // native scroll layer over `position: fixed` containers causes the
+    // keyboard-resize layout jump on iOS.
+    scrollEnabled: false,
+    // Always inset content under safe areas, so the WebView doesn't shift
+    // when the keyboard / status bar resizes the viewport.
+    contentInset: 'always'
   },
   android: {
     adjustResize: false,

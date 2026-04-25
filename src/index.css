@@ -143,13 +143,19 @@ html.font-pending body {
   body {
     @apply text-foreground;
     overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* `manipulation` kills the 300ms double-tap zoom delay on iOS WKWebView. */
+    touch-action: manipulation;
   }
 
-  /* Restore text selection for inputs */
+  /* Restore text selection for inputs and pin font-size to 16px so iOS Safari
+     doesn't auto-zoom on focus (which would otherwise cause a layout jump
+     identical to the Android keyboard gap). */
   input,
   textarea {
     user-select: text;
     -webkit-user-select: text;
+    font-size: 16px !important;
   }
 }
 

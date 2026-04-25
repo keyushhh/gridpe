@@ -9,6 +9,7 @@ interface PhoneInputProps {
   className?: string;
   error?: boolean;
   disabled?: boolean;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 const PhoneInputImpl = ({
@@ -19,6 +20,7 @@ const PhoneInputImpl = ({
   className,
   error,
   disabled,
+  onFocus,
 }: PhoneInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -30,7 +32,13 @@ const PhoneInputImpl = ({
     [onChange]
   );
 
-  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleFocus = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      onFocus?.(e);
+    },
+    [onFocus]
+  );
   const handleBlur = useCallback(() => setIsFocused(false), []);
 
   return (

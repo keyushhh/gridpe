@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
@@ -10,26 +10,11 @@ import { supabase } from "@/lib/supabase";
 
 // Reusing InputOTP components from shadcn/ui
 import { InputOTP, InputOTPGroup } from "@/components/ui/input-otp";
-import { OTPInputContext } from "input-otp";
+// UPI-style reveal-then-mask MPIN slot (1s reveal, then bullet).
+import { MaskedInputOTPSlot } from "@/components/ui/masked-input-otp-slot";
 import mpinInputSuccess from "@/assets/mpin-input-success.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
 import { Button } from "@/components/ui/button";
-
-// Custom Slot to handle masking
-const MaskedInputOTPSlot = ({ index, className, style }: { index: number; className?: string; style?: React.CSSProperties }) => {
-    const inputOTPContext = useContext(OTPInputContext);
-    const slot = inputOTPContext?.slots[index];
-    const char = slot?.char;
-
-    return (
-        <div
-            className={className}
-            style={style}
-        >
-            {char ? "*" : ""}
-        </div>
-    );
-};
 
 interface MpinSheetProps {
     onClose: () => void;

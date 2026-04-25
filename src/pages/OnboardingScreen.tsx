@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/PhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { MaskedInputOTPSlot } from "@/components/ui/masked-input-otp-slot";
 import { LockOpen } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAsset } from "@/hooks/useAsset";
@@ -21,7 +22,6 @@ import { supabase } from "@/lib/supabase";
 import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
 import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { Capacitor } from "@capacitor/core";
-import { App } from "@capacitor/app";
 import { Provider, User } from "@supabase/supabase-js";
 
 const OnboardingScreen = () => {
@@ -69,18 +69,21 @@ const OnboardingScreen = () => {
     }
   }, []);
 
-  // Android Back Button Handling: Exit app if on onboarding/login screen
+  // iOS swipe-back guard: WKWebView's edge-swipe can navigate back into
+  // cached authenticated pages even after logout. Pin a sentinel history entry
+  // so swipe-back has nowhere to go. Cleared on successful login below.
   useEffect(() => {
-    const handler = App.addListener('backButton', () => {
-      // Since we are on the Onboarding/Login screen, back button should exit the app
-      // rather than returning to authenticated screens or previous history states.
-      App.exitApp();
-    });
-
-    return () => {
-      handler.then(h => h.remove());
+    if (Capacitor.getPlatform() !== 'ios') return;
+    window.history.pushState(null, '', '/');
+    const onPop = () => {
+      window.history.pushState(null, '', '/');
     };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
   }, []);
+
+  // Android hardware back button is handled by the global listener in App.tsx
+  // using a route allowlist (exits app on unauthenticated routes).
 
   // Resend timer countdown
   useEffect(() => {
@@ -211,8 +214,9 @@ const OnboardingScreen = () => {
     setShowMpinLogin(false);
     setGeneralError("");
     
-    // Force a hard reload to wipe the WebView history stack completely
-    window.location.href = "/";
+    // Force a full WebView reload that wipes the entire back stack — `replace`
+    // (not `href =`) drops the current entry so swipe/back can't return here.
+    window.location.replace("/");
   };
 
   const handleSession = async (user: User, isExplicitLogin: boolean) => {
@@ -565,6 +569,18 @@ const OnboardingScreen = () => {
     setPhoneError((prev) => (prev ? "" : prev));
   }, []);
 
+  // When any input is focused, wait for the keyboard slide-in animation to
+  // settle (~300ms) and then scroll the focused element into view. adjustPan
+  // mostly handles this, but on long screens the focused input can still sit
+  // *under* the keyboard when content overflows the panned region.
+  const handleInputFocus = useCallback((e: React.FocusEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement | null;
+    if (!target || typeof target.scrollIntoView !== "function") return;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+  }, []);
+
   const handleOtpChange = useCallback((val: string) => {
     setOtp(val);
     setOtpError((prev) => (prev ? "" : prev));
@@ -635,6 +651,7 @@ const OnboardingScreen = () => {
                 countryCode="+91"
                 placeholder="Enter your mobile number"
                 error={!!phoneError}
+                onFocus={handleInputFocus}
               />
               {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
             </div>
@@ -699,14 +716,14 @@ const OnboardingScreen = () => {
             </div>
 
             <div className="flex flex-col items-center gap-2 py-4">
-              <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus>
+              <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus onFocus={handleInputFocus}>
                 <InputOTPGroup className="gap-[8px]">
                   {[0, 1, 2, 3, 4, 5].map(index => (
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[48px] w-[48px] rounded-[7px] text-2xl font-semibold transition-all bg-cover bg-center 
-                        text-black dark:text-white 
+                      className={`h-[48px] w-[48px] rounded-[7px] text-2xl font-semibold transition-all bg-cover bg-center
+                        text-black dark:text-white
                         ${otpError
                           ? 'border border-red-500 ring-1 ring-red-500'
                           : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
@@ -814,15 +831,23 @@ const OnboardingScreen = () => {
 
             {/* Enter MPIN */}
             <div className="space-y-3">
-              <InputOTP maxLength={4} value={mpin} onChange={handleMpinChange} autoFocus>
+              <InputOTP
+                maxLength={4}
+                value={mpin}
+                onChange={handleMpinChange}
+                autoFocus
+                onFocus={handleInputFocus}
+                inputMode="numeric"
+                pattern="[0-9]*"
+              >
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
-                    <InputOTPSlot
+                    <MaskedInputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
-                        text-black dark:text-white 
-                        bg-[#F7F8FA] border border-[#E6E8EB] 
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center
+                        text-black dark:text-white
+                        bg-[#F7F8FA] border border-[#E6E8EB]
                         dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10`}
                     />
                   ))}
@@ -900,14 +925,22 @@ const OnboardingScreen = () => {
             {/* Create MPIN */}
             <div className="space-y-3">
               <p className="text-black dark:text-foreground text-[14px] font-normal">Create a secure 4 digit MPIN</p>
-              <InputOTP maxLength={4} value={mpin} onChange={handleMpinChange} autoFocus>
+              <InputOTP
+                maxLength={4}
+                value={mpin}
+                onChange={handleMpinChange}
+                autoFocus
+                onFocus={handleInputFocus}
+                inputMode="numeric"
+                pattern="[0-9]*"
+              >
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
-                    <InputOTPSlot
+                    <MaskedInputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
-                        text-black dark:text-white 
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center
+                        text-black dark:text-white
                         ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
                           mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
                             'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
@@ -928,14 +961,21 @@ const OnboardingScreen = () => {
             {/* Confirm MPIN */}
             <div className="space-y-3">
               <p className="text-black dark:text-foreground text-[14px] font-normal">Re-enter MPIN</p>
-              <InputOTP maxLength={4} value={confirmMpin} onChange={handleConfirmMpinChange}>
+              <InputOTP
+                maxLength={4}
+                value={confirmMpin}
+                onChange={handleConfirmMpinChange}
+                onFocus={handleInputFocus}
+                inputMode="numeric"
+                pattern="[0-9]*"
+              >
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
-                    <InputOTPSlot
+                    <MaskedInputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
-                        text-black dark:text-white 
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center
+                        text-black dark:text-white
                         ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
                           mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
                             'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'

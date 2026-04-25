@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { InputOTP } from "@/components/ui/input-otp";
 import { hashMpin } from "@/utils/cryptoUtils";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import buttonRemoveCard from "@/assets/button-remove-card.png";
@@ -11,8 +11,27 @@ import buttonCancel from "@/assets/button-cancel-wide.png";
 import mpinInputSuccess from "@/assets/mpin-input-success.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
 
-// Custom Slot to handle masking and styling - matching MpinSheet
+// Custom Slot to handle masking and styling - matching MpinSheet.
+// UPI-style: show the digit briefly (1s) then replace with a bullet.
+const MASK_DELAY_MS = 1000;
+const MASK_CHAR = "•";
 const MaskedSlot = ({ char, hasFakeCaret, isActive, isError, isValid, isDarkMode }: { char: string | null; hasFakeCaret: boolean; isActive: boolean; isError: boolean; isValid: boolean; isDarkMode: boolean }) => {
+  const [masked, setMasked] = React.useState(true);
+  const prevCharRef = React.useRef<string | null | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (char && char !== prevCharRef.current) {
+      prevCharRef.current = char;
+      setMasked(false);
+      const t = setTimeout(() => setMasked(true), MASK_DELAY_MS);
+      return () => clearTimeout(t);
+    }
+    if (!char) {
+      prevCharRef.current = undefined;
+      setMasked(true);
+    }
+  }, [char]);
+
   return (
     <div
       className={`relative flex items-center justify-center h-[54px] w-[81px] rounded-[12px] border-none text-[32px] font-bold transition-all bg-cover bg-center ring-1 ${isDarkMode ? 'text-white' : 'text-black'
@@ -29,7 +48,7 @@ const MaskedSlot = ({ char, hasFakeCaret, isActive, isError, isValid, isDarkMode
         ) : undefined
       }}
     >
-      {char ? "*" : ""}
+      {char ? (masked ? MASK_CHAR : char) : ""}
       {hasFakeCaret && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className={`w-px h-8 ${isDarkMode ? 'bg-white' : 'bg-black'} animate-caret-blink`} />

@@ -164,10 +164,13 @@ const App = () => {
     };
   }, []);
 
-  // Hardware back button (Android)
+  // Hardware back button (Android). Route-allowlist so swipe/back from an
+  // unauthenticated screen exits the app instead of re-entering authed screens.
   useEffect(() => {
-    const handler = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-      if (!canGoBack) {
+    const UNAUTHENTICATED_ROUTES = ["/", "/onboarding", "/login"];
+    const handler = CapacitorApp.addListener('backButton', () => {
+      const currentPath = window.location.pathname;
+      if (UNAUTHENTICATED_ROUTES.includes(currentPath)) {
         CapacitorApp.exitApp();
       } else {
         window.history.back();
