@@ -228,21 +228,27 @@ const OnboardingScreen = () => {
   };
 
   const handleLogout = async () => {
-    resetForDemo(); // Reset Context state
-    await supabase.auth.signOut();
-    localStorage.clear(); // Clear all local storage to be safe
-    sessionStorage.clear();
-    setPhoneNumber("");
-    setOtp("");
-    setMpin("");
-    setConfirmMpin("");
-    setShowMpinSetup(false);
-    setShowOtpInput(false);
-    setShowMpinLogin(false);
-    setGeneralError("");
+    try {
+      await supabase.auth.signOut();
+      resetForDemo(); // Reset Context state
+      localStorage.clear(); // Clear all local storage to be safe
+      sessionStorage.clear();
+      
+      setPhoneNumber("");
+      setOtp("");
+      setMpin("");
+      setConfirmMpin("");
+      setShowMpinSetup(false);
+      setShowOtpInput(false);
+      setShowMpinLogin(false);
+      setGeneralError("");
 
-    // Force a full WebView reload that wipes the entire back stack.
-    window.location.href = "/";
+      // Force a full WebView reload that wipes the entire back stack.
+      window.location.href = window.location.origin + window.location.pathname;
+    } catch (error) {
+      console.error("Logout failed:", error);
+      window.location.href = "/";
+    }
   };
 
   const handleSession = async (user: User, isExplicitLogin: boolean) => {

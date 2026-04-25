@@ -3,7 +3,13 @@ import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    // Synchronous hint: If localStorage is empty or missing the auth token, 
+    // we can immediately assume unauthenticated to prevent flicker.
+    // Replace 'sb-' with your actual prefix if known, or just check for common indicators.
+    const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
+    return hasSession ? null : false;
+  });
   const location = useLocation();
 
   useEffect(() => {
@@ -12,7 +18,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       setIsAuthenticated(!!session);
     };
     checkAuth();
-  }, []);
+  }, [location.pathname]); // Re-check on navigation
 
   if (isAuthenticated === null) {
     // Show nothing or a loader while checking auth

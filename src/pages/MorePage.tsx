@@ -53,10 +53,16 @@ const MorePage = () => {
     const { resetForDemo } = useUser();
 
     const handleLogout = async () => {
-        resetForDemo();
-        await supabase.auth.signOut();
-        localStorage.clear();
-        window.location.href = "/";
+        try {
+            await supabase.auth.signOut();
+            resetForDemo();
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = window.location.origin + window.location.pathname;
+        } catch (error) {
+            console.error("Logout failed:", error);
+            window.location.href = "/";
+        }
     };
 
     const categories = [

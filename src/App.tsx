@@ -121,17 +121,31 @@ const BackNavigationHandler = ({ currentPathRef }: { currentPathRef: React.Mutab
     // Routes where the back button should exit the app instead of going back
     const ROOT_ROUTES = ['/', '/home', '/login', '/onboarding'];
     
-    const handler = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+    const handler = CapacitorApp.addListener('backButton', async ({ canGoBack }) => {
       const currentPath = currentPathRef.current;
       
-      // If we are on a root route, exit the app
+      // 1. HARD SECURITY CHECK: If no session, any back gesture on entry screens should EXIT.
+      // This prevents "swiping back" into the history of a previous user session.
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // If logged out, we don't allow any "back" navigation into history.
+        // We either stay on the onboarding or exit the app.
+        console.log("No session detected. Exiting app on back gesture.");
+        CapacitorApp.exitApp();
+        return;
+      }
+      
+      // 2. ROOT ROUTE CHECK: If on a main "hub" page, exit the app.
       if (ROOT_ROUTES.includes(currentPath)) {
         CapacitorApp.exitApp();
-      } else if (canGoBack) {
-        // If WebView has native history, let it handle it (standard for HashRouter)
+      } 
+      // 3. NATIVE HISTORY: If WebView has internal history, use it.
+      else if (canGoBack) {
         window.history.back();
-      } else {
-        // Fallback: navigate -1 in React Router
+      } 
+      // 4. REACT ROUTER FALLBACK
+      else {
         navigate(-1);
       }
     });
