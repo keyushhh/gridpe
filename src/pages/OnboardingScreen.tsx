@@ -30,7 +30,7 @@ const OnboardingScreen = () => {
   const { setPhoneNumber: savePhoneNumber, setBiometricEnabled: saveBiometricEnabled, setProfile, profile, resetForDemo } = useUser();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [showMpinSetup, setShowMpinSetup] = useState(false);
   const [showMpinLogin, setShowMpinLogin] = useState(false);
@@ -109,26 +109,7 @@ const OnboardingScreen = () => {
   // Android hardware back button is handled by the global listener in App.tsx
   // using a route allowlist (exits app on unauthenticated routes).
 
-  useEffect(() => {
-    // Only run on native iOS/Android, not in browser
-    if (Capacitor.isNativePlatform()) {
-      let showListener: any;
-      let hideListener: any;
 
-      Keyboard.addListener('keyboardWillShow', (info) => {
-        setKeyboardHeight(info.keyboardHeight);
-      }).then(h => { showListener = h; });
-
-      Keyboard.addListener('keyboardWillHide', () => {
-        setKeyboardHeight(0);
-      }).then(h => { hideListener = h; });
-
-      return () => {
-        showListener?.remove();
-        hideListener?.remove();
-      };
-    }
-  }, []);
 
   // Resend timer countdown
   useEffect(() => {
@@ -711,17 +692,7 @@ const OnboardingScreen = () => {
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const otpInputRef = useRef<HTMLDivElement>(null);
 
-  const handleInputFocus = () => {
-    setTimeout(() => {
-      const activeEl = document.activeElement;
-      if (activeEl) {
-        activeEl.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }
-    }, 300);
-  };
+
 
   const handleOtpChange = useCallback((val: string) => {
     const numericOnly = val.replace(/\D/g, '').slice(0, 6);
@@ -768,8 +739,6 @@ const OnboardingScreen = () => {
     >
       <div
         style={{
-          paddingBottom: (keyboardHeight > 0 && Capacitor.getPlatform() === 'ios') ? keyboardHeight : 0,
-          transition: 'padding-bottom 0.3s ease',
           display: 'flex',
           flexDirection: 'column',
           flex: 1
@@ -807,7 +776,6 @@ const OnboardingScreen = () => {
                   countryCode="+91"
                   placeholder="Enter your mobile number"
                   error={!!phoneError}
-                  onFocus={handleInputFocus}
                 />
                 {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
               </div>
@@ -867,7 +835,7 @@ const OnboardingScreen = () => {
               </div>
 
               <div className="flex flex-col items-center gap-2 py-4" ref={otpInputRef}>
-                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus onFocus={handleInputFocus}>
+                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus>
                   <InputOTPGroup className="gap-[8px]">
                     {[0, 1, 2, 3, 4, 5].map(index => (
                       <InputOTPSlot
@@ -982,7 +950,6 @@ const OnboardingScreen = () => {
                   value={mpin}
                   onChange={handleMpinChange}
                   autoFocus
-                  onFocus={handleInputFocus}
                   inputMode="numeric"
                   pattern="[0-9]*"
                 >
@@ -1085,7 +1052,6 @@ const OnboardingScreen = () => {
                   value={mpin}
                   onChange={handleMpinChange}
                   autoFocus
-                  onFocus={handleInputFocus}
                   inputMode="numeric"
                   pattern="[0-9]*"
                 >
@@ -1129,7 +1095,6 @@ const OnboardingScreen = () => {
                   maxLength={4}
                   value={confirmMpin}
                   onChange={handleConfirmMpinChange}
-                  onFocus={handleInputFocus}
                   inputMode="numeric"
                   pattern="[0-9]*"
                 >

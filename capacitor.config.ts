@@ -2,7 +2,6 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig & {
   ios?: { allowsBackForwardNavigationGestures?: boolean; contentInset?: string },
-  android?: { adjustResize?: boolean }
 } = {
   appId: 'com.gridpe.customer',
   appName: 'Grid.Pe',
@@ -23,11 +22,18 @@ const config: CapacitorConfig & {
     contentInset: 'always'
   },
   android: {
-    adjustResize: true,
     backgroundColor: "#0A0A12",
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: true
+  },
+  plugins: {
+    Keyboard: {
+      // 'native' = adjustResize on Android. The OS shrinks the webview so
+      // the focused input stays visible. No manual padding needed in React.
+      resize: 'native',
+      style: 'dark',
+    }
   }
 };
 

@@ -1,4 +1,4 @@
-import { MemoryRouter, Routes, Route, useLocation } from "react-router-dom";
+import { MemoryRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from "@capacitor/core";
 import { CapacitorSwipeBackPlugin } from '@notnotsamuel/capacitor-swipe-back';
@@ -111,6 +111,26 @@ const LocationTracker = ({ currentPathRef }: { currentPathRef: React.MutableRefO
   return null;
 };
 
+/** Handles Android hardware back button + system gesture back.
+ *  Lives INSIDE <MemoryRouter> so useNavigate() works correctly. */
+const BackNavigationHandler = ({ currentPathRef }: { currentPathRef: React.MutableRefObject<string> }) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const LOCKED_ROUTES = ['/', '/onboarding', '/login', '/welcome'];
+    const handler = CapacitorApp.addListener('backButton', () => {
+      if (LOCKED_ROUTES.includes(currentPathRef.current)) {
+        CapacitorApp.exitApp();
+      } else {
+        navigate(-1);
+      }
+    });
+    return () => { handler.then(h => h.remove()); };
+  }, [navigate]);
+
+  return null;
+};
+
 const App = () => {
   const currentPathRef = useRef("/");
 
@@ -173,37 +193,7 @@ const App = () => {
     };
   }, []);
 
-  // Hardware back button (Android). Route-allowlist so swipe/back from an
-  // unauthenticated screen exits the app instead of re-entering authed screens.
-  useEffect(() => {
-    const LOCKED_ROUTES = ['/', '/onboarding', '/login', '/welcome'];
-    const handler = CapacitorApp.addListener('backButton', () => {
-      if (LOCKED_ROUTES.includes(currentPathRef.current)) {
-        CapacitorApp.exitApp();
-      } else {
-        window.history.back();
-      }
-    });
-    return () => { handler.then(h => h.remove()); };
-  }, []);
 
-  // iOS swipe-back gesture block/exit logic
-  useEffect(() => {
-    const blockBack = () => {
-      const LOCKED_ROUTES = ['/', '/onboarding', '/login', '/welcome'];
-      if (LOCKED_ROUTES.includes(currentPathRef.current)) {
-        CapacitorApp.exitApp();
-      } else {
-        window.history.pushState(null, '', window.location.pathname);
-      }
-    };
-    
-    // On mount, push a state so there's always a forward entry
-    window.history.pushState(null, '', window.location.pathname);
-    window.addEventListener('popstate', blockBack);
-    
-    return () => window.removeEventListener('popstate', blockBack);
-  }, []);
 
   useEffect(() => {
     const checkActiveOrders = async () => {
@@ -246,6 +236,7 @@ const App = () => {
         <LiquidGlassFilters />
         <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <LocationTracker currentPathRef={currentPathRef} />
+          <BackNavigationHandler currentPathRef={currentPathRef} />
           <NetworkBanner />
           <Routes>
             <Route path="/" element={<Index />} />

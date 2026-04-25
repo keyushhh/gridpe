@@ -13,11 +13,18 @@
 		"contentInset": "always"
 	},
 	"android": {
-		"adjustResize": true,
+		"adjustResize": false,
 		"backgroundColor": "#0A0A12",
 		"allowMixedContent": false,
 		"captureInput": true,
 		"webContentsDebuggingEnabled": true
+	},
+	"plugins": {
+		"Keyboard": {
+			"resize": "none",
+			"style": "dark",
+			"resizeOnFullScreen": true
+		}
 	},
 	"packageClassList": [
 		"BiometricAuthNative",
