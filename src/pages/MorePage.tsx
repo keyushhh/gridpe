@@ -47,8 +47,8 @@ const MoreItem = ({ icon, label, onClick, isDarkMode }: MoreItemProps) => (
 
 const MorePage = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const mainBg = useAsset("main-bg");
     const { resetForDemo } = useUser();
 

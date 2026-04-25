@@ -46,8 +46,8 @@ const POINTS_PER_RUPEE = 40;
 
 const Rewards = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { profile, fetchProfileData, rewardPoints } = useUser();
     const { showToaster } = useCustomToaster();
     const [rewardTransactions, setRewardTransactions] = useState<RewardTransaction[]>([]);

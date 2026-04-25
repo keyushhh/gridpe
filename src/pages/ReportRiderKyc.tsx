@@ -7,8 +7,8 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 const ReportRiderKyc = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [selectedReason, setSelectedReason] = useState<string | null>(null);
     const [comment, setComment] = useState("");
     const [isAttachmentsOpen, setIsAttachmentsOpen] = useState(false);

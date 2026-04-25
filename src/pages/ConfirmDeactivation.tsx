@@ -43,8 +43,8 @@ const ConfirmDeactivation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const originPath = (location.state as any)?.originPath || "/settings";
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const { profile } = useUser();
   const [mpin, setMpinState] = useState("");
   const [isValid, setIsValid] = useState(false);

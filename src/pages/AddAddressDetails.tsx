@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { hapticMedium } from "@/utils/haptics";
@@ -47,8 +47,8 @@ interface AddressState {
 const AddAddressDetails = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { showToaster } = useCustomToaster();
     const initialState = location.state as AddressState | null;
     const isEditMode = !!initialState?.id;
@@ -64,8 +64,10 @@ const AddAddressDetails = () => {
     const [customLabel, setCustomLabel] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-    // UI State
-    const [headerOpacity, setHeaderOpacity] = useState(1);
+    // UI State — header fade is driven directly by an IntersectionObserver into
+    // a ref so we never re-render on scroll.
+    const headerRef = useRef<HTMLDivElement | null>(null);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
 
     // Derived Address Display
     const [displayAddress, setDisplayAddress] = useState(initialState?.addressLine || "");
@@ -104,11 +106,23 @@ const AddAddressDetails = () => {
         showToaster("Plus Code copied!", 'success');
     };
 
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const scrollTop = e.currentTarget.scrollTop;
-        const newOpacity = Math.max(0, Math.min(1, 1 - scrollTop / 100));
-        setHeaderOpacity(newOpacity);
-    };
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        const header = headerRef.current;
+        if (!sentinel || !header) return;
+        // intersectionRatio of a 100px sentinel mirrors the previous
+        // 1 - scrollTop/100 fade, but the work happens on the compositor.
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                const ratio = entry.intersectionRatio;
+                header.style.opacity = String(ratio);
+                header.style.pointerEvents = ratio === 0 ? "none" : "auto";
+            },
+            { threshold: Array.from({ length: 21 }, (_, i) => i / 20) }
+        );
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, []);
 
     const handleSaveAddress = async (overrideTag?: string) => {
         hapticMedium();
@@ -292,14 +306,16 @@ const AddAddressDetails = () => {
 
             {/* Scrollable Content */}
             <div
-                className="flex-1 overflow-y-auto pb-safe pb-4 relative z-10 font-sans"
-                onScroll={handleScroll}
+                className="flex-1 overflow-y-scroll pb-safe pb-4 relative z-10 font-sans"
             >
                 <div className="pt-safe pt-4 px-5">
+                    {/* Sentinel: tracked by IO to drive header opacity */}
+                    <div ref={sentinelRef} aria-hidden="true" style={{ position: 'absolute', top: 0, height: 100, width: 1, pointerEvents: 'none' }} />
                     {/* Header */}
                     <div
+                        ref={headerRef}
                         className="flex items-center sticky top-0 z-50 transition-colors"
-                        style={{ opacity: headerOpacity, pointerEvents: headerOpacity === 0 ? 'none' : 'auto', paddingTop: 'env(safe-area-inset-top)' }}
+                        style={{ paddingTop: 'env(safe-area-inset-top)', willChange: 'opacity', transform: 'translateZ(0)' }}
                     >
                         <BackButton onClick={() => navigate(-1)} className="mr-2" />
                         <h1 className={`flex-1 text-center text-[22px] font-medium font-satoshi pr-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>

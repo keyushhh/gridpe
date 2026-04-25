@@ -16,8 +16,8 @@ import { AVAILABLE_BANKS } from "@/utils/bankUtils";
 const LinkedAccounts = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
 
   const mobile = location.state?.mobile || "9876543210";

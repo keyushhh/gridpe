@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import React, {  useState, useEffect, useRef  } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Eye, EyeOff } from "lucide-react";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -42,8 +42,8 @@ const cardBackgrounds = [savedCard1, savedCard2, savedCard3, savedCard4, savedCa
 const MyCards = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [cards, setCards] = useState<Card[]>([]);
     const [isFabExpanded, setIsFabExpanded] = useState(false);
@@ -159,15 +159,12 @@ const MyCards = () => {
         setConfirmAction(null);
     };
 
-    const formatCardNumber = (num: string) => {
-        if (!num) return "";
-        const chunks = num.match(/.{1,4}/g) || [];
-        return chunks.join(" ");
-    };
-
-    const getMaskedCardNumber = (num: string) => {
-        if (!num) return "";
-        const last4 = num.slice(-4);
+    const formatCardNumber = (number: string) => {
+        if (!number) return "";
+        const cleanNumber = number.replace(/\s/g, '');
+        
+        // Always return masked format since we only store/fetch last 4 digits for security
+        const last4 = cleanNumber.slice(-4);
         return `**** **** **** ${last4}`;
     };
 
@@ -255,7 +252,7 @@ const MyCards = () => {
                     <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[20px] font-medium text-center w-full`}>My Cards</h1>
                 </div>
 
-                <div 
+                <div
                     className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[calc(120px+env(safe-area-inset-bottom))] min-h-0"
                     style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
                 >
@@ -381,21 +378,12 @@ const MyCards = () => {
                                                 </div>
 
                                                 <div
-                                                    className="absolute left-[26px] right-[26px] flex items-center justify-between transition-all"
+                                                    className="absolute left-[26px] right-[26px] transition-all"
                                                     style={{ top: `${numberTop}px` }}
                                                 >
-                                                    <div className="relative flex-1 mr-4">
-                                                        <p className="text-white text-[20px] font-bold font-satoshi tracking-widest h-[24px]">
-                                                            {isVisible ? formatCardNumber(card.number) : getMaskedCardNumber(card.number)}
-                                                        </p>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => toggleCardVisibility(card.id, e)}
-                                                        className="text-white shrink-0 z-20 hover:text-white/80"
-                                                    >
-                                                        {isVisible ? <Eye size={20} /> : <EyeOff size={20} />}
-                                                    </button>
+                                                    <p className="text-white text-[20px] font-bold font-satoshi tracking-widest h-[24px]">
+                                                        {formatCardNumber(card.number)}
+                                                    </p>
                                                 </div>
 
                                                 <div
@@ -409,7 +397,17 @@ const MyCards = () => {
                                                         </p>
                                                     </div>
                                                     <div className="flex flex-col gap-[5px]">
-                                                        <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">CVV</label>
+                                                        <div className="flex items-center gap-3">
+                                                            <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">CVV</label>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => toggleCardVisibility(card.id, e)}
+                                                                className="text-white/60 hover:text-white shrink-0 z-20 transition-colors"
+                                                                aria-label={isVisible ? "Hide CVV" : "Show CVV"}
+                                                            >
+                                                                {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+                                                            </button>
+                                                        </div>
                                                         <p className="text-white text-[14px] font-bold font-satoshi leading-none">
                                                             {isVisible ? (card.cvv || "123") : "***"}
                                                         </p>

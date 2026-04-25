@@ -31,8 +31,8 @@ const NeedHelp = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const order = location.state?.order as Order | null;
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [selectedCategory, setSelectedCategory] = useState<string>("");
     const [description, setDescription] = useState("");
 

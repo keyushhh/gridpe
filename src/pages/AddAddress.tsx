@@ -21,8 +21,8 @@ import distanceCallout from "@/assets/distance-callout.svg";
 
 const AddAddress = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const { showToaster } = useCustomToaster();
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState<ViewState>({

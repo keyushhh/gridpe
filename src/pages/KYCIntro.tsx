@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 
 const KYCIntro = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [showWhyModal, setShowWhyModal] = useState(false);
 
   const benefits = [

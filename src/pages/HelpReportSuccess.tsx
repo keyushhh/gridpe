@@ -7,8 +7,8 @@ import darkBgCta from "@/assets/darkbg-cta.png";
 
 const HelpReportSuccess = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [countdown, setCountdown] = useState(30);
 
     // Reference ID

@@ -26,8 +26,8 @@ const currencySymbols: Record<string, string> = {
 const OrderHistory = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const showOnlyPast = location.state?.showOnlyPast || false;
     const searchParams = new URLSearchParams(location.search);
     const showOnlyRewards = location.state?.showOnlyRewards || searchParams.get('rewards') === 'true';

@@ -14,10 +14,10 @@ const config: CapacitorConfig & { ios?: { allowsBackForwardNavigationGestures?: 
     scrollEnabled: true
   },
   android: {
-    "backgroundColor": "#000000",
-    "allowMixedContent": true,
-    "captureInput": true,
-    "webContentsDebuggingEnabled": true
+    backgroundColor: "#0A0A12",
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: true
   }
 };
 

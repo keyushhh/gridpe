@@ -16,9 +16,9 @@ import Keypad from "@/components/Keypad";
 
 const WalletAddMoney = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const isDarkMode = resolvedTheme !== 'light';
   const { walletLimit, walletBalance, walletTier, refreshBalance, fetchProfileData, refreshTransactions, isRenewalPending } = useUser();
   const currentBalance = walletBalance || 0;
   const fromWallet = location.state?.from === 'wallet';

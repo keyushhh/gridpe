@@ -45,8 +45,8 @@ import { supabase } from "@/lib/supabase";
 const DowngradeSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { walletTier, scheduleDowngrade, walletBalance } = useUser();
     const { tier } = location.state || { tier: "" };
 

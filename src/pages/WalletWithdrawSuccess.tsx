@@ -10,8 +10,8 @@ import darkBgCta from "@/assets/darkbg-cta.png";
 const WalletWithdrawSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     const { amount: rawAmount, selectedMethod } = location.state || {};
     const amount = typeof rawAmount === 'number' ? rawAmount : parseFloat(rawAmount || '0');

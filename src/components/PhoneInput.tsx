@@ -1,4 +1,4 @@
-﻿import React, {  useState  } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { cn } from "@/lib/utils";
 
 interface PhoneInputProps {
@@ -11,7 +11,7 @@ interface PhoneInputProps {
   disabled?: boolean;
 }
 
-export const PhoneInput = ({
+const PhoneInputImpl = ({
   value,
   onChange,
   countryCode = "+91",
@@ -22,11 +22,16 @@ export const PhoneInput = ({
 }: PhoneInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numbers
-    const numericValue = e.target.value.replace(/\D/g, "");
-    onChange(numericValue);
-  };
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const numericValue = e.target.value.replace(/\D/g, "");
+      onChange(numericValue);
+    },
+    [onChange]
+  );
+
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
 
   return (
     <div
@@ -46,12 +51,16 @@ export const PhoneInput = ({
       </div>
       <input
         type="tel"
-        inputMode="numeric"
+        inputMode="tel"
         pattern="[0-9]*"
+        autoComplete="tel-national"
+        autoCorrect="off"
+        autoCapitalize="none"
+        spellCheck={false}
         value={value}
         onChange={handleChange}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder={placeholder}
         disabled={disabled}
         className="flex-1 h-full bg-transparent px-4 text-sm font-normal text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed"
@@ -61,3 +70,4 @@ export const PhoneInput = ({
   );
 };
 
+export const PhoneInput = memo(PhoneInputImpl);

@@ -37,8 +37,8 @@ const subscriptionBgsLight: Record<WalletTier, string> = {
 
 const ManageSubscription = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { walletTier, walletLimit, scheduleDowngrade } = useUser();
     const currentTierConfig = tiers.find(t => t.name === walletTier);
 

@@ -9,8 +9,8 @@ interface NotAvailableProps {
 
 const NotAvailable: React.FC<NotAvailableProps> = ({ onOpenAddressSheet }) => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     return (
         <div className="flex-1 flex flex-col items-center justify-center -mt-32 px-5 z-10 transition-colors duration-300 pointer-events-none">

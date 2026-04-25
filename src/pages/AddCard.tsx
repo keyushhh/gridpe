@@ -1,4 +1,4 @@
-﻿import React, {  useState, useEffect, useRef  } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import { hapticMedium } from "@/utils/haptics";
 import { Eye, EyeOff } from "lucide-react";
@@ -21,8 +21,8 @@ import { toast } from "sonner";
 const AddCard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
 
   // Form State
   const [expiry, setExpiry] = useState("");
@@ -419,7 +419,7 @@ const AddCard = () => {
           </div>
 
           <p className={`${isDarkMode ? 'text-white/60' : 'text-black'} text-[14px] font-medium leading-relaxed`}>
-            Your card info is encrypted and stored like itâ€™s top-tier gossip â€” never shared.
+            Your card info is encrypted and stored like it’s top-tier gossip – never shared.
           </p>
         </div>
 

@@ -48,8 +48,8 @@ import { useUser, WalletTier } from "@/contexts/UserContext";
 const SubscriptionSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const queryClient = useQueryClient();
     const { setWalletTier, walletTier, scheduleDowngrade, subscriptionPrice, profile, paymentStatus, scheduledDowngrade, fetchProfileData } = useUser();
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };

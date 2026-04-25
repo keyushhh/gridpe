@@ -69,8 +69,8 @@ const downgradeBgsLight: Record<WalletTier, string> = {
 
 const DowngradePlan = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { walletTier, setWalletTier } = useUser();
     const [selectedTier, setSelectedTier] = useState<WalletTier | null>(null);
     const [isConfirmed, setIsConfirmed] = useState(false);

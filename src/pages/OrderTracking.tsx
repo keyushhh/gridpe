@@ -27,8 +27,8 @@ import darkbgCta from "@/assets/darkbg-cta.png";
 const OrderTracking = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [order, setOrder] = useState<Order | null>(location.state?.order || null);
     const [isLoading, setIsLoading] = useState(!location.state?.order);
 
@@ -429,7 +429,7 @@ const OrderTracking = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                            Hi, Iâ€™m {riderName || order?.rider?.full_name || 'Partner'},<br />
+                                            Hi, I’m {riderName || order?.rider?.full_name || 'Partner'},<br />
                                             your delivery partner
                                         </p>
                                     </div>

@@ -15,8 +15,8 @@ import { Button } from "@/components/ui/button";
 
 const PaymentMissing = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     const location = useLocation();
     const { amount } = location.state || {};

@@ -29,7 +29,7 @@ const COLOR_PRESETS = [
 ];
 
 export function LiquidGlassController() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [isClearMode, setIsClearMode] = useState(true); // Default to Clear Mode for "Liquid" focus
   const [config, setConfig] = useState({
     specularIntensity: 0.6,
@@ -44,7 +44,7 @@ export function LiquidGlassController() {
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme !== 'light';
 
   const getRgbFromHex = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);

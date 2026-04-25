@@ -11,8 +11,8 @@ import { SlideToPay } from "@/components/SlideToPay";
 import { useTheme } from "next-themes";
 
 const ScheduleDelivery = () => {
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const navigate = useNavigate();
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
@@ -412,7 +412,7 @@ const ScheduleDelivery = () => {
                     Amount will be held from wallet
                 </p>
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                    You wonâ€™t be charged unless the delivery is completed.
+                    You won’t be charged unless the delivery is completed.
                 </p>
                 <SlideToPay onComplete={() => { }} />
             </div>

@@ -15,8 +15,8 @@ const CardRemoveSuccess = () => {
   // Get last4 from state, fallback if missing
   const last4 = location.state?.last4 || "XXXX";
 
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
 
   useEffect(() => {
     const timer = setInterval(() => {

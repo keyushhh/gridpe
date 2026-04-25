@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 
 const KYCStatusComplete = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const bannerAsset = useAsset("security-complete");
 
   const handleGoBack = () => {

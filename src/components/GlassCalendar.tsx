@@ -34,8 +34,8 @@ function GlassCalendar({ selected, onSelect, onClose, disableFutureDates = false
   const [currentDate, setCurrentDate] = useState(selected || new Date());
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const today = new Date();
 
   const year = currentDate.getFullYear();

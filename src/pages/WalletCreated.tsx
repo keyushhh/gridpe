@@ -19,8 +19,8 @@ import BalanceAlert from "@/components/BalanceAlert";
 
 const WalletCreated = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const queryClient = useQueryClient();
     const { profile, walletTier, upgradeTimestamp, walletBalance, heldBalance, walletLimit, dailyLimit, wallet_tiers, isRenewalPending, scheduledDowngrade } = useUser();
     const [userId, setUserId] = useState<string | null>(null);

@@ -26,8 +26,8 @@ interface PaymentMethod {
 const SelectPaymentMethod = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { amount, forceManual } = location.state || {};
     const [selectedMethod, setSelectedMethod] = useState<string>(forceManual ? "upi-id" : "");
     const [upiId, setUpiId] = useState<string>("");

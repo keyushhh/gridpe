@@ -15,8 +15,10 @@ const OrderCash = () => {
   const { walletLimit, walletBalance } = useUser(); // walletBalance now from useUser
   const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>("0.00");
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { resolvedTheme } = useTheme();
+  // resolvedTheme returns 'light' | 'dark' (resolves 'system'). Treat undefined
+  // (pre-hydration) as dark so the screen never flashes white on entry.
+  const isDarkMode = resolvedTheme !== 'light';
 
   // Removed the useEffect that fetched walletBalance, as it's now from UserContext
 
@@ -111,7 +113,7 @@ const OrderCash = () => {
       <div className="flex-1 flex flex-col items-center pt-[60px] z-10 w-full">
         {/* Amount Display */}
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
-          <span className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹</span>
+          <span className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
           <span className={`text-[32px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
         </div>
 
@@ -120,12 +122,12 @@ const OrderCash = () => {
 
         {/* Balance Text */}
         <p className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] ${parseFloat(amount) > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
-          Total Available Balance â‚¹ {walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          Total Available Balance ₹ {walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
 
         {parseFloat(amount) > 0 && parseFloat(amount) < 500 && (
           <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
-            Amount needs to be â‚¹500 or more
+            Amount needs to be ₹500 or more
           </p>
         )}
 
@@ -148,7 +150,7 @@ const OrderCash = () => {
                 />
               )}
               <span className={`relative z-10 text-[12px] font-medium font-sans text-white`}>
-                +â‚¹{val}
+                +₹{val}
               </span>
             </button>
           ))}
@@ -171,7 +173,7 @@ const OrderCash = () => {
               Amount will be held from wallet
             </p>
             <p className={`text-[12px] font-light font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black/60'}`}>
-              You wonâ€™t be charged unless the delivery is completed.
+              You won’t be charged unless the delivery is completed.
             </p>
           </div>
         </div>

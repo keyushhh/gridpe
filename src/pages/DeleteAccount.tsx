@@ -15,8 +15,8 @@ type OptionType = 'deactivate' | 'delete';
 const DeleteAccount = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [selectedOption, setSelectedOption] = useState<OptionType>('deactivate');
   const originPath = (location.state as any)?.originPath || "/security-dashboard";
 

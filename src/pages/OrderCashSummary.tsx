@@ -39,8 +39,8 @@ const OrderCashSummary = () => {
     const location = useLocation();
     const { showToaster } = useCustomToaster();
     const { amount } = location.state || { amount: "0.00" };
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isPayOpen, setIsPayOpen] = useState(false);
@@ -670,7 +670,7 @@ const OrderCashSummary = () => {
                     </div>
                     <ul className={`list-disc pl-4 space-y-2 text-[13px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/80 marker:text-white/60' : 'text-black marker:text-black'}`}>
                         <li>Your KYC has been verified. Please keep your original ID ready when accepting your cash delivery.</li>
-                        <li>Your delivery partnerâ€™s name, photo, and KYC details will be visible before drop-off.</li>
+                        <li>Your delivery partner’s name, photo, and KYC details will be visible before drop-off.</li>
                         <li>Please verify their ID before accepting the cash.</li>
                     </ul>
                     <div className={`w-full h-[1px] my-3 ${isDarkMode ? 'bg-white/10' : 'bg-[#E6E8EB]'}`} />
@@ -694,7 +694,7 @@ const OrderCashSummary = () => {
                     {isRewardsOpen && (
                         <div className="px-[12px] pb-[16px]">
                             <p className={`text-[14px] font-medium font-sans -mt-[7px] mb-[21px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                You have {rewardPointsData.toLocaleString()} points available (â‚¹{(rewardPointsData * 0.025).toLocaleString('en-IN', { minimumFractionDigits: 2 })})
+                                You have {rewardPointsData.toLocaleString()} points available (₹{(rewardPointsData * 0.025).toLocaleString('en-IN', { minimumFractionDigits: 2 })})
                             </p>
                             <div className="flex items-center gap-[12px]">
                                 <div className="relative flex-1 h-[45px]">
@@ -733,7 +733,7 @@ const OrderCashSummary = () => {
                                 </button>
                             </div>
                             <p className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/40' : 'text-black'}`}>
-                                {rewardError || (rewardApplied ? `Applied: â‚¹${rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} discount` : "500 points = â‚¹12.50")}
+                                {rewardError || (rewardApplied ? `Applied: ₹${rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} discount` : "500 points = ₹12.50")}
                             </p>
                         </div>
                     )}
@@ -779,7 +779,7 @@ const OrderCashSummary = () => {
                         {!isTipCollapsed && (
                             <div className="px-[12px] pb-[16px]">
                                 <p className={`text-[13px] font-normal font-sans mb-5 leading-snug ${isDarkMode ? 'text-white/80' : 'text-black'}`}>
-                                    A small tip, goes a big way! Totally optional â€” but your rider will appreciate it â¤ï¸
+                                    A small tip, goes a big way! Totally optional – but your rider will appreciate it â¤ï¸
                                 </p>
                                 <div className="flex items-center gap-3">
                                     {['10', '20', '30'].map((val) => (
@@ -799,7 +799,7 @@ const OrderCashSummary = () => {
                                                     className={`absolute left-0 right-0 flex justify-center items-center gap-[10px] z-20 ${val === '20' ? 'top-[2px]' : 'top-1/2 -translate-y-1/2'}`}
                                                 >
                                                     <span className={`font-medium font-sans text-[15px] leading-none ${isDarkMode || selectedTipOption === val ? 'text-white' : 'text-black'}`}>
-                                                        â‚¹{val}
+                                                        ₹{val}
                                                     </span>
 
                                                     {selectedTipOption === val && (
@@ -866,7 +866,7 @@ const OrderCashSummary = () => {
                                 </div>
                                 {selectedTipOption === 'other' && (
                                     <div className={`mt-[15px] h-[48px] w-full rounded-full border flex items-center pl-4 pr-4 ${isDarkMode ? 'bg-[#191919] border-white/10' : 'bg-white border-[#E6E8EB]'}`}>
-                                        <span className={`font-medium font-sans mr-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹</span>
+                                        <span className={`font-medium font-sans mr-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
                                         <input
                                             type="text"
                                             placeholder="Enter tip amount"
@@ -896,7 +896,7 @@ const OrderCashSummary = () => {
                             <div className="flex items-center gap-2">
                                 <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>To Pay</span>
                                 <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {quoteLoading ? "Calculating..." : `+â‚¹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
+                                    {quoteLoading ? "Calculating..." : `+₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
                                 </span>
                             </div>
                             <img
@@ -913,17 +913,17 @@ const OrderCashSummary = () => {
                                 <div className={`w-full h-[1px] mb-[10px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
                                 <div className="flex justify-between items-center mb-[2px]">
                                     <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Item Value</span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹{parsedAmount}</span>
+                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{parsedAmount}</span>
                                 </div>
                                 {rewardApplied && (
                                     <div className="flex justify-between items-center mb-[2px]">
                                         <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Reward Discount ({rewardPointsValue} pts)</span>
-                                        <span className="text-[#FF3B30] font-bold font-sans text-[13px]">-â‚¹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                        <span className="text-[#FF3B30] font-bold font-sans text-[13px]">-₹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center">
                                     <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Delivery Fee | 1.2 kms</span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹{deliveryFee}</span>
+                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{deliveryFee}</span>
                                 </div>
                                 <p className={`font-light font-sans text-[13px] mt-[12px] mb-[8px] leading-snug ${isDarkMode ? 'text-white/50' : 'text-black'}`}>
                                     This fee fairly goes to our delivery partners for delivering your orders.
@@ -939,7 +939,7 @@ const OrderCashSummary = () => {
                                                 setIsTipContainerVisible(true);
                                             }}
                                         >
-                                            â‚¹{tipAmount}
+                                            ₹{tipAmount}
                                         </span>
                                     ) : (
                                         <span
@@ -958,16 +958,16 @@ const OrderCashSummary = () => {
                                     <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                                         GST ({((quoteData?.gst_rate || 0.18) * 100).toFixed(0)}%)
                                     </span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹{gst.toFixed(2)}</span>
+                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{gst.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between items-center mb-[8px]">
                                     <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Platform Fee</span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹{platformFee.toFixed(2)}</span>
+                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{platformFee.toFixed(2)}</span>
                                 </div>
                                 <div className={`w-full h-[1px] mb-[8px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
                                 <div className="flex justify-between items-center pb-[18px]">
                                     <span className={`font-medium font-sans text-[15px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Total Payable</span>
-                                    <span className={`font-bold font-sans text-[15px] ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+                                    <span className={`font-bold font-sans text-[15px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         )}
@@ -991,10 +991,10 @@ const OrderCashSummary = () => {
                 }}
             >
                 <p className={`text-[18px] font-bold font-sans mb-[16px] ${isDarkMode ? "text-white" : "text-black"}`}>
-                    {quoteLoading ? "Calculating fees..." : `â‚¹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} will be held from wallet`}
+                    {quoteLoading ? "Calculating fees..." : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} will be held from wallet`}
                 </p>
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}>
-                    {quoteLoading ? "Syncing pricing..." : totalAmount > walletBalance ? "Insufficient funds in wallet" : "You wonâ€™t be charged unless the delivery is completed."}
+                    {quoteLoading ? "Syncing pricing..." : totalAmount > walletBalance ? "Insufficient funds in wallet" : "You won’t be charged unless the delivery is completed."}
                 </p>
                 <SlideToPay
                     onComplete={handlePay}
@@ -1034,7 +1034,7 @@ const OrderCashSummary = () => {
                                 Our delivery partners ride through traffic, harsh weather, and long distances to bring your cash safely to your door.
                             </p>
                             <p className={`font-sans leading-[140%] text-left ${isDarkMode ? 'text-[13px] font-normal text-white' : 'text-[13px] font-normal text-black'}`}>
-                                Tipping isnâ€™t mandatory â€” but it goes directly to them and helps support their daily hustle, fuel, and hard work.
+                                Tipping isn’t mandatory – but it goes directly to them and helps support their daily hustle, fuel, and hard work.
                                 <br />
                                 Even a small amount makes a big difference.
                                 <br />

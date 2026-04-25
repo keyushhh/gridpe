@@ -33,8 +33,8 @@ const SecurityDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const originPath = (location.state as any)?.originPath || "/settings";
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const { profile, kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showMpinForBiometric, setShowMpinForBiometric] = useState(false);

@@ -26,8 +26,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   secondaryButtonSrc,
   secondaryText,
 }) => {
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
 
   if (!isOpen) return null;
 
@@ -42,8 +42,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         }}
       />
 
-      {/* Modal Content */}
-      <div className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center">
+      {/* Modal Content. Promote to its own compositor layer so the backdrop
+          blur + modal scale don't repaint the rest of the screen on Android. */}
+      <div
+        className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center"
+        style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+      >
         {/* Card Background Container */}
         <div
           className="relative w-full overflow-hidden rounded-[32px] pt-[28px] pb-[22px] px-[17px]"

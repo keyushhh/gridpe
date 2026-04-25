@@ -22,8 +22,8 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
     const [data, setData] = useState<LegalContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     const isFromMore = location.state?.fromMore === true;
     const [isAccepted, setIsAccepted] = useState(false);

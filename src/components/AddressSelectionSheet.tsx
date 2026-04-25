@@ -33,8 +33,8 @@ interface AddressSelectionSheetProps {
 }
 
 const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, onClose, onAddressSelect, onModalStateChange }) => {
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const navigate = useNavigate();
     const { showToaster } = useCustomToaster();
     const [searchQuery, setSearchQuery] = useState("");

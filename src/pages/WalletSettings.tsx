@@ -11,8 +11,8 @@ import { tiers, tierSettingsCardMap, tierSettingsCardMapLight, tierCarouselActiv
 const WalletSettings = () => {
     const navigate = useNavigate();
     const { walletTier, resetForDemo, scheduledDowngrade } = useUser();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     const currentTier =
         tiers.find((tier) => tier.name === walletTier) || tiers[0];

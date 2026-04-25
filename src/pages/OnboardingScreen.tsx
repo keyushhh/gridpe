@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/PhoneInput";
@@ -21,6 +21,7 @@ import { supabase } from "@/lib/supabase";
 import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
 import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 import { Provider, User } from "@supabase/supabase-js";
 
 const OnboardingScreen = () => {
@@ -66,6 +67,29 @@ const OnboardingScreen = () => {
     if (ref) {
       localStorage.setItem('referralCode', ref);
     }
+  }, []);
+
+  // Android Back Button Handling: Exit app if on onboarding/login screen
+  useEffect(() => {
+    let backListener: any = null;
+
+    const setupBackListener = async () => {
+      if (Capacitor.isNativePlatform()) {
+        backListener = await App.addListener('backButton', () => {
+          // Since we are on the Onboarding/Login screen, back button should exit the app
+          // rather than returning to authenticated screens or previous history states.
+          App.exitApp();
+        });
+      }
+    };
+
+    setupBackListener();
+
+    return () => {
+      if (backListener) {
+        backListener.remove();
+      }
+    };
   }, []);
 
   // Resend timer countdown
@@ -196,7 +220,12 @@ const OnboardingScreen = () => {
     setShowOtpInput(false);
     setShowMpinLogin(false);
     setGeneralError("");
-    navigate("/");
+    
+    // 1. Wipe browser/WebView history so Android back gesture can't return to auth screens
+    window.history.replaceState(null, "", "/");
+    
+    // 2. Reset React Router state
+    navigate("/", { replace: true });
   };
 
   const handleSession = async (user: User, isExplicitLogin: boolean) => {
@@ -542,15 +571,17 @@ const OnboardingScreen = () => {
   };
 
 
-  const handlePhoneChange = (val: string) => {
+  // Memoized so PhoneInput doesn't re-create the callback on every parent
+  // re-render — Android WebView keystroke jank traces back to this.
+  const handlePhoneChange = useCallback((val: string) => {
     setPhoneNumber(val);
-    if (phoneError) setPhoneError("");
-  };
+    setPhoneError((prev) => (prev ? "" : prev));
+  }, []);
 
-  const handleOtpChange = (val: string) => {
+  const handleOtpChange = useCallback((val: string) => {
     setOtp(val);
-    if (otpError) setOtpError("");
-  };
+    setOtpError((prev) => (prev ? "" : prev));
+  }, []);
 
   // Determine which error type for styling
   const isPredictableError = mpinError.includes("predictable");

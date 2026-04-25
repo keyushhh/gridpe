@@ -28,9 +28,9 @@ const ViewRiderKyc = () => {
     const [rider, setRider] = useState<any>(order?.rider);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
 
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const isDarkMode = resolvedTheme !== 'light';
     const [isRevealed, setIsRevealed] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [rotation, setRotation] = useState(0);

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { hapticLight } from "@/utils/haptics";
+import { useSafeArea } from "@/hooks/useSafeArea";
 import addNavIcon from "@/assets/add-nav.svg";
 import navHome from "@/assets/nav-home.svg";
 import navHomeInactive from "@/assets/nav-home-inactive.png";
@@ -29,17 +30,19 @@ interface BottomNavigationProps {
 
 const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
+  const { bottom: bottomInset } = useSafeArea();
 
   if (isHidden) return null;
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 backdrop-blur-xl ${isDarkMode ? 'bg-black/95 border-t border-white/5' : 'bg-white/95 border-t border-[#E9EAEB]'}`}
+      className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 backdrop-blur-xl ${isDarkMode ? 'border-t border-white/5' : 'border-t border-[#E9EAEB]'}`}
       style={{
-        height: 'calc(64px + env(safe-area-inset-bottom))',
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        height: `calc(64px + ${bottomInset}px)`,
+        paddingBottom: `${bottomInset}px`,
+        backgroundColor: isDarkMode ? 'rgba(10, 10, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         boxShadow: '0 -10px 30px rgba(0,0,0,0.15)'
       }}
     >

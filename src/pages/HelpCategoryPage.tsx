@@ -8,8 +8,8 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 
 const HelpCategoryPage = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { categoryId } = useParams<{ categoryId: string }>();
     const category = categoryId ? helpCategories[categoryId] : null;
     const [expandedId, setExpandedId] = useState<string | null>(null);

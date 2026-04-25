@@ -17,8 +17,8 @@ import { supabase, USER_ID } from "@/lib/supabase";
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const mainBg = useAsset("main-bg");
   const {
     phoneNumber,
@@ -41,7 +41,7 @@ const ProfileEdit = () => {
 
   const helperText = contextImage
     ? "Add or update your profile photo."
-    : "Tap to add your beautiful mugshot. Or cat. Weâ€™re not picky.";
+    : "Tap to add your beautiful mugshot. Or cat. We’re not picky.";
 
   const ctaLabel = isEditing ? "Save My Identity" : "Edit My Identity";
 
@@ -50,7 +50,7 @@ const ProfileEdit = () => {
   const isEmailModified = email !== contextEmail;
   const wasVerified = contextEmailVerified;
 
-  let emailHelperText = "Verify your email. Câ€™mon, do it for the plot!";
+  let emailHelperText = "Verify your email. C’mon, do it for the plot!";
   if (emailVerified) {
     emailHelperText = "Nice, now we trust you. As a promise, no spams! ;)";
   } else if (wasVerified && isEmailModified) {

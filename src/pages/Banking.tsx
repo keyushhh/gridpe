@@ -37,8 +37,8 @@ import { USER_ID } from "@/lib/supabase";
 const Banking = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [accounts, setAccounts] = useState<BankAccount[]>([]);
     const [isFabExpanded, setIsFabExpanded] = useState(false);
@@ -236,7 +236,7 @@ const Banking = () => {
                             </div>
                             <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
                             <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
-                                You donâ€™t have any bank accounts added yet.
+                                You don’t have any bank accounts added yet.
                                 <br />
                                 Please add a bank account to proceed.
                             </p>
@@ -574,7 +574,7 @@ const Banking = () => {
                     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
                         {/* Background blur overlay */}
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-                        {/* Popup Box â€” 362x199px, radius 13px */}
+                        {/* Popup Box – 362x199px, radius 13px */}
                         <div
                             className={`relative rounded-[13px] z-10 flex flex-col items-center ${isDarkMode ? 'border border-white/10' : ''}`}
                             style={isDarkMode ? {
@@ -591,7 +591,7 @@ const Banking = () => {
                                 height: '199px',
                             }}
                         >
-                            {/* Icon â€” 26x26, 22px from top */}
+                            {/* Icon – 26x26, 22px from top */}
                             <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
                                 <img
                                     src={isDarkMode ? popupCardIcon : cardLineIcon}
@@ -612,7 +612,7 @@ const Banking = () => {
                                 Bank Account Added Successfully
                             </h2>
 
-                            {/* Inner Container â€” 318x73px, radius 16px, 24px below heading */}
+                            {/* Inner Container – 318x73px, radius 16px, 24px below heading */}
                             <div
                                 className={`${isDarkMode ? 'bg-black' : 'bg-white'} flex items-center px-4`}
                                 style={{

@@ -7,8 +7,8 @@ import BackButton from "@/components/ui/BackButton";
 
 const Wallet = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { isWalletActivated, activateWallet } = useUser();
     const [activeTab, setActiveTab] = useState<'how-it-works' | 'refund-policy'>('how-it-works');
 

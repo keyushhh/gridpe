@@ -12,8 +12,8 @@ import { useCustomToaster } from "@/contexts/CustomToasterContext";
 const DeleteAccountOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const { showToaster } = useCustomToaster();
 
   const [otp, setOtp] = useState("");

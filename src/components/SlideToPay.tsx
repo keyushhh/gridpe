@@ -22,8 +22,8 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({ onComplete, className = 
   const thumbRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
 
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
 
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (completed || disabled) return;
@@ -72,11 +72,14 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({ onComplete, className = 
   };
 
   useEffect(() => {
+    // touchmove must be `passive: true` on Android, or the WebView treats every
+    // event as cancelable and serialises it on the main thread → drag jank.
+    const passive: AddEventListenerOptions = { passive: true };
     if (isDragging) {
       window.addEventListener('mousemove', handleMove);
       window.addEventListener('mouseup', handleEnd);
-      window.addEventListener('touchmove', handleMove);
-      window.addEventListener('touchend', handleEnd);
+      window.addEventListener('touchmove', handleMove, passive);
+      window.addEventListener('touchend', handleEnd, passive);
     } else {
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleEnd);
@@ -129,8 +132,9 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({ onComplete, className = 
           onTouchStart={handleStart}
           className="absolute top-1/2 left-[2%] cursor-grab active:cursor-grabbing z-10 flex items-center justify-center"
           style={{
-            transform: `translate(${dragX}px, -50%)`,
+            transform: `translate3d(${dragX}px, -50%, 0)`,
             transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            willChange: 'transform',
             height: '82%',
             aspectRatio: '1/1',
             backgroundImage: !isDarkMode ? 'none' : `url(${swipeCircle})`,

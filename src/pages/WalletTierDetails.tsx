@@ -10,8 +10,8 @@ const WalletTierDetails = () => {
     const { tierId } = useParams<{ tierId: string }>();
     const navigate = useNavigate();
     const { walletTier, setWalletTier, scheduledDowngrade } = useUser();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const currentTier = tiers.find(t => t.name.toLowerCase() === tierId?.toLowerCase());
 
     if (!currentTier) return null;

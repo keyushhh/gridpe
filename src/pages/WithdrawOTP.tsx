@@ -24,8 +24,8 @@ const WithdrawOTP = () => {
     const [verifying, setVerifying] = useState(false);
     const location = useLocation();
     const { phoneNumber, refreshBalance } = useUser();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     const [otp, setOtp] = useState("");
     const { showToaster } = useCustomToaster();

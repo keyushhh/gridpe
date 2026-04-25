@@ -28,8 +28,8 @@ import searchBg from "@/assets/search-bg.png";
 
 const SavedAddresses = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { showToaster } = useCustomToaster();
     const [loading, setLoading] = useState(true);
     const [addresses, setAddresses] = useState<Address[]>([]);

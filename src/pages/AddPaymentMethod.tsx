@@ -55,9 +55,9 @@ const staticMoreMethods: StaticMethod[] = [
 
 const AddPaymentMethod = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
     const location = useLocation();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const isDarkMode = resolvedTheme !== 'light';
     const { amount, flow, tier } = location.state || { amount: "0.00", flow: "add-money", tier: "" };
 
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);

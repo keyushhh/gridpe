@@ -15,8 +15,8 @@ const WalletUpgradeSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { tier, flow, message } = location.state || { tier: "", flow: "upgrade", message: "" };
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const queryClient = useQueryClient();
     const { setWalletTier, fetchProfileData } = useUser();
     const [tierDetails, setTierDetails] = useState<{

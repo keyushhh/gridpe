@@ -21,8 +21,8 @@ import DiditSDK from '@didit-protocol/sdk-web';
 
 const KYCForm = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const { showToaster } = useCustomToaster();
   const [searchParams] = useSearchParams();
   const flow = searchParams.get("flow");

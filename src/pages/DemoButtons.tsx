@@ -5,10 +5,10 @@ import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 
 export default function DemoButtons() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [bgType, setBgType] = useState<'grid' | 'gradient' | 'text'>('text');
 
-  const isDark = theme === 'dark';
+  const isDark = resolvedTheme !== 'light';
 
   return (
     <div className={cn(

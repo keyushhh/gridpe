@@ -27,8 +27,8 @@ import BackButton from "@/components/ui/BackButton";
 
 const HelpSupport = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [recentOrder, setRecentOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
 

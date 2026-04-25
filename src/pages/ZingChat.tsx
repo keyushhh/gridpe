@@ -24,8 +24,8 @@ interface Message {
 
 const ZingChat = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [inputValue, setInputValue] = useState("");
     const [isThinking, setIsThinking] = useState(false);
     const [hasInteracted, setHasInteracted] = useState(false);

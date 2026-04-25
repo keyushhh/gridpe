@@ -27,7 +27,7 @@ import { formatDate, formatINR } from "@/utils/format";
 
 const currencySymbols: Record<string, string> = {
     AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: 'Â¥', CZK: 'KÄ', DKK: 'kr', EUR: 'â‚¬',
-    GBP: 'Â£', HKD: '$', HUF: 'Ft', IDR: 'Rp', ILS: 'â‚ª', INR: 'â‚¹', ISK: 'kr', JPY: 'Â¥',
+    GBP: 'Â£', HKD: '$', HUF: 'Ft', IDR: 'Rp', ILS: 'â‚ª', INR: '₹', ISK: 'kr', JPY: 'Â¥',
     KRW: 'â‚©', MXN: '$', MYR: 'RM', NOK: 'kr', NZD: '$', PHP: 'â‚±', PLN: 'zÅ‚', RON: 'lei',
     SEK: 'kr', SGD: '$', THB: 'à¸¿', TRY: 'â‚º', USD: '$', ZAR: 'R'
 };
@@ -330,7 +330,7 @@ const WalletTransactionHistory = () => {
             subtitle = "FX Exchange";
         } else if (desc.includes("cash order")) {
             title = status === 'held' ? "Amount Held" : "Amount Debited";
-            subtitle = tx.metadata?.item_value ? `Ordered â‚¹${tx.metadata.item_value} Cash` : "Cash Order";
+            subtitle = tx.metadata?.item_value ? `Ordered ₹${tx.metadata.item_value} Cash` : "Cash Order";
         } else if (desc.includes("withdrawal")) {
             title = "Withdrawal";
             const methodNames: Record<string, string> = {
@@ -533,8 +533,8 @@ const WalletTransactionHistory = () => {
     };
 
 
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     return (
         <div
@@ -770,7 +770,7 @@ const WalletTransactionHistory = () => {
                                                         >
                                                             {(tx.type === 'credit' || tx.transaction_type === 'credit' || tx.type === 'deposit' || tx.transaction_type === 'deposit') ? '+' : '-'} {tx.metadata?.isFx
                                                                 ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                                                : `â‚¹${Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                                : `₹${Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                             }
                                                         </span>
                                                         <span className="text-[#666666] dark:text-white/40 text-[12px] font-normal leading-[120%]">

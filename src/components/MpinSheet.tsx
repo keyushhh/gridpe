@@ -39,8 +39,8 @@ interface MpinSheetProps {
 
 const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { profile, resetForDemo } = useUser();
 
     // State for steps
@@ -253,8 +253,12 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                 onClick={onClose}
             />
 
-            {/* Animation Wrapper */}
-            <div className="relative w-full h-[92%] animate-in slide-in-from-bottom duration-300">
+            {/* Animation Wrapper. Composited via translateZ + will-change so the
+                slide-in stays on the GPU on Android WebView. */}
+            <div
+                className="relative w-full h-[92%] animate-in slide-in-from-bottom duration-300"
+                style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+            >
 
                 {/* Underlying Sheet (The Stacked Effect) */}
                 <div

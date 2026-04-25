@@ -49,8 +49,8 @@ interface Withdrawal {
 const WalletWithdraw = () => {
     const navigate = useNavigate();
     const { walletTier, walletBalance, isRenewalPending } = useUser();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     const { amount, handleKeyPress, handleBackspace, setPillAmount, amountVal, isZero, setAmount } = useKeypad();
     const [showKeypad, setShowKeypad] = useState<boolean>(false);

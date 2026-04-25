@@ -10,8 +10,8 @@ import otpInputField from "@/assets/otp-input-field.png";
 
 const ForgotMpin = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const { phoneNumber } = useUser();
   const [step, setStep] = useState<'REQUEST' | 'VERIFY'>('REQUEST');
   const [otp, setOtp] = useState("");
@@ -107,7 +107,7 @@ const ForgotMpin = () => {
         <p className={`mt-[46px] ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-left leading-relaxed max-w-[340px]`}>
           {step === 'REQUEST'
             ? `We'll send a one-time password (OTP) to your registered number ending in ••${last4}`
-            : `OTP sent! If it doesn't show up in 30 seconds, don't stare at the screenâ€”just tap resend.`
+            : `OTP sent! If it doesn't show up in 30 seconds, don't stare at the screen–just tap resend.`
           }
         </p>
 

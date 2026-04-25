@@ -9,6 +9,19 @@ import "./index.css";
 
 const queryClient = new QueryClient();
 
+// Block paint until Satoshi is ready so glyphs like ₹ don't fall back to a
+// system font that lacks the codepoint. Capped so a slow CDN can't hang launch.
+document.documentElement.classList.add("font-pending");
+const releaseFont = () => document.documentElement.classList.remove("font-pending");
+if ("fonts" in document) {
+  Promise.race([
+    document.fonts.load('500 16px "Satoshi"').then(() => document.fonts.ready),
+    new Promise((resolve) => setTimeout(resolve, 1500)),
+  ]).finally(releaseFont);
+} else {
+  setTimeout(releaseFont, 0);
+}
+
 // Global error handler for native bridge/WebView debugging
 window.onerror = (message, source, lineno, colno, error) => {
   console.error('Global Error:', { message, source, lineno, colno, error });

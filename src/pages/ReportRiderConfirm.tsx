@@ -8,8 +8,8 @@ import lightWarningCheckIcon from "@/assets/light-warning-check.svg";
 
 const ReportRiderConfirm = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [selectedOption, setSelectedOption] = useState<"yes" | "no">("yes");
 
     const otpDigits = ["1", "3", "0", "5", "9", "6"];

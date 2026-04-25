@@ -11,8 +11,8 @@ import radioOff from "@/assets/radio-off.png";
 const DeleteAccountReasons = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [selectedReason, setSelectedReason] = useState<number>(0); // Default to first option
   const [otherReason, setOtherReason] = useState("");
 

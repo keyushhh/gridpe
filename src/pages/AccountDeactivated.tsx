@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 
 const AccountDeactivated = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [countdown, setCountdown] = useState(30);
 
   useEffect(() => {

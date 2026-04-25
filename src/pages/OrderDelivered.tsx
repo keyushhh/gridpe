@@ -15,8 +15,8 @@ import { useCustomToaster } from "@/contexts/CustomToasterContext";
 const OrderDelivered = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { profile } = useUser();
     const { showToaster } = useCustomToaster();
     const [seconds, setSeconds] = useState(30);

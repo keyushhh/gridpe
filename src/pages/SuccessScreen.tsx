@@ -10,8 +10,8 @@ import confetti from "canvas-confetti";
 
 const SuccessScreen = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const state = location.state || {};

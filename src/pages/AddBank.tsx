@@ -31,8 +31,8 @@ interface RazorpayBankDetails {
 
 const AddBank = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [selection, setSelection] = useState<Selection>("auto");
 
   // Auto Flow State
@@ -233,9 +233,9 @@ const AddBank = () => {
       {/* Content */}
       <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-32">
         <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium leading-relaxed mb-8`}>
-          Whether you like shortcuts or full control â€”
+          Whether you like shortcuts or full control –
           <br />
-          weâ€™ve got you.
+          we’ve got you.
         </p>
 
         {/* Options */}
@@ -296,7 +296,7 @@ const AddBank = () => {
               {/* Description */}
               <div className="pl-9">
                 <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[13px] leading-relaxed`}>
-                  Let Anumati do the digging. Weâ€™ll fetch your linked<br />
+                  Let Anumati do the digging. We’ll fetch your linked<br />
                   accounts in a snap.<br />
                   Safe, fast, and totally RBI-approved.
                 </p>

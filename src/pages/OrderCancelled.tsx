@@ -10,8 +10,8 @@ import { formatINR } from "@/utils/format";
 const OrderCancelled = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [seconds, setSeconds] = useState(28);
 
   const orderAmount = location.state?.order?.amount || 2000;

@@ -77,9 +77,9 @@ const triggerHaptic = () => {
 const Settings = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   // Ensure we have a default boolean for the switch (true for dark)
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const isDarkMode = resolvedTheme !== 'light';
 
   const { phoneNumber, email, kycStatus, resetForDemo, name, profileImage } = useUser();
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -463,7 +463,7 @@ const Settings = () => {
             onTouchEnd={handleLogoRelease}
           >
             <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
-            <p className="text-sm mt-2">App Version v1.0.0 â€” 100% drama compatible.</p>
+            <p className="text-sm mt-2">App Version v1.0.0 – 100% drama compatible.</p>
           </div>
         </div>
       </div>

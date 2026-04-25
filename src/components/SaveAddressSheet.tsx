@@ -30,7 +30,10 @@ const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({
       />
 
       {/* Sheet Content */}
-      <div className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center">
+      <div
+        className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center"
+        style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+      >
         <div
           className="relative w-full overflow-hidden rounded-[32px] p-6 text-center border border-white/10"
           style={{

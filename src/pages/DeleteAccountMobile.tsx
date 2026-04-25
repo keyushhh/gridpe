@@ -11,8 +11,8 @@ import { useUser } from "@/contexts/UserContext";
 const DeleteAccountMobile = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const { phoneNumber } = useUser();
   const [mobile, setMobile] = useState("");
   const [error, setError] = useState<string | null>(null);

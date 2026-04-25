@@ -19,8 +19,8 @@ import { cn } from "@/lib/utils";
 const MpinSettings = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const { resetForDemo } = useUser();
@@ -47,7 +47,7 @@ const MpinSettings = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Light Mode Status Blob (Top Glow â€” Purple) */}
+      {/* Light Mode Status Blob (Top Glow – Purple) */}
       {!isDarkMode && (
         <div
           className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
@@ -172,7 +172,7 @@ const MpinSettings = () => {
               height: '199px',
             }}
           >
-            {/* Icon â€” 26x26, 22px from top */}
+            {/* Icon – 26x26, 22px from top */}
             <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
               <img
                 src={mpinIcon}
@@ -186,7 +186,7 @@ const MpinSettings = () => {
               />
             </div>
 
-            {/* Header â€” Satoshi Bold 16px, 12px below icon */}
+            {/* Header – Satoshi Bold 16px, 12px below icon */}
             <h2
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans text-center`}
               style={{ marginTop: '12px' }}
@@ -194,7 +194,7 @@ const MpinSettings = () => {
               MPIN Updated!
             </h2>
 
-            {/* Body Pill â€” 318x73px, radius 16px, 24px below heading */}
+            {/* Body Pill – 318x73px, radius 16px, 24px below heading */}
             <div
               className={`${isDarkMode ? 'bg-[#090909]' : 'bg-white'} flex items-center px-4`}
               style={{
@@ -205,7 +205,7 @@ const MpinSettings = () => {
               }}
             >
               <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium leading-[120%] text-left font-sans`}>
-                All set. Just don't write it on a sticky note. Or worseâ€”use 1234 again.
+                All set. Just don't write it on a sticky note. Or worse–use 1234 again.
               </p>
             </div>
           </div>

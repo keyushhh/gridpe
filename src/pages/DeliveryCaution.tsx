@@ -18,8 +18,8 @@ const DeliveryCaution = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { order } = location.state || {};
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { showToaster } = useCustomToaster();
     const [step, setStep] = useState<'caution' | 'mismatch' | 'identify' | 'verification_progress' | 'verification_success' | 'otp_display'>('caution');
     const [displayOtp] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());

@@ -50,8 +50,8 @@ interface OrderDetailsSheetProps {
 
 const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, order, onCancel }) => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const [rating, setRating] = useState<number>(0);
     const [feedback, setFeedback] = useState("");
 
@@ -202,9 +202,11 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                 onClick={onClose}
             />
 
-            {/* Sheet */}
+            {/* Sheet — `transition-all` was animating min-height swings as the
+                sheet content loaded, which forces layout reflow each frame.
+                Restrict to compositor-only properties. */}
             <div
-                className={`relative w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-all duration-300 shadow-2xl mt-[100px] ${isDarkMode ? '' : 'bg-white'}`}
+                className={`relative w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-[transform,opacity] duration-300 shadow-2xl mt-[100px] ${isDarkMode ? '' : 'bg-white'}`}
                 style={{
                     background: isDarkMode ? 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box' : undefined,
                     border: isDarkMode ? '0.63px solid transparent' : 'none',
@@ -212,7 +214,8 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                     borderTopRightRadius: '32px',
                     backdropFilter: isDarkMode ? 'blur(16px)' : 'none',
                     WebkitBackdropFilter: isDarkMode ? 'blur(16px)' : 'none',
-                    transform: 'translateZ(0)', // Hardware acceleration to force correct clipping
+                    willChange: 'transform',
+                    transform: 'translateZ(0)',
                     WebkitTransform: 'translateZ(0)',
                 }}
             >

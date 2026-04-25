@@ -47,8 +47,8 @@ const nextTierMap: Record<WalletTier, WalletTier | null> = {
 
 const Subscriptions = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
     const { walletTier, walletLimit, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss, walletBalance, subscriptionPrice, isRenewalPending, paymentStatus, profile, fetchProfileData } = useUser();
     const { showToaster } = useCustomToaster();
     const queryClient = useQueryClient();

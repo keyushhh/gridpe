@@ -32,9 +32,9 @@ const OrderDetails = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { orderId } = useParams<{ orderId: string }>();
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
     const { refreshBalance } = useUser();
-    const isDarkMode = theme === 'dark';
+    const isDarkMode = resolvedTheme !== 'light';
     const { showToaster } = useCustomToaster();
 
     const [order, setOrder] = useState<Order | null>(null);

@@ -124,7 +124,7 @@ const FxExchangeSummary = () => {
         total_payable: number;
     } | null>(null);
 
-    // Total amount to be held from wallet is the INR converted value (e.g., â‚¹923)
+    // Total amount to be held from wallet is the INR converted value (e.g., ₹923)
     // and not the source currency amount (e.g., $10).
     const rewardPointsValue = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
     const rewardDiscount = rewardPointsValue * 0.025;
@@ -699,7 +699,7 @@ const FxExchangeSummary = () => {
                     </div>
                     <ul className={`list-disc pl-4 space-y-2 text-[13px] font-normal font-sans leading-snug ${isDarkMode ? "text-white/80 marker:text-white/60" : "text-black marker:text-black"}`}>
                         <li>Your KYC has been verified. Please keep your original ID ready when accepting your cash delivery.</li>
-                        <li>Your delivery partnerâ€™s name, photo, and KYC details will be visible before drop-off.</li>
+                        <li>Your delivery partner’s name, photo, and KYC details will be visible before drop-off.</li>
                         <li>Please verify their ID before accepting the cash.</li>
                     </ul>
                     <div className={`w-full h-[1px] my-3 ${isDarkMode ? "bg-white/10" : "bg-[#E6E8EB]"}`} />
@@ -723,7 +723,7 @@ const FxExchangeSummary = () => {
                     {isRewardsOpen && (
                         <div className="px-[12px] pb-[16px]">
                             <p className={`text-[14px] font-medium font-sans -mt-[7px] mb-[21px] ${isDarkMode ? "text-white" : "text-black"}`}>
-                                You have {availableRewardPoints.toLocaleString()} points available (â‚¹{(availableRewardPoints * 0.025).toLocaleString('en-IN', { minimumFractionDigits: 2 })})
+                                You have {availableRewardPoints.toLocaleString()} points available (₹{(availableRewardPoints * 0.025).toLocaleString('en-IN', { minimumFractionDigits: 2 })})
                             </p>
                             <div className="flex items-center gap-[12px]">
                                 <div className="relative flex-1 h-[45px]">
@@ -762,7 +762,7 @@ const FxExchangeSummary = () => {
                                 </button>
                             </div>
                             <p className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/40' : 'text-black'}`}>
-                                {rewardError || (rewardApplied ? `Applied: â‚¹${rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} discount` : "500 points = â‚¹12.50")}
+                                {rewardError || (rewardApplied ? `Applied: ₹${rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} discount` : "500 points = ₹12.50")}
                             </p>
                         </div>
                     )}
@@ -808,7 +808,7 @@ const FxExchangeSummary = () => {
                         {!isTipCollapsed && (
                             <div className="px-[12px] pb-[16px]">
                                 <p className={`text-[13px] font-normal font-sans mb-5 leading-snug ${isDarkMode ? 'text-white/80' : 'text-black'}`}>
-                                    A small tip, goes a big way! Totally optional â€” but your rider will appreciate it â¤ï¸
+                                    A small tip, goes a big way! Totally optional – but your rider will appreciate it â¤ï¸
                                 </p>
                                 <div className="flex items-center gap-3">
                                     {['10', '20', '30'].map((val) => (
@@ -827,7 +827,7 @@ const FxExchangeSummary = () => {
                                                     className={`absolute left-0 right-0 flex justify-center items-center gap-[10px] z-20 ${val === '20' ? 'top-[2px]' : 'top-1/2 -translate-y-1/2'}`}
                                                 >
                                                     <span className={`font-medium font-sans text-[15px] leading-none ${isDarkMode || selectedTipOption === val ? 'text-white' : 'text-black'}`}>
-                                                        â‚¹{val}
+                                                        ₹{val}
                                                     </span>
 
                                                     {selectedTipOption === val && (
@@ -889,7 +889,7 @@ const FxExchangeSummary = () => {
                                 </div>
                                 {selectedTipOption === 'other' && (
                                     <div className={`mt-[15px] h-[48px] w-full rounded-full border flex items-center pl-4 pr-4 ${isDarkMode ? 'bg-[#191919] border-white/10' : 'bg-white border-[#E6E8EB]'}`}>
-                                        <span className={`font-medium font-sans mr-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>â‚¹</span>
+                                        <span className={`font-medium font-sans mr-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
                                         <input
                                             type="text"
                                             placeholder="Enter tip amount"
@@ -962,7 +962,7 @@ const FxExchangeSummary = () => {
 
                             {/* Explanation Title */}
                             <p className={`text-[13px] font-regular leading-tight mt-[12px] ${isDarkMode ? "text-white/50" : "text-black"}`}>
-                                Markup/Spread (0.60%) â€“ This is Grid.Pe's margin on conversion, lower than airport kiosks.
+                                Markup/Spread (0.60%) — This is Grid.Pe's margin on conversion, lower than airport kiosks.
                             </p>
 
                             {/* Flat Fee */}
@@ -995,7 +995,7 @@ const FxExchangeSummary = () => {
                             {rewardApplied && (
                                 <div className="flex justify-between items-center h-[18px] mt-[8px]">
                                     <span className={`${isDarkMode ? "text-white/70" : "text-black/60"} text-[13px]`}>Reward Discount ({rewardPointsValue} pts)</span>
-                                    <span className="text-[#FF3B30] font-bold text-[13px]">-â‚¹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span className="text-[#FF3B30] font-bold text-[13px]">-₹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                                 </div>
                             )}
                         </div>
@@ -1031,10 +1031,10 @@ const FxExchangeSummary = () => {
                 }}
             >
                 <p className={`text-[18px] font-bold font-sans mb-[16px] ${isDarkMode ? "text-white" : "text-black"}`}>
-                    {quoteLoading ? "Calculating fees..." : `â‚¹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} will be held from wallet`}
+                    {quoteLoading ? "Calculating fees..." : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} will be held from wallet`}
                 </p>
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}>
-                    {quoteLoading ? "Syncing pricing..." : totalAmount > walletBalance ? "Insufficient funds in wallet" : "You wonâ€™t be charged unless the delivery is completed."}
+                    {quoteLoading ? "Syncing pricing..." : totalAmount > walletBalance ? "Insufficient funds in wallet" : "You won’t be charged unless the delivery is completed."}
                 </p>
                 <SlideToPay
                     onComplete={handlePay}
@@ -1074,7 +1074,7 @@ const FxExchangeSummary = () => {
                                 Our delivery partners ride through traffic, harsh weather, and long distances to bring your cash safely to your door.
                             </p>
                             <p className={`font-sans leading-[140%] text-left ${isDarkMode ? 'text-[13px] font-normal text-white' : 'text-[13px] font-normal text-black'}`}>
-                                Tipping isnâ€™t mandatory â€” but it goes directly to them and helps support their daily hustle, fuel, and hard work.
+                                Tipping isn’t mandatory – but it goes directly to them and helps support their daily hustle, fuel, and hard work.
                                 Even a small amount makes a big difference. Every rupee = recognition. 💙
                             </p>
                         </div>

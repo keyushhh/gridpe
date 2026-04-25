@@ -12,8 +12,8 @@ const OrderSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { amount, retry, paymentMethod, upiId } = location.state || { amount: "0.00", retry: false, paymentMethod: null };
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark' || theme === 'system';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme !== 'light';
 
     const parsedAmount = parseFloat(amount) || 0;
     const processingFee = 5.0;
@@ -150,7 +150,7 @@ const OrderSummary = () => {
                             Wallet top up
                         </span>
                         <span className={`text-[14px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            â‚¹{parsedAmount}
+                            ₹{parsedAmount}
                         </span>
                     </div>
 
@@ -168,7 +168,7 @@ const OrderSummary = () => {
                             />
                         </div>
                         <span className={`text-[14px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            â‚¹{processingFee.toFixed(2)}
+                            ₹{processingFee.toFixed(2)}
                         </span>
                     </div>
 
@@ -178,7 +178,7 @@ const OrderSummary = () => {
                             Platform Fee
                         </span>
                         <span className={`text-[14px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            â‚¹{platformFee.toFixed(2)}
+                            ₹{platformFee.toFixed(2)}
                         </span>
                     </div>
 
@@ -192,7 +192,7 @@ const OrderSummary = () => {
                             Total Payable
                         </span>
                         <span className={`text-[15px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            â‚¹{totalPayable.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            ₹{totalPayable.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                         </span>
                     </div>
                 </div>

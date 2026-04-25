@@ -11,8 +11,8 @@ import failedIconLight from '@/assets/failed-light.svg';
 
 const GlobalCustomToaster: React.FC = () => {
   const { isVisible, message, type, hideToaster } = useCustomToaster();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
   const [progress, setProgress] = useState(0);
   const duration = 4000; // 4 seconds to match loader animation spec
 

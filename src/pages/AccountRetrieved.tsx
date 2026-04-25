@@ -9,8 +9,8 @@ import buttonPrimaryWide from "@/assets/button-primary-wide.png";
 
 const AccountRetrieved = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark' || theme === 'system';
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
 
   const handleBackHome = () => {
     navigate("/home");
