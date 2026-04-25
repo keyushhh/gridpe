@@ -9,11 +9,13 @@
 		"allowsLinkPreview": true,
 		"handleApplicationNotifications": true,
 		"allowsBackForwardNavigationGestures": true,
-		"scrollEnabled": true
+		"scrollEnabled": false,
+		"contentInset": "always"
 	},
 	"android": {
-		"backgroundColor": "#000000",
-		"allowMixedContent": true,
+		"adjustResize": false,
+		"backgroundColor": "#0A0A12",
+		"allowMixedContent": false,
 		"captureInput": true,
 		"webContentsDebuggingEnabled": true
 	},
