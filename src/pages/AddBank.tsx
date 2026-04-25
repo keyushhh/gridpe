@@ -15,6 +15,8 @@ import verifiedIcon from "@/assets/verified.png";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/PhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 import { fetchBankDetails, getBankLogo } from "@/utils/bankUtils";
 import { createBankAccount, BankAccount } from "@/lib/banking";
 import { USER_ID } from "@/lib/supabase";
@@ -37,10 +39,27 @@ const AddBank = () => {
 
   // Auto Flow State
   const [mobile, setMobile] = useState("");
+
+  const handlePhoneChange = (val: string) => {
+    const numericOnly = val.replace(/\D/g, '').slice(0, 10);
+    setMobile(numericOnly);
+    if (numericOnly.length === 10) {
+      dismissKeyboard();
+    }
+  };
+
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+
+  const dismissKeyboard = () => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.hide();
+    } else {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
 
   // Manual Flow State
   const [accountNumber, setAccountNumber] = useState("");
@@ -348,7 +367,7 @@ const AddBank = () => {
             </label>
             <PhoneInput
               value={mobile}
-              onChange={setMobile}
+              onChange={handlePhoneChange}
               countryCode="+91"
               placeholder="Enter your mobile number"
               disabled={showOtpInput}
@@ -362,7 +381,18 @@ const AddBank = () => {
                   An OTP has been sent to your registered mobile number.
                 </p>
 
-                <InputOTP maxLength={6} value={otp} onChange={setOtp} autoFocus>
+                <InputOTP
+                  maxLength={6}
+                  value={otp}
+                  onChange={(val) => {
+                    const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+                    setOtp(numericOnly);
+                    if (numericOnly.length === 6) {
+                      dismissKeyboard();
+                    }
+                  }}
+                  autoFocus
+                >
                   <InputOTPGroup className="gap-2 w-full justify-between">
                     {[0, 1, 2, 3, 4, 5].map((index) => (
                       <InputOTPSlot

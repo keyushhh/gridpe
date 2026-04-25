@@ -421,7 +421,7 @@ const OnboardingScreen = () => {
   };
 
   const handleMpinChange = (val: string) => {
-    const numericOnly = val.replace(/\D/g, '');
+    const numericOnly = val.replace(/\D/g, '').slice(0, 4);
     const prevLength = mpin.length;
     const newLength = numericOnly.length;
 
@@ -460,11 +460,14 @@ const OnboardingScreen = () => {
     }
 
     setMpin(numericOnly);
+    if (numericOnly.length === 4) {
+      dismissKeyboard();
+    }
     if (generalError) setGeneralError("");
   };
 
   const handleConfirmMpinChange = (val: string) => {
-    const numericOnly = val.replace(/\D/g, '');
+    const numericOnly = val.replace(/\D/g, '').slice(0, 4);
     const prevLength = confirmMpin.length;
     const newLength = numericOnly.length;
 
@@ -503,6 +506,9 @@ const OnboardingScreen = () => {
     }
 
     setConfirmMpin(numericOnly);
+    if (numericOnly.length === 4) {
+      dismissKeyboard();
+    }
     if (generalError) setGeneralError("");
   };
 
@@ -682,10 +688,23 @@ const OnboardingScreen = () => {
   };
 
 
+  const dismissKeyboard = () => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.hide();
+    } else {
+      // Web fallback — blur the active element
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
+
   // Memoized so PhoneInput doesn't re-create the callback on every parent
   // re-render — Android WebView keystroke jank traces back to this.
   const handlePhoneChange = useCallback((val: string) => {
-    setPhoneNumber(val);
+    const numericOnly = val.replace(/\D/g, '').slice(0, 10);
+    setPhoneNumber(numericOnly);
+    if (numericOnly.length === 10) {
+      dismissKeyboard();
+    }
     setPhoneError((prev) => (prev ? "" : prev));
   }, []);
 
@@ -705,7 +724,11 @@ const OnboardingScreen = () => {
   };
 
   const handleOtpChange = useCallback((val: string) => {
-    setOtp(val);
+    const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+    setOtp(numericOnly);
+    if (numericOnly.length === 6) {
+      dismissKeyboard();
+    }
     setOtpError((prev) => (prev ? "" : prev));
   }, []);
 

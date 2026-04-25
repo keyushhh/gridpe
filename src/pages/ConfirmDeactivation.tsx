@@ -10,6 +10,8 @@ import buttonRemoveCard from "@/assets/button-remove-card.png";
 import buttonCancel from "@/assets/button-cancel-wide.png";
 import mpinInputSuccess from "@/assets/mpin-input-success.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 
 // Custom Slot to handle masking and styling - matching MpinSheet.
 // UPI-style: show the digit briefly (1s) then replace with a bullet.
@@ -68,6 +70,14 @@ const ConfirmDeactivation = () => {
   const [mpin, setMpinState] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isError, setIsError] = useState(false);
+
+  const dismissKeyboard = () => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.hide();
+    } else {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
 
   useEffect(() => {
     // Reset states on change
@@ -156,7 +166,13 @@ const ConfirmDeactivation = () => {
           <InputOTP
             maxLength={4}
             value={mpin}
-            onChange={(value) => setMpinState(value)}
+            onChange={(val) => {
+              const numericOnly = val.replace(/\D/g, '').slice(0, 4);
+              setMpinState(numericOnly);
+              if (numericOnly.length === 4) {
+                dismissKeyboard();
+              }
+            }}
             inputMode="numeric"
             render={({ slots }) => (
               <div className="flex gap-4">

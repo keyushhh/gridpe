@@ -8,6 +8,8 @@ import buttonRemoveCard from "@/assets/button-remove-card.png";
 import buttonCancel from "@/assets/button-cancel-wide.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 
 const DeleteAccountOTP = () => {
   const navigate = useNavigate();
@@ -19,6 +21,14 @@ const DeleteAccountOTP = () => {
   const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(20);
   const [canResend, setCanResend] = useState(false);
+
+  const dismissKeyboard = () => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.hide();
+    } else {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
 
   // Countdown timer
   useEffect(() => {
@@ -103,7 +113,17 @@ const DeleteAccountOTP = () => {
             </p>
           </div>
 
-          <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+          <InputOTP
+            maxLength={6}
+            value={otp}
+            onChange={(val) => {
+              const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+              setOtp(numericOnly);
+              if (numericOnly.length === 6) {
+                dismissKeyboard();
+              }
+            }}
+          >
             <InputOTPGroup className="gap-2">
               {[0, 1, 2, 3, 4, 5].map((index) => (
                 <InputOTPSlot

@@ -13,6 +13,8 @@ import amazonIcon from "@/assets/amazon.png";
 import awaitingIcon from "@/assets/awaiting.svg";
 import verifiedCircleIcon from "@/assets/verified-circle.svg";
 import cancelCta from "@/assets/cancel-cta.png";
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { supabase, USER_ID } from "@/lib/supabase";
@@ -32,6 +34,14 @@ const WithdrawOTP = () => {
     const [isVerified, setIsVerified] = useState(false);
     const [verifiedName, setVerifiedName] = useState<string | null>(null);
     const [verificationError, setVerificationError] = useState(false);
+
+    const dismissKeyboard = () => {
+        if (Capacitor.isNativePlatform()) {
+            Keyboard.hide();
+        } else {
+            (document.activeElement as HTMLElement)?.blur();
+        }
+    };
 
     // location.state might have upiId (from manual) or nothing (for auto)
     const { selectedMethod, amount, upiId: initialUpiId, paymentMethod: stateMethod } = location.state || {};
@@ -204,7 +214,17 @@ const WithdrawOTP = () => {
 
                 {/* OTP Input - 25px below sub-text */}
                 <div className="w-full flex justify-center mb-3">
-                    <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                    <InputOTP
+                        maxLength={6}
+                        value={otp}
+                        onChange={(val) => {
+                            const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+                            setOtp(numericOnly);
+                            if (numericOnly.length === 6) {
+                                dismissKeyboard();
+                            }
+                        }}
+                    >
                         <InputOTPGroup className="gap-2">
                             {[0, 1, 2, 3, 4, 5].map((index) => (
                                 <InputOTPSlot

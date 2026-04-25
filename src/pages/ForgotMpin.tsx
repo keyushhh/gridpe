@@ -1,10 +1,12 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate , Link } from 'react-router-dom';
 import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import otpInputField from "@/assets/otp-input-field.png";
 
@@ -18,6 +20,14 @@ const ForgotMpin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [error, setError] = useState("");
+
+  const dismissKeyboard = () => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.hide();
+    } else {
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
 
   // Extract last 4 digits or use default if empty
   const last4 = phoneNumber && phoneNumber.length >= 4
@@ -116,7 +126,14 @@ const ForgotMpin = () => {
           <InputOTP
             maxLength={6}
             value={otp}
-            onChange={(val) => { setOtp(val); setError(""); }}
+            onChange={(val) => {
+              const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+              setOtp(numericOnly);
+              setError("");
+              if (numericOnly.length === 6) {
+                dismissKeyboard();
+              }
+            }}
             autoFocus={step === 'VERIFY'}
             disabled={isDisabled}
             className={isDisabled ? "opacity-50" : "opacity-100"}
