@@ -60,7 +60,7 @@ const OnboardingScreen = () => {
   const [biometricFailCount, setBiometricFailCount] = useState(0);
   const [isBiometricPrompting, setIsBiometricPrompting] = useState(false);
   const [generalError, setGeneralError] = useState("");
-  
+
   // MPIN Masking State (mpin)
   const [maskedIndices, setMaskedIndices] = useState<Set<number>>(new Set());
   const maskTimers = useRef<Record<number, NodeJS.Timeout>>({});
@@ -114,15 +114,15 @@ const OnboardingScreen = () => {
     if (Capacitor.isNativePlatform()) {
       let showListener: any;
       let hideListener: any;
-      
+
       Keyboard.addListener('keyboardWillShow', (info) => {
         setKeyboardHeight(info.keyboardHeight);
       }).then(h => { showListener = h; });
-      
+
       Keyboard.addListener('keyboardWillHide', () => {
         setKeyboardHeight(0);
       }).then(h => { hideListener = h; });
-      
+
       return () => {
         showListener?.remove();
         hideListener?.remove();
@@ -259,7 +259,7 @@ const OnboardingScreen = () => {
     setShowOtpInput(false);
     setShowMpinLogin(false);
     setGeneralError("");
-    
+
     // Force a full WebView reload that wipes the entire back stack — `replace`
     // (not `href =`) drops the current entry so swipe/back can't return here.
     window.location.replace("/");
@@ -631,7 +631,7 @@ const OnboardingScreen = () => {
         reason: "Log in to Grid.Pe",
         cancelTitle: "Cancel"
       });
-      
+
       const storedMpin = await SecureStorage.get('mpin') as string;
       if (storedMpin) {
         // Silent verification - if success, navigate home
@@ -691,7 +691,7 @@ const OnboardingScreen = () => {
 
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const otpInputRef = useRef<HTMLDivElement>(null);
-  
+
   const handleInputFocus = () => {
     setTimeout(() => {
       const activeEl = document.activeElement;
@@ -743,8 +743,8 @@ const OnboardingScreen = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <div 
-        style={{ 
+      <div
+        style={{
           paddingBottom: keyboardHeight > 0 ? keyboardHeight : 0,
           transition: 'padding-bottom 0.3s ease',
           display: 'flex',
@@ -752,49 +752,155 @@ const OnboardingScreen = () => {
           flex: 1
         }}
       >
-      {/* Logo Section - only show for phone/OTP screens */}
-      {!showMpinSetup && !showMpinLogin && (
-        <div className="flex flex-col items-center px-6 pt-16 pb-10">
-          <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
-            <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
-            <p className="text-foreground text-[18px] font-normal text-center">
-              Cash access, reimagined.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Form Section */}
-      <div className={`px-6 pb-safe pb-4 space-y-6 flex-1 flex flex-col ${(showMpinSetup || showMpinLogin) ? 'pt-4' : ''}`}>
-        {/* Phone Input Screen */}
-        {!showOtpInput && !showMpinSetup && !showMpinLogin && (
-          <>
-            <div className="text-center space-y-2 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              <h2 className="text-[26px] font-medium text-foreground">Let's get started!</h2>
-              <p className="text-muted-foreground text-[14px] font-normal">
-                We'll send a one-time code for instant access.
+        {/* Logo Section - only show for phone/OTP screens */}
+        {!showMpinSetup && !showMpinLogin && (
+          <div className="flex flex-col items-center px-6 pt-16 pb-20">
+            <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
+              <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
+              <p className="text-foreground text-[18px] font-normal text-center">
+                Cash access, reimagined.
               </p>
             </div>
+          </div>
+        )}
 
-            <div className="animate-fade-in space-y-2" style={{ animationDelay: "0.3s" }}>
-              <PhoneInput
-                ref={phoneInputRef}
-                value={phoneNumber}
-                onChange={handlePhoneChange}
-                countryCode="+91"
-                placeholder="Enter your mobile number"
-                error={!!phoneError}
-                onFocus={handleInputFocus}
-              />
-              {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
-            </div>
+        {/* Form Section */}
+        <div className={`px-6 pb-safe pb-4 space-y-6 flex-1 flex flex-col ${(showMpinSetup || showMpinLogin) ? 'pt-4' : ''}`}>
+          {/* Phone Input Screen */}
+          {!showOtpInput && !showMpinSetup && !showMpinLogin && (
+            <>
+              <div className="text-center space-y-2 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+                <h2 className="text-[26px] font-medium text-foreground">Let's get started!</h2>
+                <p className="text-muted-foreground text-[14px] font-normal">
+                  We'll send a one-time code for instant access.
+                </p>
+              </div>
 
-            <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              <div className="animate-fade-in space-y-2" style={{ animationDelay: "0.3s" }}>
+                <PhoneInput
+                  ref={phoneInputRef}
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
+                  countryCode="+91"
+                  placeholder="Enter your mobile number"
+                  error={!!phoneError}
+                  onFocus={handleInputFocus}
+                />
+                {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
+              </div>
+
+              <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
+                <Button
+                  variant="gradient"
+                  className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans"
+                  onClick={handleRequestOTP}
+                  disabled={isLoading || phoneNumber.length === 0}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Sending...
+                    </span>
+                  ) : "Request OTP"}
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-4 animate-fade-in py-2" style={{ animationDelay: "0.5s" }}>
+                <span className="text-muted-foreground text-sm w-full text-center">or</span>
+              </div>
+
+              <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+                <button
+                  onClick={() => handleSocialLogin('google')}
+                  className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
+                  disabled={isLoading}
+                >
+                  <img src={iconGoogle} alt="Google" className="w-full h-full" />
+                </button>
+                <div className="w-[52px] h-[52px] opacity-80">
+                  <img src={iconApple} alt="" className="w-full h-full" />
+                </div>
+                <div className="w-[52px] h-[52px] opacity-80">
+                  <img src={iconX} alt="" className="w-full h-full" />
+                </div>
+              </div>
+
+
+              {/* Legal text removed from here, moved to footer */}
+            </>
+          )}
+
+          {/* OTP Input Screen */}
+          {showOtpInput && !showMpinSetup && !showMpinLogin && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="text-center space-y-2">
+                <h2 className="text-[26px] font-medium text-foreground">Enter your OTP</h2>
+                <p className="text-muted-foreground text-[14px] font-normal">
+                  Code sent to <span className="text-link">+91 {phoneNumber}</span>
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 py-4" ref={otpInputRef}>
+                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus onFocus={handleInputFocus}>
+                  <InputOTPGroup className="gap-[8px]">
+                    {[0, 1, 2, 3, 4, 5].map(index => (
+                      <InputOTPSlot
+                        key={index}
+                        index={index}
+                        className={`h-[48px] w-[48px] rounded-[7px] text-2xl font-semibold transition-all bg-cover bg-center
+                        text-black dark:text-white
+                        ${otpError
+                            ? 'border border-red-500 ring-1 ring-red-500'
+                            : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
+                          }`}
+                        style={{
+                          backgroundImage: otpInputBg ? `url(${otpInputBg})` : 'none',
+                          backgroundColor: otpInputBg ? 'transparent' : undefined // Fallback handled by class
+                        }}
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+                {otpError && (
+                  <p className="text-red-500 text-[14px] font-normal self-start pl-2 w-full max-w-[360px] mx-auto text-left">
+                    {otpError}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center text-sm px-1">
+                <button
+                  onClick={() => {
+                    setShowOtpInput(false);
+                    setOtp("");
+                    setOtpError("");
+                  }}
+                  className="text-link hover:underline"
+                >
+                  Wrong number? Fix it here.
+                </button>
+                <button
+                  onClick={() => {
+                    if (resendTimer === 0) {
+                      setOtp(""); // Clear previous OTP
+                      handleRequestOTP();
+                    }
+                  }}
+                  disabled={resendTimer > 0}
+                  className={`${resendTimer > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-link hover:underline'}`}
+                >
+                  {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+                </button>
+              </div>
+
               <Button
                 variant="gradient"
-                className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans"
-                onClick={handleRequestOTP}
-                disabled={isLoading || phoneNumber.length === 0}
+                className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
+                onClick={handleVerifyOTP}
+                disabled={isLoading || otp.length < 6}
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -802,416 +908,310 @@ const OnboardingScreen = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Sending...
+                    Verifying...
                   </span>
-                ) : "Request OTP"}
+                ) : "Continue"}
               </Button>
-            </div>
 
-            <div className="flex items-center gap-4 animate-fade-in py-2" style={{ animationDelay: "0.5s" }}>
-              <span className="text-muted-foreground text-sm w-full text-center">or</span>
-            </div>
-
-            <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-              <button
-                onClick={() => handleSocialLogin('google')}
-                className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
-                disabled={isLoading}
-              >
-                <img src={iconGoogle} alt="Google" className="w-full h-full" />
-              </button>
-              <div className="w-[52px] h-[52px] opacity-80">
-                <img src={iconApple} alt="" className="w-full h-full" />
+              <div className="flex items-center gap-4 py-2">
+                <span className="text-muted-foreground text-sm w-full text-center">or</span>
               </div>
-              <div className="w-[52px] h-[52px] opacity-80">
-                <img src={iconX} alt="" className="w-full h-full" />
+
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => handleSocialLogin('google')}
+                  className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
+                  disabled={isLoading}
+                >
+                  <img src={iconGoogle} alt="Google" className="w-full h-full" />
+                </button>
+                <div className="w-[52px] h-[52px] opacity-80">
+                  <img src={iconApple} alt="" className="w-full h-full" />
+                </div>
+                <div className="w-[52px] h-[52px] opacity-80">
+                  <img src={iconX} alt="" className="w-full h-full" />
+                </div>
               </div>
+
+
+              {/* Legal text removed from here, moved to footer */}
             </div>
+          )}
 
-
-            {/* Legal text removed from here, moved to footer */}
-          </>
-        )}
-
-        {/* OTP Input Screen */}
-        {showOtpInput && !showMpinSetup && !showMpinLogin && (
-          <div className="space-y-6 animate-fade-in">
-            <div className="text-center space-y-2">
-              <h2 className="text-[26px] font-medium text-foreground">Enter your OTP</h2>
-              <p className="text-muted-foreground text-[14px] font-normal">
-                Code sent to <span className="text-link">+91 {phoneNumber}</span>
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center gap-2 py-4" ref={otpInputRef}>
-              <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus onFocus={handleInputFocus}>
-                <InputOTPGroup className="gap-[8px]">
-                  {[0, 1, 2, 3, 4, 5].map(index => (
-                    <InputOTPSlot
-                      key={index}
-                      index={index}
-                      className={`h-[48px] w-[48px] rounded-[7px] text-2xl font-semibold transition-all bg-cover bg-center
-                        text-black dark:text-white
-                        ${otpError
-                          ? 'border border-red-500 ring-1 ring-red-500'
-                          : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
-                        }`}
-                      style={{
-                        backgroundImage: otpInputBg ? `url(${otpInputBg})` : 'none',
-                        backgroundColor: otpInputBg ? 'transparent' : undefined // Fallback handled by class
-                      }}
-                    />
-                  ))}
-                </InputOTPGroup>
-              </InputOTP>
-              {otpError && (
-                <p className="text-red-500 text-[14px] font-normal self-start pl-2 w-full max-w-[360px] mx-auto text-left">
-                  {otpError}
+          {/* MPIN Login Screen */}
+          {showMpinLogin && (
+            <div className="space-y-6 animate-fade-in flex-1 flex flex-col pt-4">
+              {/* Header */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <LockOpen className="w-6 h-6 text-foreground" />
+                  <h2 className="text-[26px] font-medium text-foreground">Welcome back</h2>
+                </div>
+                <p className="text-muted-foreground text-[14px] font-normal">
+                  Enter your 4 digit MPIN to unlock
                 </p>
-              )}
-            </div>
-
-            <div className="flex justify-between items-center text-sm px-1">
-              <button
-                onClick={() => {
-                  setShowOtpInput(false);
-                  setOtp("");
-                  setOtpError("");
-                }}
-                className="text-link hover:underline"
-              >
-                Wrong number? Fix it here.
-              </button>
-              <button
-                onClick={() => {
-                  if (resendTimer === 0) {
-                    setOtp(""); // Clear previous OTP
-                    handleRequestOTP();
-                  }
-                }}
-                disabled={resendTimer > 0}
-                className={`${resendTimer > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-link hover:underline'}`}
-              >
-                {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
-              </button>
-            </div>
-
-            <Button
-              variant="gradient"
-              className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
-              onClick={handleVerifyOTP}
-              disabled={isLoading || otp.length < 6}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Verifying...
-                </span>
-              ) : "Continue"}
-            </Button>
-
-            <div className="flex items-center gap-4 py-2">
-              <span className="text-muted-foreground text-sm w-full text-center">or</span>
-            </div>
-
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => handleSocialLogin('google')}
-                className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
-                disabled={isLoading}
-              >
-                <img src={iconGoogle} alt="Google" className="w-full h-full" />
-              </button>
-              <div className="w-[52px] h-[52px] opacity-80">
-                <img src={iconApple} alt="" className="w-full h-full" />
               </div>
-              <div className="w-[52px] h-[52px] opacity-80">
-                <img src={iconX} alt="" className="w-full h-full" />
-              </div>
-            </div>
 
-
-            {/* Legal text removed from here, moved to footer */}
-          </div>
-        )}
-
-        {/* MPIN Login Screen */}
-        {showMpinLogin && (
-          <div className="space-y-6 animate-fade-in flex-1 flex flex-col pt-4">
-            {/* Header */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <LockOpen className="w-6 h-6 text-foreground" />
-                <h2 className="text-[26px] font-medium text-foreground">Welcome back</h2>
-              </div>
-              <p className="text-muted-foreground text-[14px] font-normal">
-                Enter your 4 digit MPIN to unlock
-              </p>
-            </div>
-
-            {/* Enter MPIN */}
-            <div className="space-y-3">
-              <InputOTP
-                maxLength={4}
-                value={mpin}
-                onChange={handleMpinChange}
-                autoFocus
-                onFocus={handleInputFocus}
-                inputMode="numeric"
-                pattern="[0-9]*"
-              >
-                <InputOTPGroup className="w-[364px] justify-between">
-                  {[0, 1, 2, 3].map(index => (
-                    <InputOTPSlot
-                      key={index}
-                      index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+              {/* Enter MPIN */}
+              <div className="space-y-3">
+                <InputOTP
+                  maxLength={4}
+                  value={mpin}
+                  onChange={handleMpinChange}
+                  autoFocus
+                  onFocus={handleInputFocus}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                >
+                  <InputOTPGroup className="w-[364px] justify-between">
+                    {[0, 1, 2, 3].map(index => (
+                      <InputOTPSlot
+                        key={index}
+                        index={index}
+                        className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
                         text-black dark:text-white 
                         bg-[#F7F8FA] border border-[#E6E8EB] 
                         dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10`}
-                      render={({ char, isActive }) => (
-                        <div className="flex items-center justify-center w-full h-full">
-                          {char 
-                            ? (maskedIndices.has(index) ? '•' : char)
-                            : null
-                          }
-                          {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
-                        </div>
-                      )}
-                    />
-                  ))}
-                </InputOTPGroup>
-              </InputOTP>
-            </div>
+                        render={({ char, isActive }) => (
+                          <div className="flex items-center justify-center w-full h-full">
+                            {char
+                              ? (maskedIndices.has(index) ? '•' : char)
+                              : null
+                            }
+                            {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
+                          </div>
+                        )}
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
 
-            {/* General Error Message */}
-            {generalError && (
-              <p className="text-red-500 text-[14px] font-normal text-center pb-2">
-                {generalError}
-              </p>
-            )}
+              {/* General Error Message */}
+              {generalError && (
+                <p className="text-red-500 text-[14px] font-normal text-center pb-2">
+                  {generalError}
+                </p>
+              )}
 
-            {/* Spacer */}
-            <div className="flex-1" />
+              {/* Spacer */}
+              <div className="flex-1" />
 
-            {/* Unlock Button */}
-            <Button
-              variant="gradient"
-              className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
-              onClick={() => handleLoginMpinVerification()}
-              disabled={isLoading || mpin.length < 4}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Unlocking...
-                </span>
-              ) : "Unlock"}
-            </Button>
-
-            <div className="flex flex-col gap-2 items-center pb-safe pb-4">
-              <button
-                onClick={() => navigate('/forgot-mpin')}
-                className="text-link hover:underline text-sm"
+              {/* Unlock Button */}
+              <Button
+                variant="gradient"
+                className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
+                onClick={() => handleLoginMpinVerification()}
+                disabled={isLoading || mpin.length < 4}
               >
-                Forgot MPIN?
-              </button>
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Unlocking...
+                  </span>
+                ) : "Unlock"}
+              </Button>
+
+              <div className="flex flex-col gap-2 items-center pb-safe pb-4">
+                <button
+                  onClick={() => navigate('/forgot-mpin')}
+                  className="text-link hover:underline text-sm"
+                >
+                  Forgot MPIN?
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="text-muted-foreground text-sm hover:text-white transition-colors"
+                >
+                  Not you? Use a different number
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Debug Info (Dev Only) */}
+          {import.meta.env.DEV && !showMpinSetup && !showOtpInput && !showMpinLogin && (
+            <div className="px-6 pb-2 text-xs text-muted-foreground break-all opacity-50">
+              <p>Project: {import.meta.env.VITE_SUPABASE_URL}</p>
+              <p>Platform: {Capacitor.getPlatform()}</p>
+            </div>
+          )}
+
+          {/* MPIN Setup Screen */}
+          {showMpinSetup && (
+            <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
+              {/* Header */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <LockOpen className="w-6 h-6 text-foreground" />
+                  <h2 className="text-[26px] font-medium text-foreground">Secure your account</h2>
+                </div>
+                <p className="text-black dark:text-muted-foreground text-[14px] font-normal">
+                  Enable quick unlock for faster, secure access using Biometrics or a PIN?
+                </p>
+              </div>
+
+              {/* Create MPIN */}
+              <div className="space-y-3">
+                <p className="text-black dark:text-foreground text-[14px] font-normal">Create a secure 4 digit MPIN</p>
+                <InputOTP
+                  maxLength={4}
+                  value={mpin}
+                  onChange={handleMpinChange}
+                  autoFocus
+                  onFocus={handleInputFocus}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                >
+                  <InputOTPGroup className="w-[364px] justify-between">
+                    {[0, 1, 2, 3].map(index => (
+                      <InputOTPSlot
+                        key={index}
+                        index={index}
+                        className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
+                        ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
+                            mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
+                              'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
+                          }`}
+                        style={{
+                          backgroundImage: isPredictableError ? `url(${mpinInputError})` :
+                            mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
+                        }}
+                        render={({ char, isActive }) => (
+                          <div className="flex items-center justify-center w-full h-full">
+                            {char
+                              ? (maskedIndices.has(index) ? '•' : char)
+                              : null
+                            }
+                            {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
+                          </div>
+                        )}
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+                {isPredictableError && (
+                  <p className="text-red-500 text-[14px] font-normal">{mpinError}</p>
+                )}
+              </div>
+
+              {/* Confirm MPIN */}
+              <div className="space-y-3">
+                <p className="text-black dark:text-foreground text-[14px] font-normal">Re-enter MPIN</p>
+                <InputOTP
+                  maxLength={4}
+                  value={confirmMpin}
+                  onChange={handleConfirmMpinChange}
+                  onFocus={handleInputFocus}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                >
+                  <InputOTPGroup className="w-[364px] justify-between">
+                    {[0, 1, 2, 3].map(index => (
+                      <InputOTPSlot
+                        key={index}
+                        index={index}
+                        className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
+                        ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
+                            mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
+                              'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
+                          }`}
+                        style={{
+                          backgroundImage: isMismatchError ? `url(${mpinInputError})` :
+                            mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
+                        }}
+                        render={({ char, isActive }) => (
+                          <div className="flex items-center justify-center w-full h-full">
+                            {char
+                              ? (confirmMaskedIndices.has(index) ? '•' : char)
+                              : null
+                            }
+                            {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
+                          </div>
+                        )}
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+                {isMismatchError && (
+                  <p className="text-red-500 text-[14px] font-normal">{mpinError}</p>
+                )}
+              </div>
+
+              {/* Biometric Toggle */}
+              <div
+                className={`flex items-center justify-between px-4 w-full h-[54px] rounded-2xl border-none bg-cover bg-center 
+                bg-black dark:bg-transparent`}
+                style={{
+                  width: '364px', // Explicit width as requested
+                  backgroundImage: buttonBiometricBg ? `url(${buttonBiometricBg})` : 'none'
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <img src={biometricIcon} alt="Biometric" className="w-6 h-6" />
+                  <span className="text-white text-[16px] font-medium">Biometric Unlock</span>
+                </div>
+                <button
+                  onClick={() => setBiometricEnabled(!biometricEnabled)}
+                  className="transition-transform duration-200 hover:scale-105 active:scale-95"
+                >
+                  <img
+                    src={biometricEnabled ? toggleOn : toggleOff}
+                    alt={biometricEnabled ? "Enabled" : "Disabled"}
+                    className="w-12 h-6"
+                  />
+                </button>
+              </div>
+
+              {/* Note */}
+              <p className="text-black dark:text-muted-foreground text-[14px] font-normal leading-relaxed">
+                Note: While creating an MPIN is necessary, Biometric unlock can be enabled for an extra step of security. You can setup Biometric unlock later from Account Settings &gt; Biometric Unlock.
+              </p>
+
+              {/* Spacer */}
+              <div className="flex-1" />
+
+              {/* General Error Message */}
+              {generalError && (
+                <p className="text-red-500 text-[14px] font-normal text-center pb-2">
+                  {generalError}
+                </p>
+              )}
+
+              {/* Setup Button */}
+              <Button
+                variant="gradient"
+                className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
+                onClick={handleSetupMpin}
+                disabled={isLoading || mpin.length < 4 || confirmMpin.length < 4 || !!mpinError || !mpinSuccess}
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Setting up...
+                  </span>
+                ) : "Setup"}
+              </Button>
+
               <button
                 onClick={handleLogout}
-                className="text-muted-foreground text-sm hover:text-white transition-colors"
+                className="w-full text-center text-muted-foreground text-sm hover:text-white transition-colors pb-safe pb-4"
               >
                 Not you? Use a different number
               </button>
             </div>
-          </div>
-        )}
-
-        {/* Debug Info (Dev Only) */}
-        {import.meta.env.DEV && !showMpinSetup && !showOtpInput && !showMpinLogin && (
-          <div className="px-6 pb-2 text-xs text-muted-foreground break-all opacity-50">
-            <p>Project: {import.meta.env.VITE_SUPABASE_URL}</p>
-            <p>Platform: {Capacitor.getPlatform()}</p>
-          </div>
-        )}
-
-        {/* MPIN Setup Screen */}
-        {showMpinSetup && (
-          <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
-            {/* Header */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <LockOpen className="w-6 h-6 text-foreground" />
-                <h2 className="text-[26px] font-medium text-foreground">Secure your account</h2>
-              </div>
-              <p className="text-black dark:text-muted-foreground text-[14px] font-normal">
-                Enable quick unlock for faster, secure access using Biometrics or a PIN?
-              </p>
-            </div>
-
-            {/* Create MPIN */}
-            <div className="space-y-3">
-              <p className="text-black dark:text-foreground text-[14px] font-normal">Create a secure 4 digit MPIN</p>
-              <InputOTP
-                maxLength={4}
-                value={mpin}
-                onChange={handleMpinChange}
-                autoFocus
-                onFocus={handleInputFocus}
-                inputMode="numeric"
-                pattern="[0-9]*"
-              >
-                <InputOTPGroup className="w-[364px] justify-between">
-                  {[0, 1, 2, 3].map(index => (
-                    <InputOTPSlot
-                      key={index}
-                      index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
-                        text-black dark:text-white 
-                        ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
-                          mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
-                            'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
-                        }`}
-                      style={{
-                        backgroundImage: isPredictableError ? `url(${mpinInputError})` :
-                          mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
-                      }}
-                      render={({ char, isActive }) => (
-                        <div className="flex items-center justify-center w-full h-full">
-                          {char 
-                            ? (maskedIndices.has(index) ? '•' : char)
-                            : null
-                          }
-                          {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
-                        </div>
-                      )}
-                    />
-                  ))}
-                </InputOTPGroup>
-              </InputOTP>
-              {isPredictableError && (
-                <p className="text-red-500 text-[14px] font-normal">{mpinError}</p>
-              )}
-            </div>
-
-            {/* Confirm MPIN */}
-            <div className="space-y-3">
-              <p className="text-black dark:text-foreground text-[14px] font-normal">Re-enter MPIN</p>
-              <InputOTP
-                maxLength={4}
-                value={confirmMpin}
-                onChange={handleConfirmMpinChange}
-                onFocus={handleInputFocus}
-                inputMode="numeric"
-                pattern="[0-9]*"
-              >
-                <InputOTPGroup className="w-[364px] justify-between">
-                  {[0, 1, 2, 3].map(index => (
-                    <InputOTPSlot
-                      key={index}
-                      index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
-                        text-black dark:text-white 
-                        ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
-                          mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
-                            'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
-                        }`}
-                      style={{
-                        backgroundImage: isMismatchError ? `url(${mpinInputError})` :
-                          mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
-                      }}
-                      render={({ char, isActive }) => (
-                        <div className="flex items-center justify-center w-full h-full">
-                          {char 
-                            ? (confirmMaskedIndices.has(index) ? '•' : char)
-                            : null
-                          }
-                          {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
-                        </div>
-                      )}
-                    />
-                  ))}
-                </InputOTPGroup>
-              </InputOTP>
-              {isMismatchError && (
-                <p className="text-red-500 text-[14px] font-normal">{mpinError}</p>
-              )}
-            </div>
-
-            {/* Biometric Toggle */}
-            <div
-              className={`flex items-center justify-between px-4 w-full h-[54px] rounded-2xl border-none bg-cover bg-center 
-                bg-black dark:bg-transparent`}
-              style={{
-                width: '364px', // Explicit width as requested
-                backgroundImage: buttonBiometricBg ? `url(${buttonBiometricBg})` : 'none'
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <img src={biometricIcon} alt="Biometric" className="w-6 h-6" />
-                <span className="text-white text-[16px] font-medium">Biometric Unlock</span>
-              </div>
-              <button
-                onClick={() => setBiometricEnabled(!biometricEnabled)}
-                className="transition-transform duration-200 hover:scale-105 active:scale-95"
-              >
-                <img
-                  src={biometricEnabled ? toggleOn : toggleOff}
-                  alt={biometricEnabled ? "Enabled" : "Disabled"}
-                  className="w-12 h-6"
-                />
-              </button>
-            </div>
-
-            {/* Note */}
-            <p className="text-black dark:text-muted-foreground text-[14px] font-normal leading-relaxed">
-              Note: While creating an MPIN is necessary, Biometric unlock can be enabled for an extra step of security. You can setup Biometric unlock later from Account Settings &gt; Biometric Unlock.
-            </p>
-
-            {/* Spacer */}
-            <div className="flex-1" />
-
-            {/* General Error Message */}
-            {generalError && (
-              <p className="text-red-500 text-[14px] font-normal text-center pb-2">
-                {generalError}
-              </p>
-            )}
-
-            {/* Setup Button */}
-            <Button
-              variant="gradient"
-              className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
-              onClick={handleSetupMpin}
-              disabled={isLoading || mpin.length < 4 || confirmMpin.length < 4 || !!mpinError || !mpinSuccess}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Setting up...
-                </span>
-              ) : "Setup"}
-            </Button>
-
-            <button
-              onClick={handleLogout}
-              className="w-full text-center text-muted-foreground text-sm hover:text-white transition-colors pb-safe pb-4"
-            >
-              Not you? Use a different number
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      </div>
-      
+
       {/* Absolute Legal Footer */}
       {!showMpinSetup && !showMpinLogin && (
         <div style={{
