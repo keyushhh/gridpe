@@ -9,8 +9,11 @@ android {
         applicationId "com.gridpe.customer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // versionCode: increment by 1 for every build submitted
+        // versionName: semantic versioning — 1.0.0 → 1.0.1 (patch)
+        //              1.0.x → 1.1.0 (minor feature) → 2.0.0 (major)
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

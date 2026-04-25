@@ -1,4 +1,6 @@
 import { useNavigate , Navigate } from 'react-router-dom';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import BackButton from "@/components/ui/BackButton";
 import { cn } from "@/lib/utils";
 import Skeleton from 'react-loading-skeleton';
@@ -92,6 +94,17 @@ const Settings = () => {
   const securityPendingAsset = useAsset("security-pending");
   const securityIncompleteAsset = useAsset("security-incomplete");
   const [isLoading, setIsLoading] = useState(true);
+  const [appVersion, setAppVersion] = useState('1.0.0');
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      App.getInfo().then(info => {
+        setAppVersion(info.version);
+      }).catch(() => {
+        setAppVersion('1.0.0');
+      });
+    }
+  }, []);
 
   const iconEdit = useAsset("icon-edit");
   const iconLinkedCards = useAsset("icon-linked-cards");
@@ -466,7 +479,7 @@ const Settings = () => {
             onTouchEnd={handleLogoRelease}
           >
             <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
-            <p className="text-sm mt-2">App Version v1.0.0 – 100% drama compatible.</p>
+            <p className="text-sm mt-2">App Version v{appVersion} – 100% drama compatible.</p>
           </div>
         </div>
       </div>
