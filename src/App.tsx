@@ -1,8 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { MemoryRouter, Routes, Route, useLocation } from "react-router-dom";
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from "@capacitor/core";
 import { CapacitorSwipeBackPlugin } from '@notnotsamuel/capacitor-swipe-back';
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "./lib/supabase";
 import { fetchActiveOrders } from "./lib/orders";
 import { setBadge } from "./utils/badge";
@@ -103,8 +103,17 @@ import DemoButtons from "./pages/DemoButtons";
 import RefractionLab from "./labs/RefractionLab";
 import { LiquidGlassFilters } from "./components/ui/LiquidGlassFilters";
 
+const LocationTracker = ({ currentPathRef }: { currentPathRef: React.MutableRefObject<string> }) => {
+  const location = useLocation();
+  useEffect(() => {
+    currentPathRef.current = location.pathname;
+  }, [location]);
+  return null;
+};
 
 const App = () => {
+  const currentPathRef = useRef("/");
+
   useEffect(() => {
     // Sync Supabase session from OAuth deep links
     const listener = CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
@@ -167,16 +176,33 @@ const App = () => {
   // Hardware back button (Android). Route-allowlist so swipe/back from an
   // unauthenticated screen exits the app instead of re-entering authed screens.
   useEffect(() => {
-    const UNAUTHENTICATED_ROUTES = ["/", "/onboarding", "/login"];
+    const LOCKED_ROUTES = ['/', '/onboarding', '/login', '/welcome'];
     const handler = CapacitorApp.addListener('backButton', () => {
-      const currentPath = window.location.pathname;
-      if (UNAUTHENTICATED_ROUTES.includes(currentPath)) {
+      if (LOCKED_ROUTES.includes(currentPathRef.current)) {
         CapacitorApp.exitApp();
       } else {
         window.history.back();
       }
     });
     return () => { handler.then(h => h.remove()); };
+  }, []);
+
+  // iOS swipe-back gesture block/exit logic
+  useEffect(() => {
+    const blockBack = () => {
+      const LOCKED_ROUTES = ['/', '/onboarding', '/login', '/welcome'];
+      if (LOCKED_ROUTES.includes(currentPathRef.current)) {
+        CapacitorApp.exitApp();
+      } else {
+        window.history.pushState(null, '', window.location.pathname);
+      }
+    };
+    
+    // On mount, push a state so there's always a forward entry
+    window.history.pushState(null, '', window.location.pathname);
+    window.addEventListener('popstate', blockBack);
+    
+    return () => window.removeEventListener('popstate', blockBack);
   }, []);
 
   useEffect(() => {
@@ -218,7 +244,8 @@ const App = () => {
       <div className="app-container">
         <GlobalCustomToaster />
         <LiquidGlassFilters />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <LocationTracker currentPathRef={currentPathRef} />
           <NetworkBanner />
           <Routes>
             <Route path="/" element={<Index />} />
@@ -310,7 +337,7 @@ const App = () => {
           <Route path="/labs" element={<RefractionLab />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </MemoryRouter>
     </div>
     </SkeletonTheme>
   );

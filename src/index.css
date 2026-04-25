@@ -157,6 +157,17 @@ html.font-pending body {
     -webkit-user-select: text;
     font-size: 16px !important;
   }
+
+  @supports (-webkit-touch-callout: none) {
+    input,
+    textarea {
+      font-size: 16px !important;
+    }
+
+    .onboarding-screen {
+      height: -webkit-fill-available;
+    }
+  }
 }
 
 @layer utilities {

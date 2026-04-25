@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { OTPInput, OTPInputContext } from "input-otp";
 import { Dot } from "lucide-react";
 
@@ -23,8 +23,11 @@ InputOTPGroup.displayName = "InputOTPGroup";
 
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & { index: number }
->(({ index, className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"div"> & {
+    index: number;
+    render?: (props: { char: string | null; isActive: boolean; hasFakeCaret: boolean }) => React.ReactNode;
+  }
+>(({ index, className, render, ...props }, ref) => {
   const inputOTPContext = React.useContext(OTPInputContext);
   const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index];
 
@@ -38,11 +41,17 @@ const InputOTPSlot = React.forwardRef<
       )}
       {...props}
     >
-      {char}
-      {hasFakeCaret && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="animate-caret-blink h-4 w-px bg-foreground duration-1000" />
-        </div>
+      {render ? (
+        render({ char, isActive, hasFakeCaret })
+      ) : (
+        <>
+          {char}
+          {hasFakeCaret && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="animate-caret-blink h-4 w-px bg-foreground duration-1000" />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

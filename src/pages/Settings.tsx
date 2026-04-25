@@ -156,6 +156,8 @@ const Settings = () => {
 
     // Clear session/state
     localStorage.clear();
+    sessionStorage.clear();
+    
     // Force a full WebView reload to wipe the entire back stack — prevents
     // Android back-gesture from re-entering authenticated screens after logout.
     window.location.replace("/");

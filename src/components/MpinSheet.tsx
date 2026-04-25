@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
@@ -9,9 +9,7 @@ import { hashMpin } from "@/utils/cryptoUtils";
 import { supabase } from "@/lib/supabase";
 
 // Reusing InputOTP components from shadcn/ui
-import { InputOTP, InputOTPGroup } from "@/components/ui/input-otp";
-// UPI-style reveal-then-mask MPIN slot (1s reveal, then bullet).
-import { MaskedInputOTPSlot } from "@/components/ui/masked-input-otp-slot";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import mpinInputSuccess from "@/assets/mpin-input-success.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
 import { Button } from "@/components/ui/button";
@@ -45,6 +43,55 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
     const [activeField, setActiveField] = useState<'new' | 'confirm'>('new');
     const [createError, setCreateError] = useState("");
     const [createSuccess, setCreateSuccess] = useState(false);
+
+    // MPIN Masking State (verifyMpin)
+    const [verifyMaskedIndices, setVerifyMaskedIndices] = useState<Set<number>>(new Set());
+    const verifyMaskTimers = useRef<Record<number, NodeJS.Timeout>>({});
+
+    // MPIN Masking State (newMpin)
+    const [newMaskedIndices, setNewMaskedIndices] = useState<Set<number>>(new Set());
+    const newMaskTimers = useRef<Record<number, NodeJS.Timeout>>({});
+
+    // MPIN Masking State (confirmMpin)
+    const [confirmMaskedIndices, setConfirmMaskedIndices] = useState<Set<number>>(new Set());
+    const confirmMaskTimers = useRef<Record<number, NodeJS.Timeout>>({});
+
+    // Clean up all timers on unmount
+    useEffect(() => {
+        const vTimers = verifyMaskTimers.current;
+        const nTimers = newMaskTimers.current;
+        const cTimers = confirmMaskTimers.current;
+        return () => {
+            Object.values(vTimers).forEach(clearTimeout);
+            Object.values(nTimers).forEach(clearTimeout);
+            Object.values(cTimers).forEach(clearTimeout);
+        };
+    }, []);
+
+    // Reset masking on mpin resets
+    useEffect(() => {
+        if (verifyMpin === "") {
+            setVerifyMaskedIndices(new Set());
+            Object.values(verifyMaskTimers.current).forEach(clearTimeout);
+            verifyMaskTimers.current = {};
+        }
+    }, [verifyMpin]);
+
+    useEffect(() => {
+        if (newMpin === "") {
+            setNewMaskedIndices(new Set());
+            Object.values(newMaskTimers.current).forEach(clearTimeout);
+            newMaskTimers.current = {};
+        }
+    }, [newMpin]);
+
+    useEffect(() => {
+        if (confirmMpin === "") {
+            setConfirmMaskedIndices(new Set());
+            Object.values(confirmMaskTimers.current).forEach(clearTimeout);
+            confirmMaskTimers.current = {};
+        }
+    }, [confirmMpin]);
 
     const title = step === 'CREATE_NEW' ? "Change MPIN" : "Enter MPIN";
 
@@ -152,30 +199,99 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
     // --- Input Handlers ---
     const handleKeyPress = (key: string) => {
         if (step === 'VERIFY_OLD') {
-            if (verifyMpin.length < 4) setVerifyMpin(prev => prev + key);
+            if (verifyMpin.length < 4) {
+                const newIndex = verifyMpin.length;
+                if (verifyMaskTimers.current[newIndex]) clearTimeout(verifyMaskTimers.current[newIndex]);
+                
+                setVerifyMaskedIndices(prev => {
+                    const next = new Set(prev);
+                    next.delete(newIndex);
+                    return next;
+                });
+                
+                verifyMaskTimers.current[newIndex] = setTimeout(() => {
+                    setVerifyMaskedIndices(prev => new Set(prev).add(newIndex));
+                }, 1000);
+
+                setVerifyMpin(prev => prev + key);
+            }
         } else if (step === 'CREATE_NEW') {
             if (activeField === 'new') {
                 if (newMpin.length < 4) {
+                    const newIndex = newMpin.length;
+                    if (newMaskTimers.current[newIndex]) clearTimeout(newMaskTimers.current[newIndex]);
+                    
+                    setNewMaskedIndices(prev => {
+                        const next = new Set(prev);
+                        next.delete(newIndex);
+                        return next;
+                    });
+                    
+                    newMaskTimers.current[newIndex] = setTimeout(() => {
+                        setNewMaskedIndices(prev => new Set(prev).add(newIndex));
+                    }, 1000);
+
                     const next = newMpin + key;
                     setNewMpin(next);
                     // Auto-switch focus if filled
                     if (next.length === 4) setActiveField('confirm');
                 }
             } else {
-                if (confirmMpin.length < 4) setConfirmMpin(prev => prev + key);
+                if (confirmMpin.length < 4) {
+                    const newIndex = confirmMpin.length;
+                    if (confirmMaskTimers.current[newIndex]) clearTimeout(confirmMaskTimers.current[newIndex]);
+                    
+                    setConfirmMaskedIndices(prev => {
+                        const next = new Set(prev);
+                        next.delete(newIndex);
+                        return next;
+                    });
+                    
+                    confirmMaskTimers.current[newIndex] = setTimeout(() => {
+                        setConfirmMaskedIndices(prev => new Set(prev).add(newIndex));
+                    }, 1000);
+
+                    setConfirmMpin(prev => prev + key);
+                }
             }
         }
     };
 
     const handleBackspace = () => {
         if (step === 'VERIFY_OLD') {
-            setVerifyMpin(prev => prev.slice(0, -1));
+            const indexToRemove = verifyMpin.length - 1;
+            if (indexToRemove >= 0) {
+                setVerifyMaskedIndices(prev => {
+                    const next = new Set(prev);
+                    next.delete(indexToRemove);
+                    return next;
+                });
+                if (verifyMaskTimers.current[indexToRemove]) clearTimeout(verifyMaskTimers.current[indexToRemove]);
+                setVerifyMpin(prev => prev.slice(0, -1));
+            }
         } else if (step === 'CREATE_NEW') {
             if (activeField === 'new') {
-                setNewMpin(prev => prev.slice(0, -1));
+                const indexToRemove = newMpin.length - 1;
+                if (indexToRemove >= 0) {
+                    setNewMaskedIndices(prev => {
+                        const next = new Set(prev);
+                        next.delete(indexToRemove);
+                        return next;
+                    });
+                    if (newMaskTimers.current[indexToRemove]) clearTimeout(newMaskTimers.current[indexToRemove]);
+                    setNewMpin(prev => prev.slice(0, -1));
+                }
             } else {
-                setConfirmMpin(prev => prev.slice(0, -1));
-                // Optional: Auto-switch back if empty? No, usually annoying.
+                const indexToRemove = confirmMpin.length - 1;
+                if (indexToRemove >= 0) {
+                    setConfirmMaskedIndices(prev => {
+                        const next = new Set(prev);
+                        next.delete(indexToRemove);
+                        return next;
+                    });
+                    if (confirmMaskTimers.current[indexToRemove]) clearTimeout(confirmMaskTimers.current[indexToRemove]);
+                    setConfirmMpin(prev => prev.slice(0, -1));
+                }
             }
         }
     };
@@ -287,7 +403,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                     <InputOTP maxLength={4} value={verifyMpin} readOnly>
                                         <InputOTPGroup className="gap-4">
                                             {[0, 1, 2, 3].map(index => (
-                                                <MaskedInputOTPSlot
+                                                <InputOTPSlot
                                                     key={`verify-${index}`}
                                                     index={index}
                                                     className={`flex items-center justify-center h-[54px] w-[81px] rounded-[12px] border-none text-[32px] font-bold transition-all bg-cover bg-center ring-1 ${isDarkMode ? 'text-white' : 'text-black'
@@ -300,6 +416,14 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                                         backgroundImage: verifyStatus === 'error' ? `url(${mpinInputError})` :
                                                             verifyStatus === 'success' ? `url(${mpinInputSuccess})` : undefined
                                                     }}
+                                                    render={({ char }) => (
+                                                        <div className="flex items-center justify-center w-full h-full">
+                                                          {char 
+                                                            ? (verifyMaskedIndices.has(index) ? '•' : char)
+                                                            : null
+                                                          }
+                                                        </div>
+                                                    )}
                                                 />
                                             ))}
                                         </InputOTPGroup>
@@ -331,7 +455,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                         <InputOTP maxLength={4} value={newMpin} readOnly>
                                             <InputOTPGroup className="gap-4">
                                                 {[0, 1, 2, 3].map(index => (
-                                                    <MaskedInputOTPSlot
+                                                    <InputOTPSlot
                                                         key={index}
                                                         index={index}
                                                         className={`flex items-center justify-center h-[54px] w-[81px] rounded-[12px] border-none text-[32px] font-bold transition-all bg-cover bg-center ring-1 ${isDarkMode ? 'text-white' : 'text-black'
@@ -345,6 +469,14 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                                             backgroundImage: isPredictableError ? `url(${mpinInputError})` :
                                                                 createSuccess ? `url(${mpinInputSuccess})` : undefined
                                                         }}
+                                                        render={({ char }) => (
+                                                            <div className="flex items-center justify-center w-full h-full">
+                                                              {char 
+                                                                ? (newMaskedIndices.has(index) ? '•' : char)
+                                                                : null
+                                                              }
+                                                            </div>
+                                                        )}
                                                     />
                                                 ))}
                                             </InputOTPGroup>
@@ -360,7 +492,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                         <InputOTP maxLength={4} value={confirmMpin} readOnly>
                                             <InputOTPGroup className="gap-4">
                                                 {[0, 1, 2, 3].map(index => (
-                                                    <MaskedInputOTPSlot
+                                                    <InputOTPSlot
                                                         key={index}
                                                         index={index}
                                                         className={`flex items-center justify-center h-[54px] w-[81px] rounded-[12px] border-none text-[32px] font-bold transition-all bg-cover bg-center ring-1 ${isDarkMode ? 'text-white' : 'text-black'
@@ -374,6 +506,14 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                                             backgroundImage: isMismatchError ? `url(${mpinInputError})` :
                                                                 createSuccess ? `url(${mpinInputSuccess})` : undefined
                                                         }}
+                                                        render={({ char }) => (
+                                                            <div className="flex items-center justify-center w-full h-full">
+                                                              {char 
+                                                                ? (confirmMaskedIndices.has(index) ? '•' : char)
+                                                                : null
+                                                              }
+                                                            </div>
+                                                        )}
                                                     />
                                                 ))}
                                             </InputOTPGroup>

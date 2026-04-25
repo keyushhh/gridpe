@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/PhoneInput";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { MaskedInputOTPSlot } from "@/components/ui/masked-input-otp-slot";
 import { LockOpen } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAsset } from "@/hooks/useAsset";
@@ -22,6 +21,7 @@ import { supabase } from "@/lib/supabase";
 import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
 import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { Capacitor } from "@capacitor/core";
+import { Keyboard } from '@capacitor/keyboard';
 import { Provider, User } from "@supabase/supabase-js";
 
 const OnboardingScreen = () => {
@@ -59,6 +59,42 @@ const OnboardingScreen = () => {
   const [biometricFailCount, setBiometricFailCount] = useState(0);
   const [isBiometricPrompting, setIsBiometricPrompting] = useState(false);
   const [generalError, setGeneralError] = useState("");
+  
+  // MPIN Masking State (mpin)
+  const [maskedIndices, setMaskedIndices] = useState<Set<number>>(new Set());
+  const maskTimers = useRef<Record<number, NodeJS.Timeout>>({});
+
+  // MPIN Masking State (confirmMpin)
+  const [confirmMaskedIndices, setConfirmMaskedIndices] = useState<Set<number>>(new Set());
+  const confirmMaskTimers = useRef<Record<number, NodeJS.Timeout>>({});
+
+  // Clean up all timers on unmount
+  useEffect(() => {
+    const mTimers = maskTimers.current;
+    const cTimers = confirmMaskTimers.current;
+    return () => {
+      Object.values(mTimers).forEach(clearTimeout);
+      Object.values(cTimers).forEach(clearTimeout);
+    };
+  }, []);
+
+  // Reset mpin masking on reset
+  useEffect(() => {
+    if (mpin === "") {
+      setMaskedIndices(new Set());
+      Object.values(maskTimers.current).forEach(clearTimeout);
+      maskTimers.current = {};
+    }
+  }, [mpin]);
+
+  // Reset confirmMpin masking on reset
+  useEffect(() => {
+    if (confirmMpin === "") {
+      setConfirmMaskedIndices(new Set());
+      Object.values(confirmMaskTimers.current).forEach(clearTimeout);
+      confirmMaskTimers.current = {};
+    }
+  }, [confirmMpin]);
 
   // Capture Referral Code
   useEffect(() => {
@@ -69,21 +105,36 @@ const OnboardingScreen = () => {
     }
   }, []);
 
-  // iOS swipe-back guard: WKWebView's edge-swipe can navigate back into
-  // cached authenticated pages even after logout. Pin a sentinel history entry
-  // so swipe-back has nowhere to go. Cleared on successful login below.
-  useEffect(() => {
-    if (Capacitor.getPlatform() !== 'ios') return;
-    window.history.pushState(null, '', '/');
-    const onPop = () => {
-      window.history.pushState(null, '', '/');
-    };
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
-
   // Android hardware back button is handled by the global listener in App.tsx
   // using a route allowlist (exits app on unauthenticated routes).
+
+  useEffect(() => {
+    let showListener: any;
+    let hideListener: any;
+    
+    Keyboard.addListener('keyboardWillShow', (info) => {
+      // info.keyboardHeight gives exact keyboard height
+      const inputEl = document.activeElement;
+      if (inputEl) {
+        setTimeout(() => {
+          inputEl.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }, 100);
+      }
+    }).then(h => { showListener = h; });
+    
+    Keyboard.addListener('keyboardDidHide', () => {
+      window.scrollTo(0, 0);
+    }).then(h => { hideListener = h; });
+    
+    return () => {
+      showListener?.remove();
+      hideListener?.remove();
+    };
+  }, []);
 
   // Resend timer countdown
   useEffect(() => {
@@ -205,6 +256,7 @@ const OnboardingScreen = () => {
     resetForDemo(); // Reset Context state
     await supabase.auth.signOut();
     localStorage.clear(); // Clear all local storage to be safe
+    sessionStorage.clear();
     setPhoneNumber("");
     setOtp("");
     setMpin("");
@@ -376,12 +428,86 @@ const OnboardingScreen = () => {
 
   const handleMpinChange = (val: string) => {
     const numericOnly = val.replace(/\D/g, '');
+    const prevLength = mpin.length;
+    const newLength = numericOnly.length;
+
+    // If a digit was added (not deleted)
+    if (newLength > prevLength) {
+      const newIndex = newLength - 1;
+
+      // Clear any existing timer for this index
+      if (maskTimers.current[newIndex]) {
+        clearTimeout(maskTimers.current[newIndex]);
+      }
+
+      // Remove from masked set immediately (show digit)
+      setMaskedIndices(prev => {
+        const next = new Set(prev);
+        next.delete(newIndex);
+        return next;
+      });
+
+      // After 1 second, add to masked set (show *)
+      maskTimers.current[newIndex] = setTimeout(() => {
+        setMaskedIndices(prev => new Set(prev).add(newIndex));
+      }, 1000);
+    }
+
+    // If digit was deleted, remove from masked set
+    if (newLength < prevLength) {
+      setMaskedIndices(prev => {
+        const next = new Set(prev);
+        next.delete(newLength);
+        return next;
+      });
+      if (maskTimers.current[newLength]) {
+        clearTimeout(maskTimers.current[newLength]);
+      }
+    }
+
     setMpin(numericOnly);
     if (generalError) setGeneralError("");
   };
 
   const handleConfirmMpinChange = (val: string) => {
     const numericOnly = val.replace(/\D/g, '');
+    const prevLength = confirmMpin.length;
+    const newLength = numericOnly.length;
+
+    // If a digit was added (not deleted)
+    if (newLength > prevLength) {
+      const newIndex = newLength - 1;
+
+      // Clear any existing timer for this index
+      if (confirmMaskTimers.current[newIndex]) {
+        clearTimeout(confirmMaskTimers.current[newIndex]);
+      }
+
+      // Remove from masked set immediately (show digit)
+      setConfirmMaskedIndices(prev => {
+        const next = new Set(prev);
+        next.delete(newIndex);
+        return next;
+      });
+
+      // After 1 second, add to masked set (show *)
+      confirmMaskTimers.current[newIndex] = setTimeout(() => {
+        setConfirmMaskedIndices(prev => new Set(prev).add(newIndex));
+      }, 1000);
+    }
+
+    // If digit was deleted, remove from masked set
+    if (newLength < prevLength) {
+      setConfirmMaskedIndices(prev => {
+        const next = new Set(prev);
+        next.delete(newLength);
+        return next;
+      });
+      if (confirmMaskTimers.current[newLength]) {
+        clearTimeout(confirmMaskTimers.current[newLength]);
+      }
+    }
+
     setConfirmMpin(numericOnly);
     if (generalError) setGeneralError("");
   };
@@ -569,17 +695,21 @@ const OnboardingScreen = () => {
     setPhoneError((prev) => (prev ? "" : prev));
   }, []);
 
-  // When any input is focused, wait for the keyboard slide-in animation to
-  // settle (~300ms) and then scroll the focused element into view. adjustPan
-  // mostly handles this, but on long screens the focused input can still sit
-  // *under* the keyboard when content overflows the panned region.
-  const handleInputFocus = useCallback((e: React.FocusEvent<HTMLElement>) => {
-    const target = e.target as HTMLElement | null;
-    if (!target || typeof target.scrollIntoView !== "function") return;
-    setTimeout(() => {
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 300);
-  }, []);
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  const handleInputFocus = async () => {
+    if (Capacitor.getPlatform() !== 'web') {
+      setTimeout(() => {
+        const activeEl = document.activeElement;
+        if (activeEl) {
+          activeEl.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+      }, 350);
+    }
+  };
 
   const handleOtpChange = useCallback((val: string) => {
     setOtp(val);
@@ -610,16 +740,29 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <div
-      className="fixed inset-0 h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
+    <div 
       style={{
-        backgroundColor: '#0a0a12',
-        backgroundImage: `url(${mainBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'top center',
-        backgroundRepeat: 'no-repeat'
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflowY: 'scroll',
+        WebkitOverflowScrolling: 'touch',
+        backgroundColor: '#0A0A12'
       }}
     >
+      <div
+        className="onboarding-screen relative w-full flex flex-col safe-area-top"
+        style={{
+          minHeight: '100dvh',
+          backgroundColor: '#0a0a12',
+          backgroundImage: `url(${mainBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'top center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
       {/* Logo Section - only show for phone/OTP screens */}
       {!showMpinSetup && !showMpinLogin && (
         <div className="flex-1 flex flex-col items-center justify-center px-6 pt-4">
@@ -842,13 +985,22 @@ const OnboardingScreen = () => {
               >
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
-                    <MaskedInputOTPSlot
+                    <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center
-                        text-black dark:text-white
-                        bg-[#F7F8FA] border border-[#E6E8EB]
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
+                        bg-[#F7F8FA] border border-[#E6E8EB] 
                         dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10`}
+                      render={({ char, isActive }) => (
+                        <div className="flex items-center justify-center w-full h-full">
+                          {char 
+                            ? (maskedIndices.has(index) ? '•' : char)
+                            : null
+                          }
+                          {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
+                        </div>
+                      )}
                     />
                   ))}
                 </InputOTPGroup>
@@ -936,11 +1088,11 @@ const OnboardingScreen = () => {
               >
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
-                    <MaskedInputOTPSlot
+                    <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center
-                        text-black dark:text-white
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
                         ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
                           mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
                             'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
@@ -949,6 +1101,15 @@ const OnboardingScreen = () => {
                         backgroundImage: isPredictableError ? `url(${mpinInputError})` :
                           mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
                       }}
+                      render={({ char, isActive }) => (
+                        <div className="flex items-center justify-center w-full h-full">
+                          {char 
+                            ? (maskedIndices.has(index) ? '•' : char)
+                            : null
+                          }
+                          {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
+                        </div>
+                      )}
                     />
                   ))}
                 </InputOTPGroup>
@@ -971,11 +1132,11 @@ const OnboardingScreen = () => {
               >
                 <InputOTPGroup className="w-[364px] justify-between">
                   {[0, 1, 2, 3].map(index => (
-                    <MaskedInputOTPSlot
+                    <InputOTPSlot
                       key={index}
                       index={index}
-                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center
-                        text-black dark:text-white
+                      className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
+                        text-black dark:text-white 
                         ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
                           mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
                             'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
@@ -984,6 +1145,15 @@ const OnboardingScreen = () => {
                         backgroundImage: isMismatchError ? `url(${mpinInputError})` :
                           mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
                       }}
+                      render={({ char, isActive }) => (
+                        <div className="flex items-center justify-center w-full h-full">
+                          {char 
+                            ? (confirmMaskedIndices.has(index) ? '•' : char)
+                            : null
+                          }
+                          {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
+                        </div>
+                      )}
                     />
                   ))}
                 </InputOTPGroup>
@@ -1059,6 +1229,7 @@ const OnboardingScreen = () => {
             </button>
           </div>
         )}
+      </div>
       </div>
     </div >
   );
