@@ -23,7 +23,7 @@ const config: CapacitorConfig & {
     contentInset: 'always'
   },
   android: {
-    adjustResize: true,
+    adjustResize: false,
     backgroundColor: "#0A0A12",
     allowMixedContent: false,
     captureInput: true,

@@ -12,7 +12,7 @@ interface PhoneInputProps {
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
-const PhoneInputImpl = ({
+const PhoneInputImpl = React.forwardRef<HTMLInputElement, PhoneInputProps>(({
   value,
   onChange,
   countryCode = "+91",
@@ -21,7 +21,7 @@ const PhoneInputImpl = ({
   error,
   disabled,
   onFocus,
-}: PhoneInputProps) => {
+}, ref) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = useCallback(
@@ -58,6 +58,7 @@ const PhoneInputImpl = ({
         </span>
       </div>
       <input
+        ref={ref}
         type="tel"
         inputMode="numeric"
         pattern="[0-9]*"
@@ -76,6 +77,6 @@ const PhoneInputImpl = ({
       />
     </div>
   );
-};
+});
 
 export const PhoneInput = memo(PhoneInputImpl);

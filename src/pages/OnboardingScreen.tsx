@@ -30,6 +30,7 @@ const OnboardingScreen = () => {
   const { setPhoneNumber: savePhoneNumber, setBiometricEnabled: saveBiometricEnabled, setProfile, profile, resetForDemo } = useUser();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [showMpinSetup, setShowMpinSetup] = useState(false);
   const [showMpinLogin, setShowMpinLogin] = useState(false);
@@ -109,31 +110,24 @@ const OnboardingScreen = () => {
   // using a route allowlist (exits app on unauthenticated routes).
 
   useEffect(() => {
-    let showListener: any;
-    let hideListener: any;
-    
-    Keyboard.addListener('keyboardWillShow', (info) => {
-      // info.keyboardHeight gives exact keyboard height
-      const inputEl = document.activeElement;
-      if (inputEl) {
-        setTimeout(() => {
-          inputEl.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center',
-            inline: 'nearest'
-          });
-        }, 100);
-      }
-    }).then(h => { showListener = h; });
-    
-    Keyboard.addListener('keyboardDidHide', () => {
-      window.scrollTo(0, 0);
-    }).then(h => { hideListener = h; });
-    
-    return () => {
-      showListener?.remove();
-      hideListener?.remove();
-    };
+    // Only run on native iOS/Android, not in browser
+    if (Capacitor.isNativePlatform()) {
+      let showListener: any;
+      let hideListener: any;
+      
+      Keyboard.addListener('keyboardWillShow', (info) => {
+        setKeyboardHeight(info.keyboardHeight);
+      }).then(h => { showListener = h; });
+      
+      Keyboard.addListener('keyboardWillHide', () => {
+        setKeyboardHeight(0);
+      }).then(h => { hideListener = h; });
+      
+      return () => {
+        showListener?.remove();
+        hideListener?.remove();
+      };
+    }
   }, []);
 
   // Resend timer countdown
@@ -695,20 +689,19 @@ const OnboardingScreen = () => {
     setPhoneError((prev) => (prev ? "" : prev));
   }, []);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const otpInputRef = useRef<HTMLDivElement>(null);
   
-  const handleInputFocus = async () => {
-    if (Capacitor.getPlatform() !== 'web') {
-      setTimeout(() => {
-        const activeEl = document.activeElement;
-        if (activeEl) {
-          activeEl.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-          });
-        }
-      }, 350);
-    }
+  const handleInputFocus = () => {
+    setTimeout(() => {
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }, 300);
   };
 
   const handleOtpChange = useCallback((val: string) => {
@@ -740,32 +733,28 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <div 
+    <div
+      className="fixed inset-0 h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        overflowY: 'scroll',
-        WebkitOverflowScrolling: 'touch',
-        backgroundColor: '#0A0A12'
+        backgroundColor: '#0a0a12',
+        backgroundImage: `url(${mainBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat'
       }}
     >
-      <div
-        className="onboarding-screen relative w-full flex flex-col safe-area-top"
-        style={{
-          minHeight: '100dvh',
-          backgroundColor: '#0a0a12',
-          backgroundImage: `url(${mainBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'top center',
-          backgroundRepeat: 'no-repeat'
+      <div 
+        style={{ 
+          paddingBottom: keyboardHeight > 0 ? keyboardHeight : 0,
+          transition: 'padding-bottom 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1
         }}
       >
       {/* Logo Section - only show for phone/OTP screens */}
       {!showMpinSetup && !showMpinLogin && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-4">
+        <div className="flex flex-col items-center px-6 pt-16 pb-10">
           <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
             <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
             <p className="text-foreground text-[18px] font-normal text-center">
@@ -776,7 +765,7 @@ const OnboardingScreen = () => {
       )}
 
       {/* Form Section */}
-      <div className={`px-6 pb-safe pb-4 space-y-6 ${(showMpinSetup || showMpinLogin) ? 'flex-1 flex flex-col pt-4' : ''}`}>
+      <div className={`px-6 pb-safe pb-4 space-y-6 flex-1 flex flex-col ${(showMpinSetup || showMpinLogin) ? 'pt-4' : ''}`}>
         {/* Phone Input Screen */}
         {!showOtpInput && !showMpinSetup && !showMpinLogin && (
           <>
@@ -789,6 +778,7 @@ const OnboardingScreen = () => {
 
             <div className="animate-fade-in space-y-2" style={{ animationDelay: "0.3s" }}>
               <PhoneInput
+                ref={phoneInputRef}
                 value={phoneNumber}
                 onChange={handlePhoneChange}
                 countryCode="+91"
@@ -839,12 +829,7 @@ const OnboardingScreen = () => {
             </div>
 
 
-            <p style={{ animationDelay: "0.7s" }} className="text-center text-black dark:text-muted-foreground leading-relaxed animate-fade-in px-4 text-[16px] font-normal">
-              By continuing, you agree to Grid.Pe's<br />
-              <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
-              and{" "}
-              <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
-            </p>
+            {/* Legal text removed from here, moved to footer */}
           </>
         )}
 
@@ -858,7 +843,7 @@ const OnboardingScreen = () => {
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-2 py-4">
+            <div className="flex flex-col items-center gap-2 py-4" ref={otpInputRef}>
               <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus onFocus={handleInputFocus}>
                 <InputOTPGroup className="gap-[8px]">
                   {[0, 1, 2, 3, 4, 5].map(index => (
@@ -949,12 +934,7 @@ const OnboardingScreen = () => {
             </div>
 
 
-            <p className="text-center text-black dark:text-muted-foreground leading-relaxed px-4 pt-2 font-normal text-[16px]">
-              By continuing, you agree to Grid.Pe's<br />
-              <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
-              &{" "}
-              <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
-            </p>
+            {/* Legal text removed from here, moved to footer */}
           </div>
         )}
 
@@ -1231,6 +1211,28 @@ const OnboardingScreen = () => {
         )}
       </div>
       </div>
+      
+      {/* Absolute Legal Footer */}
+      {!showMpinSetup && !showMpinLogin && (
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
+          paddingLeft: '24px',
+          paddingRight: '24px',
+          textAlign: 'center',
+          pointerEvents: 'none' // Ensure background clicks still work
+        }}>
+          <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px] pointer-events-auto">
+            By continuing, you agree to Grid.Pe's<br />
+            <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
+            and{" "}
+            <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
+          </p>
+        </div>
+      )}
     </div >
   );
 };
