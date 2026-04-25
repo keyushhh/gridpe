@@ -26,7 +26,7 @@
             android:theme="@style/AppTheme"
             android:launchMode="singleTask"
             android:exported="true"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustPan|stateHidden">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

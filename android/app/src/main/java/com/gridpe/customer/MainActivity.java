@@ -6,6 +6,7 @@ import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 import android.os.Build;
 import android.view.View;
+import androidx.core.view.WindowCompat;
 
 public class MainActivity extends BridgeActivity {
     @Override
