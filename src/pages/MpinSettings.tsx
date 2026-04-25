@@ -217,7 +217,7 @@ const MpinSettings = () => {
                     resetForDemo();
                     await supabase.auth.signOut();
                     localStorage.clear();
-                    navigate('/security-dashboard');
+                    window.location.href = "/";
                 }}
                 className={cn(
                             "relative z-10 mt-6 px-8 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden",

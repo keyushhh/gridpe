@@ -134,7 +134,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             // Log out user if they decline after logging in
             await supabase.auth.signOut();
             localStorage.clear();
-            navigate("/");
+            window.location.href = "/";
         } else {
             navigate(-1);
         }

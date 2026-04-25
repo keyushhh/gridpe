@@ -100,11 +100,18 @@ html.font-pending body {
   }
 
   html,
-  body {
+  body,
+  #root {
     height: 100%;
+    min-height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
+    background-color: #0A0A12;
+  }
+
+  html,
+  body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -114,10 +121,6 @@ html.font-pending body {
   }
 
   #root {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
@@ -138,7 +141,7 @@ html.font-pending body {
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     overscroll-behavior-y: auto;
   }
 
@@ -287,10 +290,7 @@ html.font-pending body {
     mix-blend-mode: plus-lighter;
   }
 
-  /* Scoped Density: Pure Physics Glass (Order Inner Containers) */
-  .dark .glass-physics-clear {
-    /* Inherits all properties from the updated global .dark tokens above */
-  }
+
 
   /* Scoped Density: Internal Banner CTA (Check Security) */
   .glass-physics-cta {

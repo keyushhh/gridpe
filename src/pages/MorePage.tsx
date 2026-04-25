@@ -56,7 +56,7 @@ const MorePage = () => {
         resetForDemo();
         await supabase.auth.signOut();
         localStorage.clear();
-        navigate("/");
+        window.location.href = "/";
     };
 
     const categories = [

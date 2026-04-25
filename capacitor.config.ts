@@ -1,6 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const config: CapacitorConfig & { ios?: { allowsBackForwardNavigationGestures?: boolean } } = {
+const config: CapacitorConfig & { 
+  ios?: { allowsBackForwardNavigationGestures?: boolean },
+  android?: { adjustResize?: boolean }
+} = {
   appId: 'com.gridpe.customer',
   appName: 'Grid.Pe',
   webDir: 'dist',
@@ -14,6 +17,7 @@ const config: CapacitorConfig & { ios?: { allowsBackForwardNavigationGestures?: 
     scrollEnabled: true
   },
   android: {
+    adjustResize: false,
     backgroundColor: "#0A0A12",
     allowMixedContent: false,
     captureInput: true,

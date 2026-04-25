@@ -153,31 +153,27 @@ const App = () => {
       console.warn('Swipe back plugin failed to load', e);
     }
 
-    // Hardware back button (Android)
-    let backListener: Promise<{ remove: () => void }> | null = null;
-    if (Capacitor.getPlatform() === 'android') {
-      backListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-        if (canGoBack) {
-          window.history.back();
-        } else {
-          CapacitorApp.exitApp();
-        }
-      });
-    }
-
     CapacitorApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         registerPushNotifications();
       }
     });
 
-
     return () => {
       listener.then(handle => handle.remove());
-      if (backListener) {
-        backListener.then(handle => handle.remove());
-      }
     };
+  }, []);
+
+  // Hardware back button (Android)
+  useEffect(() => {
+    const handler = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      if (!canGoBack) {
+        CapacitorApp.exitApp();
+      } else {
+        window.history.back();
+      }
+    });
+    return () => { handler.then(h => h.remove()); };
   }, []);
 
   useEffect(() => {

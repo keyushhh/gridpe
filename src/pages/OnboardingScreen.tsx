@@ -71,24 +71,14 @@ const OnboardingScreen = () => {
 
   // Android Back Button Handling: Exit app if on onboarding/login screen
   useEffect(() => {
-    let backListener: any = null;
-
-    const setupBackListener = async () => {
-      if (Capacitor.isNativePlatform()) {
-        backListener = await App.addListener('backButton', () => {
-          // Since we are on the Onboarding/Login screen, back button should exit the app
-          // rather than returning to authenticated screens or previous history states.
-          App.exitApp();
-        });
-      }
-    };
-
-    setupBackListener();
+    const handler = App.addListener('backButton', () => {
+      // Since we are on the Onboarding/Login screen, back button should exit the app
+      // rather than returning to authenticated screens or previous history states.
+      App.exitApp();
+    });
 
     return () => {
-      if (backListener) {
-        backListener.remove();
-      }
+      handler.then(h => h.remove());
     };
   }, []);
 
@@ -221,11 +211,8 @@ const OnboardingScreen = () => {
     setShowMpinLogin(false);
     setGeneralError("");
     
-    // 1. Wipe browser/WebView history so Android back gesture can't return to auth screens
-    window.history.replaceState(null, "", "/");
-    
-    // 2. Reset React Router state
-    navigate("/", { replace: true });
+    // Force a hard reload to wipe the WebView history stack completely
+    window.location.href = "/";
   };
 
   const handleSession = async (user: User, isExplicitLogin: boolean) => {
@@ -608,7 +595,7 @@ const OnboardingScreen = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
+      className="fixed inset-0 h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
       style={{
         backgroundColor: '#0a0a12',
         backgroundImage: `url(${mainBg})`,

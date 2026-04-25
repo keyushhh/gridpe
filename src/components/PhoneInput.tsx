@@ -51,7 +51,7 @@ const PhoneInputImpl = ({
       </div>
       <input
         type="tel"
-        inputMode="tel"
+        inputMode="numeric"
         pattern="[0-9]*"
         autoComplete="tel-national"
         autoCorrect="off"
