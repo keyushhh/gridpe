@@ -757,7 +757,7 @@ const OnboardingScreen = () => {
 
   return (
     <div
-      className="fixed inset-0 h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
+      className="fixed inset-0 h-full w-full onboarding-container overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
       style={{
         backgroundColor: '#0a0a12',
         backgroundImage: `url(${mainBg})`,
@@ -768,7 +768,7 @@ const OnboardingScreen = () => {
     >
       <div
         style={{
-          paddingBottom: keyboardHeight > 0 ? keyboardHeight : 0,
+          paddingBottom: (keyboardHeight > 0 && Capacitor.getPlatform() === 'ios') ? keyboardHeight : 0,
           transition: 'padding-bottom 0.3s ease',
           display: 'flex',
           flexDirection: 'column',
@@ -1235,26 +1235,23 @@ const OnboardingScreen = () => {
         </div>
       </div>
 
-      {/* Absolute Legal Footer */}
+      {/* Legal Footer */}
       {!showMpinSetup && !showMpinLogin && (
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
-          paddingLeft: '24px',
-          paddingRight: '24px',
-          textAlign: 'center',
-          pointerEvents: 'none' // Ensure background clicks still work
-        }}>
-          <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px] pointer-events-auto">
-            By continuing, you agree to Grid.Pe's<br />
-            <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
-            and{" "}
-            <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
-          </p>
-        </div>
+        <>
+          <div style={{ flex: 1 }} />
+          <div style={{
+            paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
+            textAlign: 'center',
+            padding: '0 24px'
+          }}>
+            <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px]">
+              By continuing, you agree to Grid.Pe's<br />
+              <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
+              and{" "}
+              <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
+            </p>
+          </div>
+        </>
       )}
     </div >
   );

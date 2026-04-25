@@ -6,6 +6,11 @@ import { UserProvider } from "./contexts/UserContext";
 import { CustomToasterProvider } from "./contexts/CustomToasterContext";
 import App from "./App.tsx";
 import "./index.css";
+import { Capacitor } from "@capacitor/core";
+
+if (Capacitor.getPlatform() === 'android') {
+  document.body.classList.add('android-platform');
+}
 
 const queryClient = new QueryClient();
 
