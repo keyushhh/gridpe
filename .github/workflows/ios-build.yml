@@ -41,13 +41,13 @@ jobs:
           NODE_OPTIONS: "--no-node-snapshot"
         run: npm ci --legacy-peer-deps
 
-      - name: Sync Capacitor iOS (Plugins)
-        run: npx cap sync ios
-
       - name: Build web app (production)
         run: npm run build
 
-      - name: Sync Capacitor iOS (Assets)
+      - name: Validate web assets
+        run: ls dist || exit 1
+
+      - name: Sync Capacitor iOS
         run: npx cap sync ios
 
       - name: Ensure Production Config
