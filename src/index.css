@@ -107,7 +107,6 @@ html.font-pending body {
     width: 100%;
     margin: 0;
     padding: 0;
-    background-color: #0A0A12;
   }
 
   html,
@@ -115,6 +114,8 @@ html.font-pending body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Desktop background — subtle dark neutral outside the phone frame */
+    background-color: #06060C;
     /* Kill the cheap-looking glow/rubber-band on Android. */
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -123,13 +124,9 @@ html.font-pending body {
   #root {
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
-    /* `scroll` (vs `auto`) keeps Android's compositor on a fixed-size scrolling
-       layer, avoiding mid-scroll re-layouts when a scrollbar would appear. */
-    overflow-y: scroll;
-    overscroll-behavior: none;
-    touch-action: pan-y;
-    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    overflow: hidden;
+    background-color: #06060C;
   }
 
   html {
@@ -167,17 +164,42 @@ html.font-pending body {
 
 @layer utilities {
   .app-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    min-height: 100dvh;
     background-color: #0a0a12;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    overscroll-behavior: none;
     touch-action: pan-x pan-y;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── On actual mobile devices, strip the desktop simulator chrome ── */
+  @media (max-width: 430px) {
+    .desktop-backdrop {
+      min-height: 100% !important;
+      background: transparent !important;
+    }
+
+    .mobile-frame {
+      max-width: 100% !important;
+      box-shadow: none !important;
+      /* Tailwind ring uses box-shadow, override it */
+      --tw-ring-shadow: 0 0 #0000 !important;
+    }
+
+    .app-container {
+      min-height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
   }
 
   .gradient-primary {

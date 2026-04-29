@@ -258,90 +258,99 @@ const App = () => {
       baseColor={isDarkMode ? "#1A1C20" : "#F3F4F6"}
       highlightColor={isDarkMode ? "#2A2D35" : "#E5E7EB"}
     >
-      <div className="app-container">
-        <GlobalCustomToaster />
-        <LiquidGlassFilters />
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <LocationTracker currentPathRef={currentPathRef} />
-          <BackNavigationHandler currentPathRef={currentPathRef} />
-          <NetworkBanner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/home" element={<ProtectedRoute><Homepage /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/kyc-intro" element={<ProtectedRoute><KYCIntro /></ProtectedRoute>} />
-            <Route path="/kyc-form" element={<ProtectedRoute><KYCForm /></ProtectedRoute>} />
-            <Route path="/kyc-success" element={<ProtectedRoute><SuccessScreen /></ProtectedRoute>} />
-            <Route path="/profile-edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
-            <Route path="/cards" element={<ProtectedRoute><MyCards /></ProtectedRoute>} />
-            <Route path="/cards/add" element={<ProtectedRoute><AddCard /></ProtectedRoute>} />
-            <Route path="/card-remove-success" element={<ProtectedRoute><CardRemoveSuccess /></ProtectedRoute>} />
-            <Route path="/banking" element={<ProtectedRoute><Banking /></ProtectedRoute>} />
-            <Route path="/banking/add" element={<ProtectedRoute><AddBank /></ProtectedRoute>} />
-            <Route path="/banking/linked-accounts" element={<ProtectedRoute><LinkedAccounts /></ProtectedRoute>} />
-            <Route path="/bank-remove-success" element={<ProtectedRoute><BankRemoveSuccess /></ProtectedRoute>} />
-            <Route path="/security-dashboard" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/kyc-status-complete" element={<ProtectedRoute><KYCStatusComplete /></ProtectedRoute>} />
-            <Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
-            <Route path="/security/mpin-settings" element={<ProtectedRoute><MpinSettings /></ProtectedRoute>} />
-            <Route path="/order-cash" element={<ProtectedRoute><OrderCash /></ProtectedRoute>} />
-            <Route path="/order-cash-summary" element={<ProtectedRoute><OrderCashSummary /></ProtectedRoute>} />
-            <Route path="/order-history" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
-            <Route path="/order-details/:orderId" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
-            <Route path="/schedule-delivery" element={<ProtectedRoute><ScheduleDelivery /></ProtectedRoute>} />
-            <Route path="/saved-addresses" element={<ProtectedRoute><SavedAddresses /></ProtectedRoute>} />
-            <Route path="/add-address" element={<ProtectedRoute><AddAddress /></ProtectedRoute>} />
-            <Route path="/add-address-details" element={<ProtectedRoute><AddAddressDetails /></ProtectedRoute>} />
-            <Route path="/order-tracking" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
-            <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-            <Route path="/wallet-created" element={<ProtectedRoute><WalletCreated /></ProtectedRoute>} />
-            <Route path="/wallet-transaction-history" element={<ProtectedRoute><WalletTransactionHistory /></ProtectedRoute>} />
-            <Route path="/wallet-settings" element={<ProtectedRoute><WalletSettings /></ProtectedRoute>} />
-            <Route path="/wallet-tier/:tierId" element={<ProtectedRoute><WalletTierDetails /></ProtectedRoute>} />
-            <Route path="/wallet-add-money" element={<ProtectedRoute><WalletAddMoney /></ProtectedRoute>} />
-            <Route path="/add-payment-method" element={<ProtectedRoute><AddPaymentMethod /></ProtectedRoute>} />
-            <Route path="/order-summary" element={<ProtectedRoute><OrderSummary /></ProtectedRoute>} />
-            <Route path="/wallet-topup-success" element={<ProtectedRoute><WalletTopUpSuccess /></ProtectedRoute>} />
-            <Route path="/wallet-topup-failed" element={<ProtectedRoute><WalletTopUpFailed /></ProtectedRoute>} />
-            <Route path="/subscription-details" element={<ProtectedRoute><SubscriptionSummary /></ProtectedRoute>} />
-            <Route path="/wallet-upgrade-success" element={<ProtectedRoute><WalletUpgradeSuccess /></ProtectedRoute>} />
-            <Route path="/wallet-withdraw" element={<ProtectedRoute><WalletWithdraw /></ProtectedRoute>} />
-            <Route path="/wallet-withdraw-success" element={<ProtectedRoute><WalletWithdrawSuccess /></ProtectedRoute>} />
-            <Route path="/payment-missing" element={<ProtectedRoute><PaymentMissing /></ProtectedRoute>} />
-            <Route path="/select-payment-method" element={<ProtectedRoute><SelectPaymentMethod /></ProtectedRoute>} />
-            <Route path="/withdraw-otp" element={<ProtectedRoute><WithdrawOTP /></ProtectedRoute>} />
-            <Route path="/wallet-withdraw-failed" element={<ProtectedRoute><WalletWithdrawFailed /></ProtectedRoute>} />
-            <Route path="/view-rider-kyc/:orderId" element={<ProtectedRoute><ViewRiderKyc /></ProtectedRoute>} />
-            <Route path="/verify-rider-kyc" element={<ProtectedRoute><VerifyRiderKyc /></ProtectedRoute>} />
-            <Route path="/report-rider-kyc" element={<ProtectedRoute><ReportRiderKyc /></ProtectedRoute>} />
-            <Route path="/kyc-report-success" element={<ProtectedRoute><KycReportSuccess /></ProtectedRoute>} />
-            <Route path="/kyc-report-error" element={<ProtectedRoute><KycReportError /></ProtectedRoute>} />
-            <Route path="/report-rider-confirm" element={<ProtectedRoute><ReportRiderConfirm /></ProtectedRoute>} />
-            <Route path="/order-delivered" element={<ProtectedRoute><OrderDelivered /></ProtectedRoute>} />
-            <Route path="/help" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
-            <Route path="/help/report" element={<ProtectedRoute><NeedHelp /></ProtectedRoute>} />
-            <Route path="/help/category/:categoryId" element={<ProtectedRoute><HelpCategoryPage /></ProtectedRoute>} />
-            <Route path="/help/chat" element={<ProtectedRoute><ZingChat /></ProtectedRoute>} />
-            <Route path="/help/success" element={<ProtectedRoute><HelpReportSuccess /></ProtectedRoute>} />
-            <Route path="/rewards" element={<ProtectedRoute><Rewards /></ProtectedRoute>} />
-            <Route path="/more" element={<ProtectedRoute><MorePage /></ProtectedRoute>} />
-            <Route path="/fx-exchange" element={<ProtectedRoute><FxExchange /></ProtectedRoute>} />
-            <Route path="/fx-exchange-summary" element={<ProtectedRoute><FxExchangeSummary /></ProtectedRoute>} />
-            <Route path="/fx-success/:orderId" element={<ProtectedRoute><FxSuccess /></ProtectedRoute>} />
-            <Route path="/fx-intro" element={<ProtectedRoute><FxIntro /></ProtectedRoute>} />
-            <Route path="/fx-passport-gate" element={<ProtectedRoute><FxPassportGate /></ProtectedRoute>} />
-            <Route path="/fx-passport-kyc" element={<ProtectedRoute><FxPassportKYC /></ProtectedRoute>} />
-            <Route path="/fx-kyc-success" element={<ProtectedRoute><FxKYCSuccess /></ProtectedRoute>} />
-            <Route path="/live-rates" element={<ProtectedRoute><LiveRates /></ProtectedRoute>} />
-            <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
-            <Route path="/manage-subscription" element={<ProtectedRoute><ManageSubscription /></ProtectedRoute>} />
-            <Route path="/downgrade-plan" element={<ProtectedRoute><DowngradePlan /></ProtectedRoute>} />
-            <Route path="/downgrade-summary" element={<ProtectedRoute><DowngradeSummary /></ProtectedRoute>} />
-            <Route path="/delivery-caution" element={<ProtectedRoute><DeliveryCaution /></ProtectedRoute>} />
-            <Route path="/auth/v1/callback" element={<AuthCallback />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
+      {/* ── Desktop wallpaper backdrop ── */}
+      <div className="desktop-backdrop min-h-screen bg-[#06060C]">
+        {/* ── Mobile simulator frame — all child w-full resolves to this 430px cap ── */}
+        <main
+          className="mobile-frame w-full max-w-[430px] mx-auto min-h-screen relative overflow-x-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 bg-[#0a0a12]"
+          style={{ transform: 'translateZ(0)' }}
+        >
+          <div className="app-container">
+            <GlobalCustomToaster />
+            <LiquidGlassFilters />
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <LocationTracker currentPathRef={currentPathRef} />
+              <BackNavigationHandler currentPathRef={currentPathRef} />
+              <NetworkBanner />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/home" element={<ProtectedRoute><Homepage /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/kyc-intro" element={<ProtectedRoute><KYCIntro /></ProtectedRoute>} />
+                <Route path="/kyc-form" element={<ProtectedRoute><KYCForm /></ProtectedRoute>} />
+                <Route path="/kyc-success" element={<ProtectedRoute><SuccessScreen /></ProtectedRoute>} />
+                <Route path="/profile-edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+                <Route path="/cards" element={<ProtectedRoute><MyCards /></ProtectedRoute>} />
+                <Route path="/cards/add" element={<ProtectedRoute><AddCard /></ProtectedRoute>} />
+                <Route path="/card-remove-success" element={<ProtectedRoute><CardRemoveSuccess /></ProtectedRoute>} />
+                <Route path="/banking" element={<ProtectedRoute><Banking /></ProtectedRoute>} />
+                <Route path="/banking/add" element={<ProtectedRoute><AddBank /></ProtectedRoute>} />
+                <Route path="/banking/linked-accounts" element={<ProtectedRoute><LinkedAccounts /></ProtectedRoute>} />
+                <Route path="/bank-remove-success" element={<ProtectedRoute><BankRemoveSuccess /></ProtectedRoute>} />
+                <Route path="/security-dashboard" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
+                <Route path="/kyc-status-complete" element={<ProtectedRoute><KYCStatusComplete /></ProtectedRoute>} />
+                <Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
+                <Route path="/security/mpin-settings" element={<ProtectedRoute><MpinSettings /></ProtectedRoute>} />
+                <Route path="/order-cash" element={<ProtectedRoute><OrderCash /></ProtectedRoute>} />
+                <Route path="/order-cash-summary" element={<ProtectedRoute><OrderCashSummary /></ProtectedRoute>} />
+                <Route path="/order-history" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+                <Route path="/order-details/:orderId" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+                <Route path="/schedule-delivery" element={<ProtectedRoute><ScheduleDelivery /></ProtectedRoute>} />
+                <Route path="/saved-addresses" element={<ProtectedRoute><SavedAddresses /></ProtectedRoute>} />
+                <Route path="/add-address" element={<ProtectedRoute><AddAddress /></ProtectedRoute>} />
+                <Route path="/add-address-details" element={<ProtectedRoute><AddAddressDetails /></ProtectedRoute>} />
+                <Route path="/order-tracking" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
+                <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+                <Route path="/wallet-created" element={<ProtectedRoute><WalletCreated /></ProtectedRoute>} />
+                <Route path="/wallet-transaction-history" element={<ProtectedRoute><WalletTransactionHistory /></ProtectedRoute>} />
+                <Route path="/wallet-settings" element={<ProtectedRoute><WalletSettings /></ProtectedRoute>} />
+                <Route path="/wallet-tier/:tierId" element={<ProtectedRoute><WalletTierDetails /></ProtectedRoute>} />
+                <Route path="/wallet-add-money" element={<ProtectedRoute><WalletAddMoney /></ProtectedRoute>} />
+                <Route path="/add-payment-method" element={<ProtectedRoute><AddPaymentMethod /></ProtectedRoute>} />
+                <Route path="/order-summary" element={<ProtectedRoute><OrderSummary /></ProtectedRoute>} />
+                <Route path="/wallet-topup-success" element={<ProtectedRoute><WalletTopUpSuccess /></ProtectedRoute>} />
+                <Route path="/wallet-topup-failed" element={<ProtectedRoute><WalletTopUpFailed /></ProtectedRoute>} />
+                <Route path="/subscription-details" element={<ProtectedRoute><SubscriptionSummary /></ProtectedRoute>} />
+                <Route path="/wallet-upgrade-success" element={<ProtectedRoute><WalletUpgradeSuccess /></ProtectedRoute>} />
+                <Route path="/wallet-withdraw" element={<ProtectedRoute><WalletWithdraw /></ProtectedRoute>} />
+                <Route path="/wallet-withdraw-success" element={<ProtectedRoute><WalletWithdrawSuccess /></ProtectedRoute>} />
+                <Route path="/payment-missing" element={<ProtectedRoute><PaymentMissing /></ProtectedRoute>} />
+                <Route path="/select-payment-method" element={<ProtectedRoute><SelectPaymentMethod /></ProtectedRoute>} />
+                <Route path="/withdraw-otp" element={<ProtectedRoute><WithdrawOTP /></ProtectedRoute>} />
+                <Route path="/wallet-withdraw-failed" element={<ProtectedRoute><WalletWithdrawFailed /></ProtectedRoute>} />
+                <Route path="/view-rider-kyc/:orderId" element={<ProtectedRoute><ViewRiderKyc /></ProtectedRoute>} />
+                <Route path="/verify-rider-kyc" element={<ProtectedRoute><VerifyRiderKyc /></ProtectedRoute>} />
+                <Route path="/report-rider-kyc" element={<ProtectedRoute><ReportRiderKyc /></ProtectedRoute>} />
+                <Route path="/kyc-report-success" element={<ProtectedRoute><KycReportSuccess /></ProtectedRoute>} />
+                <Route path="/kyc-report-error" element={<ProtectedRoute><KycReportError /></ProtectedRoute>} />
+                <Route path="/report-rider-confirm" element={<ProtectedRoute><ReportRiderConfirm /></ProtectedRoute>} />
+                <Route path="/order-delivered" element={<ProtectedRoute><OrderDelivered /></ProtectedRoute>} />
+                <Route path="/help" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
+                <Route path="/help/report" element={<ProtectedRoute><NeedHelp /></ProtectedRoute>} />
+                <Route path="/help/category/:categoryId" element={<ProtectedRoute><HelpCategoryPage /></ProtectedRoute>} />
+                <Route path="/help/chat" element={<ProtectedRoute><ZingChat /></ProtectedRoute>} />
+                <Route path="/help/success" element={<ProtectedRoute><HelpReportSuccess /></ProtectedRoute>} />
+                <Route path="/rewards" element={<ProtectedRoute><Rewards /></ProtectedRoute>} />
+                <Route path="/more" element={<ProtectedRoute><MorePage /></ProtectedRoute>} />
+                <Route path="/fx-exchange" element={<ProtectedRoute><FxExchange /></ProtectedRoute>} />
+                <Route path="/fx-exchange-summary" element={<ProtectedRoute><FxExchangeSummary /></ProtectedRoute>} />
+                <Route path="/fx-success/:orderId" element={<ProtectedRoute><FxSuccess /></ProtectedRoute>} />
+                <Route path="/fx-intro" element={<ProtectedRoute><FxIntro /></ProtectedRoute>} />
+                <Route path="/fx-passport-gate" element={<ProtectedRoute><FxPassportGate /></ProtectedRoute>} />
+                <Route path="/fx-passport-kyc" element={<ProtectedRoute><FxPassportKYC /></ProtectedRoute>} />
+                <Route path="/fx-kyc-success" element={<ProtectedRoute><FxKYCSuccess /></ProtectedRoute>} />
+                <Route path="/live-rates" element={<ProtectedRoute><LiveRates /></ProtectedRoute>} />
+                <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
+                <Route path="/manage-subscription" element={<ProtectedRoute><ManageSubscription /></ProtectedRoute>} />
+                <Route path="/downgrade-plan" element={<ProtectedRoute><DowngradePlan /></ProtectedRoute>} />
+                <Route path="/downgrade-summary" element={<ProtectedRoute><DowngradeSummary /></ProtectedRoute>} />
+                <Route path="/delivery-caution" element={<ProtectedRoute><DeliveryCaution /></ProtectedRoute>} />
+                <Route path="/auth/v1/callback" element={<AuthCallback />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+          </div>
+        </main>
       </div>
     </SkeletonTheme>
   );
