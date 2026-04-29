@@ -11,10 +11,12 @@ import { supabase, USER_ID } from "@/lib/supabase";
 import { formatINR } from "@/utils/format";
 import { useKeypad } from "@/hooks/useKeypad";
 import Keypad from "@/components/Keypad";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 
 
 const WalletAddMoney = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
@@ -46,7 +48,7 @@ const WalletAddMoney = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
+      className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

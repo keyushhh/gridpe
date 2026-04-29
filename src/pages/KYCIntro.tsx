@@ -8,8 +8,10 @@ import iconKyc from "@/assets/icon-kyc.svg";
 import popupBg from "@/assets/popup-bg.png";
 import buttonCloseBg from "@/assets/button-close.png";
 import { cn } from "@/lib/utils";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const KYCIntro = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
@@ -36,7 +38,7 @@ const KYCIntro = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col relative`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',

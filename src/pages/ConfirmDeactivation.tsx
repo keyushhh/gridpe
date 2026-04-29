@@ -12,12 +12,14 @@ import mpinInputSuccess from "@/assets/mpin-input-success.png";
 import mpinInputError from "@/assets/mpin-input-error.png";
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 // Custom Slot to handle masking and styling - matching MpinSheet.
 // UPI-style: show the digit briefly (1s) then replace with a bullet.
 const MASK_DELAY_MS = 1000;
 const MASK_CHAR = "•";
 const MaskedSlot = ({ char, hasFakeCaret, isActive, isError, isValid, isDarkMode }: { char: string | null; hasFakeCaret: boolean; isActive: boolean; isError: boolean; isValid: boolean; isDarkMode: boolean }) => {
+  const { containerOverflow } = useWebScroll();
   const [masked, setMasked] = React.useState(true);
   const prevCharRef = React.useRef<string | null | undefined>(undefined);
 
@@ -116,7 +118,7 @@ const ConfirmDeactivation = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col pb-safe pb-4 relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col pb-safe pb-4 relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

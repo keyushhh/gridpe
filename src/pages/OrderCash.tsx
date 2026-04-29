@@ -9,8 +9,10 @@ import infoContainerBg from "@/assets/order-cash-info-bg.png";
 import backspaceIcon from "@/assets/backspace.png";
 import BackButton from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/button";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const OrderCash = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { walletLimit, walletBalance } = useUser(); // walletBalance now from useUser
   const isWalletLimitReached = walletBalance >= walletLimit;
@@ -80,7 +82,7 @@ const OrderCash = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',

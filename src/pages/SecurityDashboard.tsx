@@ -28,8 +28,10 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { hapticLight } from "@/utils/haptics";
 import { Capacitor } from "@capacitor/core";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const SecurityDashboard = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
   const originPath = (location.state as any)?.originPath || "/settings";
@@ -78,7 +80,7 @@ const SecurityDashboard = () => {
 
     return (
       <div
-        className="w-full min-h-[80px] rounded-xl flex items-center justify-between px-4 cursor-pointer relative overflow-hidden backdrop-blur-[25px] border transition-all duration-300"
+        className={`w-full min-h-[80px] rounded-xl flex items-center justify-between px-4 cursor-pointer relative ${containerOverflow} backdrop-blur-[25px] border transition-all duration-300`}
         style={{
           backgroundColor: bannerBg,
           borderColor: currentColor,

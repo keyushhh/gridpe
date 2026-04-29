@@ -12,8 +12,10 @@ import checkBoxBlank from "@/assets/check-box-outline-blank.png";
 
 // Utils
 import { AVAILABLE_BANKS } from "@/utils/bankUtils";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const LinkedAccounts = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
   const { resolvedTheme } = useTheme();
@@ -52,7 +54,7 @@ const LinkedAccounts = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col relative safe-area-top safe-area-bottom overflow-hidden"
+      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-area-top safe-area-bottom overflow-hidden`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

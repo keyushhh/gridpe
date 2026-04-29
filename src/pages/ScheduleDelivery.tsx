@@ -9,8 +9,10 @@ import clockLight from "@/assets/Clock-Light.png";
 import { SlideToPay } from "@/components/SlideToPay";
 
 import { useTheme } from "next-themes";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const ScheduleDelivery = () => {
+  const { containerOverflow } = useWebScroll();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const navigate = useNavigate();
@@ -199,7 +201,7 @@ const ScheduleDelivery = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col font-sans safe-area-top safe-area-bottom relative"
+            className={`h-full w-full ${containerOverflow} flex flex-col font-sans safe-area-top safe-area-bottom relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',

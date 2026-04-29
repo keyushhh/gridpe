@@ -6,8 +6,10 @@ import sadIcon from "@/assets/sad.png";
 import containerBg from "@/assets/container-bg.png";
 import warningEllipse from "@/assets/warning-ellipse.png";
 import { Button } from "@/components/ui/button";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const AccountDeactivated = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
@@ -33,7 +35,7 @@ const AccountDeactivated = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center safe-area-top pb-safe pb-4 relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col items-center safe-area-top pb-safe pb-4 relative`}
       style={isDarkMode ? {
         backgroundImage: `url(${warningBackground})`,
         backgroundSize: "cover",

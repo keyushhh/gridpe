@@ -8,6 +8,7 @@ import { User, Session } from "@supabase/supabase-js";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import tncBg from "@/assets/tnc-bg.png";
 import tncAcceptedBg from "@/assets/tnc-accepted.png";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 interface LegalContent {
     id: string;
@@ -17,6 +18,7 @@ interface LegalContent {
 }
 
 const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const [data, setData] = useState<LegalContent | null>(null);
@@ -159,7 +161,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
                 backgroundSize: "cover",

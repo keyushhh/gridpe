@@ -4,8 +4,10 @@ import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { useAsset } from "@/hooks/useAsset";
 import BackButton from "@/components/ui/BackButton";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const Wallet = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
@@ -26,7 +28,7 @@ const Wallet = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col safe-area-top ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: `url(${walletBg})`,
                 backgroundSize: "cover",

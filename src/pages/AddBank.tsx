@@ -20,6 +20,7 @@ import { Capacitor } from '@capacitor/core';
 import { fetchBankDetails, getBankLogo } from "@/utils/bankUtils";
 import { createBankAccount, BankAccount } from "@/lib/banking";
 import { USER_ID } from "@/lib/supabase";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 type Selection = "auto" | "manual";
 
@@ -32,6 +33,7 @@ interface RazorpayBankDetails {
 }
 
 const AddBank = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
@@ -232,7 +234,7 @@ const AddBank = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col relative safe-area-top safe-area-bottom overflow-hidden"
+      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-area-top safe-area-bottom overflow-hidden`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

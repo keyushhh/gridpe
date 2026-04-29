@@ -28,10 +28,12 @@ import { Switch } from "@/components/ui/switch";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import darkbgCta from "@/assets/darkbg-cta.png";
 import DiditSDK from '@didit-protocol/sdk-web';
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 type SecurityStatus = "verified" | "in_review" | "pending" | "incomplete";
 
 const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, pending: string, incomplete: string }, isDarkMode: boolean) => {
+  const { containerOverflow } = useWebScroll();
   // Base styles for the frame
   const baseFrame = "w-10 h-10 rounded-full flex items-center justify-center border";
 
@@ -197,7 +199,7 @@ const Settings = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         // Only show mainBg image in Dark Mode as requested (User wanted White in Light Mode)

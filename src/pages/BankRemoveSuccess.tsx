@@ -6,8 +6,10 @@ import checkIconLight from "@/assets/check-icon-light.svg";
 import buttonPrimaryWide from "@/assets/button-primary-wide.png";
 import darkBgCta from "@/assets/darkbg-cta.png";
 import { useTheme } from "next-themes";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const BankRemoveSuccess = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
   const [countdown, setCountdown] = useState(30);
@@ -35,7 +37,7 @@ const BankRemoveSuccess = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center relative safe-area-top px-6 pt-4 pb-safe pb-4"
+      className={`h-full w-full ${containerOverflow} flex flex-col items-center relative safe-area-top px-6 pt-4 pb-safe pb-4`}
       style={isDarkMode ? {
         backgroundImage: `url(${successBg})`,
         backgroundSize: "cover",

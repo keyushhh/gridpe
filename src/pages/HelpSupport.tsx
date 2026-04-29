@@ -24,8 +24,10 @@ import { useTheme } from "next-themes";
 import searchIcon from "@/assets/search-icon.svg";
 
 import BackButton from "@/components/ui/BackButton";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const HelpSupport = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
@@ -53,7 +55,7 @@ const HelpSupport = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",

@@ -17,8 +17,10 @@ import { addCard } from "@/utils/cardUtils";
 import { luhnCheck, validateExpiry, validateCVV } from "@/utils/validationUtils";
 import { supabase, USER_ID } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const AddCard = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
   const { resolvedTheme } = useTheme();
@@ -214,7 +216,7 @@ const AddCard = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col safe-area-top relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

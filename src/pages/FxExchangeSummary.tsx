@@ -38,8 +38,10 @@ import Map, { Marker } from "react-map-gl/maplibre";
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { calculateDistance, HUB_COORDS, normalizeCity } from "@/lib/utils";
 import { setBadge } from "@/utils/badge";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const FxExchangeSummary = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { showToaster } = useCustomToaster();
@@ -594,7 +596,7 @@ const FxExchangeSummary = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',

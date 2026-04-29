@@ -13,6 +13,7 @@ import amazonIcon from "@/assets/amazon.png";
 import addPaymentCta from "@/assets/add-payment-cta.png";
 import { fetchBankAccounts, BankAccount } from "@/lib/banking";
 import { getBankLogo } from "@/utils/bankUtils";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 interface PaymentMethod {
     id: string;
@@ -24,6 +25,7 @@ interface PaymentMethod {
 }
 
 const SelectPaymentMethod = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { resolvedTheme } = useTheme();
@@ -84,7 +86,7 @@ const SelectPaymentMethod = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col safe-area-top ${isDarkMode ? "" : "bg-white"}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top ${isDarkMode ? "" : "bg-white"}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,

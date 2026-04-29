@@ -11,8 +11,10 @@ import darkbgCta from "@/assets/darkbg-cta.png";
 import { useUser } from "@/contexts/UserContext";
 import { deliverOrder } from "@/lib/orders";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const OrderDelivered = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { resolvedTheme } = useTheme();
@@ -54,7 +56,7 @@ const OrderDelivered = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full h-full flex flex-col items-center overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`fixed inset-0 w-full h-full flex flex-col items-center ${containerOverflow} ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${successBg})` : 'none',
                 backgroundSize: "cover",

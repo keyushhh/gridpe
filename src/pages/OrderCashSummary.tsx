@@ -33,8 +33,10 @@ import { setBadge } from "@/utils/badge";
 
 import { SavedAddress } from "@/types";
 import { cn } from "@/lib/utils";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const OrderCashSummary = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { showToaster } = useCustomToaster();
@@ -565,7 +567,7 @@ const OrderCashSummary = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top relative"
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',

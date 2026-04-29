@@ -12,6 +12,10 @@ if (Capacitor.getPlatform() === 'android') {
   document.body.classList.add('android-platform');
 }
 
+if (Capacitor.getPlatform() === 'web') {
+  document.documentElement.classList.add('web-platform');
+}
+
 const queryClient = new QueryClient();
 
 // Block paint until Satoshi is ready so glyphs like ₹ don't fall back to a

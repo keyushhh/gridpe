@@ -7,8 +7,10 @@ import buttonRemoveCard from "@/assets/button-remove-card.png";
 import buttonCancel from "@/assets/button-cancel-wide.png";
 import radioOn from "@/assets/radio-on.png";
 import radioOff from "@/assets/radio-off.png";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const DeleteAccountReasons = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
   const { resolvedTheme } = useTheme();
@@ -46,7 +48,7 @@ const DeleteAccountReasons = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col pb-safe pb-4 relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col pb-safe pb-4 relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

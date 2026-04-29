@@ -6,8 +6,10 @@ import sadFace from "@/assets/sad-face.png";
 import sadFaceRed from "@/assets/sad-face-red.svg";
 import deleteAccContainer from "@/assets/delete-acc-container.png";
 import buttonCancelWide from "@/assets/button-cancel-wide.png";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const AccountDeleted = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
@@ -36,7 +38,7 @@ const AccountDeleted = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col items-center pt-4 pb-safe pb-4 px-5 safe-area-top relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col items-center pt-4 pb-safe pb-4 px-5 safe-area-top relative`}
       style={isDarkMode ? {
         backgroundImage: `url(${accountDeletedBg})`,
         backgroundSize: "cover",

@@ -27,8 +27,10 @@ import { Order } from "@/types";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const OrderDetails = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { orderId } = useParams<{ orderId: string }>();
@@ -321,7 +323,7 @@ const OrderDetails = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top animate-in fade-in duration-500 relative"
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top animate-in fade-in duration-500 relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : 'none',

@@ -44,6 +44,7 @@ import workIcon from "@/assets/Work.svg";
 import friendsIcon from "@/assets/Friends Family.svg";
 import otherIcon from "@/assets/Other.svg";
 import walletDarkIcon from "@/assets/wallet-dark.svg";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const currencySymbols: Record<string, string> = {
   AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
@@ -53,6 +54,7 @@ const currencySymbols: Record<string, string> = {
 };
 
 const Homepage = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const mainBg = useAsset("main-bg");
   const iconWallet = useAsset("icon-wallet");
@@ -484,7 +486,7 @@ const Homepage = () => {
 
   return (
     <div
-      className="flex-1 w-full flex flex-col overflow-hidden relative"
+      className={`flex-1 w-full flex flex-col ${containerOverflow} relative`}
       style={{
         backgroundImage: `url(${mainBg})`,
         backgroundSize: "cover",

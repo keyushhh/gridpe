@@ -33,8 +33,10 @@ import {
 } from "@/lib/banking";
 import { getBankLogo } from "@/utils/bankUtils";
 import { USER_ID } from "@/lib/supabase";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const Banking = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { resolvedTheme } = useTheme();
@@ -175,7 +177,7 @@ const Banking = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

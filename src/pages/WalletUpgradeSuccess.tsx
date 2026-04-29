@@ -10,8 +10,10 @@ import successBg from "@/assets/success-bg.png";
 import checkIcon from "@/assets/check-icon.svg";
 import checkIconLight from "@/assets/check-icon-light.svg";
 import darkBgCta from "@/assets/darkbg-cta.png";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const WalletUpgradeSuccess = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { tier, flow, message } = location.state || { tier: "", flow: "upgrade", message: "" };
@@ -70,7 +72,7 @@ const WalletUpgradeSuccess = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-hidden flex flex-col items-center relative safe-area-top safe-area-bottom px-5 ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col items-center relative safe-area-top safe-area-bottom px-5 ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundImage: `url(${successBg})`,
                 backgroundSize: "cover",

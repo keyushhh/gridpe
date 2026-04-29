@@ -7,8 +7,10 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import tierCardActive from "@/assets/selected wallet.png";
 import tierCardInactive from "@/assets/non selected card.png";
 import { tiers, tierSettingsCardMap, tierSettingsCardMapLight, tierCarouselActiveMap, tierCarouselInactiveMap, tierCarouselActiveMapDark, tierCarouselInactiveMapDark, tierChipColorMap } from "@/lib/walletTiers";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const WalletSettings = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const { walletTier, resetForDemo, scheduledDowngrade } = useUser();
     const { resolvedTheme } = useTheme();
@@ -29,7 +31,7 @@ const WalletSettings = () => {
     };
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom"
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",

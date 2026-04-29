@@ -427,3 +427,28 @@ html.font-pending body {
   z-index: 9999;
   animation: expandCircle 0.5s ease-in both;
 }
+
+/* ── Web Platform: Unlock global scroll ── */
+.web-platform,
+.web-platform body,
+.web-platform #root {
+  overflow: visible;
+  overflow-y: auto;
+}
+
+/* On web, don't lock .app-container to position:fixed on small screens */
+@media (max-width: 430px) {
+  .web-platform .app-container {
+    position: relative;
+    overflow-y: auto;
+  }
+}
+
+/* Elegant scrollbar hiding for web */
+.web-platform ::-webkit-scrollbar {
+  display: none;
+}
+.web-platform {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

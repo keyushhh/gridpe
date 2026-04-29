@@ -18,8 +18,10 @@ import locationPinIcon from "@/assets/location-pin.svg";
 import navigationIcon from "@/assets/navigation-icon.svg";
 import copyIcon from "@/assets/copy.svg";
 import distanceCallout from "@/assets/distance-callout.svg";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const AddAddress = () => {
+  const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
@@ -331,7 +333,7 @@ const AddAddress = () => {
   }, []);
 
   return (
-    <div className={`h-full w-full relative ${isDarkMode ? 'bg-black text-white' : 'bg-white text-black'} overflow-hidden`}>
+    <div className={`h-full w-full relative ${isDarkMode ? 'bg-black text-white' : 'bg-white text-black'} ${containerOverflow}`}>
       {/* Map */}
       <Map
         ref={mapRef}

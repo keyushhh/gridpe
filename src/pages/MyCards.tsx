@@ -36,10 +36,12 @@ import savedCard3 from "@/assets/saved-card-3.png";
 import savedCard4 from "@/assets/saved-card-4.png";
 import savedCard5 from "@/assets/saved-card-5.png";
 import savedCard6 from "@/assets/saved-card-6.png";
+import { useWebScroll } from "@/hooks/useWebScroll";
 
 const cardBackgrounds = [savedCard1, savedCard2, savedCard3, savedCard4, savedCard5, savedCard6];
 
 const MyCards = () => {
+  const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { resolvedTheme } = useTheme();
@@ -220,7 +222,7 @@ const MyCards = () => {
 
     return (
         <div
-            className="h-full w-full overflow-hidden flex flex-col safe-area-top safe-area-bottom relative"
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
