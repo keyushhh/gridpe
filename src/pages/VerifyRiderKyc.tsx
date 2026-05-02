@@ -18,7 +18,7 @@ const VerifyRiderKyc = () => {
 
     return (
         <div
-            className="fixed inset-0 w-full h-full flex flex-col bg-[#0a0a12] safe-area-top safe-area-bottom overflow-hidden"
+            className="fixed inset-0 w-full h-full flex flex-col bg-[#0a0a12] safe-top safe-bottom overflow-hidden"
             style={{
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${warningBg})`,
@@ -29,7 +29,7 @@ const VerifyRiderKyc = () => {
         >
             {/* Header */}
             <div
-                className="safe-area-top px-5 flex items-center justify-between"
+                className="safe-top px-5 flex items-center justify-between"
                 style={{ paddingTop: "24px" }}
             >
                 <BackButton onClick={() => navigate(-1)} />

@@ -37,7 +37,7 @@ const CardRemoveSuccess = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col items-center relative safe-area-top px-6 pt-4 pb-safe pb-4`}
+      className={`h-full w-full ${containerOverflow} flex flex-col items-center relative safe-top px-6 pt-4 safe-bottom pb-4`}
       style={isDarkMode ? {
         backgroundImage: `url(${successBg})`,
         backgroundSize: "cover",

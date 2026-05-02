@@ -224,7 +224,7 @@ const AddCard = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top relative`}
+      className={`h-full w-full ${containerOverflow} flex flex-col safe-top relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -256,9 +256,8 @@ const AddCard = () => {
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 mt-8 flex flex-col">
         {/* Interactive Card Preview */}
-        {/* Size: 360 x 192 px, Padding L/R: 26px */}
         <div
-          className={`relative w-full max-w-[360px] h-[192px] mx-auto mb-[20px] rounded-[16px] overflow-hidden shrink-0 transition-colors duration-300 ${hasErrors ? 'border border-[#FF3B30]' : ''}`}
+          className={`relative w-full max-w-[400px] aspect-[1.875] mx-auto mb-[20px] rounded-[16px] overflow-hidden shrink-0 transition-colors duration-300 ${hasErrors ? 'border border-[#FF3B30]' : ''}`}
           style={{
             backgroundImage: `url(${cardPreviewBg})`,
             backgroundSize: 'cover',
@@ -454,7 +453,7 @@ const AddCard = () => {
         </div>
 
         {/* CTA Button */}
-        <div className="mt-auto mt-6 pb-safe pb-4">
+        <div className="mt-auto mt-6 safe-bottom pb-4">
           <Button
             onClick={handleSaveCard}
             disabled={!hasInput || hasErrors}

@@ -179,7 +179,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <div className="px-4 pt-safe pt-4 relative flex items-center justify-center min-h-[64px]">
+            <div className="px-4 safe-top pt-4 relative flex items-center justify-center min-h-[64px]">
                 <div className="absolute left-4">
                     <BackButton onClick={() => navigate(-1)} />
                 </div>
@@ -252,7 +252,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
 
             {/* Bottom Actions */}
             {showActions && (
-                <div className="px-4 pb-safe pb-4 pt-2 flex gap-4 animate-fade-in justify-center">
+                <div className="px-4 safe-bottom pb-4 pt-2 flex gap-4 animate-fade-in justify-center">
                     <Button
                         variant="outline"
                         className={`w-[172px] h-[48px] rounded-full border text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-[#E9EAEB] text-black'}`}

@@ -72,7 +72,7 @@ const WalletUpgradeSuccess = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col items-center relative safe-area-top safe-area-bottom px-5 ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col items-center relative safe-top safe-bottom px-5 ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundImage: `url(${successBg})`,
                 backgroundSize: "cover",

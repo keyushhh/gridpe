@@ -60,7 +60,7 @@ const KYCIntro = () => {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-safe pt-4 pb-2 relative z-10">
+      <div className="flex items-center justify-between px-5 safe-top pt-4 pb-2 relative z-10">
         <BackButton onClick={() => navigate(-1)} />
 
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>KYC</h1>
@@ -91,7 +91,7 @@ const KYCIntro = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="mt-auto pb-safe pb-4 space-y-4 relative z-10 flex flex-col items-center">
+      <div className="mt-auto safe-bottom pb-4 space-y-4 relative z-10 flex flex-col items-center">
         <button
           onClick={() => navigate('/kyc-form')}
           className="w-[362px] h-[48px] rounded-full text-white font-medium text-[16px] btn-gradient font-sans flex items-center justify-center"

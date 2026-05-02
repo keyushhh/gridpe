@@ -101,7 +101,7 @@ const DeliveryCaution = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full flex flex-col items-center safe-area-top overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-white text-black'}`}
+            className={`fixed inset-0 w-full flex flex-col items-center safe-top overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-white text-black'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${step === 'identify' ? bgDarkMode : warningBg})` : "none",
                 backgroundSize: "cover",

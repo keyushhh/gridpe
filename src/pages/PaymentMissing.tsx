@@ -25,7 +25,7 @@ const PaymentMissing = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col relative safe-area-top safe-area-bottom ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${errorBg})`,

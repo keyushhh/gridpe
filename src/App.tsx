@@ -260,24 +260,19 @@ const App = () => {
       highlightColor={isDarkMode ? "#2A2D35" : "#E5E7EB"}
     >
       {/* ── Desktop wallpaper backdrop ── */}
-      <div className="desktop-backdrop min-h-screen bg-[#0a0a12] w-full min-w-full h-full">
+      <div className="desktop-backdrop fixed inset-0 bg-[#0a0a12] w-full h-full">
         {/* ── Mobile simulator frame — all child w-full resolves to this 430px cap on desktop ── */}
         <main
-          className={`mobile-frame w-full mx-auto relative bg-[#0a0a12] ${isWeb ? 'sm:max-w-[430px] sm:shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/10' : ''}`}
+          className={`mobile-frame w-full mx-auto relative bg-[#0a0a12] overflow-hidden safe-top safe-bottom safe-x ${isWeb ? 'sm:max-w-[430px] sm:shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/10' : ''}`}
           style={{ 
             transform: 'translateZ(0)', 
-            height: '100dvh',
-            paddingTop: 'env(safe-area-inset-top)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
-            paddingLeft: 'env(safe-area-inset-left)',
-            paddingRight: 'env(safe-area-inset-right)'
+            height: '100dvh'
           }}
         >
           <div 
             className="app-container overflow-y-auto" 
             style={{ 
-              height: '100%', 
-              minHeight: '100dvh'
+              height: '100%'
             }}
           >
             <GlobalCustomToaster />

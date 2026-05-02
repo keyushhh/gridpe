@@ -217,7 +217,7 @@ const Rewards = () => {
             {!isDarkMode && (
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
-            <div className="flex-1 px-5 pt-safe pt-4 pb-[calc(120px+env(safe-area-inset-bottom))]">
+            <div className="flex-1 px-5 safe-top pt-4 pb-[calc(120px+env(safe-area-inset-bottom))]">
                 {/* Header */}
                 <div className="mb-6 relative z-10">
                     <img src={gridpeLogo} alt="grid.pe" className="h-10 mb-2" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />

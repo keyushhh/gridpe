@@ -258,7 +258,7 @@ const Subscriptions = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col pb-safe pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-bottom pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -272,7 +272,7 @@ const Subscriptions = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 pt-safe pt-4 pb-2 flex items-center relative z-10 shrink-0">
+            <header className="px-5 safe-top pt-4 pb-2 flex items-center relative z-10 shrink-0">
                 <div className="absolute left-5">
                     <BackButton onClick={() => navigate('/more')} />
                 </div>
@@ -435,7 +435,7 @@ const Subscriptions = () => {
                 )}
 
                 {/* Manage Subscription CTA Section */}
-                <div className="mt-auto pb-safe pb-4 w-full flex flex-col items-center">
+                <div className="mt-auto safe-bottom pb-4 w-full flex flex-col items-center">
                     {scheduledDowngrade && (
                         <div className={`w-[326px] min-h-[80px] rounded-[12px] border p-[10px] flex flex-col mb-[24px] ${isDarkMode ? 'bg-black border-white/10' : 'bg-white border-[#E9EAEB]'}`}>
                             <span className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[10px] font-medium font-satoshi`}>Note:</span>

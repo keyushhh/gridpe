@@ -33,7 +33,7 @@ const WalletTierDetails = () => {
 
     return (
         <div
-            className="h-full w-full flex flex-col relative overflow-y-auto no-scrollbar font-satoshi safe-area-top safe-area-bottom"
+            className="h-full w-full flex flex-col relative overflow-y-auto no-scrollbar font-satoshi safe-top safe-bottom"
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",

@@ -33,7 +33,7 @@ const OrderCancelled = () => {
 
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col safe-area-top safe-area-bottom overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}
+      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${errorBg})` : "none",
         backgroundSize: "cover",
@@ -46,7 +46,7 @@ const OrderCancelled = () => {
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-[#EF4444] rounded-full blur-[120px] opacity-[0.15] pointer-events-none" />
       )}
 
-      <div className="flex flex-col items-center px-[35px] safe-area-top relative z-10" style={{ paddingTop: "24px" }}>
+      <div className="flex flex-col items-center px-[35px] safe-top relative z-10" style={{ paddingTop: "24px" }}>
         {/* Header */}
         <h1 className={`text-[22px] font-medium font-satoshi text-center leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
           Order Cancelled

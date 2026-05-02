@@ -31,7 +31,7 @@ const HelpReportSuccess = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full flex flex-col safe-area-top overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`fixed inset-0 w-full flex flex-col safe-top overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${successBg})` : 'none',
                 backgroundSize: "cover",

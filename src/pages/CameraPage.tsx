@@ -78,9 +78,9 @@ const CameraPage = () => {
   }, [isProcessing, isCapturing, handleCapture]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col safe-area-top safe-area-bottom">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col safe-top safe-bottom">
       {/* Camera Header */}
-      <div className="flex items-center px-5 pt-4 pb-2 absolute top-0 left-0 right-0 z-10 safe-area-top">
+      <div className="flex items-center px-5 pt-4 pb-2 absolute top-0 left-0 right-0 z-10 safe-top">
         <button
           onClick={() => navigate(-1)}
           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm"

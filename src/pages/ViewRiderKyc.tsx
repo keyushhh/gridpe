@@ -144,7 +144,7 @@ const ViewRiderKyc = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full h-full flex flex-col safe-area-top safe-area-bottom overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -160,7 +160,7 @@ const ViewRiderKyc = () => {
 
             {/* Header */}
             <div
-                className="safe-area-top px-5 flex items-center justify-between pb-6"
+                className="safe-top px-5 flex items-center justify-between pb-6"
                 style={{ paddingTop: "24px" }}
             >
                 <BackButton onClick={() => navigate(-1)} />

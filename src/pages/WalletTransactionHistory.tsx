@@ -539,7 +539,7 @@ const WalletTransactionHistory = () => {
 
     return (
         <div
-            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-area-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{ willChange: 'transform', transform: 'translateZ(0)', backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none', backgroundSize: "cover", backgroundPosition: "top center", backgroundRepeat: "no-repeat" }}
         >
             {/* Light Mode Status Blob (Top Glow) */}
@@ -663,7 +663,7 @@ const WalletTransactionHistory = () => {
 
             {/* Content area */}
             <div 
-                className="px-5 mt-6 flex-1 min-0 overflow-y-auto no-scrollbar pb-safe pb-4 flex flex-col gap-6 relative"
+                className="px-5 mt-6 flex-1 min-0 overflow-y-auto no-scrollbar safe-bottom pb-4 flex flex-col gap-6 relative"
                 style={{ willChange: 'transform', transform: 'translateZ(0)', WebkitOverflowScrolling: 'touch' }}
             >
                 {(() => {

@@ -256,7 +256,7 @@ const OrderTracking = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full flex flex-col safe-area-top overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`fixed inset-0 w-full flex flex-col safe-top overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -283,7 +283,7 @@ const OrderTracking = () => {
                     }}
                 >
                     <div
-                        className="pt-safe pt-4 px-5 flex items-center justify-between"
+                        className="safe-top pt-4 px-5 flex items-center justify-between"
                     >
                         <BackButton onClick={() => navigate('/home')} />
 
@@ -525,7 +525,7 @@ const OrderTracking = () => {
             </div>
 
             {/* Need Help CTA */}
-            <div className="px-5 mt-auto mt-[16px] pb-safe pb-4 relative z-0">
+            <div className="px-5 mt-auto mt-[16px] safe-bottom pb-4 relative z-0">
                 <button
                     onClick={() => navigate('/help/report', { state: { order } })}
                     className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${!isDarkMode ? 'bg-black' : ''}`}

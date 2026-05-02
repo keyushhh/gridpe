@@ -152,7 +152,7 @@ const KYCForm = () => {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-safe pt-4 pb-2 relative z-10">
+      <div className="flex items-center justify-between px-5 safe-top pt-4 pb-2 relative z-10">
         <BackButton onClick={() => navigate(-1)} />
 
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>KYC</h1>
@@ -250,7 +250,7 @@ const KYCForm = () => {
       </div>
 
       {/* Footer - Constrained container */}
-      <div className={`mt-auto pb-safe pb-4 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
+      <div className={`mt-auto safe-bottom pb-4 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}>
         <p className={`${isDarkMode ? 'text-[#7E7E7E]/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}>
           This information is used for identity verification only, and will be kept secure by Didit
         </p>

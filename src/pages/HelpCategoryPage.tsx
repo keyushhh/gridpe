@@ -47,9 +47,9 @@ const HelpCategoryPage = () => {
             )}
 
             {/* Scrollable Content */}
-            <div className="relative z-20 h-full w-full flex flex-col overflow-y-auto no-scrollbar pb-safe pb-4">
+            <div className="relative z-20 h-full w-full flex flex-col overflow-y-auto no-scrollbar safe-bottom pb-4">
                 {/* Header */}
-                <header className="px-5 pt-safe pt-4 pb-4 flex items-center justify-center relative z-10 shrink-0 mb-[41px]">
+                <header className="px-5 safe-top pt-4 pb-4 flex items-center justify-center relative z-10 shrink-0 mb-[41px]">
                     <div className="absolute left-5 z-20">
                         <BackButton onClick={() => navigate(-1)} />
                     </div>

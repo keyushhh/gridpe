@@ -553,7 +553,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                     {/* Footer / Keypad - Only render if NOT success */}
                     {!(step === 'CREATE_NEW' && createSuccess) && (
                         <div
-                            className="rounded-t-[30px] p-[20px] pb-safe pb-4"
+                            className="rounded-t-[30px] p-[20px] safe-bottom pb-4"
                             style={{ backgroundColor: isDarkMode ? '#05050B' : '#F2F2F7' }}
                         >
                             {/* Keypad */}

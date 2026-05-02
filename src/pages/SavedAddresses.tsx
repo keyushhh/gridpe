@@ -122,7 +122,7 @@ const SavedAddresses = () => {
     };
 
     return (
-        <div className={`fixed inset-0 flex flex-col ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-[#FFFFFF] text-black'} font-satoshi overflow-hidden safe-area-bottom`}>
+        <div className={`fixed inset-0 flex flex-col ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-[#FFFFFF] text-black'} font-satoshi overflow-hidden safe-bottom`}>
             {/* Background */}
             <div
                 className={`absolute inset-0 z-0 pointer-events-none ${isDarkMode ? 'opacity-40' : 'opacity-100'}`}
@@ -147,7 +147,7 @@ const SavedAddresses = () => {
             )}
 
             {/* Header */}
-            <div className="relative z-10 px-5 safe-area-top pt-4 pb-4 flex items-center justify-between">
+            <div className="relative z-10 px-5 safe-top pt-4 pb-4 flex items-center justify-between">
                 <BackButton onClick={() => navigate(-1)} />
 
                 <h1 className={`text-[18px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Saved Addresses</h1>
@@ -245,7 +245,7 @@ const SavedAddresses = () => {
 
             {/* Bottom CTA */}
             {!addressToDelete && (
-                <div className={`absolute bottom-0 left-0 right-0 p-5 pt-10 pb-safe pb-4 z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}>
+                <div className={`absolute bottom-0 left-0 right-0 p-5 pt-10 safe-bottom pb-4 z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}>
                     <button
                         onClick={() => navigate("/add-address")}
                         className={`w-full h-[48px] border backdrop-blur-xl rounded-full flex items-center justify-center text-[16px] font-medium active:scale-95 transition-transform ${isDarkMode ? 'bg-black/40 border-white/20 text-white' : 'bg-[#5260FE] border-[#5260FE] text-white shadow-lg shadow-[#5260FE]/20'}`}

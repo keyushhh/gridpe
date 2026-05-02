@@ -499,7 +499,7 @@ const Homepage = () => {
         style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch', transform: 'translateZ(0)' }}
       >
         {/* Header Fixed Area (Top Section always visible) */}
-        <div className="shrink-0 flex flex-col safe-area-top z-50 relative pointer-events-none">
+        <div className="shrink-0 flex flex-col safe-top z-50 relative pointer-events-none">
           {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
           <div className="px-5 pt-4 flex items-start justify-between relative pointer-events-auto z-50">
             <div className="space-y-1 max-w-[70%]">

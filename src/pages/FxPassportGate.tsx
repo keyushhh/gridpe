@@ -88,7 +88,7 @@ const FxPassportGate = () => {
             }}
         >
             {/* Header */}
-            <div className="shrink-0 relative flex items-center justify-between w-full px-5 pt-safe pt-4 pb-0 z-50">
+            <div className="shrink-0 relative flex items-center justify-between w-full px-5 safe-top pt-4 pb-0 z-50">
                 <BackButton onClick={() => navigate(-1)} />
 
                 <h1 className={`${isDarkMode ? "text-white" : "text-black"} text-[22px] font-medium font-sans absolute left-1/2 -translate-x-1/2`}>
@@ -159,7 +159,7 @@ const FxPassportGate = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="w-full mt-auto flex flex-col items-center pb-safe pb-4">
+                <div className="w-full mt-auto flex flex-col items-center safe-bottom pb-4">
                     <button
                         onClick={() => navigate('/kyc-form?flow=fx')}
                         className="w-full h-[52px] bg-[#5260FE] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"

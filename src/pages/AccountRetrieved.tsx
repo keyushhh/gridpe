@@ -20,7 +20,7 @@ const AccountRetrieved = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col items-center pt-4 pb-safe pb-4 px-5 safe-area-top relative`}
+      className={`h-full w-full ${containerOverflow} flex flex-col items-center pt-4 safe-bottom pb-4 px-5 safe-top relative`}
       style={isDarkMode ? {
         backgroundImage: `url(${accountRetrievedBg})`,
         backgroundSize: "cover",

@@ -617,7 +617,7 @@ const FxExchangeSummary = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom relative`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -635,7 +635,7 @@ const FxExchangeSummary = () => {
 
             {/* Header */}
             <div
-                className="flex-none px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-6"
+                className="flex-none px-5 safe-top pt-4 flex items-center justify-between z-10 mb-6"
             >
                 <BackButton onClick={() => navigate(-1)} />
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
@@ -1045,7 +1045,7 @@ const FxExchangeSummary = () => {
             />
 
             <div
-                className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] pb-safe pb-4 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
+                className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
                 style={{
                     minHeight: "255px",
                     borderTopLeftRadius: "32px",

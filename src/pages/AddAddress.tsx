@@ -364,7 +364,7 @@ const AddAddress = () => {
             borderBottom: isDarkMode ? 'none' : '1px solid rgba(0,0,0,0.05)'
           }}
         >
-          <div className="pt-safe px-5">
+          <div className="safe-top px-5">
             {/* Header */}
             <div className="flex items-center">
               <BackButton onClick={() => navigate(-1)} className="mr-2" />
@@ -484,7 +484,7 @@ const AddAddress = () => {
       {/* Bottom Sheet */}
       <div
         ref={bottomSheetRef}
-        className={`fixed bottom-0 left-0 right-0 rounded-t-[32px] pt-0 pb-safe z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] ${isDarkMode ? 'bg-black border-t border-white/10' : 'bg-white'}`}
+        className={`fixed bottom-0 left-0 right-0 rounded-t-[32px] pt-0 safe-bottom z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] ${isDarkMode ? 'bg-black border-t border-white/10' : 'bg-white'}`}
       >
         <div className="flex flex-col items-center w-full">
           {/* Header Pill - 12px from top */}

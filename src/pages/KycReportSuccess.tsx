@@ -25,7 +25,7 @@ const KycReportSuccess = () => {
 
     return (
         <div
-            className="fixed inset-0 w-full h-full flex flex-col bg-[#0a0a12] safe-area-top safe-area-bottom overflow-hidden"
+            className="fixed inset-0 w-full h-full flex flex-col bg-[#0a0a12] safe-top safe-bottom overflow-hidden"
             style={{
                 backgroundImage: `url(${successBg})`,
                 backgroundSize: "cover",
@@ -33,7 +33,7 @@ const KycReportSuccess = () => {
                 backgroundRepeat: "no-repeat",
             }}
         >
-            <div className="flex flex-col items-center px-[35px] safe-area-top" style={{ paddingTop: "24px" }}>
+            <div className="flex flex-col items-center px-[35px] safe-top" style={{ paddingTop: "24px" }}>
                 {/* Header */}
                 <h1 className="text-white text-[22px] font-medium font-satoshi text-center leading-tight">
                     Verification Successful

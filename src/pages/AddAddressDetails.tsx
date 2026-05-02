@@ -293,7 +293,7 @@ const AddAddressDetails = () => {
     };
 
     return (
-        <div className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} text-[#09090B]`}>
+        <div className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} text-[#09090B]`}>
             {/* Background - Applied to a container to avoid scroll issues if needed, but fixed attachment works on scrollable too */}
             {isDarkMode && (
                 <div
@@ -309,16 +309,16 @@ const AddAddressDetails = () => {
 
             {/* Scrollable Content */}
             <div
-                className="flex-1 overflow-y-scroll pb-safe pb-4 relative z-10 font-sans"
+                className="flex-1 overflow-y-scroll safe-bottom pb-4 relative z-10 font-sans"
             >
-                <div className="pt-safe pt-4 px-5">
+                <div className="safe-top pt-4 px-5">
                     {/* Sentinel: tracked by IO to drive header opacity */}
                     <div ref={sentinelRef} aria-hidden="true" style={{ position: 'absolute', top: 0, height: 100, width: 1, pointerEvents: 'none' }} />
                     {/* Header */}
                     <div
                         ref={headerRef}
-                        className="flex items-center sticky top-0 z-50 transition-colors"
-                        style={{ paddingTop: 'env(safe-area-inset-top)', willChange: 'opacity', transform: 'translateZ(0)' }}
+                        className="flex items-center sticky top-0 z-50 transition-colors safe-top"
+                        style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
                     >
                         <BackButton onClick={() => navigate(-1)} className="mr-2" />
                         <h1 className={`flex-1 text-center text-[22px] font-medium font-satoshi pr-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}>

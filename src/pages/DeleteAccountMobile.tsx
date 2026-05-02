@@ -53,7 +53,7 @@ const DeleteAccountMobile = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col pb-safe pb-4 relative"
+      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-bottom pb-4 relative"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -75,7 +75,7 @@ const DeleteAccountMobile = () => {
         />
       )}
 
-      <div className="px-5 pt-safe pt-4 flex items-center relative z-50 mb-8">
+      <div className="px-5 safe-top pt-4 flex items-center relative z-50 mb-8">
         <div className="absolute left-5">
           <BackButton onClick={handleGoBack} />
         </div>
@@ -142,7 +142,7 @@ const DeleteAccountMobile = () => {
       </div>
 
       {/* Footer Button */}
-      <div className="px-5 pb-safe pb-4 mt-auto flex flex-col gap-3 relative z-10">
+      <div className="px-5 safe-bottom pb-4 mt-auto flex flex-col gap-3 relative z-10">
         <Button
           onClick={handleRequestOtp}
           disabled={!isValid}

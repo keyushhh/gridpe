@@ -127,7 +127,7 @@ const WalletWithdraw = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-area-top ${isDarkMode ? '' : 'bg-white'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top ${isDarkMode ? '' : 'bg-white'}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -294,7 +294,7 @@ const WalletWithdraw = () => {
                     />
                 )}
                 <div
-                    className="w-full h-full p-[20px] pb-safe pb-4 backdrop-blur-[25px]"
+                    className="w-full h-full p-[20px] safe-bottom pb-4 backdrop-blur-[25px]"
                     style={{ backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : 'transparent' }}
                 >
                     <div className="flex flex-col gap-[10px] items-center relative z-10">

@@ -49,7 +49,7 @@ const WalletAddMoney = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom`}
+      className={`h-full w-full ${containerOverflow} flex flex-col safe-top safe-bottom`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -73,7 +73,8 @@ const WalletAddMoney = () => {
         <div className="w-10" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center pt-[60px]">
+      {/* Flexible Balance Area */}
+      <div className="flex-1 flex flex-col items-center justify-center pt-4 pb-4 min-h-0 overflow-y-auto no-scrollbar shrink">
 
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
           <span className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
@@ -84,7 +85,7 @@ const WalletAddMoney = () => {
         <div className="w-[238px] h-[1px] bg-[#373737] mt-[4.5px]" />
 
 
-        <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px] mb-[17px]`}>
+        <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[12px] font-sans font-normal mt-[8px] mb-[17px] text-center px-4`}>
           Available Balance: {formatINR(currentBalance)} • Wallet Capacity: {formatINR(walletLimit, { showSymbol: true, maximumFractionDigits: 0 })}
         </p>
 
@@ -95,7 +96,7 @@ const WalletAddMoney = () => {
         )}
 
 
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-4 mb-2">
           {["500", "1000", "1500"].map((val) => (
             <button
               key={val}
@@ -121,12 +122,13 @@ const WalletAddMoney = () => {
             </button>
           ))}
         </div>
+      </div>
 
-        <div className="flex-1" />
-
-        <div className="w-full px-5 pb-[16px]">
+      {/* Fixed Bottom Area for Keypad */}
+      <div className="shrink-0 w-full flex flex-col justify-end mt-auto">
+        <div className="w-full px-5 pb-[12px]">
           <div
-            className="w-full h-[81px] rounded-[13px] flex flex-col justify-center"
+            className="w-full min-h-[72px] rounded-[13px] flex flex-col justify-center"
             style={{
               padding: "9px 19px",
               backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
@@ -136,17 +138,17 @@ const WalletAddMoney = () => {
               border: isDarkMode ? "none" : "1px solid #E9EAEB",
             }}
           >
-            <p className={`text-[14px] font-medium font-sans mb-[6px] leading-none ${isExceedingLimit ? 'text-[#FF3B30]' : (isDarkMode ? 'text-white' : 'text-black')}`}>
+            <p className={`text-[14px] font-medium font-sans mb-[4px] leading-none ${isExceedingLimit ? 'text-[#FF3B30]' : (isDarkMode ? 'text-white' : 'text-black')}`}>
               Note:
             </p>
-            <p className={`text-[14px] font-normal font-sans leading-none ${isExceedingLimit ? 'text-[#FF3B30]' : (isDarkMode ? 'text-white' : 'text-black')}`}>
+            <p className={`text-[13px] font-normal font-sans leading-snug ${isExceedingLimit ? 'text-[#FF3B30]' : (isDarkMode ? 'text-white' : 'text-black')}`}>
               {isExceedingLimit
                 ? `This would exceed your ₹${walletLimit.toLocaleString('en-IN')} wallet limit`
                 : "Minimum top-up is ₹500. UPI payments are always free."}
             </p>
           </div>
           {isRenewalPending && (
-            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
               <p className="text-red-500 text-[13px] text-center font-medium">
                 Wallet features are locked. Please complete your subscription renewal to continue.
               </p>
@@ -155,7 +157,7 @@ const WalletAddMoney = () => {
         </div>
 
 
-        <div className={`w-full relative rounded-t-[32px] overflow-hidden ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
+        <div className={`w-full relative rounded-t-[32px] overflow-hidden shrink-0 ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
 
           {isDarkMode && (
             <div

@@ -37,7 +37,7 @@ const Wallet = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-top ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: `url(${walletBg})`,
                 backgroundSize: "cover",
@@ -251,7 +251,7 @@ const Wallet = () => {
             </div>
 
             {/* Footer CTA (Fixed) */}
-            <div className="shrink-0 px-5 pb-safe pb-4 pt-4 w-full bg-transparent">
+            <div className="shrink-0 px-5 safe-bottom pb-4 pt-4 w-full bg-transparent">
                 <button
                     onClick={async () => {
                         try {

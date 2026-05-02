@@ -54,7 +54,7 @@ const LinkedAccounts = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-area-top safe-area-bottom overflow-hidden`}
+      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom overflow-hidden`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

@@ -221,7 +221,7 @@ const FxSuccess = () => {
     };
 
     if (loading || !order || !order.status) {
-        return <div className={`h-screen w-full flex items-start justify-center font-sans pt-safe pt-4 ${isDarkMode ? "bg-[#0a0a12] text-white" : "bg-[#FFFFFF] text-black"}`}>
+        return <div className={`h-screen w-full flex items-start justify-center font-sans safe-top pt-4 ${isDarkMode ? "bg-[#0a0a12] text-white" : "bg-[#FFFFFF] text-black"}`}>
             <div className="flex flex-col items-center gap-4 mt-20">
                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm font-medium">Securing your order...</p>
@@ -292,7 +292,7 @@ const FxSuccess = () => {
 
     return (
         <div
-            className={`min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-area-bottom animate-in fade-in duration-500 relative ${isDarkMode ? 'text-white' : 'text-black'}`}
+            className={`min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-bottom animate-in fade-in duration-500 relative ${isDarkMode ? 'text-white' : 'text-black'}`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : `none`,
@@ -312,7 +312,7 @@ const FxSuccess = () => {
             )}
             {/* Header */}
             <div
-                className="px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-[21px] relative"
+                className="px-5 safe-top pt-4 flex items-center justify-between z-10 mb-[21px] relative"
             >
                 <div className="w-6" />
                 <h1 className={isDarkMode ? 'text-[22px] font-medium font-satoshi text-white' : 'text-[18px] font-medium font-sans text-black'}>

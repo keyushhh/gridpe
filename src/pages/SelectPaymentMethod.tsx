@@ -86,7 +86,7 @@ const SelectPaymentMethod = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top ${isDarkMode ? "" : "bg-white"}`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-top ${isDarkMode ? "" : "bg-white"}`}
             style={isDarkMode ? {
                 backgroundColor: "#0a0a12",
                 backgroundImage: `url(${bgDarkMode})`,
@@ -318,7 +318,7 @@ const SelectPaymentMethod = () => {
 
             {/* Footer CTAs - Absolute with blur */}
             <div
-                className="absolute bottom-0 left-0 right-0 px-5 pb-safe pb-4 pt-5 flex flex-col gap-3 z-30"
+                className="absolute bottom-0 left-0 right-0 px-5 safe-bottom pb-4 pt-5 flex flex-col gap-3 z-30"
                 style={{
                     backgroundColor: isDarkMode ? "rgba(10, 10, 18, 0.4)" : "rgba(255, 255, 255, 0.8)",
                     backdropFilter: "blur(20px)",

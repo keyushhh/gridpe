@@ -76,7 +76,7 @@ const OrderDelivered = () => {
                 />
             )}
 
-            <div className="h-full w-full overflow-hidden flex flex-col safe-area-top relative z-10 w-full pt-4">
+            <div className="h-full w-full overflow-hidden flex flex-col safe-top relative z-10 w-full pt-4">
                 {/* Heading: Satoshi - medium - 22px */}
                 <h1 className={`text-[22px] font-medium font-satoshi text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     Order Delivered
@@ -125,7 +125,7 @@ const OrderDelivered = () => {
                 </div>
 
                 {/* Redirecting CTA */}
-                <div className="w-full mt-auto flex flex-col items-center pb-safe pb-4">
+                <div className="w-full mt-auto flex flex-col items-center safe-bottom pb-4">
                     <button
                         onClick={() => navigate("/home")}
                         className={`flex items-center justify-center active:scale-95 transition-transform ${isDarkMode ? '' : 'bg-[#18181A] rounded-full'}`}

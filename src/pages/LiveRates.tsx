@@ -245,7 +245,7 @@ const LiveRates = () => {
                 />
             )}
             {/* Header */}
-            <div className="px-5 pt-safe pt-4 pb-2 flex items-center justify-between">
+            <div className="px-5 safe-top pt-4 pb-2 flex items-center justify-between">
                 <BackButton onClick={() => navigate(-1)} />
                 <h1 className="text-[18px] font-bold">Live Rates</h1>
                 <div className="w-10" />
@@ -422,7 +422,7 @@ const LiveRates = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-12 pb-safe pb-4">
+                <div className="mt-12 safe-bottom pb-4">
                     <button
                         onClick={() => navigate('/fx-exchange', {
                             state: {

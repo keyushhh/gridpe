@@ -31,7 +31,7 @@ const WalletSettings = () => {
     };
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-top safe-bottom`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",

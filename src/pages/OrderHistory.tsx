@@ -364,7 +364,7 @@ const OrderHistory = () => {
 
     return (
         <div
-            className="h-full w-full overflow-y-auto flex flex-col relative safe-area-top"
+            className="h-full w-full overflow-y-auto flex flex-col relative safe-top"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -441,7 +441,7 @@ const OrderHistory = () => {
 
             {/* Past Orders (Grouped by Date) */}
             {groupedPastOrders.length > 0 && (
-                <div className="px-5 pb-safe pb-4 relative z-10 flex flex-col gap-[24px]">
+                <div className="px-5 safe-bottom pb-4 relative z-10 flex flex-col gap-[24px]">
                     {groupedPastOrders.map((group) => (
                         <div key={group.title}>
                             <h2 className={`${showOnlyPast ? 'text-[#7E7E7E] text-[14px] font-medium uppercase' : (isDarkMode ? 'text-white' : 'text-black')} text-[16px] font-bold font-satoshi mb-[12px]`}>

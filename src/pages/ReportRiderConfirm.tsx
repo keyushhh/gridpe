@@ -16,7 +16,7 @@ const ReportRiderConfirm = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full h-full flex flex-col safe-area-top safe-area-bottom overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${warningBg})` : 'none',

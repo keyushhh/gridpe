@@ -39,7 +39,7 @@ const FxPassportKYC = () => {
         >
             {/* Header */}
             <div
-                className="px-5 pt-safe pt-1 flex items-center justify-between z-10 mb-[21px] relative"
+                className="px-5 safe-top pt-1 flex items-center justify-between z-10 mb-[21px] relative"
             >
                 <BackButton onClick={() => navigate(-1)} />
 
@@ -49,7 +49,7 @@ const FxPassportKYC = () => {
                 <div className="w-10" />
             </div>
 
-            <div className="px-5 pb-safe pb-4 flex-1 flex flex-col justify-between">
+            <div className="px-5 safe-bottom pb-4 flex-1 flex flex-col justify-between">
                 {step === 'upload' && (
                     <div className="animate-in slide-in-from-bottom-4 duration-500">
                         <div className="mt-8">

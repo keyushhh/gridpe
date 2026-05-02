@@ -233,7 +233,7 @@ const MyCards = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom relative`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

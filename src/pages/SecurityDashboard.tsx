@@ -335,7 +335,7 @@ const SecurityDashboard = () => {
         />
       )}
       {/* Header - Fixed */}
-      <div className="px-5 pt-safe pt-4 flex items-center justify-between relative z-50 flex-none">
+      <div className="px-5 safe-top pt-4 flex items-center justify-between relative z-50 flex-none">
         <BackButton onClick={() => navigate(originPath)} />
 
         <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>Security & Kyc</h1>
@@ -422,7 +422,7 @@ const SecurityDashboard = () => {
         </div>
 
         {/* Content Container */}
-        <div className="px-5 pb-safe pb-4 flex flex-col gap-4">
+        <div className="px-5 safe-bottom pb-4 flex flex-col gap-4">
 
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}

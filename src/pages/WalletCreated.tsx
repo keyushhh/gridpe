@@ -389,7 +389,7 @@ const WalletCreated = () => {
     return (
         <div
             key={userId || 'wallet'}
-            className="h-full w-full overflow-y-auto overscroll-auto flex flex-col safe-area-top relative"
+            className="h-full w-full overflow-y-auto overscroll-auto flex flex-col safe-top relative"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${walletBg})` : "none",
@@ -576,7 +576,7 @@ const WalletCreated = () => {
             </div>
 
             {/* Footer CTA */}
-            <div className="shrink-0 px-5 mt-auto pb-safe pb-4 pt-4 w-full bg-transparent flex flex-col gap-[12px]">
+            <div className="shrink-0 px-5 mt-auto safe-bottom pb-4 pt-4 w-full bg-transparent flex flex-col gap-[12px]">
                 <button
                     disabled={isRenewalPending || (profile as any)?.subscription_status === 'pending'}
                     onClick={() => !isRenewalPending && (profile as any)?.subscription_status !== 'pending' && navigate('/wallet-add-money')}

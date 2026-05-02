@@ -72,7 +72,7 @@ const OrderCash = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top safe-area-bottom relative`}
+      className={`h-full w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -93,7 +93,8 @@ const OrderCash = () => {
         <div className="w-10" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center pt-[60px] z-10 w-full">
+      {/* Flexible Balance Area */}
+      <div className="flex-1 flex flex-col items-center justify-center pt-4 pb-4 min-h-0 overflow-y-auto no-scrollbar shrink w-full z-10">
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
           <span className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
           <span className={`text-[32px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
@@ -101,7 +102,7 @@ const OrderCash = () => {
 
         <div className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-[#E6E8EB]'}`} />
 
-        <p className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] ${parseFloat(amount) > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+        <p className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] text-center px-4 ${parseFloat(amount) > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
           Total Available Balance ₹ {walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
 
@@ -111,7 +112,7 @@ const OrderCash = () => {
           </p>
         )}
 
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-4 mb-2">
           {["500", "1000", "1500"].map((val) => (
             <button
               key={val}
@@ -134,28 +135,29 @@ const OrderCash = () => {
             </button>
           ))}
         </div>
+      </div>
 
-        <div className="flex-1" />
-
-        <div className="w-full px-5 pb-[16px]">
+      {/* Fixed Bottom Area for Keypad */}
+      <div className="shrink-0 w-full flex flex-col justify-end mt-auto z-10">
+        <div className="w-full px-5 pb-[12px]">
           <div
-            className={`w-full h-[61px] relative flex flex-col justify-center px-[18px] py-[10px] ${!isDarkMode ? 'bg-[#FFFFFF] rounded-[16px] border border-[#E9EAEB]' : ''}`}
+            className={`w-full min-h-[61px] relative flex flex-col justify-center px-[18px] py-[10px] ${!isDarkMode ? 'bg-[#FFFFFF] rounded-[16px] border border-[#E9EAEB]' : ''}`}
             style={isDarkMode ? {
               backgroundImage: `url(${infoContainerBg})`,
               backgroundSize: "100% 100%",
               backgroundRepeat: "no-repeat",
             } : {}}
           >
-            <p className={`text-[14px] font-medium font-sans mb-[9px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
+            <p className={`text-[14px] font-medium font-sans mb-[4px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Amount will be held from wallet
             </p>
-            <p className={`text-[12px] font-light font-sans leading-none ${isDarkMode ? 'text-white' : 'text-black/60'}`}>
+            <p className={`text-[13px] font-light font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black/60'}`}>
               You won’t be charged unless the delivery is completed.
             </p>
           </div>
         </div>
 
-        <div className={`w-full relative rounded-t-[32px] overflow-hidden ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
+        <div className={`w-full relative rounded-t-[32px] overflow-hidden shrink-0 ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
           {isDarkMode && (
             <div
               className="absolute inset-0 rounded-t-[32px] pointer-events-none"

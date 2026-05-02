@@ -201,7 +201,7 @@ const ScheduleDelivery = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col font-sans safe-area-top safe-area-bottom relative`}
+            className={`h-full w-full ${containerOverflow} flex flex-col font-sans safe-top safe-bottom relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -393,7 +393,7 @@ const ScheduleDelivery = () => {
 
             {/* Slide to Pay Bottom Sheet */}
             <div
-                className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
+                className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
                 style={{
                     height: "255px",
                     backgroundColor: isDarkMode ? "rgba(23, 23, 23, 0.31)" : "#FFFFFF",

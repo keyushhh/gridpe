@@ -157,7 +157,7 @@ const ZingChat = () => {
 
     return (
         <div
-            className={`fixed inset-0 w-full flex flex-col safe-area-top transition-colors duration-300 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`fixed inset-0 w-full flex flex-col safe-top transition-colors duration-300 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
                 backgroundSize: "cover",

@@ -59,7 +59,7 @@ const ManageSubscription = () => {
 
     return (
         <div
-            className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-area-top pb-safe pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+            className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-top safe-bottom pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
             style={{
                 fontFamily: "'Satoshi', sans-serif",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",

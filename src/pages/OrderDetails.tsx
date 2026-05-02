@@ -324,7 +324,7 @@ const OrderDetails = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top animate-in fade-in duration-500 relative`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-top animate-in fade-in duration-500 relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : 'none',
@@ -342,7 +342,7 @@ const OrderDetails = () => {
             )}
 
 
-            <div className="flex-none px-5 pt-safe pt-4 flex items-center justify-between z-10 mb-[21px] relative">
+            <div className="flex-none px-5 safe-top pt-4 flex items-center justify-between z-10 mb-[21px] relative">
                 <div className="w-6" />
                 <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     {statusConfig.headerTitle}
@@ -553,7 +553,7 @@ const OrderDetails = () => {
                 </div>
 
                 {/* Footer CTA */}
-                <div className="w-full mt-auto mt-[20px] pb-safe pb-4">
+                <div className="w-full mt-auto mt-[20px] safe-bottom pb-4">
                     {order?.status === 'cancelled' || order?.status === 'failed' ? (
                         <div className="flex flex-col items-center">
                             <button
@@ -590,7 +590,7 @@ const OrderDetails = () => {
             {/* Info Popup (Toaster) */}
             {showInfoPopup && (
                 <div
-                    className="absolute inset-0 z-50 flex items-start justify-center pt-4 bg-black/50 backdrop-blur-sm safe-area-top"
+                    className="absolute inset-0 z-50 flex items-start justify-center pt-4 bg-black/50 backdrop-blur-sm safe-top"
                     onClick={() => {
                         setShowInfoPopup(false);
                         setIsMenuOpen(true);

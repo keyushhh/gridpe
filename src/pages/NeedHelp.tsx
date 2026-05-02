@@ -124,7 +124,7 @@ const NeedHelp = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 pt-safe pt-4 pb-4 flex items-center justify-between relative z-10 shrink-0">
+            <header className="px-5 safe-top pt-4 pb-4 flex items-center justify-between relative z-10 shrink-0">
                 <BackButton onClick={() => navigate(-1)} />
 
                 <h1 className={`text-[20px] font-medium font-satoshi flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>Need Help?</h1>
@@ -280,7 +280,7 @@ const NeedHelp = () => {
             </main>
 
             {/* Bottom Submit Button */}
-            <div className={`fixed bottom-0 left-0 right-0 p-5 pb-safe pb-4 z-20 ${isDarkMode ? 'bg-[#0a0a12]/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-[#E9EAEB]'}`}>
+            <div className={`fixed bottom-0 left-0 right-0 p-5 safe-bottom pb-4 z-20 ${isDarkMode ? 'bg-[#0a0a12]/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-[#E9EAEB]'}`}>
                 <button
                     disabled={!selectedCategory}
                     className={`w-full h-12 rounded-full flex items-center justify-center text-white text-[16px] font-medium active:scale-95 transition-all

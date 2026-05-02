@@ -588,7 +588,7 @@ const OrderCashSummary = () => {
 
     return (
         <div
-            className={`h-full w-full ${containerOverflow} flex flex-col safe-area-top relative`}
+            className={`h-full w-full ${containerOverflow} flex flex-col safe-top relative`}
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
                 backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
@@ -1005,7 +1005,7 @@ const OrderCashSummary = () => {
             />
 
             <div
-                className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] pb-safe pb-4 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
+                className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? "bg-[#171717]/30 backdrop-blur-[24px]" : "bg-white border-t border-x border-[#E9EAEB]"}`}
                 style={{
                     height: "255px",
                     borderTopLeftRadius: "32px",

@@ -33,7 +33,7 @@ const FxIntro = () => {
         >
 
             {/* Header */}
-            <div className="shrink-0 relative flex items-center justify-between w-full px-5 pt-safe pt-4 pb-0 z-50">
+            <div className="shrink-0 relative flex items-center justify-between w-full px-5 safe-top pt-4 pb-0 z-50">
                 <BackButton onClick={() => navigate(-1)} />
                 <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium leading-[120%] font-satoshi absolute left-1/2 -translate-x-1/2`}>
 
@@ -121,7 +121,7 @@ const FxIntro = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-auto w-full pb-safe pb-6 flex justify-center">
+                <div className="mt-auto w-full safe-bottom pb-6 flex justify-center">
                     <button
                         onClick={() => navigate("/wallet-settings")}
                         className="w-full h-[52px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20 flex items-center justify-center"

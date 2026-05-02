@@ -725,7 +725,7 @@ const OnboardingScreen = () => {
 
   if (isAuthChecking) {
     return (
-      <div className="h-full w-full flex items-center justify-center safe-area-top"
+      <div className="h-full w-full flex items-center justify-center safe-top"
         style={{
           backgroundColor: '#0a0a12',
           backgroundImage: `url(${mainBg})`,
@@ -743,7 +743,7 @@ const OnboardingScreen = () => {
 
   return (
     <div
-      className="fixed inset-0 h-full w-full onboarding-container overflow-y-auto overscroll-y-none flex flex-col safe-area-top"
+      className="fixed inset-0 h-full w-full onboarding-container overflow-y-auto overscroll-y-none flex flex-col safe-top"
       style={{
         backgroundColor: '#0a0a12',
         backgroundImage: `url(${mainBg})`,
@@ -772,7 +772,7 @@ const OnboardingScreen = () => {
         )}
 
         {/* Form Section */}
-        <div className={`px-6 pb-safe pb-4 space-y-6 flex-1 flex flex-col ${(showMpinSetup || showMpinLogin) ? 'pt-4' : ''}`}>
+        <div className={`px-6 safe-bottom pb-4 space-y-6 flex-1 flex flex-col ${(showMpinSetup || showMpinLogin) ? 'pt-4' : ''}`}>
           {/* Phone Input Screen */}
           {!showOtpInput && !showMpinSetup && !showMpinLogin && (
             <>
@@ -1020,7 +1020,7 @@ const OnboardingScreen = () => {
                 ) : "Unlock"}
               </Button>
 
-              <div className="flex flex-col gap-2 items-center pb-safe pb-4">
+              <div className="flex flex-col gap-2 items-center safe-bottom pb-4">
                 <button
                   onClick={() => navigate('/forgot-mpin')}
                   className="text-link hover:underline text-sm"
@@ -1206,7 +1206,7 @@ const OnboardingScreen = () => {
 
               <button
                 onClick={handleLogout}
-                className="w-full text-center text-muted-foreground text-sm hover:text-white transition-colors pb-safe pb-4"
+                className="w-full text-center text-muted-foreground text-sm hover:text-white transition-colors safe-bottom pb-4"
               >
                 Not you? Use a different number
               </button>
@@ -1219,11 +1219,9 @@ const OnboardingScreen = () => {
       {!showMpinSetup && !showMpinLogin && (
         <>
           <div style={{ flex: 1 }} />
-          <div style={{
-            paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
-            textAlign: 'center',
-            padding: '0 24px'
-          }}>
+          <div 
+            className="text-center px-6 safe-bottom"
+          >
             <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px]">
               By continuing, you agree to Grid.Pe's<br />
               <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}

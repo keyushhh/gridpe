@@ -298,7 +298,7 @@ const FxExchange = () => {
                 />
             )}
             {/* Header */}
-            <div className="px-5 pt-safe pt-4 pb-6 flex items-center justify-between">
+            <div className="px-5 safe-top pt-4 pb-6 flex items-center justify-between">
                 <BackButton onClick={() => navigate('/home')} />
                 <h1 className="text-[18px] font-bold">FX Exchange</h1>
                 <button
@@ -484,7 +484,7 @@ const FxExchange = () => {
             </div>
 
             {/* Footer / CTA */}
-            <div className="px-5 pb-safe pb-4 mt-auto flex flex-col items-center gap-[18px]">
+            <div className="px-5 safe-bottom pb-4 mt-auto flex flex-col items-center gap-[18px]">
                 <p className={`text-[12px] ${isDarkMode ? "text-white/60" : "text-black"}`}>
                     (Rate locked for <span className="text-[#5260FE] font-bold">{formatTime(timer)}</span>)
                 </p>

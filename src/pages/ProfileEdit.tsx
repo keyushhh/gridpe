@@ -126,7 +126,7 @@ const ProfileEdit = () => {
       }}
     >
       {/* Header */}
-      <div className="px-5 pt-safe pt-4 flex items-center justify-between shrink-0">
+      <div className="px-5 safe-top pt-4 flex items-center justify-between shrink-0">
         <BackButton onClick={() => navigate(-1)} />
 
         <h1 className="text-foreground text-[18px] font-semibold">Profile</h1>
@@ -284,7 +284,7 @@ const ProfileEdit = () => {
         </div>
       </div>
 
-      <div className="px-5 pb-safe pb-4 opacity-40 flex flex-col items-start mt-auto">
+      <div className="px-5 safe-bottom pb-4 opacity-40 flex flex-col items-start mt-auto">
         <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
         <p className="text-sm mt-1">This is not where you find love.</p>
       </div>

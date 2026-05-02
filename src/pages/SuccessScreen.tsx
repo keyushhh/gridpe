@@ -71,7 +71,7 @@ const SuccessScreen = () => {
 
   return (
     <div
-      className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-area-top"
+      className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-top"
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${successBg})` : "none",
@@ -165,7 +165,7 @@ const SuccessScreen = () => {
       </div>
 
       {/* Footer Text — pushed to bottom */}
-      <div className="mt-auto pb-safe pb-4 px-4">
+      <div className="mt-auto safe-bottom pb-4 px-4">
         <p className={`${isDarkMode ? 'text-white' : 'text-black/60'} text-[13px] text-center leading-snug font-sans`}>
           {kycStatus === 'verified'
             ? "Your account features have been fully unlocked."
