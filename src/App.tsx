@@ -260,7 +260,7 @@ const App = () => {
       highlightColor={isDarkMode ? "#2A2D35" : "#E5E7EB"}
     >
       {/* ── Desktop wallpaper backdrop ── */}
-      <div className="desktop-backdrop min-h-screen bg-[#06060C]">
+      <div className="desktop-backdrop min-h-screen bg-[#06060C] pb-safe">
         {/* ── Mobile simulator frame — all child w-full resolves to this 430px cap ── */}
         <main
           className="mobile-frame w-full max-w-[430px] mx-auto relative shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 bg-[#0a0a12] overflow-hidden"

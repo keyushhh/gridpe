@@ -127,6 +127,7 @@ html.font-pending body {
     flex: 1;
     overflow: hidden;
     background-color: #0a0a12;
+    min-height: -webkit-fill-available;
   }
 
   html {
@@ -381,9 +382,7 @@ html.font-pending body {
   }
 
   .pb-safe {
-    /* Only apply safe area bottom on iOS. Android's env() can 
-       incorrectly include the keyboard height in edge-to-edge mode. */
-    padding-bottom: 16px;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .ios-platform .pb-safe {
