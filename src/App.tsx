@@ -300,6 +300,7 @@ const App = () => {
                 <Route path="/kyc-status-complete" element={<ProtectedRoute><KYCStatusComplete /></ProtectedRoute>} />
                 <Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
                 <Route path="/security/mpin-settings" element={<ProtectedRoute><MpinSettings /></ProtectedRoute>} />
+                <Route path="/forgot-mpin" element={<ProtectedRoute><ForgotMpin /></ProtectedRoute>} />
                 <Route path="/order-cash" element={<ProtectedRoute><OrderCash /></ProtectedRoute>} />
                 <Route path="/order-cash-summary" element={<ProtectedRoute><OrderCashSummary /></ProtectedRoute>} />
                 <Route path="/order-history" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />

@@ -105,10 +105,10 @@ html.font-pending body {
   #root {
     height: 100%;
     min-height: 100dvh;
+    min-height: -webkit-fill-available;
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
   }
 
   html,

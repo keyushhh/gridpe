@@ -132,7 +132,7 @@ const SecurityDashboard = () => {
   };
 
   const handleBiometricToggle = async () => {
-    await hapticLight();
+    try { await hapticLight(); } catch (_) { /* non-critical */ }
     
     if (isDeviceEnabled) {
       // Disable locally
@@ -175,9 +175,9 @@ const SecurityDashboard = () => {
       
       toast.success("Biometric unlock enabled!");
     } catch (error: any) {
-      console.error("Biometric authentication failed:", error);
+      console.error("Biometric authentication failed:", JSON.stringify(error, null, 2));
       // Revert toggle happens naturally as isDeviceEnabled wasn't set
-      toast.error("Authentication failed or cancelled");
+      toast.error(error?.message || "Authentication failed or cancelled");
     } finally {
       setShowMpinForBiometric(false);
     }
@@ -301,6 +301,7 @@ const SecurityDashboard = () => {
   const getRadarAnimation = () => {
     switch (kycStatus) {
       case "incomplete":
+      case "pending":
         return errorRadarAnimation;
       case "in_review":
         return inProgressRadarAnimation;
@@ -409,13 +410,13 @@ const SecurityDashboard = () => {
               }}
             />
             <Lottie
+              key={kycStatus}
               animationData={getRadarAnimation()}
               loop={true}
               className="w-full h-full relative z-10"
               style={{
                 transform: "scale(2.0)",
-                // Removed brightness/contrast/opacity filters as they cause the "grey" washout in light mode inversion.
-                filter: !isDarkMode ? "invert(1) hue-rotate(180deg)" : "none"
+                filter: !isDarkMode ? "brightness(0.85) contrast(1.1)" : "none"
               }}
             />
           </div>
