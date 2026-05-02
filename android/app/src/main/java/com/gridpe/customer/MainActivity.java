@@ -11,6 +11,8 @@ public class MainActivity extends BridgeActivity {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        
         // Mute the SystemBars plugin's automatic padding which causes the grey box bug.
         // Capacitor 8's SystemBars plugin adds a listener that forces paddingBottom 
         // to match the keyboard height, even if disabled in config.
