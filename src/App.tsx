@@ -270,9 +270,9 @@ const App = () => {
           }}
         >
           <div 
-            className="app-container overflow-y-auto" 
+            className="app-container overflow-y-auto flex flex-col" 
             style={{ 
-              height: '100%'
+              minHeight: '100dvh'
             }}
           >
             <GlobalCustomToaster />

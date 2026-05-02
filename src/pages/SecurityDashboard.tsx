@@ -355,9 +355,9 @@ const SecurityDashboard = () => {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-y-auto flex flex-col">
         {/* Radar Animation Section */}
-        <div className="flex-1 flex flex-col items-center justify-center relative">
+        <div className="shrink-0 h-[280px] flex flex-col items-center justify-center relative">
           <div className="w-[254px] h-[254px] flex items-center justify-center relative">
             {/* Replicated 5-circle structure for both modes to ensure consistent size */}
             {/* 5th Circle (Outer) */}
@@ -427,14 +427,13 @@ const SecurityDashboard = () => {
               className="w-full h-full relative z-10"
               style={{
                 transform: "scale(2.0)",
-                filter: !isDarkMode ? "brightness(0.85) contrast(1.1)" : "none"
               }}
             />
           </div>
         </div>
 
         {/* Content Container */}
-        <div className="px-5 safe-bottom pb-4 flex flex-col gap-4">
+        <div className="px-5 pb-6 flex flex-col gap-4">
 
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}
