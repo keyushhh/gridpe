@@ -104,7 +104,7 @@ html.font-pending body {
   body,
   #root {
     height: 100%;
-    min-height: 100%;
+    min-height: 100dvh;
     width: 100%;
     margin: 0;
     padding: 0;
@@ -129,7 +129,7 @@ html.font-pending body {
     flex: 1;
     /* overflow: hidden; removed to ensure safe area is utilized */
     background-color: #0a0a12;
-    min-height: -webkit-fill-available;
+    min-height: 100dvh;
   }
 
   html {
