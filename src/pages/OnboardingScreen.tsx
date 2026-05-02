@@ -783,7 +783,12 @@ const OnboardingScreen = () => {
                 </p>
               </div>
 
-              <div className="animate-fade-in space-y-2" style={{ animationDelay: "0.3s" }}>
+              <div 
+                className="animate-fade-in space-y-2" 
+                style={{ animationDelay: "0.3s" }}
+                onPointerDown={() => phoneInputRef.current?.focus()}
+                onTouchStart={() => phoneInputRef.current?.focus()}
+              >
                 <PhoneInput
                   ref={phoneInputRef}
                   value={phoneNumber}
@@ -850,7 +855,7 @@ const OnboardingScreen = () => {
               </div>
 
               <div className="flex flex-col items-center gap-2 py-4" ref={otpInputRef}>
-                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus>
+                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus inputMode="numeric" pattern="[0-9]*" type="tel">
                   <InputOTPGroup className="gap-[8px]">
                     {[0, 1, 2, 3, 4, 5].map(index => (
                       <InputOTPSlot
@@ -967,6 +972,7 @@ const OnboardingScreen = () => {
                   autoFocus
                   inputMode="numeric"
                   pattern="[0-9]*"
+                  type="tel"
                 >
                   <InputOTPGroup className="w-[364px] justify-between">
                     {[0, 1, 2, 3].map(index => (
@@ -1069,6 +1075,7 @@ const OnboardingScreen = () => {
                   autoFocus
                   inputMode="numeric"
                   pattern="[0-9]*"
+                  type="tel"
                 >
                   <InputOTPGroup className="w-[364px] justify-between">
                     {[0, 1, 2, 3].map(index => (
@@ -1112,6 +1119,7 @@ const OnboardingScreen = () => {
                   onChange={handleConfirmMpinChange}
                   inputMode="numeric"
                   pattern="[0-9]*"
+                  type="tel"
                 >
                   <InputOTPGroup className="w-[364px] justify-between">
                     {[0, 1, 2, 3].map(index => (

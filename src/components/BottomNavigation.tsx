@@ -38,9 +38,9 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 pt-2 safe-bottom backdrop-blur-xl ${isDarkMode ? 'border-t border-white/5' : 'border-t border-[#E9EAEB]'}`}
+      className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 pt-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl ${isDarkMode ? 'border-t border-white/5' : 'border-t border-[#E9EAEB]'}`}
       style={{
-        minHeight: '64px',
+        minHeight: `calc(64px + env(safe-area-inset-bottom))`,
         backgroundColor: isDarkMode ? 'rgba(10, 10, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         boxShadow: '0 -10px 30px rgba(0,0,0,0.15)'
       }}

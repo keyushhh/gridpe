@@ -88,6 +88,7 @@ html.font-pending body {
   /* Eliminate the 300ms tap delay on Android Chromium for any tappable element. */
   button,
   a,
+  input,
   [role="button"],
   input[type="button"],
   input[type="submit"],
