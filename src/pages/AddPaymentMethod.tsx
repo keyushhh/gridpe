@@ -15,7 +15,6 @@ import amazonIcon from "@/assets/amazon.png";
 import hdfcLogo from "@/assets/hdfc-bank-logo.png";
 import { fetchBankAccounts, BankAccount } from "@/lib/banking";
 import { getBankLogo } from "@/utils/bankUtils";
-import { USER_ID } from "@/lib/supabase";
 
 interface UpiMethod {
     id: string;
@@ -58,6 +57,8 @@ const AddPaymentMethod = () => {
     const { resolvedTheme } = useTheme();
     const location = useLocation();
     const isDarkMode = resolvedTheme !== 'light';
+    const { profile } = useUser();
+    const userId = profile?.id;
     const { amount, flow, tier } = location.state || { amount: "0.00", flow: "add-money", tier: "" };
 
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -67,8 +68,9 @@ const AddPaymentMethod = () => {
 
     useEffect(() => {
         const loadBanks = async () => {
+            if (!userId) return;
             try {
-                const accounts = await fetchBankAccounts();
+                const accounts = await fetchBankAccounts(userId);
                 setBankAccounts(accounts);
             } catch (error) {
                 console.error("Error loading bank accounts:", error);

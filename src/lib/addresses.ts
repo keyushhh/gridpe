@@ -1,4 +1,4 @@
-import { supabase, USER_ID } from './supabase';
+import { supabase } from './supabase';
 import { OpenLocationCode } from "open-location-code";
 import { Address } from '@/types';
 export type { Address };
@@ -29,7 +29,7 @@ export const ensureGlobalPlusCode = (plusCode: string | null, lat: number, lng: 
 };
 
 /**
- * Reliably fetches the current user ID, falling back to demo USER_ID.
+ * Reliably fetches the current user ID.
  * Uses getUser() for security as recommended by Supabase for RLS verification.
  */
 export const getAuthUserId = async (): Promise<string | null> => {
@@ -91,11 +91,12 @@ export const updateAddress = async (id: string, updates: Partial<Address>) => {
   return data as Address;
 };
 
-export const deleteAddress = async (id: string) => {
+export const deleteAddress = async (id: string, userId: string) => {
   const { error } = await supabase
     .from('addresses')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', userId);
 
   if (error) throw error;
 };

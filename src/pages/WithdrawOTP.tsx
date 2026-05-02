@@ -17,7 +17,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
 import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { createPayout, initiateUPIDisbursement, verifyVPA } from "@/lib/banking";
 
 const WithdrawOTP = () => {
@@ -25,7 +25,8 @@ const WithdrawOTP = () => {
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const location = useLocation();
-    const { phoneNumber, refreshBalance } = useUser();
+    const { phoneNumber, refreshBalance, profile } = useUser();
+    const userId = profile?.id;
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
 
@@ -117,13 +118,18 @@ const WithdrawOTP = () => {
 
     const handleVerify = async () => {
         if (isVerified) {
+            if (!userId) {
+                showToaster("Authentication error. Please log in again.", "error");
+                return;
+            }
+
             setLoading(true);
             try {
                 // 1. Create payout record based on selected method
                 if (stateMethod?.id === 'upi-id' || stateMethod?.id === 'gpay' || stateMethod?.id === 'phonepe') {
                     // Atomic RPC: deducts wallets.available_balance + inserts payout in one transaction
                     const { error: rpcError } = await supabase.rpc('wallet_withdraw', {
-                        p_user_id: USER_ID,
+                        p_user_id: userId,
                         p_amount: parseFloat(amount),
                         p_payout_method: 'upi',
                         p_vpa: actualUpiId,
@@ -142,7 +148,7 @@ const WithdrawOTP = () => {
                             : 'card';
 
                     const { error: rpcError } = await supabase.rpc('wallet_withdraw', {
-                        p_user_id: USER_ID,
+                        p_user_id: userId,
                         p_amount: parseFloat(amount),
                         p_payout_method: payoutMethod,
                         p_vpa: stateMethod?.id === 'bank-account' ? selectedMethod : method?.name || null,

@@ -7,7 +7,7 @@ import { ChevronDown, Home, Briefcase, Users, MapPin, Eye, EyeOff } from "lucide
 import { OpenLocationCode } from "open-location-code";
 import { fetchRecentOrders, fetchActiveOrders } from "@/lib/orders";
 import { Order, SavedAddress, Rider } from "@/types";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase} from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useAsset } from "@/hooks/useAsset";
 import addIcon from "@/assets/add-icon.svg";
@@ -68,7 +68,8 @@ const Homepage = () => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === 'dark';
   const [showBalance, setShowBalance] = useState(false);
-  const { walletBalance, walletTier, isPassportVerified, profileImage, name, scheduledDowngrade } = useUser();
+  const { walletBalance, walletTier, isPassportVerified, profileImage, name, scheduledDowngrade, profile } = useUser();
+  const userId = profile?.id;
   const [balanceAlert, setBalanceAlert] = useState<{ days: number; excess: number; targetTier: string } | null>(null);
 
   useEffect(() => {
@@ -214,17 +215,17 @@ const Homepage = () => {
           const { count, error: addrError } = await supabase
             .from('addresses')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', session.user.id);
+            .eq('user_id', userId);
 
           if (!addrError) {
             setHasSavedAddresses((count || 0) > 0);
           }
 
-          const activeOrders = await fetchActiveOrders(session.user.id);
+          const activeOrders = await fetchActiveOrders(userId);
           const filteredActive = activeOrders.filter(o => !['delivered', 'success'].includes(o.status.toLowerCase()));
           setActiveOrder(filteredActive.length > 0 ? filteredActive[0] : null);
 
-          const recent = await fetchRecentOrders(session.user.id);
+          const recent = await fetchRecentOrders(userId);
           setTransactionHistory(recent);
         } catch (e) {
           console.error("Failed to fetch data", e);
@@ -250,7 +251,7 @@ const Homepage = () => {
               event: '*',
               schema: 'public',
               table: 'orders',
-              filter: `user_id=eq.${session.user.id}`
+              filter: `user_id=eq.${userId}`
             },
             (payload) => {
               loadData();
@@ -346,11 +347,10 @@ const Homepage = () => {
     try {
       await cancelOrder(orderId, 'User Request', 'Cancelled from homepage');
       setIsSheetOpen(false);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const activeOrders = await fetchActiveOrders(session.user.id);
+      if (userId) {
+        const activeOrders = await fetchActiveOrders(userId);
         setActiveOrder(activeOrders.length > 0 ? activeOrders[0] : null);
-        const recent = await fetchRecentOrders(session.user.id);
+        const recent = await fetchRecentOrders(userId);
         setTransactionHistory(recent);
       }
     } catch (e) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useUser } from "@/contexts/UserContext";
 import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -26,6 +27,8 @@ const currencySymbols: Record<string, string> = {
 const OrderHistory = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { profile } = useUser();
+    const userId = profile?.id;
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const showOnlyPast = location.state?.showOnlyPast || false;
@@ -42,42 +45,40 @@ const OrderHistory = () => {
     const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
 
     const loadOrders = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-            try {
-                // Fetch Active Orders
-                const active = await fetchActiveOrders(session.user.id);
-                setActiveOrders(active);
+        if (!userId) return;
+        try {
+            // Fetch Active Orders
+            const active = await fetchActiveOrders(userId);
+            setActiveOrders(active);
 
-                // Fetch Past Orders
-                const past = await fetchPastOrders(session.user.id);
+            // Fetch Past Orders
+            const past = await fetchPastOrders(userId);
 
-                if (showOnlyRewards) {
-                    const { data: rewardData } = await supabase
-                        .from('reward_transactions')
-                        .select('reference_id')
-                        .eq('user_id', session.user.id)
-                        .eq('type', 'earned')
-                        .not('reference_id', 'is', null);
+            if (showOnlyRewards) {
+                const { data: rewardData } = await supabase
+                    .from('reward_transactions')
+                    .select('reference_id')
+                    .eq('user_id', userId)
+                    .eq('type', 'earned')
+                    .not('reference_id', 'is', null);
 
-                    if (rewardData) {
-                        const earnedOrderIds = new Set(rewardData.map(r => r.reference_id));
-                        const filtered = past.filter(o => earnedOrderIds.has(o.id));
-                        setPastOrders(filtered);
-                        setFilteredPastOrders(filtered);
-                        setActiveOrders([]); // Clear active orders
-                    } else {
-                        setPastOrders([]);
-                        setFilteredPastOrders([]);
-                        setActiveOrders([]);
-                    }
+                if (rewardData) {
+                    const earnedOrderIds = new Set(rewardData.map(r => r.reference_id));
+                    const filtered = past.filter(o => earnedOrderIds.has(o.id));
+                    setPastOrders(filtered);
+                    setFilteredPastOrders(filtered);
+                    setActiveOrders([]); // Clear active orders
                 } else {
-                    setPastOrders(past);
-                    setFilteredPastOrders(past);
+                    setPastOrders([]);
+                    setFilteredPastOrders([]);
+                    setActiveOrders([]);
                 }
-            } catch (e) {
-                console.error("Failed to load order history", e);
+            } else {
+                setPastOrders(past);
+                setFilteredPastOrders(past);
             }
+        } catch (e) {
+            console.error("Failed to load order history", e);
         }
     };
 
@@ -88,24 +89,22 @@ const OrderHistory = () => {
         let channel: any;
 
         const setupSubscription = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                channel = supabase
-                    .channel('order-history-sync')
-                    .on(
-                        'postgres_changes',
-                        {
-                            event: '*',
-                            schema: 'public',
-                            table: 'orders',
-                            filter: `user_id=eq.${session.user.id}`
-                        },
-                        (payload) => {
-                            loadOrders();
-                        }
-                    )
-                    .subscribe();
-            }
+            if (!userId) return;
+            channel = supabase
+                .channel('order-history-sync')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'orders',
+                        filter: `user_id=eq.${userId}`
+                    },
+                    (payload) => {
+                        loadOrders();
+                    }
+                )
+                .subscribe();
         };
 
         setupSubscription();
@@ -115,7 +114,7 @@ const OrderHistory = () => {
                 supabase.removeChannel(channel);
             }
         };
-    }, []);
+    }, [userId]); // Add userId to dependencies
 
     // Search Logic
     useEffect(() => {
@@ -387,9 +386,8 @@ const OrderHistory = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const { data: { session } } = await supabase.auth.getSession();
-                                if (session?.user) {
-                                    await dev_seedMockOrders(session.user.id);
+                                if (userId) {
+                                    await dev_seedMockOrders(userId);
                                     await loadOrders();
                                     toast({
                                         title: "Mock Data Seeded",

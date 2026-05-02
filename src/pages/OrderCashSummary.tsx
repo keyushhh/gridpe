@@ -24,7 +24,7 @@ import deliveryTipLightBg from "@/assets/delivery-tip-light.png";
 import { SlideToPay } from "@/components/SlideToPay";
 import AddressSelectionSheet from "@/components/AddressSelectionSheet";
 
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { createAddress, getAuthUserId } from "@/lib/addresses";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
@@ -44,6 +44,7 @@ const OrderCashSummary = () => {
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const { profile, walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
+    const userId = profile?.id;
     const currentUserId = profile?.id;
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isPayOpen, setIsPayOpen] = useState(false);
@@ -205,7 +206,6 @@ const OrderCashSummary = () => {
 
     const handlePay = async () => {
         try {
-            const userId = currentUserId;
             if (!userId) {
                 showToaster("You must be logged in to place an order.", 'error');
                 return;

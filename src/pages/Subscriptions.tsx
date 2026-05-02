@@ -22,7 +22,7 @@ import subEliteBgLight from "@/assets/light-cards/subscription-elite-light.png";
 import subSupremeBgLight from "@/assets/light-cards/subscription-supreme-light.png";
 
 import downgradeChip from "@/assets/downgrade-chip.png";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 const subscriptionBgs: Record<WalletTier, string> = {
     Starter: subStarterBg,
@@ -50,6 +50,7 @@ const Subscriptions = () => {
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const { walletTier, walletLimit, scheduledDowngrade, completeScheduledDowngrade, lastDowngradeLoss, walletBalance, subscriptionPrice, isRenewalPending, paymentStatus, profile, fetchProfileData } = useUser();
+    const userId = profile?.id;
     const { showToaster } = useCustomToaster();
     const queryClient = useQueryClient();
 
@@ -70,14 +71,12 @@ const Subscriptions = () => {
 
         const checkSubscriptionStatus = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                const currentUserId = session?.user?.id || USER_ID;
-                if (!currentUserId) return;
+                if (!userId) return;
 
                 const { data: subData } = await supabase
                     .from('user_subscriptions')
                     .select('status, current_period_end')
-                    .eq('user_id', currentUserId)
+                    .eq('user_id', userId)
                     .maybeSingle();
 
                 // If they are on a paid tier but don't have an active subscription record or it's expired
@@ -140,12 +139,9 @@ const Subscriptions = () => {
             const priceToPay = (isRenewalPending && scheduledDowngrade?.tier) ? (tierPrices[scheduledDowngrade.tier] || subscriptionPrice) : subscriptionPrice;
             const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`;
 
-            const { data: { session } } = await supabase.auth.getSession();
-            const currentUserId = session?.user?.id;
-
             const payload = {
                 amount: priceToPay,
-                userId: currentUserId || "414c977e-6f70-4f57-bfa1-af0a8a2053a4",
+                userId: userId,
                 type: "subscription_renewal",
                 tier_name: selectedTierName
             };
@@ -198,7 +194,7 @@ const Subscriptions = () => {
                             body: JSON.stringify({
                                 ...response,
                                 tier_name: selectedTierName,
-                                user_id: currentUserId || '414c977e-6f70-4f57-bfa1-af0a8a2053a4'
+                                user_id: userId
                             }),
                         });
 

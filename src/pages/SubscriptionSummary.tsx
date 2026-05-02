@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import { SlideToPay } from "@/components/SlideToPay";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import starterSub from "@/assets/subscriptions-summary/starter-subscription.png";
 import proSub from "@/assets/subscriptions-summary/pro-subscription.png";
 import eliteSub from "@/assets/subscriptions-summary/elite-subscription.png";
@@ -52,6 +52,7 @@ const SubscriptionSummary = () => {
     const isDarkMode = resolvedTheme !== 'light';
     const queryClient = useQueryClient();
     const { setWalletTier, walletTier, scheduleDowngrade, subscriptionPrice, profile, paymentStatus, scheduledDowngrade, fetchProfileData } = useUser();
+    const userId = profile?.id;
     const { tier, paymentMethod } = location.state || { tier: "", paymentMethod: "" };
     const [isLoading, setIsLoading] = useState(false);
     const [tierPrices, setTierPrices] = useState<Record<string, number>>({});
@@ -95,8 +96,7 @@ const SubscriptionSummary = () => {
             // 1. Manually call the function URL
             const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`;
 
-            const { data: { session } } = await supabase.auth.getSession();
-            const currentUserId = session?.user?.id || "414c977e-6f70-4f57-bfa1-af0a8a2053a4"; // Fallback for test
+            const currentUserId = userId;
 
             const payload = {
                 amount: selectedTierPrice,

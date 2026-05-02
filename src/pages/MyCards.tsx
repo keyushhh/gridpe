@@ -27,7 +27,8 @@ import buttonCancelWide from "@/assets/button-cancel-wide.png";
 import tutorialTap from "@/assets/tutorial-tap.png";
 import tutorialLongPress from "@/assets/tutorial-long-press.png";
 import { getCards, Card, removeCard, setDefaultCard } from "@/utils/cardUtils";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { useUser } from "@/contexts/UserContext";
 
 // Import all saved card backgrounds
 import savedCard1 from "@/assets/saved-card-1.png";
@@ -44,6 +45,8 @@ const MyCards = () => {
   const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
+    const { profile } = useUser();
+    const userId = profile?.id;
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -64,11 +67,17 @@ const MyCards = () => {
     const fetchAllCards = async () => {
         const localCards = getCards();
 
+        if (!userId) {
+            setCards(localCards);
+            setIsStacked(localCards.length > 1);
+            return;
+        }
+
         try {
             const { data: dbCards, error } = await supabase
                 .from('bank_cards')
                 .select('*')
-                .eq('user_id', USER_ID);
+                .eq('user_id', userId);
 
             if (error) throw error;
 
@@ -98,6 +107,7 @@ const MyCards = () => {
 
     useEffect(() => {
         fetchAllCards();
+    }, [userId]);
 
         if (location.state?.cardAdded) {
             setShowSuccessModal(true);

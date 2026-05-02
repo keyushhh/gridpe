@@ -1,8 +1,8 @@
-import { supabase, USER_ID } from './supabase';
+import { supabase } from './supabase';
 import { BankAccount, Payout } from '@/types';
 export type { BankAccount, Payout };
 
-export const fetchBankAccounts = async (userId: string = USER_ID) => {
+export const fetchBankAccounts = async (userId: string) => {
   const { data, error } = await supabase
     .from('bank_accounts')
     .select('*')
@@ -24,16 +24,17 @@ export const createBankAccount = async (account: Omit<BankAccount, 'id' | 'creat
   return data as BankAccount;
 };
 
-export const deleteBankAccount = async (id: string) => {
+export const deleteBankAccount = async (id: string, userId: string) => {
   const { error } = await supabase
     .from('bank_accounts')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', userId);
 
   if (error) throw error;
 };
 
-export const setDefaultBankAccount = async (id: string, userId: string = USER_ID) => {
+export const setDefaultBankAccount = async (id: string, userId: string) => {
   // First, unset any existing default
   const { error: unsetError } = await supabase
     .from('bank_accounts')
@@ -69,7 +70,7 @@ export const createPayout = async (payout: Omit<Payout, 'id' | 'created_at' | 'c
     return data as Payout;
 };
 
-export const initiateUPIDisbursement = async (amount: number, upiId: string, userId: string = USER_ID) => {
+export const initiateUPIDisbursement = async (amount: number, upiId: string, userId: string) => {
     const { data, error } = await supabase.functions.invoke('create-payout', {
         body: { amount, upi_id: upiId, user_id: userId }
     });

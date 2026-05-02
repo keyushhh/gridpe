@@ -6,7 +6,7 @@ import BackButton from "@/components/ui/BackButton";
 import { useTheme } from "next-themes";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/contexts/UserContext";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { createAddress, getAuthUserId } from "@/lib/addresses";
 import bgLight from "@/assets/bg-light.png";
 import currencyIcon from "@/assets/currency.svg";
@@ -139,7 +139,7 @@ const FxExchangeSummary = () => {
             setQuoteLoading(true);
             try {
                 let distance = 1.2; // Fallback
-                if (savedAddress?.latitude && savedAddress?.longitude) {
+                if (currentUserId && savedAddress?.latitude && savedAddress?.longitude) {
                     distance = calculateDistance(
                         HUB_COORDS.FX.lat,
                         HUB_COORDS.FX.lng,

@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate , Navigate } from 'react-router-dom';
+import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import { X, Search, Plus, MapPin, MessageSquareMore } from "lucide-react";
 import { reverseGeocode, forwardGeocode } from "@/utils/geoUtils";
@@ -33,6 +34,8 @@ interface AddressSelectionSheetProps {
 }
 
 const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, onClose, onAddressSelect, onModalStateChange }) => {
+    const { profile } = useUser();
+    const userId = profile?.id;
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const navigate = useNavigate();
@@ -75,13 +78,9 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
     // Load addresses
     useEffect(() => {
         const loadAddresses = async () => {
-            if (isOpen) {
+            if (isOpen && userId) {
                 try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    const userId = session?.user?.id || (supabase as any).USER_ID || "414c977e-6f70-4f57-bfa1-af0a8a2053a4";
-
-                    if (userId) {
-                        const data = await fetchAddresses(userId);
+                    const data = await fetchAddresses(userId);
 
                         // Map DB Address to SavedAddress UI Model
                         const mapped: SavedAddress[] = data.map(d => ({
@@ -128,7 +127,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
             }
         };
         loadAddresses();
-    }, [isOpen]);
+    }, [isOpen, userId]);
 
     // Search Logic
     const handleSearchInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,13 +234,13 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
         setAddressToDelete(null);
         showToaster("Processing deletion...", 'success');
 
-        if (!idToDelete) {
-            showToaster("Error: Address ID missing", 'error');
+        if (!idToDelete || !userId) {
+            showToaster("Error: Missing session or ID", 'error');
             return;
         }
 
         try {
-            await deleteAddress(idToDelete);
+            await deleteAddress(idToDelete, userId);
             showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
 
             const newList = savedAddresses.filter(a => a.id !== idToDelete);

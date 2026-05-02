@@ -21,7 +21,7 @@ import copyIcon from "@/assets/copy.svg";
 import transactionDetailsLightBg from "@/assets/transaction-details-light.png";
 import { useUser } from "@/contexts/UserContext";
 import { WalletTransaction } from "@/types";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { fetchUnifiedTransactionHistory } from "@/lib/wallet";
 import { formatDate, formatINR } from "@/utils/format";
 
@@ -35,6 +35,7 @@ const currencySymbols: Record<string, string> = {
 const WalletTransactionHistory = () => {
     const navigate = useNavigate();
     const { profile } = useUser();
+    const userId = profile?.id;
     const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -65,13 +66,13 @@ const WalletTransactionHistory = () => {
 
     // Fetch transactions
     useEffect(() => {
-        let currentUserId = USER_ID;
         let channel: any;
 
         const loadTransactions = async () => {
+            if (!userId) return;
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                currentUserId = session?.user?.id || USER_ID;
+                const currentUserId = session?.user?.id || userId;
 
                 const mergedData = await fetchUnifiedTransactionHistory(currentUserId);
                 setWalletTransactions(mergedData as WalletTransaction[]);
@@ -95,7 +96,7 @@ const WalletTransactionHistory = () => {
         // Setup channel matching currentUserId
         const setupChannel = async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            const cid = session?.user?.id || USER_ID;
+            const cid = session?.user?.id || userId;
             channel = supabase.channel('wallet-history-sync')
                 .on(
                     'postgres_changes',

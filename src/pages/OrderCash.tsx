@@ -1,7 +1,7 @@
-﻿import React, { useState , useEffect } from 'react';
+import React, { useState , useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
@@ -14,36 +14,26 @@ import { useWebScroll } from "@/hooks/useWebScroll";
 const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { walletLimit, walletBalance } = useUser(); // walletBalance now from useUser
+  const { walletLimit, walletBalance } = useUser();
   const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>("0.00");
   const { resolvedTheme } = useTheme();
-  // resolvedTheme returns 'light' | 'dark' (resolves 'system'). Treat undefined
-  // (pre-hydration) as dark so the screen never flashes white on entry.
   const isDarkMode = resolvedTheme !== 'light';
-
-  // Removed the useEffect that fetched walletBalance, as it's now from UserContext
 
   const handleKeyPress = (key: string) => {
     setAmount((prev) => {
-      // If currently "0.00", replace with the new key (unless it's a dot)
       if (prev === "0.00") {
         return key === "." ? "0." : key;
       }
-
-      // Prevent multiple dots
       if (key === "." && prev.includes(".")) {
         return prev;
       }
-
-      // Limit to 2 decimal places
       if (prev.includes(".")) {
         const [whole, decimal] = prev.split(".");
         if (decimal && decimal.length >= 2) {
           return prev;
         }
       }
-
       return prev + key;
     });
   };
@@ -91,38 +81,26 @@ const OrderCash = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Light Mode Purple Glow */}
       {!isDarkMode && (
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
 
-      {/* Header - Standard Single Row */}
       <div className="px-5 pt-4 flex items-center justify-between z-10">
-        {/* Back Button */}
         <BackButton onClick={() => navigate("/home")} />
-
-
-        {/* Title - Centered */}
         <h1 className={`text-[18px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
           Order Cash
         </h1>
-
-        {/* Spacer for centering */}
         <div className="w-10" />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col items-center pt-[60px] z-10 w-full">
-        {/* Amount Display */}
         <div className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}>
           <span className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
           <span className={`text-[32px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>{amount}</span>
         </div>
 
-        {/* Divider */}
         <div className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-[#E6E8EB]'}`} />
 
-        {/* Balance Text */}
         <p className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] ${parseFloat(amount) > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
           Total Available Balance ₹ {walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
@@ -133,7 +111,6 @@ const OrderCash = () => {
           </p>
         )}
 
-        {/* Pills */}
         <div className="flex gap-4 mb-8">
           {["500", "1000", "1500"].map((val) => (
             <button
@@ -158,10 +135,8 @@ const OrderCash = () => {
           ))}
         </div>
 
-        {/* Spacer to push everything else down to bottom */}
         <div className="flex-1" />
 
-        {/* Info Container */}
         <div className="w-full px-5 pb-[16px]">
           <div
             className={`w-full h-[61px] relative flex flex-col justify-center px-[18px] py-[10px] ${!isDarkMode ? 'bg-[#FFFFFF] rounded-[16px] border border-[#E9EAEB]' : ''}`}
@@ -180,14 +155,12 @@ const OrderCash = () => {
           </div>
         </div>
 
-        {/* Keypad Container */}
         <div className={`w-full relative rounded-t-[32px] overflow-hidden ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}>
-          {/* Gradient Border Wrapper (Dark Mode Only) */}
           {isDarkMode && (
             <div
               className="absolute inset-0 rounded-t-[32px] pointer-events-none"
               style={{
-                padding: '0.63px', // Border width
+                padding: '0.63px',
                 background: 'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
                 mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                 maskComposite: 'exclude',
@@ -197,7 +170,6 @@ const OrderCash = () => {
             />
           )}
 
-          {/* Inner Content Background */}
           <div
             className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
             style={{
@@ -205,25 +177,21 @@ const OrderCash = () => {
             }}
           >
             <div className="flex flex-col gap-[10px] items-center relative z-10">
-              {/* Row 1 */}
               <div className="flex gap-[10px]">
                 <KeypadButton label="1" onClick={() => handleKeyPress("1")} />
                 <KeypadButton label="2" onClick={() => handleKeyPress("2")} />
                 <KeypadButton label="3" onClick={() => handleKeyPress("3")} />
               </div>
-              {/* Row 2 */}
               <div className="flex gap-[10px]">
                 <KeypadButton label="4" onClick={() => handleKeyPress("4")} />
                 <KeypadButton label="5" onClick={() => handleKeyPress("5")} />
                 <KeypadButton label="6" onClick={() => handleKeyPress("6")} />
               </div>
-              {/* Row 3 */}
               <div className="flex gap-[10px]">
                 <KeypadButton label="7" onClick={() => handleKeyPress("7")} />
                 <KeypadButton label="8" onClick={() => handleKeyPress("8")} />
                 <KeypadButton label="9" onClick={() => handleKeyPress("9")} />
               </div>
-              {/* Row 4 */}
               <div className="flex gap-[10px]">
                 <KeypadButton label="." onClick={() => handleKeyPress(".")} />
                 <KeypadButton label="0" onClick={() => handleKeyPress("0")} />
@@ -233,7 +201,6 @@ const OrderCash = () => {
                 />
               </div>
 
-              {/* CTA */}
               <div className="w-full mt-[32px]">
                 <Button
                   onClick={() => navigate("/order-cash-summary", { state: { amount } })}
@@ -252,4 +219,3 @@ const OrderCash = () => {
 };
 
 export default OrderCash;
-

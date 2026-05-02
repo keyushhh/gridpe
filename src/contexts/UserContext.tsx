@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { supabase, USER_ID } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
 import { calculateBalance, calculateHeldBalance } from '@/lib/wallet';
 import { WalletTier, WalletTransaction, Profile as UserProfile, Tables } from '@/types';
@@ -347,7 +347,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     const setupKycSubscription = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id || USER_ID;
+      const currentUserId = session?.user?.id;
 
       if (!currentUserId) return;
 
@@ -384,7 +384,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const { data: { session } } = await supabase.auth.getSession();
       id = session?.user?.id;
     }
-    const currentId = id || USER_ID;
+    const currentId = id;
     if (currentId) {
       window.dispatchEvent(new CustomEvent('refresh_wallet_transactions', { detail: { userId: currentId } }));
     }
@@ -410,7 +410,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     const setupSync = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id || USER_ID;
+      const currentUserId = session?.user?.id;
 
       if (!currentUserId) return;
 
@@ -587,7 +587,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (!tierData) throw new Error(`Tier ${tier} not found`);
 
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || USER_ID;
+      const userId = session?.user?.id;
 
       // 2. Update BOTH profiles and wallets tables for consistency
       const [profileUpdate, walletUpdate] = await Promise.all([
@@ -621,7 +621,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const setPassportVerifiedInDb = useCallback(async (verified: boolean) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || USER_ID;
+      const userId = session?.user?.id;
 
       const { error } = await supabase
         .from('profiles')
@@ -649,7 +649,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const scheduleDowngrade = useCallback(async (tier: WalletTier, effectiveDate: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || USER_ID;
+      const userId = session?.user?.id;
 
 
       const { data: rpcResult, error: rpcError } = await supabase.rpc('schedule_downgrade', {
@@ -679,10 +679,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          scheduled_tier_id: null,
           tier_change_date: null
         })
-        .eq('id', USER_ID);
+        .eq('id', state.profile?.id);
 
       if (error) throw error;
       setState(prev => ({ ...prev, scheduledDowngrade: null }));
@@ -707,7 +706,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         if (!tierData) throw new Error(`Tier ${newTier} not found`);
 
         const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id || USER_ID;
+        const userId = session?.user?.id;
+        if (!userId) throw new Error('Unauthorized');
 
         const newLimit = tierData.max_wallet_balance || 0;
         const currentBalance = state.walletBalance;
@@ -746,7 +746,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const addMoney = useCallback(async (amount: number) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || USER_ID;
+      const userId = session?.user?.id;
 
       // Atomic RPC: updates wallets.available_balance + inserts transaction in one DB transaction
       const { error: rpcError } = await supabase.rpc('wallet_deposit', {

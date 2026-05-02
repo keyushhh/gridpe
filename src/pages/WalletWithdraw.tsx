@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import { useUser } from "@/contexts/UserContext";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
@@ -48,7 +48,8 @@ interface Withdrawal {
 
 const WalletWithdraw = () => {
     const navigate = useNavigate();
-    const { walletTier, walletBalance, isRenewalPending } = useUser();
+    const { walletTier, walletBalance, isRenewalPending, profile } = useUser();
+    const userId = profile?.id;
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
 
@@ -72,7 +73,7 @@ const WalletWithdraw = () => {
         const { data: wData } = await supabase
             .from("withdrawals")
             .select("*")
-            .eq("user_id", USER_ID)
+            .eq("user_id", userId)
             .order("created_at", { ascending: false });
 
         if (wData) {
@@ -81,12 +82,14 @@ const WalletWithdraw = () => {
     };
 
     useEffect(() => {
-        fetchData();
+        if (!userId) return;
 
+        fetchData();
+ 
         const channel = supabase.channel('wallet-withdraw-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${USER_ID}` }, fetchData)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${USER_ID}` }, fetchData)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals', filter: `user_id=eq.${USER_ID}` }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${userId}` }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${userId}` }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals', filter: `user_id=eq.${userId}` }, fetchData)
             .subscribe();
 
         return () => {

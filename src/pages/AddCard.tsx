@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { useSensitiveInput } from "@/hooks/useSensitiveInput";
 import { addCard } from "@/utils/cardUtils";
 import { luhnCheck, validateExpiry, validateCVV } from "@/utils/validationUtils";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
 import { useWebScroll } from "@/hooks/useWebScroll";
 
@@ -23,6 +24,8 @@ const AddCard = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile } = useUser();
+  const userId = profile?.id;
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
 
@@ -176,6 +179,11 @@ const AddCard = () => {
     hapticMedium();
     if (!validateForm()) return;
 
+    if (!userId) {
+      toast.error("Authentication error. Please log in again.");
+      return;
+    }
+
     try {
       const [month, year] = expiry.split("/");
       const lastFour = cardNumberProps.value.slice(-4);
@@ -184,7 +192,7 @@ const AddCard = () => {
       const { data, error } = await supabase
         .from('bank_cards')
         .insert([{
-          user_id: USER_ID,
+          user_id: userId,
           card_holder_name: cardHolder, // Use user-entered name
           last_four: lastFour,
           expiry_month: month,
@@ -462,4 +470,3 @@ const AddCard = () => {
 };
 
 export default AddCard;
-

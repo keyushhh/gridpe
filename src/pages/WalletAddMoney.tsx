@@ -7,7 +7,7 @@ import bgDarkMode from "@/assets/bg-dark-mode.png";
 import pillContainerBg from "@/assets/pill-container-bg.png";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { formatINR } from "@/utils/format";
 import { useKeypad } from "@/hooks/useKeypad";
 import Keypad from "@/components/Keypad";
@@ -21,7 +21,8 @@ const WalletAddMoney = () => {
   const { resolvedTheme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
   const isDarkMode = resolvedTheme !== 'light';
-  const { walletLimit, walletBalance, walletTier, refreshBalance, fetchProfileData, refreshTransactions, isRenewalPending } = useUser();
+   const { walletLimit, walletBalance, walletTier, refreshBalance, fetchProfileData, refreshTransactions, isRenewalPending, profile } = useUser();
+  const userId = profile?.id;
   const currentBalance = walletBalance || 0;
   const fromWallet = location.state?.from === 'wallet';
   
@@ -198,8 +199,7 @@ const WalletAddMoney = () => {
                       try {
                         setIsLoading(true);
 
-                        const { data: { user } } = await supabase.auth.getUser();
-                        const currentUserId = user?.id || USER_ID;
+                        const currentUserId = userId;
 
                         const { data, error } = await supabase.functions.invoke("create-razorpay-order", {
                           body: {

@@ -21,7 +21,7 @@ import failedIcon from "@/assets/failed.svg";
 import processingIcon from "@/assets/processing.svg";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 interface RewardTransaction {
     id: string;
@@ -49,6 +49,7 @@ const Rewards = () => {
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const { profile, fetchProfileData, rewardPoints } = useUser();
+    const userId = profile?.id;
     const { showToaster } = useCustomToaster();
     const [rewardTransactions, setRewardTransactions] = useState<RewardTransaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -58,13 +59,13 @@ const Rewards = () => {
 
     useEffect(() => {
         const loadRewards = async () => {
-            if (!profile?.id) return;
+            if (!userId) return;
             try {
                 // 1. Fetch earned reward transactions linked to orders
                 const { data: rewardData, error: rewardError } = await supabase
                     .from('reward_transactions')
                     .select('*')
-                    .eq('user_id', profile.id)
+                    .eq('user_id', userId)
                     .eq('type', 'earned')
                     .not('reference_id', 'is', null)
                     .order('created_at', { ascending: false })
@@ -113,7 +114,7 @@ const Rewards = () => {
             .channel('reward-updates')
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'reward_transactions', filter: `user_id=eq.${profile?.id}` },
+                { event: '*', schema: 'public', table: 'reward_transactions', filter: `user_id=eq.${userId}` },
                 () => loadRewards()
             )
             .subscribe();
@@ -121,17 +122,17 @@ const Rewards = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [profile?.id]);
+    }, [userId]);
 
     useEffect(() => {
-        if (!profile?.id) return;
+        if (!userId) return;
 
         // Subscribe to profile changes for reward_points updates
         const channel = supabase
             .channel('profile-reward-updates')
             .on(
                 'postgres_changes',
-                { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${profile.id}` },
+                { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
                 (payload) => {
                     if (payload.new && 'reward_points' in payload.new) {
                         fetchProfileData();
@@ -143,7 +144,7 @@ const Rewards = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [profile?.id]);
+    }, [userId]);
 
     const totalPoints = rewardPoints;
 

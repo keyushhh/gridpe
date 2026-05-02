@@ -14,7 +14,7 @@ import iconVoter from "@/assets/icon-voter.png";
 import radioOn from "@/assets/radio-on.png";
 import radioOff from "@/assets/radio-off.png";
 import { Button } from "@/components/ui/button";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useUser } from "@/contexts/UserContext";
 import DiditSDK from '@didit-protocol/sdk-web';
@@ -32,6 +32,7 @@ const KYCForm = () => {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(isFxFlow ? "passport" : null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { fetchProfileData, kycStatus, isPassportVerified, profile } = useUser();
+  const userId = profile?.id;
 
   // DEBUG: Log status on mount to catch aggressive redirects
   useEffect(() => {
@@ -84,7 +85,7 @@ const KYCForm = () => {
 
       // 2. Set preliminary pending status in database (ONLY if not already verified)
       // This prevents verified users from losing access to basic features while upgrading to Passport KYC.
-      const rawUuid = profile?.id || USER_ID;
+      const rawUuid = userId;
       if (kycStatus !== 'verified') {
         const { error: profileError } = await supabase
           .from('profiles')

@@ -14,7 +14,7 @@ import failedIcon from "@/assets/failed.svg";
 import walletCreditedIcon from "@/assets/wallet-credited.svg";
 import walletDebitedIcon from "@/assets/wallet-debited.svg";
 import addPaymentCta from "@/assets/add-payment-cta.png";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import BalanceAlert from "@/components/BalanceAlert";
 
 const WalletCreated = () => {
@@ -23,17 +23,7 @@ const WalletCreated = () => {
     const isDarkMode = resolvedTheme !== 'light';
     const queryClient = useQueryClient();
     const { profile, walletTier, upgradeTimestamp, walletBalance, heldBalance, walletLimit, dailyLimit, wallet_tiers, isRenewalPending, scheduledDowngrade, isInitializing, deactivateWallet, isWalletActivated } = useUser();
-    const [userId, setUserId] = useState<string | null>(null);
-
-    useEffect(() => {
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            const currentUserId = session?.user?.id || USER_ID;
-            setUserId(currentUserId);
-            
-        };
-        getSession();
-    }, [navigate]);
+    const userId = profile?.id;
 
     const { data: realWalletData, isLoading: isRealWalletLoading } = useQuery({
         queryKey: ['real_wallet', userId],

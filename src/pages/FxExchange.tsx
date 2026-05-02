@@ -24,7 +24,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import bgLight from "@/assets/bg-light.png";
 import { formatINR } from "@/utils/format";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 const currencyToCountry: Record<string, string> = {
     AUD: 'au', BRL: 'br', CAD: 'ca', CHF: 'ch', CNY: 'cn', CZK: 'cz', DKK: 'dk', EUR: 'eu',

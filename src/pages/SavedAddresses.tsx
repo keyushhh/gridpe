@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import { fetchAddresses, deleteAddress, Address } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "next-themes";
+import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { Button } from "@/components/ui/button";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -30,6 +31,8 @@ const SavedAddresses = () => {
     const navigate = useNavigate();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
+    const { profile } = useUser();
+    const userId = profile?.id;
     const { showToaster } = useCustomToaster();
     const [loading, setLoading] = useState(true);
     const [addresses, setAddresses] = useState<Address[]>([]);
@@ -41,14 +44,10 @@ const SavedAddresses = () => {
     }, []);
 
     const loadAddresses = async () => {
+        if (!userId) return;
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const userId = session?.user?.id || (supabase as any).USER_ID || "414c977e-6f70-4f57-bfa1-af0a8a2053a4";
-
-            if (userId) {
-                const data = await fetchAddresses(userId);
-                setAddresses(data);
-            }
+            const data = await fetchAddresses(userId);
+            setAddresses(data);
         } catch (e: any) {
             console.error("Failed to load addresses", e);
             showToaster("Failed to load saved addresses. Please try again.", "error");

@@ -11,7 +11,7 @@ import { useAsset } from "@/hooks/useAsset";
 import { useUser } from "@/contexts/UserContext";
 import { getCards } from "@/utils/cardUtils";
 import { fetchBankAccounts } from "@/lib/banking";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import avatarImg from "@/assets/avatar.png";
 import gridPeLogo from "@/assets/grid.pe.svg";
 import iconSecurity from "@/assets/icon-security.svg";
@@ -86,7 +86,8 @@ const Settings = () => {
   const isDarkMode = resolvedTheme !== 'light';
   const { containerOverflow } = useWebScroll();
 
-  const { phoneNumber, email, kycStatus, resetForDemo, name, profileImage } = useUser();
+  const { phoneNumber, email, kycStatus, resetForDemo, name, profileImage, profile } = useUser();
+  const userId = profile?.id;
   const [pushNotifications, setPushNotifications] = useState(true);
   const [transactionAlerts, setTransactionAlerts] = useState(false);
   const [cardCount, setCardCount] = useState(0);
@@ -121,7 +122,7 @@ const Settings = () => {
     const loadCounts = async () => {
       // 1. Bank Accounts
       try {
-        const accounts = await fetchBankAccounts();
+        const accounts = await fetchBankAccounts(userId || "");
         setBankAccountCount(accounts.length);
       } catch (error) {
         console.error("Error loading bank count:", error);
@@ -133,7 +134,7 @@ const Settings = () => {
         const { count, error } = await supabase
           .from('bank_cards')
           .select('*', { count: 'exact', head: true })
-          .eq('user_id', USER_ID);
+          .eq('user_id', userId);
 
         if (error) throw error;
 

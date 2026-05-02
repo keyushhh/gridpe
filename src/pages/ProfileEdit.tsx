@@ -1,4 +1,4 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import React, {  useState, useRef, useEffect  } from 'react';
 import { useTheme } from "next-themes";
@@ -12,7 +12,7 @@ import gridPeLogo from "@/assets/grid.pe.svg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
-import { supabase, USER_ID } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -29,8 +29,10 @@ const ProfileEdit = () => {
     setName: setContextName,
     setEmail: setContextEmail,
     setEmailVerified: setContextEmailVerified,
-    setProfileImage: setContextProfileImage
+    setProfileImage: setContextProfileImage,
+    profile
   } = useUser();
+  const userId = profile?.id;
 
   const [name, setName] = useState(contextName || "");
   const [email, setEmail] = useState(contextEmail || "");
@@ -74,7 +76,7 @@ const ProfileEdit = () => {
           avatar_url: profileImage,
           email
         })
-        .eq('id', USER_ID);
+        .eq('id', userId);
 
       if (error) throw error;
 

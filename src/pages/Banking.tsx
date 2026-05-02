@@ -2,6 +2,7 @@ import { useTheme } from 'next-themes';
 import { cn } from "@/lib/utils";
 import React, {  useState, useEffect, useRef  } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
+import { useUser } from "@/contexts/UserContext";
 import BackButton from "@/components/ui/BackButton";
 import { X, Eye, EyeOff } from "lucide-react";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
@@ -32,13 +33,14 @@ import {
     BankAccount
 } from "@/lib/banking";
 import { getBankLogo } from "@/utils/bankUtils";
-import { USER_ID } from "@/lib/supabase";
 import { useWebScroll } from "@/hooks/useWebScroll";
 
 const Banking = () => {
   const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
+    const { profile } = useUser();
+    const userId = profile?.id;
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -58,8 +60,9 @@ const Banking = () => {
 
     useEffect(() => {
         const loadAccounts = async () => {
+            if (!userId) return;
             try {
-                const data = await fetchBankAccounts();
+                const data = await fetchBankAccounts(userId);
                 setAccounts(data);
                 setIsStacked(data.length > 1);
 
@@ -537,26 +540,26 @@ const Banking = () => {
                 primaryButtonSrc={confirmAction === 'remove' ? buttonRemoveCard : buttonSetDefault}
                 primaryText={confirmAction === 'remove' ? "Remove Account" : "Set as Default"}
                 onPrimaryClick={async () => {
-                    if (confirmAction === 'remove' && selectedAccountId) {
+                    if (confirmAction === 'remove' && selectedAccountId && userId) {
                         // Find account to get last 4 digits
                         const accountToRemove = accounts.find(a => a.id === selectedAccountId);
                         const last4 = accountToRemove?.account_number?.slice(-4) || 'XXXX';
 
                         // Implementation for removal
                         try {
-                            await deleteBankAccount(selectedAccountId);
+                            await deleteBankAccount(selectedAccountId, userId);
                             setAccounts(prev => prev.filter(a => a.id !== selectedAccountId));
                             closeConfirmation();
                             navigate("/bank-remove-success", { state: { last4 } });
                         } catch (error) {
                             console.error("Error removing bank account:", error);
                         }
-                    } else if (confirmAction === 'default' && selectedAccountId) {
+                    } else if (confirmAction === 'default' && selectedAccountId && userId) {
                         // Implementation for default
                         try {
-                            const updatedAccount = await setSupabaseDefault(selectedAccountId);
+                            const updatedAccount = await setSupabaseDefault(selectedAccountId, userId);
                             // Refresh accounts to reflect default change
-                            const updatedList = await fetchBankAccounts();
+                            const updatedList = await fetchBankAccounts(userId);
                             setAccounts(updatedList);
                             setIsStacked(updatedList.length > 0);
                             setSelectedAccountId(null);

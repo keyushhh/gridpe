@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import BackButton from "@/components/ui/BackButton";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +22,8 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
   const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
+    const { profile } = useUser();
+    const userId = profile?.id;
     const [data, setData] = useState<LegalContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -40,9 +43,14 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
             const title = type === "privacy" ? "Privacy Policy" : "Terms & Conditions";
 
             try {
-                // Get current session
-                const { data: { session } } = await supabase.auth.getSession();
-                setHasSession(!!session?.user);
+                if (!userId) {
+                    setHasSession(false);
+                    setIsCheckingConsent(false);
+                    setIsAccepted(false);
+                    setIsLoading(false);
+                    return;
+                }
+                setHasSession(true);
 
                 const { data: results, error: fetchError } = await supabase
                     .from(table)
@@ -60,11 +68,11 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
                     const docId = result.id || result.created_at;
 
                     // Check if user has already accepted this version
-                    if (session?.user) {
+                    if (userId) {
                         const { data: consent, error: consentError } = await supabase
                             .from('user_legal_consents')
                             .select('id')
-                            .eq('user_id', session.user.id)
+                            .eq('user_id', userId)
                             .eq('document_type', type)
                             .eq('document_id', docId)
                             .maybeSingle();
@@ -105,14 +113,12 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
     const handleAccept = async () => {
         if (!data) return;
 
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (session?.user) {
+        if (userId) {
             // Save consent to DB
             const { error: consentError } = await supabase
                 .from('user_legal_consents')
                 .upsert({
-                    user_id: session.user.id,
+                    user_id: userId,
                     document_type: type,
                     document_id: data.id,
                     accepted_at: new Date().toISOString()
@@ -131,8 +137,7 @@ const LegalPage = ({ type }: { type: "privacy" | "terms" }) => {
     };
 
     const handleDecline = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        if (userId) {
             // Log out user if they decline after logging in
             await supabase.auth.signOut();
             localStorage.clear();

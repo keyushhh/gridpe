@@ -19,8 +19,9 @@ import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
 import { fetchBankDetails, getBankLogo } from "@/utils/bankUtils";
 import { createBankAccount, BankAccount } from "@/lib/banking";
-import { USER_ID } from "@/lib/supabase";
 import { useWebScroll } from "@/hooks/useWebScroll";
+import { useUser } from "@/contexts/UserContext";
+import { useCustomToaster } from "@/contexts/CustomToasterContext";
 
 type Selection = "auto" | "manual";
 
@@ -36,6 +37,9 @@ const AddBank = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
+  const { showToaster } = useCustomToaster();
+  const { profile } = useUser();
+  const userId = profile?.id;
   const isDarkMode = resolvedTheme !== 'light';
   const [selection, setSelection] = useState<Selection>("auto");
 
@@ -129,11 +133,16 @@ const AddBank = () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsLoading(false);
 
+    if (!userId) {
+      showToaster("Authentication error. Please log in again.", "error");
+      return;
+    }
+
     // For now, simulate success by navigating with added account state
     // In a real flow, we'd fetch the newly linked accounts first
     const mockAccount: BankAccount = {
       id: "linked-" + Date.now(),
-      user_id: USER_ID,
+      user_id: userId,
       bank_name: "HDFC Bank",
       account_type: "Savings Account",
       account_number: "XXXX XXXX 1234",
@@ -159,12 +168,17 @@ const AddBank = () => {
   const handleManualVerify = async () => {
     if (!bankDetails) return;
 
+    if (!userId) {
+      showToaster("Authentication error. Please log in again.", "error");
+      return;
+    }
+
     setIsLoading(true);
     const formattedBranch = toTitleCase(bankDetails.BRANCH);
 
     try {
       const newAccount: Omit<BankAccount, 'id' | 'created_at' | 'masked_number'> = {
-        user_id: USER_ID,
+        user_id: userId,
         bank_name: bankDetails.BANK,
         account_type: accountType,
         account_number: accountNumber,
@@ -573,4 +587,3 @@ const AddBank = () => {
 };
 
 export default AddBank;
-
