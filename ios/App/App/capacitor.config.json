@@ -9,6 +9,7 @@
 		"allowsLinkPreview": true,
 		"handleApplicationNotifications": true,
 		"allowsBackForwardNavigationGestures": true,
+		"backgroundColor": "#0A0A12",
 		"scrollEnabled": false,
 		"contentInset": "always"
 	},
@@ -25,6 +26,11 @@
 		},
 		"SystemBars": {
 			"insetsHandling": "disable"
+		},
+		"SplashScreen": {
+			"backgroundColor": "#0A0A12",
+			"launchAutoHide": true,
+			"androidScaleType": "CENTER_CROP"
 		}
 	},
 	"packageClassList": [
