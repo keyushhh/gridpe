@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { setBadge } from "@/utils/badge";
 import { useTheme } from "next-themes";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
+import DevModeOverlay from "@/components/DevModeOverlay";
 
 import arrivingIcon from "@/assets/arriving.svg";
 import riderIcon from "@/assets/rider.svg";
@@ -538,6 +539,7 @@ const OrderTracking = () => {
                     Need Help?
                 </button>
             </div>
+            <DevModeOverlay orderId={order?.id} />
         </div>
     );
 };

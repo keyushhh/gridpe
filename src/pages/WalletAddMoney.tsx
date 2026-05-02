@@ -140,7 +140,7 @@ const WalletAddMoney = () => {
             </p>
             <p className={`text-[14px] font-normal font-sans leading-none ${isExceedingLimit ? 'text-[#FF3B30]' : (isDarkMode ? 'text-white' : 'text-black')}`}>
               {isExceedingLimit
-                ? "Adding this amount exceeds your maximum wallet balance, please upgrade your wallet or use the current balance."
+                ? `This would exceed your ₹${walletLimit.toLocaleString('en-IN')} wallet limit`
                 : "Minimum top-up is ₹500. UPI payments are always free."}
             </p>
           </div>
@@ -204,7 +204,8 @@ const WalletAddMoney = () => {
                         const { data, error } = await supabase.functions.invoke("create-razorpay-order", {
                           body: {
                             amount: val,
-                            userId: currentUserId
+                            userId: currentUserId,
+                            type: "wallet_topup"
                           },
                           headers: {
                             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
@@ -229,6 +230,11 @@ const WalletAddMoney = () => {
                             console.warn("Could not parse error response body:", e);
                           }
 
+                          if (errorMessage.includes("Wallet not found") || errorMessage.includes("404")) {
+                            navigate('/wallet', { replace: true });
+                            throw new Error("Wallet not found. Redirecting to Intro...");
+                          }
+
                           throw new Error(errorMessage);
                         }
 
@@ -248,8 +254,8 @@ const WalletAddMoney = () => {
                         }
 
                         const options = {
-                          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                          amount: order.amount,
+                          key: String(import.meta.env.VITE_RAZORPAY_KEY_ID),
+                          amount: Number(order.amount),
                           currency: order.currency,
                           name: "Grid.pe",
                           description: "Wallet Top-up",
@@ -322,9 +328,14 @@ const WalletAddMoney = () => {
                           });
                         });
 
-                        rzp.open();
+                        try {
+                          rzp.open();
+                        } catch (openErr) {
+                          console.error("Razorpay open error:", JSON.stringify(openErr, Object.getOwnPropertyNames(openErr)));
+                          throw openErr; // Propagate to the outer catch
+                        }
                       } catch (err) {
-                        console.error('Error creating Razorpay order:', err);
+                        console.error('RAZORPAY_FAILURE:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
                         alert('Failed to initiate payment. Please check console for details.');
                       } finally {
                         setIsLoading(false);

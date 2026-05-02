@@ -17,6 +17,7 @@ interface UserState {
   biometricEnabled: boolean;
   profile: UserProfile | null;
   isWalletActivated: boolean;
+  isInitializing: boolean;
 
   /* Wallet Tier */
   walletTier: WalletTier;
@@ -55,6 +56,7 @@ interface UserContextType extends UserState {
   submitKyc: (isPassport?: boolean) => void;
   resetForDemo: () => void;
   activateWallet: () => void;
+  deactivateWallet: () => void;
 
   /* Wallet Tier */
   setWalletTier: (tier: WalletTier) => void;
@@ -101,6 +103,7 @@ const defaultState: UserState = {
   paymentStatus: null,
   isRenewalPending: false,
   rewardPoints: 0,
+  isInitializing: true,
 };
 
 /* -------------------- Context -------------------- */
@@ -129,6 +132,79 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [state]);
 
   /* Removed mock KYC auto-transition as per requirements to use real database status */
+  
+  /* Real-time Wallet Balance Reading */
+  const fetchAndCalculateBalance = useCallback(async (overrideUserId?: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && !overrideUserId) return;
+
+      const userId = overrideUserId || session?.user?.id;
+
+      // Read directly from the wallets table to avoid calculation drift
+      const { data: walletData, error: walletError } = await supabase
+        .from('wallets')
+        .select('available_balance')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (walletError) {
+        console.error('Error reading wallet balance:', walletError);
+      }
+
+      if (!walletData) {
+        setState(prev => ({ 
+          ...prev, 
+          walletBalance: 0, 
+          heldBalance: 0,
+          isWalletActivated: false,
+          isInitializing: false
+        }));
+        return;
+      }
+
+      const balance = Number(walletData?.available_balance || 0);
+      const flooredBalance = Math.floor(balance);
+
+      // We can still calculate held balance from transactions if needed
+      const { data: txData } = await supabase
+        .from('wallet_transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'held');
+
+      const held = Math.floor(calculateHeldBalance(txData as WalletTransaction[] || []));
+
+      // Auto-activate if user has balance or held funds
+      const shouldBeActivated = flooredBalance > 0 || held > 0;
+      
+      setState(prev => ({ 
+        ...prev, 
+        walletBalance: flooredBalance, 
+        heldBalance: held,
+        isWalletActivated: prev.isWalletActivated || shouldBeActivated,
+        isInitializing: false
+      }));
+
+      // If still not activated, check for ANY transaction history
+      if (!state.isWalletActivated && !shouldBeActivated) {
+        const { count, error: txError } = await supabase
+          .from('wallet_transactions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        
+        if (count && count > 0) {
+          setState(prev => ({ ...prev, isWalletActivated: true }));
+        }
+        if (txError) {
+          console.error('Error in fetchAndCalculateBalance (txHistory):', txError);
+        }
+      }
+    } catch (err) {
+      console.error('Error in fetchAndCalculateBalance:', err);
+      setState(prev => ({ ...prev, isInitializing: false }));
+    }
+  }, [supabase]);
 
 
   /* Refetch Profile Data from Supabase */
@@ -221,6 +297,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             id: userId,
             name: session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || 'Guest User',
             email: session?.user?.email || null,
+            phone: session?.user?.phone || session?.user?.user_metadata?.phone_number || null,
             kyc_status: 'incomplete',
             mpin_set: false
           })
@@ -246,7 +323,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         await fetchAndCalculateBalance(overrideUserId || session?.user?.id);
       }
     }
-  }, []);
+  }, [supabase, fetchAndCalculateBalance]);
 
   /* Initial Load */
   useEffect(() => {
@@ -300,64 +377,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [state.profile?.id]);
 
-  /* Real-time Wallet Balance Reading */
-  const fetchAndCalculateBalance = async (overrideUserId?: string) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session && !overrideUserId) return;
-
-      const userId = overrideUserId || session?.user?.id;
-
-
-      // Read directly from the wallets table to avoid calculation drift
-      const { data: walletData, error: walletError } = await supabase
-        .from('wallets')
-        .select('available_balance')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (walletError) {
-        console.error('Error reading wallet balance:', walletError);
-      }
-
-      const balance = Number(walletData?.available_balance || 0);
-      const flooredBalance = Math.floor(balance);
-
-      // We can still calculate held balance from transactions if needed
-      const { data: txData } = await supabase
-        .from('wallet_transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'held');
-
-      const held = Math.floor(calculateHeldBalance(txData as WalletTransaction[] || []));
-
-      
-      // Auto-activate if user has balance or held funds
-      const shouldBeActivated = flooredBalance > 0 || held > 0;
-      
-      setState(prev => ({ 
-        ...prev, 
-        walletBalance: flooredBalance, 
-        heldBalance: held,
-        isWalletActivated: prev.isWalletActivated || shouldBeActivated
-      }));
-
-      // If still not activated, check for ANY transaction history
-      if (!state.isWalletActivated && !shouldBeActivated) {
-        const { count } = await supabase
-          .from('wallet_transactions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId);
-        
-        if (count && count > 0) {
-          setState(prev => ({ ...prev, isWalletActivated: true }));
-        }
-      }
-    } catch (err) {
-      console.error('Error in fetchAndCalculateBalance:', err);
-    }
-  };
 
   const refreshTransactions = useCallback(async (overrideUserId?: string) => {
     let id = overrideUserId;
@@ -445,38 +464,38 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [state.profile?.id]); // Re-subscribe when profile ID changes
 
-  const refreshBalance = async (userId?: string) => {
+  const refreshBalance = useCallback(async (userId?: string) => {
     await fetchAndCalculateBalance(userId);
-  };
+  }, [fetchAndCalculateBalance]);
 
   /* -------------------- Setters -------------------- */
 
-  const setPhoneNumber = (phone: string) => {
+  const setPhoneNumber = useCallback((phone: string) => {
     setState(prev => ({ ...prev, phoneNumber: phone }));
-  };
+  }, []);
 
-  const setName = (name: string) => {
+  const setName = useCallback((name: string) => {
     setState(prev => ({ ...prev, name }));
-  };
+  }, []);
 
-  const setEmail = (email: string) => {
+  const setEmail = useCallback((email: string) => {
     setState(prev => ({ ...prev, email }));
-  };
+  }, []);
 
-  const setEmailVerified = (verified: boolean) => {
+  const setEmailVerified = useCallback((verified: boolean) => {
     setState(prev => ({ ...prev, emailVerified: verified }));
-  };
+  }, []);
 
-  const setProfileImage = (image: string | null) => {
+  const setProfileImage = useCallback((image: string | null) => {
     setState(prev => ({ ...prev, profileImage: image }));
-  };
+  }, []);
 
-  const setKycStatus = (status: 'incomplete' | 'pending' | 'in_review' | 'verified') => {
+  const setKycStatus = useCallback((status: 'incomplete' | 'pending' | 'in_review' | 'verified') => {
     setState(prev => ({ ...prev, kycStatus: status }));
-  };
+  }, []);
 
 
-  const setBiometricEnabled = async (enabled: boolean) => {
+  const setBiometricEnabled = useCallback(async (enabled: boolean) => {
     setState(prev => ({ ...prev, biometricEnabled: enabled }));
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -489,31 +508,73 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Failed to sync biometric preference:", error);
     }
-  };
+  }, [supabase]);
 
-  const setProfile = (profile: UserProfile | null) => {
+  const setProfile = useCallback((profile: UserProfile | null) => {
     setState(prev => ({ ...prev, profile }));
-  };
+  }, []);
 
-  const submitKyc = (isPassport?: boolean) => {
+  const submitKyc = useCallback((isPassport?: boolean) => {
     setState(prev => ({
       ...prev,
       kycStatus: 'pending',
       kycSubmittedAt: Date.now(),
       isPassportVerified: isPassport ? true : prev.isPassportVerified,
     }));
-  };
+  }, []);
 
-  const resetForDemo = () => {
+  const resetForDemo = useCallback(() => {
     setState(defaultState);
     localStorage.removeItem(USER_STORAGE_KEY);
-  };
+  }, []);
 
-  const activateWallet = () => {
+  const activateWallet = useCallback(async () => {
+    if (!state.profile?.id) throw new Error('No user ID found');
+    
+    const userId = state.profile.id;
+
+    console.log('[WalletActivation] Initializing wallet for user:', userId);
+
+    // Create wallet row if it doesn't exist
+    const { error: walletError } = await supabase
+      .from('wallets')
+      .upsert(
+        {
+          user_id: userId,
+          available_balance: 0,
+          held_balance: 0,
+          tier_id: 'fbef1e55-688d-4916-91b5-2a44a2ff3380',
+        },
+        { onConflict: 'user_id', ignoreDuplicates: true }
+      );
+
+    if (walletError) {
+      console.error('[WalletActivation] Wallet record creation failed:', walletError);
+      throw walletError;
+    }
+
+    // Mark onboarded
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ is_onboarded: true })
+      .eq('id', userId);
+
+    if (profileError) {
+      console.error('[WalletActivation] Profile update failed:', profileError);
+      throw profileError;
+    }
+
     setState(prev => ({ ...prev, isWalletActivated: true }));
-  };
+    
+    // Refresh balance to ensure UI is in sync
+    await fetchAndCalculateBalance(userId);
+  }, [state.profile?.id, fetchAndCalculateBalance]);
 
-  const setWalletTier = async (tier: WalletTier) => {
+  const deactivateWallet = useCallback(() => {
+    setState(prev => ({ ...prev, isWalletActivated: false }));
+  }, []);
+
+  const setWalletTier = useCallback(async (tier: WalletTier) => {
     try {
       // 1. Fetch the UUID for the tier
       const { data: tierData, error: tierError } = await supabase
@@ -551,13 +612,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error('Failed to set wallet tier:', err);
     }
-  };
+  }, [supabase, fetchProfileData]);
 
-  const setPassportVerified = (verified: boolean) => {
+  const setPassportVerified = useCallback((verified: boolean) => {
     setState(prev => ({ ...prev, isPassportVerified: verified }));
-  };
+  }, []);
 
-  const setPassportVerifiedInDb = async (verified: boolean) => {
+  const setPassportVerifiedInDb = useCallback(async (verified: boolean) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || USER_ID;
@@ -583,9 +644,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error('Failed to update passport verification in DB:', err);
     }
-  };
+  }, [supabase, state.kycStatus]);
 
-  const scheduleDowngrade = async (tier: WalletTier, effectiveDate: string) => {
+  const scheduleDowngrade = useCallback(async (tier: WalletTier, effectiveDate: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || USER_ID;
@@ -611,9 +672,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('[scheduleDowngrade] Failed to schedule downgrade via RPC:', error);
     }
-  };
+  }, [supabase, fetchProfileData]);
 
-  const cancelDowngrade = async () => {
+  const cancelDowngrade = useCallback(async () => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -628,9 +689,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Failed to cancel downgrade in Supabase:', error);
     }
-  };
+  }, [supabase]);
 
-  const completeScheduledDowngrade = async () => {
+  const completeScheduledDowngrade = useCallback(async () => {
     if (state.scheduledDowngrade) {
       const newTier = state.scheduledDowngrade.tier;
 
@@ -680,9 +741,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         console.error('Failed to complete downgrade:', err);
       }
     }
-  };
+  }, [supabase, state.scheduledDowngrade, state.walletBalance, refreshBalance, fetchProfileData]);
 
-  const addMoney = async (amount: number) => {
+  const addMoney = useCallback(async (amount: number) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || USER_ID;
@@ -704,7 +765,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       console.error('Failed to add money:', error);
       return { success: false, error };
     }
-  };
+  }, [supabase, fetchAndCalculateBalance]);
 
   /* -------------------- Provider -------------------- */
 
@@ -721,6 +782,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     submitKyc,
     resetForDemo,
     activateWallet,
+    deactivateWallet,
     setWalletTier,
     setPassportVerified,
     scheduleDowngrade,

@@ -23,6 +23,7 @@ const PhoneInputImpl = React.forwardRef<HTMLInputElement, PhoneInputProps>(({
   onFocus,
 }, ref) => {
   const [isFocused, setIsFocused] = useState(false);
+  const focusLock = React.useRef(0);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,12 +35,20 @@ const PhoneInputImpl = React.forwardRef<HTMLInputElement, PhoneInputProps>(({
 
   const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
+      const now = Date.now();
+      if (now - focusLock.current < 400) return;
+      focusLock.current = now;
       setIsFocused(true);
       onFocus?.(e);
     },
     [onFocus]
   );
-  const handleBlur = useCallback(() => setIsFocused(false), []);
+  const handleBlur = useCallback(() => {
+    const now = Date.now();
+    if (now - focusLock.current < 400) return;
+    focusLock.current = now;
+    setIsFocused(false);
+  }, []);
 
   return (
     <div

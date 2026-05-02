@@ -32,23 +32,14 @@ export const ensureGlobalPlusCode = (plusCode: string | null, lat: number, lng: 
  * Reliably fetches the current user ID, falling back to demo USER_ID.
  * Uses getUser() for security as recommended by Supabase for RLS verification.
  */
-export const getAuthUserId = async (): Promise<string> => {
-  // Enforcing test USER_ID as requested to bypass RLS issues for demo
-  return USER_ID;
-  
-  /* Original dynamic resolution
+export const getAuthUserId = async (): Promise<string | null> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user?.id) return user.id;
-    
-    // Fallback to session if getUser fails but session exists
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.user?.id || USER_ID;
+    return user?.id || null;
   } catch (err) {
     console.error("Failed to get auth user:", err);
-    return USER_ID;
+    return null;
   }
-  */
 };
 
 export const fetchAddresses = async (userId: string) => {
@@ -63,11 +54,8 @@ export const fetchAddresses = async (userId: string) => {
 };
 
 export const createAddress = async (address: Omit<Address, 'id' | 'created_at'>) => {
-  // Explicitly enforce the specific string '414c977e-6f70-4f57-bfa1-af0a8a2053a4'
-  const explicitUserId = '414c977e-6f70-4f57-bfa1-af0a8a2053a4';
-
   const insertPayload = {
-    user_id: explicitUserId,
+    user_id: address.user_id,
     label: address.label || null,
     apartment: address.apartment || null,
     area: address.area || null,

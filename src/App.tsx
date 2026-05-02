@@ -2,7 +2,7 @@ import { HashRouter as Router, Routes, Route, useLocation, useNavigate } from "r
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from "@capacitor/core";
 import { CapacitorSwipeBackPlugin } from '@notnotsamuel/capacitor-swipe-back';
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { fetchActiveOrders } from "./lib/orders";
 import { setBadge } from "./utils/badge";
@@ -160,6 +160,7 @@ const BackNavigationHandler = ({ currentPathRef }: { currentPathRef: React.Mutab
 
 const App = () => {
   const currentPathRef = useRef("/");
+  const isWeb = Capacitor.getPlatform() === 'web';
 
   useEffect(() => {
     // Sync Supabase session from OAuth deep links
@@ -262,10 +263,19 @@ const App = () => {
       <div className="desktop-backdrop min-h-screen bg-[#06060C]">
         {/* ── Mobile simulator frame — all child w-full resolves to this 430px cap ── */}
         <main
-          className="mobile-frame w-full max-w-[430px] mx-auto min-h-screen relative overflow-x-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 bg-[#0a0a12]"
-          style={{ transform: 'translateZ(0)' }}
+          className="mobile-frame w-full max-w-[430px] mx-auto relative shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 bg-[#0a0a12] overflow-hidden"
+          style={{ 
+            transform: 'translateZ(0)', 
+            height: '100dvh'
+          }}
         >
-          <div className="app-container">
+          <div 
+            className="app-container overflow-y-auto" 
+            style={{ 
+              height: '100%', 
+              minHeight: '100dvh'
+            }}
+          >
             <GlobalCustomToaster />
             <LiquidGlassFilters />
             <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -345,6 +355,7 @@ const App = () => {
                 <Route path="/downgrade-plan" element={<ProtectedRoute><DowngradePlan /></ProtectedRoute>} />
                 <Route path="/downgrade-summary" element={<ProtectedRoute><DowngradeSummary /></ProtectedRoute>} />
                 <Route path="/delivery-caution" element={<ProtectedRoute><DeliveryCaution /></ProtectedRoute>} />
+                <Route path="/not-available" element={<ProtectedRoute><NotAvailable /></ProtectedRoute>} />
                 <Route path="/auth/v1/callback" element={<AuthCallback />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

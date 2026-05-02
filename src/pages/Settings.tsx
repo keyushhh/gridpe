@@ -33,7 +33,7 @@ import { useWebScroll } from "@/hooks/useWebScroll";
 type SecurityStatus = "verified" | "in_review" | "pending" | "incomplete";
 
 const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, pending: string, incomplete: string }, isDarkMode: boolean) => {
-  const { containerOverflow } = useWebScroll();
+  
   // Base styles for the frame
   const baseFrame = "w-10 h-10 rounded-full flex items-center justify-center border";
 
@@ -84,6 +84,7 @@ const Settings = () => {
   const { resolvedTheme, setTheme } = useTheme();
   // Ensure we have a default boolean for the switch (true for dark)
   const isDarkMode = resolvedTheme !== 'light';
+  const { containerOverflow } = useWebScroll();
 
   const { phoneNumber, email, kycStatus, resetForDemo, name, profileImage } = useUser();
   const [pushNotifications, setPushNotifications] = useState(true);

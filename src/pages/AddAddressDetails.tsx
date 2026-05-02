@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import SaveAddressSheet from "@/components/SaveAddressSheet";
 import { createAddress, updateAddress, Address, ensureGlobalPlusCode, getAuthUserId } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
+import { useUser } from "@/contexts/UserContext";
 
 // Assets
 import addressContainerBg from "@/assets/address-container.png";
@@ -50,6 +51,8 @@ const AddAddressDetails = () => {
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const { showToaster } = useCustomToaster();
+    const { profile } = useUser();
+    const currentUserId = profile?.id;
     const initialState = location.state as AddressState | null;
     const isEditMode = !!initialState?.id;
 
@@ -142,7 +145,7 @@ const AddAddressDetails = () => {
         const tagToSave = overrideTag || (selectedTag === "Other" && customLabel ? customLabel : selectedTag);
 
         try {
-            const userId = await getAuthUserId();
+            const userId = currentUserId;
 
             if (!userId) {
                 showToaster("Authentication error. Please try again.", 'error');

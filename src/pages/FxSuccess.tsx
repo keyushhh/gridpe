@@ -29,6 +29,7 @@ import radioEmpty from "@/assets/radio-empty.svg";
 import { getOrderById, cancelOrder } from "@/lib/orders";
 import { Order } from "@/types";
 import { useUser } from "@/contexts/UserContext";
+import DevModeOverlay from "@/components/DevModeOverlay";
 
 const currencySymbols: Record<string, string> = {
     AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
@@ -540,6 +541,7 @@ const FxSuccess = () => {
                     </div>
                 </div>
             )}
+            <DevModeOverlay orderId={orderId} isFx={isFx} />
         </div>
     );
 };

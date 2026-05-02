@@ -75,19 +75,23 @@ const Rewards = () => {
                 if (rewardData && rewardData.length > 0) {
                     const orderIds = rewardData.map(rt => rt.reference_id);
 
-                    // 2. Fetch associated orders from both tables
-                    const [cashRes, fxRes] = await Promise.all([
-                        supabase.from('cash_orders').select('*').in('id', orderIds),
-                        supabase.from('fx_orders').select('*').in('id', orderIds)
-                    ]);
+                    // 2. Fetch associated orders from the unified orders table
+                    const { data: ordersData, error: ordersError } = await supabase
+                        .from('orders')
+                        .select('*')
+                        .in('id', orderIds);
 
-                    const cashOrdersMap = new Map((cashRes.data || []).map(o => [o.id, { ...o, order_type: 'CASH_ORDER', amount: o.total_amount || o.item_value }]));
-                    const fxOrdersMap = new Map((fxRes.data || []).map(o => [o.id, { ...o, order_type: 'FX_EXCHANGE', amount: o.total_amount || o.amount_total }]));
+                    if (ordersError) throw ordersError;
+
+                    const ordersMap = new Map((ordersData || []).map(o => [o.id, { 
+                        ...o, 
+                        amount: o.total_amount || o.amount 
+                    }]));
 
                     // 3. Combine
                     const fullTransactions = rewardData.map(rt => ({
                         ...rt,
-                        order_details: cashOrdersMap.get(rt.reference_id) || fxOrdersMap.get(rt.reference_id)
+                        order_details: ordersMap.get(rt.reference_id)
                     }));
 
                     setRewardTransactions(fullTransactions);

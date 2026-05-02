@@ -190,9 +190,9 @@ const SubscriptionSummary = () => {
             const rzp = new (window as any).Razorpay(options);
             rzp.open();
 
-        } catch (err: any) {
-            console.error("Upgrade error:", err.message);
-            alert("Error: " + err.message);
+        } catch (error: any) {
+            console.error('RAZORPAY_FAILURE:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+            alert("Error: " + (error.message || "An unknown error occurred"));
         } finally {
             setIsLoading(false);
         }

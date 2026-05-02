@@ -245,9 +245,9 @@ const Subscriptions = () => {
 
             rzp.open();
 
-        } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
-            console.error("Renewal error:", errorMessage);
+        } catch (error: any) {
+            console.error('RAZORPAY_FAILURE:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
             alert("Error: " + errorMessage);
             setIsLoadingPay(false);
         }

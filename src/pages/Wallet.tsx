@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { useAsset } from "@/hooks/useAsset";
@@ -11,7 +12,7 @@ const Wallet = () => {
     const navigate = useNavigate();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
-    const { isWalletActivated, activateWallet } = useUser();
+    const { isWalletActivated, activateWallet, isInitializing } = useUser();
     const [activeTab, setActiveTab] = useState<'how-it-works' | 'refund-policy'>('how-it-works');
 
     const walletBg = useAsset("wallet-bg");
@@ -21,10 +22,18 @@ const Wallet = () => {
     const primaryButton = useAsset("button-primary");
 
     useEffect(() => {
-        if (isWalletActivated) {
+        if (!isInitializing && isWalletActivated) {
             navigate('/wallet-created', { replace: true });
         }
-    }, [isWalletActivated, navigate]);
+    }, [isWalletActivated, isInitializing, navigate]);
+
+    if (isInitializing) {
+        return (
+            <div className={`h-full w-full flex items-center justify-center ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}>
+               <Loader2 className="w-8 h-8 animate-spin text-[#5260FE]" />
+            </div>
+        );
+    }
 
     return (
         <div
@@ -244,9 +253,13 @@ const Wallet = () => {
             {/* Footer CTA (Fixed) */}
             <div className="shrink-0 px-5 pb-safe pb-4 pt-4 w-full bg-transparent">
                 <button
-                    onClick={() => {
-                        activateWallet();
-                        navigate('/wallet-created');
+                    onClick={async () => {
+                        try {
+                            await activateWallet();
+                            navigate('/wallet-created', { replace: true });
+                        } catch (err) {
+                            console.error('[GetStarted] Failed:', err);
+                        }
                     }}
                     className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans transition-all active:scale-95 ${!isDarkMode ? 'bg-[#5260FE] rounded-full' : ''}`}
                     style={{

@@ -28,9 +28,10 @@ import { useTheme } from "next-themes";
 import { useUser } from "@/contexts/UserContext";
 import { useCustomToaster } from "@/contexts/CustomToasterContext";
 import { useWebScroll } from "@/hooks/useWebScroll";
+import DevModeOverlay from "@/components/DevModeOverlay";
 
 const OrderDetails = () => {
-  const { containerOverflow } = useWebScroll();
+    const { containerOverflow } = useWebScroll();
     const navigate = useNavigate();
     const location = useLocation();
     const { orderId } = useParams<{ orderId: string }>();
@@ -728,6 +729,7 @@ const OrderDetails = () => {
                     </div>
                 </div>
             )}
+            <DevModeOverlay orderId={orderId} />
         </div>
     );
 }

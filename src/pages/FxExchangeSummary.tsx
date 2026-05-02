@@ -47,7 +47,8 @@ const FxExchangeSummary = () => {
     const { showToaster } = useCustomToaster();
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme === "dark";
-    const { walletBalance, rewardPoints: availableRewardPoints, refreshBalance } = useUser();
+    const { profile, walletBalance, rewardPoints: availableRewardPoints, refreshBalance } = useUser();
+    const currentUserId = profile?.id;
 
     // Accept full FX state
     const {
@@ -229,7 +230,7 @@ const FxExchangeSummary = () => {
 
     const handlePay = async () => {
         try {
-            const userId = await getAuthUserId();
+            const userId = currentUserId;
             if (totalAmount > walletBalance) {
                 showToaster("Insufficient wallet balance.", 'error');
                 return;
@@ -461,6 +462,26 @@ const FxExchangeSummary = () => {
 
                 const orderData = await createOrderDirectly(addressId, cleanedReceiveAmount, cleanedHoldAmount, customerPhoneNumber, pickupAddress, dAddressText);
                 const finalOrderId = orderData.id;
+
+                // NEW: Link the hold transaction to the newly created order
+                // We fetch the most recent pending hold for this user to avoid matching multiple rows
+                const { data: holdTx } = await supabase
+                    .from('wallet_transactions')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .eq('type', 'hold')
+                    .eq('status', 'pending')
+                    .is('order_id', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (holdTx) {
+                    await supabase
+                        .from('wallet_transactions')
+                        .update({ order_id: finalOrderId })
+                        .eq('id', holdTx.id);
+                }
 
                 // Update app badge
                 setBadge(1);
@@ -696,8 +717,7 @@ const FxExchangeSummary = () => {
 
                 <div style={containerStyle} className="w-full pt-[10px] px-[11px] pb-[12px]">
                     <div className="flex items-center gap-2 mb-3">
-                        <span className={`text-[16px] font-medium font-sans ${isDarkMode ? "text-white" : "text-black"}`}>KYC Security Check</span>
-                        <span className="text-[16px]">ðŸ”</span>
+                        <span className={`text-[16px] font-medium font-sans ${isDarkMode ? "text-white" : "text-black"}`}>KYC Security Check 🔐</span>
                     </div>
                     <ul className={`list-disc pl-4 space-y-2 text-[13px] font-normal font-sans leading-snug ${isDarkMode ? "text-white/80 marker:text-white/60" : "text-black marker:text-black"}`}>
                         <li>Your KYC has been verified. Please keep your original ID ready when accepting your cash delivery.</li>

@@ -697,6 +697,16 @@ const OnboardingScreen = () => {
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const otpInputRef = useRef<HTMLDivElement>(null);
 
+  // Delayed focus for phone input to avoid layout jitter on Android
+  useEffect(() => {
+    if (!showOtpInput && !showMpinSetup && !showMpinLogin && !isAuthChecking) {
+      const timer = setTimeout(() => {
+        phoneInputRef.current?.focus();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [showOtpInput, showMpinSetup, showMpinLogin, isAuthChecking]);
+
 
 
   const handleOtpChange = useCallback((val: string) => {

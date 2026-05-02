@@ -43,7 +43,8 @@ const OrderCashSummary = () => {
     const { amount } = location.state || { amount: "0.00" };
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
-    const { walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
+    const { profile, walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
+    const currentUserId = profile?.id;
     const [isRewardsOpen, setIsRewardsOpen] = useState(false);
     const [isPayOpen, setIsPayOpen] = useState(false);
     const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
@@ -204,7 +205,7 @@ const OrderCashSummary = () => {
 
     const handlePay = async () => {
         try {
-            const userId = await getAuthUserId();
+            const userId = currentUserId;
             if (!userId) {
                 showToaster("You must be logged in to place an order.", 'error');
                 return;
@@ -439,6 +440,26 @@ const OrderCashSummary = () => {
                 const orderData = await createOrderDirectly(addressId!, customerPhoneNumber, pAddress, dAddressText);
                 const orderId = orderData.id;
                 
+                // NEW: Link the hold transaction to the newly created order
+                // We fetch the most recent pending hold for this user to avoid matching multiple rows
+                const { data: holdTx } = await supabase
+                    .from('wallet_transactions')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .eq('type', 'hold')
+                    .eq('status', 'pending')
+                    .is('order_id', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (holdTx) {
+                    await supabase
+                        .from('wallet_transactions')
+                        .update({ order_id: orderId })
+                        .eq('id', holdTx.id);
+                }
+
                 // Update app badge
                 setBadge(1);
 
@@ -667,8 +688,7 @@ const OrderCashSummary = () => {
 
                 <div style={containerStyle} className="w-full pt-[10px] px-[11px] pb-[12px]">
                     <div className="flex items-center gap-2 mb-3">
-                        <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>KYC Security Check</span>
-                        <span className="text-[16px]">ðŸ”</span>
+                        <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>KYC Security Check 🔐</span>
                     </div>
                     <ul className={`list-disc pl-4 space-y-2 text-[13px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/80 marker:text-white/60' : 'text-black marker:text-black'}`}>
                         <li>Your KYC has been verified. Please keep your original ID ready when accepting your cash delivery.</li>

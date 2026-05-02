@@ -22,16 +22,44 @@ const WalletCreated = () => {
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const queryClient = useQueryClient();
-    const { profile, walletTier, upgradeTimestamp, walletBalance, heldBalance, walletLimit, dailyLimit, wallet_tiers, isRenewalPending, scheduledDowngrade } = useUser();
+    const { profile, walletTier, upgradeTimestamp, walletBalance, heldBalance, walletLimit, dailyLimit, wallet_tiers, isRenewalPending, scheduledDowngrade, isInitializing, deactivateWallet, isWalletActivated } = useUser();
     const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
         const getSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            setUserId(session?.user?.id || USER_ID);
+            const currentUserId = session?.user?.id || USER_ID;
+            setUserId(currentUserId);
+            
         };
         getSession();
-    }, []);
+    }, [navigate]);
+
+    const { data: realWalletData, isLoading: isRealWalletLoading } = useQuery({
+        queryKey: ['real_wallet', userId],
+        enabled: !!userId,
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('wallets')
+                .select('*')
+                .eq('user_id', userId)
+                .maybeSingle();
+            
+            if (error) throw error;
+            return data;
+        }
+    });
+
+    useEffect(() => {
+        // Conditional Lock: Only show the WalletIntro screen if the API explicitly returns a 404 or an empty array.
+        // Guard: Only fire if we are NOT loading and the wallet is null, AND if the wallet is currently marked as activated.
+        if (!isRealWalletLoading && realWalletData === null) {
+            if (isWalletActivated) {
+                deactivateWallet();
+                navigate('/wallet', { replace: true });
+            }
+        }
+    }, [isRealWalletLoading, realWalletData, navigate, deactivateWallet, isWalletActivated]);
 
     const { data: walletData, isLoading: isWalletLoading } = useQuery({
         queryKey: ['wallet', userId],
@@ -130,7 +158,7 @@ const WalletCreated = () => {
     const getTransactionDisplay = (tx: any) => {
         const txType = tx.transaction_type || tx.type;
         const status = tx.status?.toLowerCase();
-        let title = status === 'held' ? "Amount Held" : (txType === 'credit' ? "Amount Credited" : "Amount Debited");
+        let title = status === 'held' ? "Amount Held" : ((txType === 'credit' || txType === 'deposit') ? "Amount Credited" : "Amount Debited");
         let subtitle = tx.description;
 
         const methodId = tx.metadata?.paymentMethodId as string | undefined;
@@ -169,7 +197,7 @@ const WalletCreated = () => {
         // Fallback to pattern matching
         const desc = tx.description.toLowerCase();
         if (tx.metadata?.isFx || desc.includes("fx exchange")) {
-            title = status === 'held' ? "Amount Held" : (txType === 'credit' ? "Amount Credited" : "Amount Debited");
+            title = status === 'held' ? "Amount Held" : ((txType === 'credit' || txType === 'deposit') ? "Amount Credited" : "Amount Debited");
             subtitle = "FX Exchange";
         } else if (desc.includes("cash order") || desc.includes("cash delivery")) {
             title = status === 'held' ? "Amount Held" : "Amount Debited";
@@ -360,7 +388,7 @@ const WalletCreated = () => {
         );
     };
 
-    if (isWalletLoading || isTxLoading) {
+    if (isWalletLoading || isTxLoading || isInitializing || isRealWalletLoading || (realWalletData === null)) {
         return (
             <div className="h-full w-full flex items-center justify-center bg-[#0a0a12]">
                 <Loader2 className="w-8 h-8 animate-spin text-[#5260FE]" />
@@ -370,6 +398,7 @@ const WalletCreated = () => {
 
     return (
         <div
+            key={userId || 'wallet'}
             className="h-full w-full overflow-y-auto overscroll-auto flex flex-col safe-area-top relative"
             style={{
                 backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
@@ -537,7 +566,7 @@ const WalletCreated = () => {
                                             </div>
                                             <div className="text-right shrink-0">
                                                 <span className={`text-[13px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                                    {type === 'credit' ? '+' : '-'}₹{Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {(type === 'credit' || type === 'deposit') ? '+' : '-'}₹{Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         </div>

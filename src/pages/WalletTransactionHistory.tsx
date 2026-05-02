@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { createPortal } from "react-dom";
@@ -303,7 +303,7 @@ const WalletTransactionHistory = () => {
     const getTransactionDisplay = (tx: WalletTransaction) => {
         const txType = tx.type || tx.transaction_type;
         const status = tx.status?.toLowerCase();
-        let title = status === 'held' ? "Amount Held" : (txType === 'credit' ? "Amount Credited" : "Amount Debited");
+        let title = status === 'held' ? "Amount Held" : ((txType === 'credit' || txType === 'deposit') ? "Amount Credited" : "Amount Debited");
         let subtitle = tx.description;
 
         // Try mapping from metadata first (for newer transactions)

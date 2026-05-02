@@ -115,7 +115,7 @@ html.font-pending body {
     flex-direction: column;
     overflow: hidden;
     /* Desktop background — subtle dark neutral outside the phone frame */
-    background-color: #06060C;
+    background-color: #0a0a12;
     /* Kill the cheap-looking glow/rubber-band on Android. */
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -126,7 +126,7 @@ html.font-pending body {
     flex-direction: column;
     flex: 1;
     overflow: hidden;
-    background-color: #06060C;
+    background-color: #0a0a12;
   }
 
   html {
@@ -428,27 +428,12 @@ html.font-pending body {
   animation: expandCircle 0.5s ease-in both;
 }
 
-/* ── Web Platform: Unlock global scroll ── */
-.web-platform,
-.web-platform body,
-.web-platform #root {
-  overflow: visible;
-  overflow-y: auto;
-}
-
-/* On web, don't lock .app-container to position:fixed on small screens */
-@media (max-width: 430px) {
-  .web-platform .app-container {
-    position: relative;
-    overflow-y: auto;
-  }
-}
-
-/* Elegant scrollbar hiding for web */
-.web-platform ::-webkit-scrollbar {
-  display: none;
-}
-.web-platform {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Lock the root viewport to prevent bounce/flicker */
+html, body, #root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  overscroll-behavior: none;
 }
