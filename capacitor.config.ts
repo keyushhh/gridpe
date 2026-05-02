@@ -29,7 +29,7 @@ const config: CapacitorConfig & {
   },
   plugins: {
     Keyboard: {
-      resize: 'none',
+      resize: 'body',
       style: 'dark',
     },
     SystemBars: {

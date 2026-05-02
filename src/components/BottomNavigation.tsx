@@ -40,8 +40,8 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
     <div
       className={`fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 backdrop-blur-xl ${isDarkMode ? 'border-t border-white/5' : 'border-t border-[#E9EAEB]'}`}
       style={{
-        height: `calc(64px + ${bottomInset}px)`,
-        paddingBottom: `${bottomInset}px`,
+        height: `calc(64px + max(env(safe-area-inset-bottom), ${bottomInset}px))`,
+        paddingBottom: `max(env(safe-area-inset-bottom), ${bottomInset}px)`,
         backgroundColor: isDarkMode ? 'rgba(10, 10, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         boxShadow: '0 -10px 30px rgba(0,0,0,0.15)'
       }}
