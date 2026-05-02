@@ -14,9 +14,20 @@ export const fetchBankAccounts = async (userId: string) => {
 };
 
 export const createBankAccount = async (account: Omit<BankAccount, 'id' | 'created_at'>) => {
+  const insertPayload = {
+    user_id: account.user_id,
+    bank_name: account.bank_name,
+    account_type: account.account_type,
+    account_number: account.account_number,
+    account_holder_name: account.account_holder_name,
+    ifsc_code: account.ifsc_code,
+    branch_name: account.branch_name,
+    is_default: account.is_default,
+  };
+
   const { data, error } = await supabase
     .from('bank_accounts')
-    .insert(account)
+    .insert(insertPayload)
     .select()
     .single();
 

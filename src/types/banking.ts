@@ -10,7 +10,6 @@ export interface BankAccount {
   ifsc_code: string;
   branch_name: string;
   is_default: boolean;
-  logo_url: string | null;
   created_at: string;
 
   // UI & Legacy Aliases
@@ -20,7 +19,6 @@ export interface BankAccount {
   ifsc?: string;
   branch?: string;
   isDefault?: boolean;
-  logo?: string;
   backgroundIndex?: number;
 }
 

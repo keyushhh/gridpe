@@ -89,7 +89,6 @@ export interface Tables {
     ifsc_code: string;
     branch_name: string;
     is_default: boolean;
-    logo_url: string | null;
     created_at: string;
   };
   payouts: {

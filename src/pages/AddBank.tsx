@@ -150,7 +150,6 @@ const AddBank = () => {
       ifsc_code: "HDFC0001234",
       branch_name: "HDFC Bank, Main Branch",
       is_default: true,
-      logo_url: null,
       created_at: new Date().toISOString()
     };
 
@@ -186,7 +185,6 @@ const AddBank = () => {
         ifsc_code: ifscCode,
         branch_name: formattedBranch,
         is_default: false,
-        logo_url: null,
       };
 
       const savedAccount = await createBankAccount(newAccount);

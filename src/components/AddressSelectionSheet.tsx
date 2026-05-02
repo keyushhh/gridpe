@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate , Navigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useUser } from "@/contexts/UserContext";
 import { useTheme } from "next-themes";
 import { X, Search, Plus, MapPin, MessageSquareMore } from "lucide-react";
@@ -107,11 +107,11 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({ isOpen, o
                             longitude: d.longitude
                         }));
                         setSavedAddresses(mapped);
+                    } catch (e: any) {
+                        console.error("Failed to load addresses", e);
+                        showToaster("Failed to load your saved addresses.", "error");
                     }
-                } catch (e: any) {
-                    console.error("Failed to load addresses", e);
-                    showToaster("Failed to load your saved addresses.", "error");
-                }
+
 
                 // Load Selected Address from local state only (active session)
                 // We still keep the *currently selected* address in local storage for persistence across reloads during a session

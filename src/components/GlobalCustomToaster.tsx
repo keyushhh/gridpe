@@ -8,11 +8,13 @@ import failedIcon from '@/assets/failed.svg';
 import trashIcon from '@/assets/trash-delete.svg';
 import successIconLight from '@/assets/check-icon-light.svg';
 import failedIconLight from '@/assets/failed-light.svg';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 const GlobalCustomToaster: React.FC = () => {
   const { isVisible, message, type, hideToaster } = useCustomToaster();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
+  const { bottom: bottomInset } = useSafeArea();
   const [progress, setProgress] = useState(0);
   const duration = 4000; // 4 seconds to match loader animation spec
 
@@ -80,7 +82,7 @@ const GlobalCustomToaster: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-8 left-0 right-0 z-[100] flex justify-center pointer-events-none px-5">
+    <div className="fixed left-0 right-0 z-[10000] flex justify-center pointer-events-none px-5" style={{ bottom: `calc(100px + ${bottomInset}px)` }}>
       <div
         className="flex items-center pointer-events-auto animate-in fade-in slide-in-from-bottom-5 duration-300 relative overflow-hidden"
         style={{

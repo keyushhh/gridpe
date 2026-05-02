@@ -109,6 +109,7 @@ const MyCards = () => {
         fetchAllCards();
     }, [userId]);
 
+    useEffect(() => {
         if (location.state?.cardAdded) {
             setShowSuccessModal(true);
             window.history.replaceState({}, document.title);
