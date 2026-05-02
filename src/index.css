@@ -113,9 +113,13 @@ html.font-pending body {
 
   html,
   body {
+    width: 100vw;
+    height: 100vh;
+    height: -webkit-fill-available;
+    overflow: hidden;
+    position: fixed;
     display: flex;
     flex-direction: column;
-    /* overflow: hidden; removed to ensure safe area is utilized */
     /* Desktop background — subtle dark neutral outside the phone frame */
     background-color: #0a0a12;
     /* Kill the cheap-looking glow/rubber-band on Android. */

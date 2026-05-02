@@ -696,16 +696,39 @@ const OnboardingScreen = () => {
 
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const otpInputRef = useRef<HTMLDivElement>(null);
+  const otpFocusRef = useRef<HTMLDivElement>(null);
+  const mpinFocusRef = useRef<HTMLDivElement>(null);
 
-  // Delayed focus for phone input to avoid layout jitter on Android
+  // Delayed focus for phone input — iOS needs 100ms for viewport handshake, Android needs 500ms to avoid layout jitter
   useEffect(() => {
     if (!showOtpInput && !showMpinSetup && !showMpinLogin && !isAuthChecking) {
+      const delay = Capacitor.getPlatform() === 'ios' ? 100 : 500;
       const timer = setTimeout(() => {
         phoneInputRef.current?.focus();
-      }, 500);
+      }, delay);
       return () => clearTimeout(timer);
     }
   }, [showOtpInput, showMpinSetup, showMpinLogin, isAuthChecking]);
+
+  // Delayed focus for OTP input
+  useEffect(() => {
+    if (showOtpInput && !showMpinSetup && !showMpinLogin) {
+      const timer = setTimeout(() => {
+        otpFocusRef.current?.querySelector('input')?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showOtpInput, showMpinSetup, showMpinLogin]);
+
+  // Delayed focus for MPIN input (both login and setup)
+  useEffect(() => {
+    if (showMpinSetup || showMpinLogin) {
+      const timer = setTimeout(() => {
+        mpinFocusRef.current?.querySelector('input')?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showMpinSetup, showMpinLogin]);
 
 
 
@@ -855,7 +878,7 @@ const OnboardingScreen = () => {
               </div>
 
               <div className="flex flex-col items-center gap-2 py-4" ref={otpInputRef}>
-                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} autoFocus inputMode="numeric" pattern="[0-9]*" type="tel">
+                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} inputMode="numeric" pattern="[0-9]*" type="tel" ref={otpFocusRef as any}>
                   <InputOTPGroup className="gap-[8px]">
                     {[0, 1, 2, 3, 4, 5].map(index => (
                       <InputOTPSlot
@@ -969,10 +992,10 @@ const OnboardingScreen = () => {
                   maxLength={4}
                   value={mpin}
                   onChange={handleMpinChange}
-                  autoFocus
                   inputMode="numeric"
                   pattern="[0-9]*"
                   type="tel"
+                  ref={mpinFocusRef as any}
                 >
                   <InputOTPGroup className="w-[364px] justify-between">
                     {[0, 1, 2, 3].map(index => (
@@ -1072,10 +1095,10 @@ const OnboardingScreen = () => {
                   maxLength={4}
                   value={mpin}
                   onChange={handleMpinChange}
-                  autoFocus
                   inputMode="numeric"
                   pattern="[0-9]*"
                   type="tel"
+                  ref={mpinFocusRef as any}
                 >
                   <InputOTPGroup className="w-[364px] justify-between">
                     {[0, 1, 2, 3].map(index => (

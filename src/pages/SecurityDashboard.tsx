@@ -135,25 +135,29 @@ const SecurityDashboard = () => {
     try { await hapticLight(); } catch (_) { /* non-critical */ }
     
     if (isDeviceEnabled) {
-      // Disable locally
+      // Disable locally + sync to Supabase
       localStorage.setItem('biometrics_enabled', 'false');
       setIsDeviceEnabled(false);
-      // We keep the Supabase biometricEnabled as true/false based on global preference,
-      // but the user specifically asked for local gate.
+      await setBiometricEnabled(false);
       toast.success("Biometric unlock disabled on this device");
     } else {
       // Enable
       try {
         const availability = await BiometricAuth.checkBiometry();
+        console.log('Biometry check result:', JSON.stringify(availability, null, 2));
+        console.log(`Platform: ${Capacitor.getPlatform()}, Available: ${availability.isAvailable}, Type: ${availability.biometryType}, Reason: ${availability.reason || 'none'}`);
+        
         if (!availability.isAvailable) {
-          toast.error(`${availability.reason || "Biometric authentication is not available"}`);
+          const reason = availability.reason || "Biometric authentication is not available on this device";
+          console.warn('Biometry unavailable:', reason);
+          toast.error(reason);
           return;
         }
         // Collect MPIN first
         setShowMpinForBiometric(true);
-      } catch (error) {
-        console.error("Check biometry failed:", error);
-        toast.error("Failed to check biometric availability");
+      } catch (error: any) {
+        console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
+        toast.error(error?.message || "Failed to check biometric availability");
       }
     }
   };
@@ -162,21 +166,28 @@ const SecurityDashboard = () => {
     if (!mpin) return;
 
     try {
-      await BiometricAuth.authenticate({
+      // Wrap authenticate() in a timeout so the UI doesn't hang
+      // if the native biometric prompt fails to appear on Android
+      const authPromise = BiometricAuth.authenticate({
         reason: "Confirm your identity to enable biometrics",
         cancelTitle: "Cancel"
       });
 
-      // On Success
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Biometric prompt timed out. Please try again.")), 30000)
+      );
+
+      await Promise.race([authPromise, timeoutPromise]);
+
+      // On Success — persist to local, context state, Supabase, and secure storage
       localStorage.setItem('biometrics_enabled', 'true');
       setIsDeviceEnabled(true);
-      setBiometricEnabled(true); // Sync to Supabase
+      await setBiometricEnabled(true);
       await SecureStorage.set('mpin', mpin);
       
       toast.success("Biometric unlock enabled!");
     } catch (error: any) {
-      console.error("Biometric authentication failed:", JSON.stringify(error, null, 2));
-      // Revert toggle happens naturally as isDeviceEnabled wasn't set
+      console.error('Biometric authentication failed:', JSON.stringify(error, null, 2));
       toast.error(error?.message || "Authentication failed or cancelled");
     } finally {
       setShowMpinForBiometric(false);
@@ -255,7 +266,7 @@ const SecurityDashboard = () => {
 
         {/* ROW 3: Biometric */}
         <div
-          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer`}
+          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer relative z-50`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
           onClick={handleBiometricToggle}
         >
@@ -269,11 +280,11 @@ const SecurityDashboard = () => {
               </span>
             </div>
           </div>
-          {/* Toggle Wrapper */}
-          <div className="mr-[10px] flex items-center justify-center shrink-0 pointer-events-none">
+          {/* Toggle Switch — z-50 ensures it's above any transparent overlay on Android WebView */}
+          <div className="mr-[10px] flex items-center justify-center shrink-0 relative z-50">
             <Switch
               checked={isDeviceEnabled}
-              onCheckedChange={() => {}} // Controlled solely by the parent row onClick
+              onCheckedChange={handleBiometricToggle}
             />
           </div>
         </div>
