@@ -182,7 +182,6 @@ const WalletAddMoney = () => {
               onKeyPress={handleKeyPress}
               onBackspace={handleBackspace}
               isDarkMode={isDarkMode}
-              disabled={isExceedingLimit}
             />
 
             <div className="flex flex-col gap-[10px] items-center relative z-10">
