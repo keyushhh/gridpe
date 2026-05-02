@@ -68,7 +68,7 @@ const HelpSupport = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 safe-top pt-4 pb-4 flex items-center relative z-10 shrink-0 mb-[10px]">
+            <header className="px-5 pt-4 pb-4 flex items-center relative z-10 shrink-0 mb-[10px]">
                 <BackButton onClick={() => navigate(-1)} />
                 <div className="absolute inset-x-0 flex justify-center pointer-events-none">
                     <h1 className={`text-[22px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support</h1>
@@ -115,9 +115,8 @@ const HelpSupport = () => {
 
                         <div
                             onClick={() => navigate('/help/report', { state: { order: recentOrder } })}
-                            className="relative mb-[12px] mx-auto overflow-hidden cursor-pointer active:scale-[0.98] transition-all"
+                            className="relative w-full mb-[12px] overflow-hidden cursor-pointer active:scale-[0.98] transition-all"
                             style={{
-                                width: '363px',
                                 height: '100px',
                                 background: isDarkMode
                                     ? 'rgba(28, 185, 86, 0.21)'
@@ -141,7 +140,7 @@ const HelpSupport = () => {
                             </div>
 
                             <div
-                                className={`!absolute top-[25px] left-0 w-[362px] glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+                                className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
                                 style={{
                                     height: '75px',
                                     '--glass-radius': '0 0 12px 12px',
@@ -179,7 +178,7 @@ const HelpSupport = () => {
 
                         <button
                             onClick={() => navigate('/order-history', { state: { showOnlyPast: true } })}
-                            className={`w-[363px] h-[42px] rounded-[12px] flex items-center justify-between px-4 transition-all overflow-hidden relative ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
+                            className={`w-full h-[42px] rounded-[12px] flex items-center justify-between px-4 transition-all overflow-hidden relative ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
                             style={isDarkMode ? { '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any : {}}
                         >
                             {isDarkMode && (
@@ -199,7 +198,7 @@ const HelpSupport = () => {
                 <div className="mb-[20px]">
                     <h3 className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}>BROWSE CATEGORIES</h3>
                     <div
-                        className={`w-[363px] rounded-[12px] overflow-hidden relative flex flex-col gap-0 transition-colors ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
+                        className={`w-full rounded-[12px] overflow-hidden relative flex flex-col gap-0 transition-colors ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
                         style={isDarkMode ? { '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any : {}}
                     >
                         {isDarkMode && (
@@ -255,7 +254,7 @@ const HelpSupport = () => {
                     <h3 className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}>CONTACT US</h3>
                     <button
                         onClick={() => navigate('/help/chat')}
-                        className={`w-[363px] h-[72px] rounded-[12px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'glass-container glass-physics-clear active:bg-white/5' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
+                        className={`w-full h-[72px] rounded-[12px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'glass-container glass-physics-clear active:bg-white/5' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
                         style={isDarkMode ? { '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any : {}}
                     >
                         {isDarkMode && (

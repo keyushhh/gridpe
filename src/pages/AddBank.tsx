@@ -246,7 +246,7 @@ const AddBank = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom overflow-hidden`}
+      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
@@ -264,7 +264,7 @@ const AddBank = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-32">
+      <div className="flex-1 px-5 mt-8 overflow-y-auto overscroll-y-none scrollbar-hide pb-32 min-h-0">
         <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium leading-relaxed mb-8`}>
           Whether you like shortcuts or full control –
           <br />
@@ -309,14 +309,13 @@ const AddBank = () => {
                 </div>
                 {/* Recommended Badge */}
                 <div
-                  className="flex items-center justify-center rounded-[4px]" // rounded matched asset roughly? Asset might be pills.
+                  className="inline-flex items-center justify-center whitespace-nowrap px-2 py-0.5"
                   style={isDarkMode ? {
-                    width: '109px',
                     height: '25px',
                     backgroundImage: `url(${recommendedBadge})`,
-                    backgroundSize: 'cover'
+                    backgroundSize: '100% 100%',
+                    borderRadius: '20px'
                   } : {
-                    width: '109px',
                     height: '25px',
                     backgroundColor: '#0D992F',
                     borderRadius: '20px'
@@ -560,7 +559,7 @@ const AddBank = () => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-10 left-0 w-full px-5 flex justify-center z-20">
+      <div className={`sticky bottom-0 left-0 w-full px-5 py-4 flex justify-center z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}>
         <Button
           variant="gradient"
           className="w-full h-[48px] rounded-full text-[16px] font-sans font-medium transition-all duration-200"

@@ -366,13 +366,11 @@ if (!isOpen) return null;
 
                 {/* Static Actions Container */}
                 <div
-                    className={`rounded-[13px] mb-[32px] flex flex-col border ${isDarkMode ? 'bg-[#0D0D0D] border-white/5' : 'bg-white border-[#E6E8EB] shadow-sm'}`}
-                    style={{ maxHeight: "153px" }}
+                    className={`w-full rounded-[13px] mb-[32px] flex flex-col border ${isDarkMode ? 'bg-[#0D0D0D] border-white/5' : 'bg-white border-[#E6E8EB] shadow-sm'}`}
                 >
                     {/* 1. Add New Address */}
                     <div
-                        className={`flex items-center justify-between cursor-pointer ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-                        style={{ paddingTop: '12px', paddingLeft: '10.5px', paddingRight: '10.5px', paddingBottom: '10px' }}
+                        className={`flex items-center justify-between cursor-pointer px-3 pt-3 pb-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
                         onClick={() => navigate('/add-address')}
                     >
                         <div className="flex items-center gap-3">
@@ -387,8 +385,7 @@ if (!isOpen) return null;
 
                     {/* 2. Use Current Location */}
                     <div
-                        className={`flex items-center justify-between cursor-pointer ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-                        style={{ paddingTop: '10px', paddingLeft: '10.5px', paddingRight: '10.5px', paddingBottom: '10px' }}
+                        className={`flex items-center justify-between cursor-pointer px-3 py-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
                         onClick={handleUseCurrentLocation}
                     >
                         <div className="flex items-center gap-3">
@@ -408,8 +405,7 @@ if (!isOpen) return null;
 
                     {/* 3. Request Address */}
                     <div
-                        className={`flex items-center justify-between cursor-pointer ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-                        style={{ paddingTop: '10px', paddingLeft: '10.5px', paddingRight: '10.5px', paddingBottom: '12px' }}
+                        className={`w-full flex items-center justify-between cursor-pointer px-3 py-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
                         onClick={() => { }} // No-op as requested
                     >
                         <div className="flex items-center gap-3">

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { hapticLight } from "@/utils/haptics";
-import { useSafeArea } from "@/hooks/useSafeArea";
+
 import addNavIcon from "@/assets/add-nav.svg";
 import navHome from "@/assets/nav-home.svg";
 import navHomeInactive from "@/assets/nav-home-inactive.png";
@@ -32,7 +32,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
-  const { bottom: bottomInset } = useSafeArea();
+
 
   if (isHidden) return null;
 
