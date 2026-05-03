@@ -272,11 +272,10 @@ const SecurityDashboard = () => {
         >
           <div className="flex items-center gap-4 w-full">
             <img src={biometricIcon} alt="Biometric" className={iconClass} />
-            <div className={`flex flex-col justify-center ${textGap} w-full`}>
+            <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>Biometric Unlock</span>
               <span className={subTextClass}>
-                Don’t worry, your face/finger data<br />
-                stays on your phone. We don’t want it. Promise!
+                Don’t worry, your face/finger data stays on your phone. We don’t want it. Promise!
               </span>
             </div>
           </div>
@@ -325,7 +324,7 @@ const SecurityDashboard = () => {
 
   return (
     <div
-      className="h-full w-full overflow-hidden flex flex-col relative"
+      className={`h-full w-full ${containerOverflow} flex flex-col relative`}
       style={{
         backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
         backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',
@@ -355,9 +354,9 @@ const SecurityDashboard = () => {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto flex flex-col">
+      <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
         {/* Radar Animation Section */}
-        <div className="shrink-0 h-[280px] flex flex-col items-center justify-center relative">
+        <div className="shrink-0 h-[280px] mb-3 flex flex-col items-center justify-center relative">
           <div className="w-[254px] h-[254px] flex items-center justify-center relative">
             {/* Replicated 5-circle structure for both modes to ensure consistent size */}
             {/* 5th Circle (Outer) */}
@@ -426,14 +425,14 @@ const SecurityDashboard = () => {
               loop={true}
               className="w-full h-full relative z-10"
               style={{
-                transform: "scale(2.0)",
+                transform: "scale(1.1)",
               }}
             />
           </div>
         </div>
 
         {/* Content Container */}
-        <div className="px-5 pb-6 flex flex-col gap-4">
+        <div className="px-5 flex flex-col gap-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 24px)' }}>
 
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}
