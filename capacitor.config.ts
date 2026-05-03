@@ -13,6 +13,7 @@ const config: CapacitorConfig & {
     allowsLinkPreview: true,
     handleApplicationNotifications: true,
     allowsBackForwardNavigationGestures: true,
+    backgroundColor: "#ffffff",
     // Disable native WebView scroll — the React app owns scrolling, and a
     // native scroll layer over `position: fixed` containers causes the
     // keyboard-resize layout jump on iOS.
@@ -22,6 +23,7 @@ const config: CapacitorConfig & {
     contentInset: 'always'
   },
   android: {
+    backgroundColor: "#ffffff",
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: true
