@@ -20,7 +20,7 @@ const config: CapacitorConfig & {
     scrollEnabled: false,
     // Always inset content under safe areas, so the WebView doesn't shift
     // when the keyboard / status bar resizes the viewport.
-    contentInset: 'always'
+    contentInset: 'never'
   },
   android: {
     backgroundColor: "#ffffff",

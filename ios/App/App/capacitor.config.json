@@ -11,7 +11,7 @@
 		"allowsBackForwardNavigationGestures": true,
 		"backgroundColor": "#ffffff",
 		"scrollEnabled": false,
-		"contentInset": "always"
+		"contentInset": "never"
 	},
 	"android": {
 		"backgroundColor": "#ffffff",
