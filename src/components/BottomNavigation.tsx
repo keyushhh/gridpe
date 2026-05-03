@@ -38,7 +38,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
 
   return (
     <footer
-      className={`fixed bottom-0 left-0 right-0 w-full z-[9999] flex items-center justify-between px-6 pt-2 pb-[env(safe-area-inset-bottom)] ${isDarkMode ? 'bg-[#0a0a12] border-t border-white/5' : 'bg-white border-t border-[#E9EAEB]'}`}
+      className={`fixed bottom-0 left-0 right-0 w-full z-50 flex items-center justify-between px-6 pt-2 pb-[env(safe-area-inset-bottom)] ${isDarkMode ? 'bg-[#0a0a12] border-t border-white/5' : 'bg-white border-t border-[#E9EAEB]'}`}
       style={{
         minHeight: `calc(64px + env(safe-area-inset-bottom))`,
         boxShadow: '0 -10px 30px rgba(0,0,0,0.15)'

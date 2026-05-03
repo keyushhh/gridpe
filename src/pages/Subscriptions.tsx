@@ -282,12 +282,13 @@ const Subscriptions = () => {
                 </h1>
             </header>
 
-            {/* Main Container */}
-            <div className="px-5 mt-[30px]">
+            {/* Content Wrapper */}
+            <div className="flex-1 flex flex-col">
+                {/* Main Container */}
+                <div className="px-5 mt-[30px]">
                 <div
-                    className="w-[360px] mx-auto rounded-[20px] relative overflow-hidden transition-all duration-300"
+                    className="w-full rounded-[20px] relative overflow-hidden transition-all duration-300"
                     style={{
-                        height: containerHeight,
                         backgroundImage: `url(${backgroundImage})`,
                         backgroundSize: "cover",
                         backgroundPosition: backgroundPosition,
@@ -316,21 +317,23 @@ const Subscriptions = () => {
                     </div>
 
                     {/* Content */}
-                    <div className="absolute top-[12px] left-[77px] flex flex-col pr-4">
-                        <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-satoshi uppercase`}>
-                            {walletTier}
-                        </span>
+                    <div className="pt-[12px] pb-[16px] px-[16px] flex flex-col relative z-10 w-full h-full">
+                        <div className="ml-[61px]">
+                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[15px] font-medium font-satoshi uppercase`}>
+                                {walletTier}
+                            </span>
 
-                        <div className="flex items-baseline gap-1 mt-[5px]">
-                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[32px] font-bold font-satoshi`}>
-                                {formatINR(walletLimit)}
-                            </span>
-                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium font-satoshi opacity-70`}>
-                                / wallet limit
-                            </span>
+                            <div className="flex items-baseline gap-1 mt-[5px] flex-nowrap whitespace-nowrap">
+                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[28px] font-bold font-satoshi`}>
+                                    {formatINR(walletLimit)}
+                                </span>
+                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-medium font-satoshi opacity-70 whitespace-nowrap`}>
+                                    / wallet limit
+                                </span>
+                            </div>
                         </div>
 
-                        <div className="flex flex-col mt-[16px] -ml-[60px]" style={{ width: '326px' }}>
+                        <div className="flex flex-col mt-[16px] w-full">
                             {scheduledDowngrade && (
                                 <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-medium font-satoshi leading-[1.3] ${(!isSubscriptionActive && isProPlus) ? 'mb-4' : ''}`}>
                                     Note: Downgrade to {scheduledDowngrade.tier} will take effect on {(() => {
@@ -347,7 +350,7 @@ const Subscriptions = () => {
                                 <button
                                     onClick={handleRenew}
                                     disabled={isLoadingPay}
-                                    className={`w-full h-[48px] rounded-full ${isDarkMode ? 'bg-[#5260FE]' : 'bg-black'} text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center mb-3`}
+                                    className={`w-full h-[48px] mt-4 rounded-full ${isDarkMode ? 'bg-[#5260FE]' : 'bg-black'} text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center mb-3`}
                                 >
                                     {isLoadingPay ? "Processing..." : `Renew Now ₹${isRenewalPending && scheduledDowngrade ? (tierPrices[scheduledDowngrade.tier.toLowerCase()] || subscriptionPrice) : subscriptionPrice}/month`}
                                 </button>
@@ -358,7 +361,7 @@ const Subscriptions = () => {
                                 <button
                                     onClick={handleUpgrade}
                                     disabled={isProPlus && (paymentStatus === 'pending' || isRenewalPending || profile?.subscription_status === 'pending')}
-                                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium font-satoshi flex items-center justify-center ${isProPlus && (paymentStatus === 'pending' || isRenewalPending || profile?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE] active:scale-95 transition-transform mb-3'}`}
+                                    className={`w-full h-[48px] mt-4 rounded-full text-white text-[16px] font-medium font-satoshi flex items-center justify-center ${isProPlus && (paymentStatus === 'pending' || isRenewalPending || profile?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE] active:scale-95 transition-transform mb-3'}`}
                                 >
                                     Upgrade Now ₹{upgradePrice}/month
                                 </button>
@@ -433,11 +436,12 @@ const Subscriptions = () => {
                         </ul>
                     </div>
                 )}
+            </div>
 
-                {/* Manage Subscription CTA Section */}
-                <div className="mt-auto safe-bottom pb-4 w-full flex flex-col items-center">
+            {/* Manage Subscription CTA Section */}
+            <div className="mt-auto pt-4 px-5 safe-bottom pb-4 w-full flex flex-col items-center">
                     {scheduledDowngrade && (
-                        <div className={`w-[326px] min-h-[80px] rounded-[12px] border p-[10px] flex flex-col mb-[24px] ${isDarkMode ? 'bg-black border-white/10' : 'bg-white border-[#E9EAEB]'}`}>
+                        <div className={`w-full min-h-[80px] rounded-[12px] border p-[10px] flex flex-col mb-[24px] ${isDarkMode ? 'bg-black border-white/10' : 'bg-white border-[#E9EAEB]'}`}>
                             <span className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[10px] font-medium font-satoshi`}>Note:</span>
                             <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[12px] font-normal font-satoshi mt-[10px] leading-tight pr-4`}>
                                 Make sure to withdraw or use your wallet balance before the effective downgrade date. Any balance above the new tier limit will be <span className="text-[#F04248] font-bold">lost forever</span>.
@@ -448,7 +452,7 @@ const Subscriptions = () => {
                     <button
                         disabled={walletTier === 'Starter' || !!scheduledDowngrade || !isSubscriptionActive}
                         onClick={() => navigate('/manage-subscription')}
-                        className={`w-[362px] h-[48px] rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi transition-all active:scale-95 ${walletTier === 'Starter' || !!scheduledDowngrade || !isSubscriptionActive
+                        className={`w-full h-[48px] rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi transition-all active:scale-95 ${walletTier === 'Starter' || !!scheduledDowngrade || !isSubscriptionActive
                             ? isDarkMode
                                 ? 'bg-transparent border border-white/10 text-white/50'
                                 : 'bg-transparent border border-[#E9EAEB] text-black/50'
@@ -459,13 +463,13 @@ const Subscriptions = () => {
                     </button>
 
                     {walletTier === 'Starter' && !scheduledDowngrade && (
-                        <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mt-[12px] text-center w-[362px]">
+                        <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mt-[12px] text-center w-full">
                             There’s nothing to manage here, this is the lowest you can go.
                         </p>
                     )}
 
                     {scheduledDowngrade && (
-                        <div className="flex flex-col items-start mt-[12px]" style={{ width: '362px' }}>
+                        <div className="flex flex-col items-start mt-[12px] w-full">
                             <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi text-left w-full">
                                 Plan changes are locked until your downgrade takes effect.
                             </p>

@@ -444,7 +444,7 @@ const SecurityDashboard = () => {
         </div>
 
         {/* Content Container */}
-        <div className="px-5 flex flex-col gap-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 24px)' }}>
+        <div className="px-5 pb-8 flex flex-col gap-4">
 
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}

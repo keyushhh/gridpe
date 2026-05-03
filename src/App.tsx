@@ -263,17 +263,13 @@ const App = () => {
       <div className="desktop-backdrop fixed inset-0 bg-[#0a0a12] w-full h-full">
         {/* ── Mobile simulator frame — all child w-full resolves to this 430px cap on desktop ── */}
         <main
-          className={`mobile-frame w-full mx-auto relative bg-background ${isWeb ? 'sm:max-w-[430px] sm:shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/10' : ''}`}
+          className={`mobile-frame w-full h-[100dvh] mx-auto relative bg-background ${isWeb ? 'sm:max-w-[430px] sm:shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/10' : ''}`}
           style={{ 
-            transform: 'translateZ(0)', 
-            minHeight: '100dvh'
+            transform: 'translateZ(0)'
           }}
         >
           <div 
-            className="app-container overflow-y-auto flex flex-col" 
-            style={{ 
-              minHeight: '100dvh'
-            }}
+            className="app-container h-full w-full overflow-y-auto flex flex-col relative"
           >
             <GlobalCustomToaster />
             <LiquidGlassFilters />

@@ -495,9 +495,10 @@ const Homepage = () => {
       }}
     >
       <div 
-        className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col min-h-0 pb-[calc(120px+env(safe-area-inset-bottom))]"
+        className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide min-h-0 pb-[calc(120px+env(safe-area-inset-bottom))]"
         style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch', transform: 'translateZ(0)' }}
       >
+        <div className="flex flex-col min-h-full">
         {/* Header Fixed Area (Top Section always visible) */}
         <div className="shrink-0 flex flex-col safe-top z-50 relative pointer-events-none">
           {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
@@ -964,6 +965,7 @@ const Homepage = () => {
             </div>
           </>
         )}
+        </div>
       </div>
 
       <BottomNavigation activeTab="home" isHidden={isAddressModalOpen || isAddressSheetOpen} />
