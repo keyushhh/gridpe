@@ -121,7 +121,7 @@ html.font-pending body {
     display: flex;
     flex-direction: column;
     /* Desktop background — subtle dark neutral outside the phone frame */
-    background-color: hsl(var(--background));
+    background-color: inherit;
     /* Kill the cheap-looking glow/rubber-band on Android. */
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -132,7 +132,7 @@ html.font-pending body {
     flex-direction: column;
     flex: 1;
     /* overflow: hidden; removed to ensure safe area is utilized */
-    background-color: hsl(var(--background));
+    background-color: inherit;
     min-height: 100dvh;
   }
 

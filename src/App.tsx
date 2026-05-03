@@ -260,16 +260,20 @@ const App = () => {
       highlightColor={isDarkMode ? "#2A2D35" : "#E5E7EB"}
     >
       {/* ── Desktop wallpaper backdrop ── */}
-      <div className="desktop-backdrop fixed inset-0 bg-[#0a0a12] w-full h-full">
+      <div 
+        className="desktop-backdrop fixed inset-0 w-full h-full"
+        style={{ backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF" }}
+      >
         {/* ── Mobile simulator frame — all child w-full resolves to this 430px cap on desktop ── */}
         <main
-          className={`mobile-frame w-full h-[100dvh] mx-auto relative bg-background ${isWeb ? 'sm:max-w-[430px] sm:shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/10' : ''}`}
+          className={`mobile-frame h-full w-full flex flex-col mx-auto relative ${isWeb ? 'sm:max-w-[430px] sm:shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/10' : ''}`}
           style={{ 
+            backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
             transform: 'translateZ(0)'
           }}
         >
           <div 
-            className="app-container h-full w-full overflow-y-auto flex flex-col relative"
+            className="app-container h-full w-full flex flex-col overflow-y-auto relative"
           >
             <GlobalCustomToaster />
             <LiquidGlassFilters />
