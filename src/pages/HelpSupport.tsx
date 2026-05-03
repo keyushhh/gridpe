@@ -68,12 +68,12 @@ const HelpSupport = () => {
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
             {/* Header */}
-            <header className="px-5 pt-4 pb-4 flex items-center relative z-10 shrink-0 mb-[10px]">
-                <BackButton onClick={() => navigate(-1)} />
-                <div className="absolute inset-x-0 flex justify-center pointer-events-none">
-                    <h1 className={`text-[22px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support</h1>
+            <div className="px-5 safe-top pt-4 flex items-center justify-between flex-none">
+                <div className="flex items-center gap-3">
+                    <BackButton onClick={() => navigate(-1)} />
+                    <h1 className={`text-[18px] font-semibold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>Help & Support</h1>
                 </div>
-            </header>
+            </div>
 
 
             <main className="flex-1 px-5 relative z-10">

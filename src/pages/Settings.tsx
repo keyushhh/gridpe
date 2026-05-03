@@ -227,7 +227,7 @@ const Settings = () => {
       {/* Content Container */}
       <div className="relative z-10 flex flex-col h-full w-full overflow-hidden">
         {/* Header */}
-        <div className="px-5 safe-top pt-4 flex items-center justify-between">
+        <div className="px-5 safe-top pt-4 flex items-center justify-between flex-none">
           <div className="flex items-center gap-3">
             <BackButton onClick={() => navigate("/home")} />
             <h1 className="text-foreground text-[18px] font-semibold">Settings</h1>

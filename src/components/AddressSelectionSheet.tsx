@@ -306,14 +306,16 @@ if (!isOpen) return null;
 
             {/* Sheet */}
             <div
-                className={`relative w-full max-h-[90dvh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'}`}
+                className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'}`}
                 style={{
                     boxShadow: "0px -4px 20px rgba(0, 0, 0, 0.5)",
-                    bottom: 0,
+                    paddingBottom: "env(safe-area-inset-bottom)",
                     willChange: 'transform',
                     transform: 'translateZ(0)',
                 }}
             >
+                {/* Drag Handle */}
+                <div className={`w-10 h-1.5 rounded-full mx-auto mt-3 ${isDarkMode ? 'bg-white/20' : 'bg-black/20'}`} />
                 {/* Sticky Header + Search */}
                 <div className="shrink-0 px-5 pt-4">
                     {/* Header */}
