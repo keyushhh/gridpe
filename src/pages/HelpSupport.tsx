@@ -76,7 +76,7 @@ const HelpSupport = () => {
             </div>
 
 
-            <main className="flex-1 px-5 relative z-10">
+            <main className="flex-1 overflow-y-auto min-h-0 px-5 pt-7 relative z-10 pb-10">
                 {/* Hero Section */}
                 <div className="mb-[18px]">
                     <h2 className={`text-[16px] font-bold font-satoshi mb-[5px] ${isDarkMode ? 'text-white' : 'text-black'}`}>How can we help?</h2>
