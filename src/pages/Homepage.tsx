@@ -486,7 +486,7 @@ const Homepage = () => {
 
   return (
     <div
-      className={`flex-1 w-full flex flex-col ${containerOverflow} relative`}
+      className="h-full w-full flex flex-col relative"
       style={{
         backgroundImage: `url(${mainBg})`,
         backgroundSize: "cover",
@@ -495,7 +495,7 @@ const Homepage = () => {
       }}
     >
       <div 
-        className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col pb-[calc(120px+env(safe-area-inset-bottom))]"
+        className="flex-1 w-full overflow-y-auto touch-pan-y scrollbar-hide flex flex-col min-h-0 pb-[calc(120px+env(safe-area-inset-bottom))]"
         style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch', transform: 'translateZ(0)' }}
       >
         {/* Header Fixed Area (Top Section always visible) */}

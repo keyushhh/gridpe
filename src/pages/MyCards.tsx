@@ -269,293 +269,294 @@ const MyCards = () => {
                     className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[calc(120px+env(safe-area-inset-bottom))] min-h-0"
                     style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
                 >
-
-                    {cards.length === 0 ? (
-                        <div
-                            className={`w-full rounded-2xl p-4 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
-                            style={isDarkMode ? {
-                                backgroundImage: `url(${savedCardsBg})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                                height: "140px",
-                            } : {
-                                backgroundColor: "#FFFFFF",
-                                height: "140px",
-                            }}
-                        >
-                            <div className="flex items-center justify-between">
-                                <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>Saved Cards</h2>
-                                <button
-                                    onClick={() => navigate("/cards/add")}
-                                    className="opacity-100 active:opacity-70 transition-opacity"
-                                >
-                                    <img src={addIcon} alt="Add" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
-                                </button>
-                            </div>
-                            <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
-                            <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
-                                You haven't added any cards yet.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className={`transition-all duration-500 ease-in-out ${isStacked ? 'mt-4 relative h-[320px] w-full mx-auto' : 'flex flex-col gap-4'}`}>
-                            {sortedCards.map((card, index) => {
-                                const bgSrc = cardBackgrounds[(card.backgroundIndex - 1) % 6];
-                                const isDefault = card.isDefault;
-                                const isVisible = visibleCardIds[card.id] || false;
-                                const isSelected = selectedCardId === card.id;
-
-                                const chipTop = isDefault ? 34 : 21;
-                                const nameTop = isDefault ? 42 : 26;
-                                const labelTop = isDefault ? 86 : 70;
-                                const numberTop = isDefault ? 109 : 93;
-                                const expiryTop = isDefault ? 145 : 129;
-                                const logoBottom = 26;
-                                const cardHeightValue = isDefault ? 212 : 192;
-                                const cardHeight = `${cardHeightValue}px`;
-
-                                const stackOffset = 15;
-                                const stackScale = 0.05;
-
-                                const stackedStyle = isStacked ? {
-                                    position: "absolute" as const,
-                                    top: `${(sortedCards.length - 1 - index) * stackOffset}px`,
-                                    left: 0,
-                                    right: 0,
-                                    zIndex: sortedCards.length - index,
-                                    transform: `scale(${1 - (index * stackScale)})`,
-                                    transformOrigin: "top center",
-                                    cursor: "pointer",
-                                    boxShadow: isDarkMode ? "0px -4px 20px rgba(0,0,0,0.4)" : "none"
+                    <div className="flex flex-col min-h-full">
+                        {cards.length === 0 ? (
+                            <div
+                                className={`w-full rounded-2xl p-4 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+                                style={isDarkMode ? {
+                                    backgroundImage: `url(${savedCardsBg})`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    height: "140px",
                                 } : {
-                                    position: "relative" as const,
-                                    zIndex: isSelected ? 50 : 1, // Bring selected to front
-                                };
-
-                                return (
-                                    <div
-                                        key={card.id}
-                                        id={`card-wrapper-${card.id}`}
-                                        className={`card-wrapper transition-all duration-300 ease-in-out flex flex-col items-center w-full`}
-                                        onMouseDown={() => startPress(card.id)}
-                                        onMouseUp={endPress}
-                                        onMouseLeave={endPress}
-                                        onTouchStart={() => startPress(card.id)}
-                                        onTouchEnd={endPress}
-                                        onClick={(e) => handleCardClick(e, card.id)}
-                                        style={stackedStyle}
+                                    backgroundColor: "#FFFFFF",
+                                    height: "140px",
+                                }}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>Saved Cards</h2>
+                                    <button
+                                        onClick={() => navigate("/cards/add")}
+                                        className="opacity-100 active:opacity-70 transition-opacity"
                                     >
+                                        <img src={addIcon} alt="Add" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                                    </button>
+                                </div>
+                                <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
+                                <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
+                                    You haven't added any cards yet.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className={`transition-all duration-500 ease-in-out ${isStacked ? 'mt-4 relative h-[320px] w-full mx-auto' : 'flex flex-col gap-4'}`}>
+                                {sortedCards.map((card, index) => {
+                                    const bgSrc = cardBackgrounds[(card.backgroundIndex - 1) % 6];
+                                    const isDefault = card.isDefault;
+                                    const isVisible = visibleCardIds[card.id] || false;
+                                    const isSelected = selectedCardId === card.id;
+
+                                    const chipTop = isDefault ? 34 : 21;
+                                    const nameTop = isDefault ? 42 : 26;
+                                    const labelTop = isDefault ? 86 : 70;
+                                    const numberTop = isDefault ? 109 : 93;
+                                    const expiryTop = isDefault ? 145 : 129;
+                                    const logoBottom = 26;
+                                    const cardHeightValue = isDefault ? 212 : 192;
+                                    const cardHeight = `${cardHeightValue}px`;
+
+                                    const stackOffset = 15;
+                                    const stackScale = 0.05;
+
+                                    const stackedStyle = isStacked ? {
+                                        position: "absolute" as const,
+                                        top: `${(sortedCards.length - 1 - index) * stackOffset}px`,
+                                        left: 0,
+                                        right: 0,
+                                        zIndex: sortedCards.length - index,
+                                        transform: `scale(${1 - (index * stackScale)})`,
+                                        transformOrigin: "top center",
+                                        cursor: "pointer",
+                                        boxShadow: isDarkMode ? "0px -4px 20px rgba(0,0,0,0.4)" : "none"
+                                    } : {
+                                        position: "relative" as const,
+                                        zIndex: isSelected ? 50 : 1, // Bring selected to front
+                                    };
+
+                                    return (
                                         <div
-                                            className={`relative w-full rounded-[16px] overflow-hidden shrink-0 transition-all duration-[250ms] ease-in-out ${isStacked ? 'hover:brightness-110' : ''}`}
-                                            style={{
-                                                height: cardHeight,
-                                                backgroundImage: `url(${bgSrc})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                                // White stroke on the card visual itself
-                                                border: isSelected ? '2px solid white' : 'none',
-                                                zIndex: 2, // Above the menu
-                                            }}
+                                            key={card.id}
+                                            id={`card-wrapper-${card.id}`}
+                                            className={`card-wrapper transition-all duration-300 ease-in-out flex flex-col items-center w-full`}
+                                            onMouseDown={() => startPress(card.id)}
+                                            onMouseUp={endPress}
+                                            onMouseLeave={endPress}
+                                            onTouchStart={() => startPress(card.id)}
+                                            onTouchEnd={endPress}
+                                            onClick={(e) => handleCardClick(e, card.id)}
+                                            style={stackedStyle}
                                         >
-                                            {isDefault && (
-                                                <div
-                                                    className="absolute top-0 left-0 w-full h-[24px] flex items-center justify-center z-10"
-                                                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.64)' }}
-                                                >
-                                                    <span className="text-white text-[10px] font-medium uppercase tracking-wider">DEFAULT</span>
-                                                </div>
-                                            )}
-
-                                            <div className="relative w-full h-full px-[26px]">
-                                                <div
-                                                    className="absolute right-[26px] w-[40px] h-[30px] flex justify-end transition-all"
-                                                    style={{ top: `${chipTop}px` }}
-                                                >
-                                                    <img src={chipIcon} alt="Chip" className="h-[28px] object-contain" />
-                                                </div>
-
-                                                <div
-                                                    className="absolute left-[26px] right-[70px] transition-all"
-                                                    style={{ top: `${nameTop}px` }}
-                                                >
-                                                    <p className="text-white text-[16px] font-medium uppercase font-satoshi truncate">
-                                                        {card.holder || "NO NAME"}
-                                                    </p>
-                                                </div>
-
-                                                <div
-                                                    className="absolute left-[26px] transition-all"
-                                                    style={{ top: `${labelTop}px` }}
-                                                >
-                                                    <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi">Card Number</p>
-                                                </div>
-
-                                                <div
-                                                    className="absolute left-[26px] right-[26px] transition-all"
-                                                    style={{ top: `${numberTop}px` }}
-                                                >
-                                                    <p className="text-white text-[20px] font-bold font-satoshi tracking-widest h-[24px]">
-                                                        {formatCardNumber(card.number)}
-                                                    </p>
-                                                </div>
-
-                                                <div
-                                                    className="absolute left-[26px] flex gap-8 transition-all"
-                                                    style={{ top: `${expiryTop}px` }}
-                                                >
-                                                    <div className="flex flex-col gap-[5px]">
-                                                        <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">Expiry Date</label>
-                                                        <p className="text-white text-[13px] font-bold font-satoshi leading-none">
-                                                            {card.expiry}
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex flex-col gap-[5px]">
-                                                        <div className="flex items-center gap-3">
-                                                            <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">CVV</label>
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => toggleCardVisibility(card.id, e)}
-                                                                className="text-white/60 hover:text-white shrink-0 z-20 transition-colors"
-                                                                aria-label={isVisible ? "Hide CVV" : "Show CVV"}
-                                                            >
-                                                                {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-                                                            </button>
-                                                        </div>
-                                                        <p className="text-white text-[14px] font-bold font-satoshi leading-none">
-                                                            {isVisible ? (card.cvv || "123") : "***"}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    className="absolute right-[26px] h-[24px] transition-all"
-                                                    style={{ bottom: `${logoBottom}px` }}
-                                                >
-                                                    {card.type === "visa" && <img src={visaLogo} alt="Visa" className="h-full object-contain" />}
-                                                    {card.type === "mastercard" && <img src={mastercardLogo} alt="Mastercard" className="h-full object-contain" />}
-                                                    {card.type === "rupay" && <img src={rupayLogo} alt="Rupay" className="h-full object-contain" />}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {!isStacked && isSelected && (
                                             <div
-                                                className="w-full h-[66px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
-                                                style={isDarkMode ? {
-                                                    backgroundImage: `url(${expandContainerBg})`,
+                                                className={`relative w-full rounded-[16px] overflow-hidden shrink-0 transition-all duration-[250ms] ease-in-out ${isStacked ? 'hover:brightness-110' : ''}`}
+                                                style={{
+                                                    height: cardHeight,
+                                                    backgroundImage: `url(${bgSrc})`,
                                                     backgroundSize: 'cover',
                                                     backgroundPosition: 'center',
-                                                    marginTop: '-18px',
-                                                    zIndex: 1,
-                                                } : {
-                                                    background: `linear-gradient(#F5F5F5, #F5F5F5) padding-box, linear-gradient(${isDefault ? 'to bottom, #FFFFFF, #FF2626' : 'to right, #FF2626, #FFD21F'}) border-box`,
-                                                    border: '1px solid transparent',
-                                                    marginTop: '-18px',
-                                                    zIndex: 1,
+                                                    // White stroke on the card visual itself
+                                                    border: isSelected ? '2px solid white' : 'none',
+                                                    zIndex: 2, // Above the menu
                                                 }}
-                                                onClick={(e) => e.stopPropagation()}
                                             >
-                                                {!isDarkMode && isDefault && (
+                                                {isDefault && (
                                                     <div
-                                                        className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
-                                                        style={{
-                                                            top: '-35px',
-                                                            width: '120px',
-                                                            height: '40px',
-                                                            backgroundColor: '#FF3B30',
-                                                            filter: 'blur(30px)',
-                                                            opacity: 0.6,
-                                                        }}
-                                                    />
+                                                        className="absolute top-0 left-0 w-full h-[24px] flex items-center justify-center z-10"
+                                                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.64)' }}
+                                                    >
+                                                        <span className="text-white text-[10px] font-medium uppercase tracking-wider">DEFAULT</span>
+                                                    </div>
                                                 )}
-                                                {!isDarkMode && !isDefault && (
-                                                    <>
+
+                                                <div className="relative w-full h-full px-[26px]">
+                                                    <div
+                                                        className="absolute right-[26px] w-[40px] h-[30px] flex justify-end transition-all"
+                                                        style={{ top: `${chipTop}px` }}
+                                                    >
+                                                        <img src={chipIcon} alt="Chip" className="h-[28px] object-contain" />
+                                                    </div>
+
+                                                    <div
+                                                        className="absolute left-[26px] right-[70px] transition-all"
+                                                        style={{ top: `${nameTop}px` }}
+                                                    >
+                                                        <p className="text-white text-[16px] font-medium uppercase font-satoshi truncate">
+                                                            {card.holder || "NO NAME"}
+                                                        </p>
+                                                    </div>
+
+                                                    <div
+                                                        className="absolute left-[26px] transition-all"
+                                                        style={{ top: `${labelTop}px` }}
+                                                    >
+                                                        <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi">Card Number</p>
+                                                    </div>
+
+                                                    <div
+                                                        className="absolute left-[26px] right-[26px] transition-all"
+                                                        style={{ top: `${numberTop}px` }}
+                                                    >
+                                                        <p className="text-white text-[20px] font-bold font-satoshi tracking-widest h-[24px]">
+                                                            {formatCardNumber(card.number)}
+                                                        </p>
+                                                    </div>
+
+                                                    <div
+                                                        className="absolute left-[26px] flex gap-8 transition-all"
+                                                        style={{ top: `${expiryTop}px` }}
+                                                    >
+                                                        <div className="flex flex-col gap-[5px]">
+                                                            <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">Expiry Date</label>
+                                                            <p className="text-white text-[13px] font-bold font-satoshi leading-none">
+                                                                {card.expiry}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex flex-col gap-[5px]">
+                                                            <div className="flex items-center gap-3">
+                                                                <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">CVV</label>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => toggleCardVisibility(card.id, e)}
+                                                                    className="text-white/60 hover:text-white shrink-0 z-20 transition-colors"
+                                                                    aria-label={isVisible ? "Hide CVV" : "Show CVV"}
+                                                                >
+                                                                    {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+                                                                </button>
+                                                            </div>
+                                                            <p className="text-white text-[14px] font-bold font-satoshi leading-none">
+                                                                {isVisible ? (card.cvv || "123") : "***"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        className="absolute right-[26px] h-[24px] transition-all"
+                                                        style={{ bottom: `${logoBottom}px` }}
+                                                    >
+                                                        {card.type === "visa" && <img src={visaLogo} alt="Visa" className="h-full object-contain" />}
+                                                        {card.type === "mastercard" && <img src={mastercardLogo} alt="Mastercard" className="h-full object-contain" />}
+                                                        {card.type === "rupay" && <img src={rupayLogo} alt="Rupay" className="h-full object-contain" />}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {!isStacked && isSelected && (
+                                                <div
+                                                    className="w-full h-[66px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
+                                                    style={isDarkMode ? {
+                                                        backgroundImage: `url(${expandContainerBg})`,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                        marginTop: '-18px',
+                                                        zIndex: 1,
+                                                    } : {
+                                                        background: `linear-gradient(#F5F5F5, #F5F5F5) padding-box, linear-gradient(${isDefault ? 'to bottom, #FFFFFF, #FF2626' : 'to right, #FF2626, #FFD21F'}) border-box`,
+                                                        border: '1px solid transparent',
+                                                        marginTop: '-18px',
+                                                        zIndex: 1,
+                                                    }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {!isDarkMode && isDefault && (
                                                         <div
-                                                            className="absolute rounded-full pointer-events-none"
+                                                            className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
                                                             style={{
                                                                 top: '-35px',
-                                                                left: '15%',
-                                                                width: '100px',
+                                                                width: '120px',
                                                                 height: '40px',
                                                                 backgroundColor: '#FF3B30',
                                                                 filter: 'blur(30px)',
                                                                 opacity: 0.6,
                                                             }}
                                                         />
-                                                        <div
-                                                            className="absolute rounded-full pointer-events-none"
-                                                            style={{
-                                                                top: '-35px',
-                                                                right: '15%',
-                                                                width: '100px',
-                                                                height: '40px',
-                                                                backgroundColor: '#FACC15',
-                                                                filter: 'blur(30px)',
-                                                                opacity: 0.6,
-                                                            }}
-                                                        />
-                                                    </>
-                                                )}
-                                                <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
+                                                    )}
+                                                    {!isDarkMode && !isDefault && (
+                                                        <>
+                                                            <div
+                                                                className="absolute rounded-full pointer-events-none"
+                                                                style={{
+                                                                    top: '-35px',
+                                                                    left: '15%',
+                                                                    width: '100px',
+                                                                    height: '40px',
+                                                                    backgroundColor: '#FF3B30',
+                                                                    filter: 'blur(30px)',
+                                                                    opacity: 0.6,
+                                                                }}
+                                                            />
+                                                            <div
+                                                                className="absolute rounded-full pointer-events-none"
+                                                                style={{
+                                                                    top: '-35px',
+                                                                    right: '15%',
+                                                                    width: '100px',
+                                                                    height: '40px',
+                                                                    backgroundColor: '#FACC15',
+                                                                    filter: 'blur(30px)',
+                                                                    opacity: 0.6,
+                                                                }}
+                                                            />
+                                                        </>
+                                                    )}
+                                                    <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
 
-                                                    {isDefault ? (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
-                                                            className="flex items-center gap-2 px-4 w-full justify-center opacity-80 hover:opacity-100 transition-opacity"
-                                                        >
-                                                            <img src={deleteIcon} alt="Remove" className="w-[18px] h-[18px] object-contain" />
-                                                            <span className="text-[#FF3B30] text-[14px] font-medium">Remove Card</span>
-                                                        </button>
-                                                    ) : (
-                                                        <div className="w-full flex items-center h-[24px]">
+                                                        {isDefault ? (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
-                                                                className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                                                                className="flex items-center gap-2 px-4 w-full justify-center opacity-80 hover:opacity-100 transition-opacity"
                                                             >
                                                                 <img src={deleteIcon} alt="Remove" className="w-[18px] h-[18px] object-contain" />
                                                                 <span className="text-[#FF3B30] text-[14px] font-medium">Remove Card</span>
                                                             </button>
+                                                        ) : (
+                                                            <div className="w-full flex items-center h-[24px]">
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
+                                                                    className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <img src={deleteIcon} alt="Remove" className="w-[18px] h-[18px] object-contain" />
+                                                                    <span className="text-[#FF3B30] text-[14px] font-medium">Remove Card</span>
+                                                                </button>
 
-                                                            <div className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`} />
+                                                                <div className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`} />
 
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleDefaultClick(); }}
-                                                                className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-                                                            >
-                                                                <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
-                                                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium`}>Set as Default?</span>
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDefaultClick(); }}
+                                                                    className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                                                                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium`}>Set as Default?</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
+                                    );
+                                })}
+
+                                {isStacked && (
+                                    <div
+                                        className="absolute w-full flex items-center justify-center transition-all duration-300 delay-100"
+                                        style={{
+                                            top: `${(sortedCards.length - 1) * 15 + 212 + 24}px`
+                                        }}
+                                    >
+                                        <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-satoshi`}>
+                                            Cards added: {cards.length}
+                                        </p>
                                     </div>
-                                );
-                            })}
+                                )}
 
-                            {isStacked && (
-                                <div
-                                    className="absolute w-full flex items-center justify-center transition-all duration-300 delay-100"
-                                    style={{
-                                        top: `${(sortedCards.length - 1) * 15 + 212 + 24}px`
-                                    }}
-                                >
-                                    <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-satoshi`}>
-                                        Cards added: {cards.length}
-                                    </p>
-                                </div>
-                            )}
-
-                            {!isStacked && (
-                                <div className="w-full flex items-center justify-center mt-2 pb-[100px]">
-                                    <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-satoshi`}>
-                                        Cards added: {cards.length}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                {!isStacked && (
+                                    <div className="w-full flex items-center justify-center mt-2 pb-[100px]">
+                                        <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px] font-satoshi`}>
+                                            Cards added: {cards.length}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

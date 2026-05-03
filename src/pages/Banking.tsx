@@ -216,266 +216,267 @@ const Banking = () => {
                     className="px-5 mt-8 flex-1 overflow-y-auto overscroll-y-contain scrollbar-hide pb-[calc(120px+env(safe-area-inset-bottom))] min-h-0"
                     style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
                 >
-
-                    {accounts.length === 0 ? (
-                        <div
-                            className={`w-full rounded-2xl p-4 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
-                            style={isDarkMode ? {
-                                backgroundImage: `url(${savedCardsBg})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                                height: "140px",
-                            } : {
-                                backgroundColor: "#FFFFFF",
-                                height: "140px",
-                            }}
-                        >
-                            <div className="flex items-center justify-between">
-                                <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>Bank Accounts</h2>
-                                <button
-                                    onClick={() => navigate("/banking/add")}
-                                    className="opacity-100 active:opacity-70 transition-opacity"
-                                >
-                                    <img src={addIcon} alt="Add" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
-                                </button>
-                            </div>
-                            <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
-                            <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
-                                You don’t have any bank accounts added yet.
-                                <br />
-                                Please add a bank account to proceed.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className={`transition-all duration-500 ease-in-out ${isStacked ? 'mt-4 relative h-[320px] w-full mx-auto' : 'flex flex-col gap-4'}`}>
-                            {sortedAccounts.map((account, index) => {
-                                const isDefault = account.is_default;
-                                const isSelected = selectedAccountId === account.id;
-
-                                const accountHeightValue = isDefault ? 234 : 210;
-                                const accountHeight = `${accountHeightValue}px`;
-
-                                const stackOffset = 15;
-                                const stackScale = 0.05;
-                                const stackedStyle = isStacked ? {
-                                    position: "absolute" as const,
-                                    top: `${(sortedAccounts.length - 1 - index) * stackOffset}px`,
-                                    left: 0,
-                                    right: 0,
-                                    zIndex: sortedAccounts.length - index,
-                                    transform: `scale(${1 - (index * stackScale)})`,
-                                    transformOrigin: "top center",
-                                    cursor: "pointer",
-                                    boxShadow: "0px -4px 20px rgba(0,0,0,0.4)"
+                    <div className="flex flex-col min-h-full">
+                        {accounts.length === 0 ? (
+                            <div
+                                className={`w-full rounded-2xl p-4 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+                                style={isDarkMode ? {
+                                    backgroundImage: `url(${savedCardsBg})`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    height: "140px",
                                 } : {
-                                    position: "relative" as const,
-                                    zIndex: isSelected ? 50 : 1,
-                                };
-
-                                return (
-                                    <div
-                                        key={account.id}
-                                        id={`account-wrapper-${account.id}`}
-                                        className={`account-wrapper transition-all duration-300 ease-in-out flex flex-col items-center w-full`}
-                                        onMouseDown={() => startPress(account.id)}
-                                        onMouseUp={endPress}
-                                        onMouseLeave={endPress}
-                                        onTouchStart={() => startPress(account.id)}
-                                        onTouchEnd={endPress}
-                                        onClick={(e) => handleAccountClick(e, account.id)}
-                                        style={stackedStyle}
+                                    backgroundColor: "#FFFFFF",
+                                    height: "140px",
+                                }}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>Bank Accounts</h2>
+                                    <button
+                                        onClick={() => navigate("/banking/add")}
+                                        className="opacity-100 active:opacity-70 transition-opacity"
                                     >
+                                        <img src={addIcon} alt="Add" className="w-5 h-5" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                                    </button>
+                                </div>
+                                <div className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} w-full mt-[15px] mb-[15px]`} />
+                                <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
+                                    You don’t have any bank accounts added yet.
+                                    <br />
+                                    Please add a bank account to proceed.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className={`transition-all duration-500 ease-in-out ${isStacked ? 'mt-4 relative h-[320px] w-full mx-auto' : 'flex flex-col gap-4'}`}>
+                                {sortedAccounts.map((account, index) => {
+                                    const isDefault = account.is_default;
+                                    const isSelected = selectedAccountId === account.id;
+
+                                    const accountHeightValue = isDefault ? 234 : 210;
+                                    const accountHeight = `${accountHeightValue}px`;
+
+                                    const stackOffset = 15;
+                                    const stackScale = 0.05;
+                                    const stackedStyle = isStacked ? {
+                                        position: "absolute" as const,
+                                        top: `${(sortedAccounts.length - 1 - index) * stackOffset}px`,
+                                        left: 0,
+                                        right: 0,
+                                        zIndex: sortedAccounts.length - index,
+                                        transform: `scale(${1 - (index * stackScale)})`,
+                                        transformOrigin: "top center",
+                                        cursor: "pointer",
+                                        boxShadow: "0px -4px 20px rgba(0,0,0,0.4)"
+                                    } : {
+                                        position: "relative" as const,
+                                        zIndex: isSelected ? 50 : 1,
+                                    };
+
+                                    return (
                                         <div
-                                            className={`relative w-full rounded-[16px] overflow-hidden shrink-0 transition-all duration-[250ms] ease-in-out ${isStacked ? 'hover:brightness-110' : ''}`}
-                                            style={{
-                                                height: accountHeight,
-                                                backgroundImage: `url(${bankDefaultCardBg})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                                border: isSelected ? '2px solid white' : 'none',
-                                                zIndex: 2,
-                                            }}
+                                            key={account.id}
+                                            id={`account-wrapper-${account.id}`}
+                                            className={`account-wrapper transition-all duration-300 ease-in-out flex flex-col items-center w-full`}
+                                            onMouseDown={() => startPress(account.id)}
+                                            onMouseUp={endPress}
+                                            onMouseLeave={endPress}
+                                            onTouchStart={() => startPress(account.id)}
+                                            onTouchEnd={endPress}
+                                            onClick={(e) => handleAccountClick(e, account.id)}
+                                            style={stackedStyle}
                                         >
-                                            {isDefault && (
-                                                <div
-                                                    className="absolute top-0 left-0 w-full h-[24px] flex items-center justify-center z-10"
-                                                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.64)' }}
-                                                >
-                                                    <span className="text-white text-[10px] font-medium uppercase tracking-wider">DEFAULT</span>
-                                                </div>
-                                            )}
+                                            <div
+                                                className={`relative w-full rounded-[16px] overflow-hidden shrink-0 transition-all duration-[250ms] ease-in-out ${isStacked ? 'hover:brightness-110' : ''}`}
+                                                style={{
+                                                    height: accountHeight,
+                                                    backgroundImage: `url(${bankDefaultCardBg})`,
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                    border: isSelected ? '2px solid white' : 'none',
+                                                    zIndex: 2,
+                                                }}
+                                            >
+                                                {isDefault && (
+                                                    <div
+                                                        className="absolute top-0 left-0 w-full h-[24px] flex items-center justify-center z-10"
+                                                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.64)' }}
+                                                    >
+                                                        <span className="text-white text-[10px] font-medium uppercase tracking-wider">DEFAULT</span>
+                                                    </div>
+                                                )}
 
-                                            <div className={`absolute inset-0 px-[22px] flex flex-col justify-start ${isDefault ? 'pt-[44px] pb-[40px]' : 'pt-[20px] pb-[40px]'}`}>
+                                                <div className={`absolute inset-0 px-[22px] flex flex-col justify-start ${isDefault ? 'pt-[44px] pb-[40px]' : 'pt-[20px] pb-[40px]'}`}>
 
-                                                <div className="flex flex-col gap-[10px] w-full">
+                                                    <div className="flex flex-col gap-[10px] w-full">
 
-                                                    <div className="w-full">
-                                                        <div className="flex items-center justify-between h-[22px]">
-                                                            <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi leading-none">
-                                                                Account Number
-                                                            </p>
-                                                            {/* Account Type Pill */}
-                                                            <div
-                                                                className="rounded-full flex items-center justify-center"
-                                                                style={{
-                                                                    width: '92px',
-                                                                    height: '22px',
-                                                                    padding: '5px 7px',
-                                                                    backgroundColor: 'rgba(6, 6, 6, 0.51)'
-                                                                }}
-                                                            >
-                                                                <span className="text-[#C4C4C4] text-[10px] font-medium whitespace-nowrap">
-                                                                    {account.account_type}
-                                                                </span>
+                                                        <div className="w-full">
+                                                            <div className="flex items-center justify-between h-[22px]">
+                                                                <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi leading-none">
+                                                                    Account Number
+                                                                </p>
+                                                                {/* Account Type Pill */}
+                                                                <div
+                                                                    className="rounded-full flex items-center justify-center"
+                                                                    style={{
+                                                                        width: '92px',
+                                                                        height: '22px',
+                                                                        padding: '5px 7px',
+                                                                        backgroundColor: 'rgba(6, 6, 6, 0.51)'
+                                                                    }}
+                                                                >
+                                                                    <span className="text-[#C4C4C4] text-[10px] font-medium whitespace-nowrap">
+                                                                        {account.account_type}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-center justify-between mt-[4px]">
+                                                                <p className="text-white text-[18px] font-bold font-satoshi tracking-wider truncate">
+                                                                    {visibleAccountIds[account.id]
+                                                                        ? formatAccountNumber(account.account_number)
+                                                                        : account.account_number.slice(-4).padStart(account.account_number.length, '*')
+                                                                    }
+                                                                </p>
+                                                                <button
+                                                                    onClick={(e) => toggleAccountVisibility(account.id, e)}
+                                                                    className="text-white/60 hover:text-white transition-colors ml-2 shrink-0"
+                                                                >
+                                                                    {visibleAccountIds[account.id] ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                                </button>
                                                             </div>
                                                         </div>
 
-                                                        <div className="flex items-center justify-between mt-[4px]">
-                                                            <p className="text-white text-[18px] font-bold font-satoshi tracking-wider truncate">
-                                                                {visibleAccountIds[account.id]
-                                                                    ? formatAccountNumber(account.account_number)
-                                                                    : account.account_number.slice(-4).padStart(account.account_number.length, '*')
-                                                                }
-                                                            </p>
-                                                            <button
-                                                                onClick={(e) => toggleAccountVisibility(account.id, e)}
-                                                                className="text-white/60 hover:text-white transition-colors ml-2 shrink-0"
-                                                            >
-                                                                {visibleAccountIds[account.id] ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Block 2: IFSC Code Section */}
-                                                    <div className="w-full">
-                                                        <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi mb-0.5">IFSC Code</p>
-                                                        <p className="text-white text-[15px] font-medium font-satoshi">
-                                                            {account.ifsc_code}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="w-full flex items-end justify-between">
-                                                        <div className="max-w-[70%]">
-                                                            <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi mb-0.5">Branch</p>
-                                                            <p className="text-white text-[14px] font-medium font-satoshi leading-tight truncate">
-                                                                {account.branch_name}
+                                                        {/* Block 2: IFSC Code Section */}
+                                                        <div className="w-full">
+                                                            <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi mb-0.5">IFSC Code</p>
+                                                            <p className="text-white text-[15px] font-medium font-satoshi">
+                                                                {account.ifsc_code}
                                                             </p>
                                                         </div>
 
-                                                        <div className="w-[48px] h-[48px] flex items-center justify-end">
-                                                            <img src={getBankLogo(account.bank_name)} alt="Bank" className="h-[32px] w-auto object-contain" />
-                                                        </div>
-                                                    </div>
+                                                        <div className="w-full flex items-end justify-between">
+                                                            <div className="max-w-[70%]">
+                                                                <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi mb-0.5">Branch</p>
+                                                                <p className="text-white text-[14px] font-medium font-satoshi leading-tight truncate">
+                                                                    {account.branch_name}
+                                                                </p>
+                                                            </div>
 
+                                                            <div className="w-[48px] h-[48px] flex items-center justify-end">
+                                                                <img src={getBankLogo(account.bank_name)} alt="Bank" className="h-[32px] w-auto object-contain" />
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
                                                 </div>
+
                                             </div>
 
-                                        </div>
-
-                                        {!isStacked && isSelected && (
-                                            <div
-                                                className="w-full h-[66px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
-                                                style={isDarkMode ? {
-                                                    backgroundImage: `url(${expandContainerBg})`,
-                                                    backgroundSize: 'cover',
-                                                    backgroundPosition: 'center',
-                                                    marginTop: '-18px',
-                                                    zIndex: 1,
-                                                } : {
-                                                    background: `linear-gradient(#F5F5F5, #F5F5F5) padding-box, linear-gradient(${isDefault ? 'to bottom, #FFFFFF, #FF2626' : 'to right, #FF2626, #FFD21F'}) border-box`,
-                                                    border: '1px solid transparent',
-                                                    marginTop: '-18px',
-                                                    zIndex: 1,
-                                                }}
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                {!isDarkMode && isDefault && (
-                                                    <div
-                                                        className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
-                                                        style={{
-                                                            top: '-35px',
-                                                            width: '120px',
-                                                            height: '40px',
-                                                            backgroundColor: '#FF3B30',
-                                                            filter: 'blur(30px)',
-                                                            opacity: 0.6,
-                                                        }}
-                                                    />
-                                                )}
-                                                {!isDarkMode && !isDefault && (
-                                                    <>
+                                            {!isStacked && isSelected && (
+                                                <div
+                                                    className="w-full h-[66px] rounded-b-[16px] relative overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300"
+                                                    style={isDarkMode ? {
+                                                        backgroundImage: `url(${expandContainerBg})`,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                        marginTop: '-18px',
+                                                        zIndex: 1,
+                                                    } : {
+                                                        background: `linear-gradient(#F5F5F5, #F5F5F5) padding-box, linear-gradient(${isDefault ? 'to bottom, #FFFFFF, #FF2626' : 'to right, #FF2626, #FFD21F'}) border-box`,
+                                                        border: '1px solid transparent',
+                                                        marginTop: '-18px',
+                                                        zIndex: 1,
+                                                    }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {!isDarkMode && isDefault && (
                                                         <div
-                                                            className="absolute rounded-full pointer-events-none"
+                                                            className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
                                                             style={{
                                                                 top: '-35px',
-                                                                left: '15%',
-                                                                width: '100px',
+                                                                width: '120px',
                                                                 height: '40px',
                                                                 backgroundColor: '#FF3B30',
                                                                 filter: 'blur(30px)',
                                                                 opacity: 0.6,
                                                             }}
                                                         />
-                                                        <div
-                                                            className="absolute rounded-full pointer-events-none"
-                                                            style={{
-                                                                top: '-35px',
-                                                                right: '15%',
-                                                                width: '100px',
-                                                                height: '40px',
-                                                                backgroundColor: '#FACC15',
-                                                                filter: 'blur(30px)',
-                                                                opacity: 0.6,
-                                                            }}
-                                                        />
-                                                    </>
-                                                )}
-                                                <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
-                                                    {isDefault ? (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
-                                                            className="flex items-center gap-2 px-4 w-full justify-center opacity-80 hover:opacity-100 transition-opacity"
-                                                        >
-                                                            <img src={deleteIcon} alt="Remove" className="w-[18px] h-[18px] object-contain" />
-                                                            <span className="text-[#FF3B30] text-[14px] font-medium">Remove Account</span>
-                                                        </button>
-                                                    ) : (
-                                                        <div className="w-full flex items-center h-[24px]">
+                                                    )}
+                                                    {!isDarkMode && !isDefault && (
+                                                        <>
+                                                            <div
+                                                                className="absolute rounded-full pointer-events-none"
+                                                                style={{
+                                                                    top: '-35px',
+                                                                    left: '15%',
+                                                                    width: '100px',
+                                                                    height: '40px',
+                                                                    backgroundColor: '#FF3B30',
+                                                                    filter: 'blur(30px)',
+                                                                    opacity: 0.6,
+                                                                }}
+                                                            />
+                                                            <div
+                                                                className="absolute rounded-full pointer-events-none"
+                                                                style={{
+                                                                    top: '-35px',
+                                                                    right: '15%',
+                                                                    width: '100px',
+                                                                    height: '40px',
+                                                                    backgroundColor: '#FACC15',
+                                                                    filter: 'blur(30px)',
+                                                                    opacity: 0.6,
+                                                                }}
+                                                            />
+                                                        </>
+                                                    )}
+                                                    <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
+                                                        {isDefault ? (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
-                                                                className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                                                                className="flex items-center gap-2 px-4 w-full justify-center opacity-80 hover:opacity-100 transition-opacity"
                                                             >
                                                                 <img src={deleteIcon} alt="Remove" className="w-[18px] h-[18px] object-contain" />
                                                                 <span className="text-[#FF3B30] text-[14px] font-medium">Remove Account</span>
                                                             </button>
-                                                            <div className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`} />
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleDefaultClick(); }}
-                                                                className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-                                                            >
-                                                                <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
-                                                                <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium`}>Set as Default?</span>
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                        ) : (
+                                                            <div className="w-full flex items-center h-[24px]">
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleRemoveClick(); }}
+                                                                    className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <img src={deleteIcon} alt="Remove" className="w-[18px] h-[18px] object-contain" />
+                                                                    <span className="text-[#FF3B30] text-[14px] font-medium">Remove Account</span>
+                                                                </button>
+                                                                <div className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`} />
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDefaultClick(); }}
+                                                                    className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <img src={defaultIcon} alt="Default" className="w-[18px] h-[18px] object-contain" style={!isDarkMode ? { filter: 'brightness(0)' } : undefined} />
+                                                                    <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium`}>Set as Default?</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                                            )}
+                                        </div>
+                                    );
+                                })}
 
-                            <div className={`w-full flex items-center justify-center transition-all duration-300 ${isStacked ? 'absolute' : 'mt-2 pb-[40px]'}`}
-                                style={isStacked ? {
-                                    top: `${(sortedAccounts.length - 1) * 15 + 234 + 24}px`
-                                } : {}}
-                            >
-                                <p className="text-white/60 text-[14px] font-satoshi">
-                                    Accounts added: {accounts.length}
-                                </p>
+                                <div className={`w-full flex items-center justify-center transition-all duration-300 ${isStacked ? 'absolute' : 'mt-2 pb-[40px]'}`}
+                                    style={isStacked ? {
+                                        top: `${(sortedAccounts.length - 1) * 15 + 234 + 24}px`
+                                    } : {}}
+                                >
+                                    <p className="text-white/60 text-[14px] font-satoshi">
+                                        Accounts added: {accounts.length}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
