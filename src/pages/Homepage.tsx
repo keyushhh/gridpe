@@ -45,6 +45,9 @@ import friendsIcon from "@/assets/Friends Family.svg";
 import otherIcon from "@/assets/Other.svg";
 import walletDarkIcon from "@/assets/wallet-dark.svg";
 import { useWebScroll } from "@/hooks/useWebScroll";
+import { isNightTime } from "@/utils/time";
+import NightDeliveryState from "@/components/NightDeliveryState";
+import { motion, AnimatePresence } from "framer-motion";
 
 const currencySymbols: Record<string, string> = {
   AUD: '$', BRL: 'R$', CAD: '$', CHF: 'Fr', CNY: '¥', CZK: 'Kč', DKK: 'kr', EUR: '€',
@@ -112,6 +115,17 @@ const Homepage = () => {
   const [hasSavedAddresses, setHasSavedAddresses] = useState<boolean>(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [forceNight, setForceNight] = useState(false);
+  const [isNight, setIsNight] = useState(isNightTime());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsNight(isNightTime());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const displayNightMode = forceNight || isNight;
 
   // FX Live Data states
   const [fxRate, setFxRate] = useState<number>(90.61);
@@ -499,57 +513,109 @@ const Homepage = () => {
         style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch', transform: 'translateZ(0)' }}
       >
         <div className="flex flex-col min-h-full">
-        {/* Header Fixed Area (Top Section always visible) */}
-        <div className="shrink-0 flex flex-col safe-top z-50 relative pointer-events-none">
-          {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
-          <div className="px-5 pt-4 flex items-start justify-between relative pointer-events-auto z-50">
-            <div className="space-y-1 max-w-[70%]">
-              {savedAddress ? (
-                <div className="flex items-center gap-1">
-                  {(() => {
-                    const IconProps = {
-                      size: 14,
-                      color: isDarkMode ? "#FFFFFF" : "#5260FE",
-                      strokeWidth: 2.5
-                    };
-                    switch (savedAddress.tag) {
-                      case "Home": return <Home {...IconProps} />;
-                      case "Work": return <Briefcase {...IconProps} />;
-                      case "Friends & Family": return <Users {...IconProps} />;
-                      case "Other": return <MapPin {...IconProps} />;
-                      default: return <Home {...IconProps} />;
-                    }
-                  })()}
-                  <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
-                    {savedAddress.tag}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider uppercase">
-                  {name ? `HI, ${name.split(' ')[0]}` : 'DELIVERING'}
-                </p>
-              )}
+        {/* Dev Mode Toggle */}
+        {import.meta.env.DEV && (
+          <button 
+            onClick={() => setForceNight(!forceNight)}
+            className="fixed bottom-24 right-4 z-[1000] bg-orange-500 text-white text-[10px] px-2 py-1 rounded-full shadow-lg opacity-50 hover:opacity-100 font-mono"
+          >
+            DEV: {forceNight ? 'FORCE_NIGHT_ON' : 'AUTO_TIME'}
+          </button>
+        )}
 
-              <button
-                onClick={() => {
-                  if (hasSavedAddresses) {
-                    setIsAddressSheetOpen(true);
-                  } else {
-                    navigate('/add-address');
-                  }
-                }}
-                className="flex items-center gap-1 text-foreground text-[14px] font-normal w-full"
-              >
-                <span className="truncate block text-black dark:text-foreground">
-                  {getAddressDisplay()}
-                </span>
-                <ChevronDown className="w-4 h-4 shrink-0 text-black dark:text-foreground" />
-              </button>
-            </div>
-            <button onClick={() => navigate('/settings')}>
-              <img src={profileImage || avatarImg} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
-            </button>
-          </div>
+        <AnimatePresence mode="popLayout">
+          {displayNightMode ? (
+            <motion.div
+              key="night-mode"
+              initial={{ height: 0, opacity: 0, y: -20 }}
+              animate={{ height: 'auto', opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -20 }}
+              transition={{ 
+                height: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+                opacity: { duration: 0.3 },
+                y: { duration: 0.4 }
+              }}
+              className="overflow-hidden z-50 relative"
+            >
+              <div className="w-full">
+                <NightDeliveryState
+                  isDarkMode={isDarkMode}
+                  savedAddress={savedAddress}
+                  profileImage={profileImage}
+                  name={name}
+                  onAddressClick={() => {
+                    if (hasSavedAddresses) {
+                      setIsAddressSheetOpen(true);
+                    } else {
+                      navigate('/add-address');
+                    }
+                  }}
+                  onProfileClick={() => navigate('/settings')}
+                  onScheduleClick={() => navigate('/order-cash', { state: { isScheduledFlow: true } })}
+                />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="day-mode"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.4 }}
+              className="shrink-0 flex flex-col safe-top z-50 relative pointer-events-none"
+            >
+              {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
+              <div className="px-5 pt-4 flex items-start justify-between relative pointer-events-auto z-50">
+                <div className="space-y-1 max-w-[70%]">
+                  {savedAddress ? (
+                    <div className="flex items-center gap-1">
+                      {(() => {
+                        const IconProps = {
+                          size: 14,
+                          color: isDarkMode ? "#FFFFFF" : "#5260FE",
+                          strokeWidth: 2.5
+                        };
+                        switch (savedAddress.tag) {
+                          case "Home": return <Home {...IconProps} />;
+                          case "Work": return <Briefcase {...IconProps} />;
+                          case "Friends & Family": return <Users {...IconProps} />;
+                          case "Other": return <MapPin {...IconProps} />;
+                          default: return <Home {...IconProps} />;
+                        }
+                      })()}
+                      <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
+                        {savedAddress.tag}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider uppercase">
+                      {name ? `HI, ${name.split(' ')[0]}` : 'DELIVERING'}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      if (hasSavedAddresses) {
+                        setIsAddressSheetOpen(true);
+                      } else {
+                        navigate('/add-address');
+                      }
+                    }}
+                    className="flex items-center gap-1 text-foreground text-[14px] font-normal w-full"
+                  >
+                    <span className="truncate block text-black dark:text-foreground">
+                      {getAddressDisplay()}
+                    </span>
+                    <ChevronDown className="w-4 h-4 shrink-0 text-black dark:text-foreground" />
+                  </button>
+                </div>
+                <button onClick={() => navigate('/settings')}>
+                  <img src={profileImage || avatarImg} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
           {/* Address Selection Sheet */}
           <div className="pointer-events-auto">
@@ -560,7 +626,7 @@ const Homepage = () => {
               onModalStateChange={setIsAddressModalOpen}
             />
           </div>
-        </div>
+
 
         {/* Blocking UI (Absolute Overlay when unserviceable) */}
         {isUnserviceable && (

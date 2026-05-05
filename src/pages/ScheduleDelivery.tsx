@@ -1,5 +1,5 @@
-﻿import React, {  useState, useEffect, useRef  } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, {  useState, useEffect, useRef  } from 'react';
+import { useNavigate, useLocation } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import bgDarkMode from "@/assets/bg-dark-mode.png";
 import GlassCalendar from "@/components/GlassCalendar";
@@ -16,6 +16,9 @@ const ScheduleDelivery = () => {
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const navigate = useNavigate();
+    const location = useLocation();
+    const { amount, isScheduledFlow } = location.state || {};
+    
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
     // Time state
@@ -198,6 +201,30 @@ const ScheduleDelivery = () => {
     const endLimit = 22 * 60; // 10:00 PM
 
     const isInvalidTime = currentTimeMinutes < startLimit || currentTimeMinutes > endLimit;
+
+    const handleConfirmSlot = () => {
+        if (isInvalidTime) return;
+        
+        // Return to OrderCashSummary with the selected slot
+        // Parse selectedTime and selectedDate into a single ISO string
+        const [timeStr, mPart] = selectedTime.split(' ');
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        let finalHours = hours;
+        if (mPart.toLowerCase() === 'pm' && hours !== 12) finalHours += 12;
+        if (mPart.toLowerCase() === 'am' && hours === 12) finalHours = 0;
+
+        const scheduledDate = new Date(selectedDate);
+        scheduledDate.setHours(finalHours, minutes, 0, 0);
+
+        navigate('/order-cash-summary', {
+            state: {
+                amount,
+                isScheduledFlow,
+                selectedSlot: scheduledDate.toISOString()
+            },
+            replace: true
+        });
+    };
 
     return (
         <div
@@ -416,11 +443,14 @@ const ScheduleDelivery = () => {
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     You won’t be charged unless the delivery is completed.
                 </p>
-                <SlideToPay onComplete={() => { }} />
+                <SlideToPay 
+                    onComplete={handleConfirmSlot} 
+                    disabled={isInvalidTime}
+                    label={isScheduledFlow ? "Confirm Slot" : "Slide to Pay"}
+                />
             </div>
         </div>
     );
 };
 
 export default ScheduleDelivery;
-

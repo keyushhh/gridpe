@@ -40,7 +40,12 @@ const OrderCashSummary = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { showToaster } = useCustomToaster();
-    const { amount } = location.state || { amount: "0.00" };
+    const { amount, isScheduledFlow, selectedSlot: initialSlot } = location.state || { amount: "0.00" };
+    
+    // Diagnostic Log for Audit Check #1
+    console.log("[AUDIT] OrderCashSummary arrived. Params:", { isScheduledFlow, initialSlot });
+
+    const [selectedSlot, setSelectedSlot] = useState<string | null>(initialSlot || null);
     const { resolvedTheme } = useTheme();
     const isDarkMode = resolvedTheme !== 'light';
     const { profile, walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
@@ -74,12 +79,6 @@ const OrderCashSummary = () => {
 
     const getAddressDisplay = () => {
         if (!savedAddress) return "Add Address";
-        // Construct a nice display string: House, Area, City - Zip
-        // If displayAddress is already formatted well (like from Nominatim), we can use it,
-        // but the user might want specific "House, Area" format.
-        // The previous hardcoded one was: "C102, Pubali Estate, Guwahati - 781005"
-        // My SavedAddress has: house, area, city, postcode.
-
         const parts = [savedAddress.house, savedAddress.area, savedAddress.city];
         const base = parts.filter(Boolean).join(", ");
         if (savedAddress.postcode) {
@@ -242,10 +241,8 @@ const OrderCashSummary = () => {
                     });
                     addressId = newAddress.id;
 
-                    // Update local state and storage
                     const updatedAddr = { ...savedAddress, id: addressId };
                     setSavedAddress(updatedAddr);
-                    localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
                     localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
                 } catch (addrErr: unknown) {
                     console.error("Failed to save address before order", addrErr);
@@ -255,7 +252,6 @@ const OrderCashSummary = () => {
                 }
             }
             
-            // Check Service Availability & Get Zone ID
             const { data: zoneId, error: zoneError } = await supabase.rpc('check_service_availability', {
                 p_lat: Number(savedAddress.latitude) || 0,
                 p_lng: Number(savedAddress.longitude) || 0
@@ -272,7 +268,6 @@ const OrderCashSummary = () => {
                 return;
             }
 
-            // NEW: Wallet Hold - Moves available_balance -> held_balance before order insert
             const { error: holdError } = await supabase.rpc('wallet_hold', {
                 p_user_id: userId,
                 p_amount: totalAmount,
@@ -286,13 +281,11 @@ const OrderCashSummary = () => {
                 return;
             }
 
-
             const cleanedAmount = Math.round(totalAmount * 100) / 100;
 
-            // Calculate Dynamic Rider Earnings
             let riderEarnings = 0; 
-            let pickupLocation: string | null = null; // Hub UUID
-            let pickupAddress: string | null = null; // Human-readable hub address
+            let pickupLocation: string | null = null; 
+            let pickupAddress: string | null = null; 
             
             try {
                 let distance = 1.2;
@@ -304,24 +297,18 @@ const OrderCashSummary = () => {
                         savedAddress.longitude
                     );
                     
-                    // NEW: Fetch active hubs for the user's city
                     const { data: hubs, error: hubsError } = await supabase
                         .from('hubs')
                         .select('id, location_name, city')
                         .eq('city', normalizeCity(savedAddress.city));
                     
-                        
                     if (hubs && hubs.length > 0) {
-                        // Use the first active hub for the city as coordinates are missing for individual hubs
                         const nearest = hubs[0];
                         pickupLocation = nearest.id;
                         pickupAddress = `${nearest.location_name}, ${nearest.city}`;
-                    } else {
-                        console.error('HUB FETCH FAILED: No active hubs found for city:', normalizeCity(savedAddress.city));
                     }
                 }
                 
-
                 const { data: userProfile, error: userError } = await supabase
                     .from('profiles')
                     .select('phone')
@@ -344,8 +331,6 @@ const OrderCashSummary = () => {
 
                 if (!earningsError && earnings !== null) {
                     riderEarnings = parseFloat(earnings);
-                } else {
-                    console.error("Rider earnings RPC failed, using 0 fallback:", earningsError);
                 }
             } catch (err) {
                 console.error("Failed to calculate dynamic data:", err);
@@ -354,26 +339,27 @@ const OrderCashSummary = () => {
             const getOrderPayload = (aid: string, phone: string | null, pAddress: string | null, dAddressText: string) => ({
                 user_id: userId,
                 address_id: aid,
-                zone_id: zoneId, // Tagging with the zone_id from RPC
-                amount: parsedAmount, // Cash amount to be picked up
-                total_amount: cleanedAmount, // Total payable
+                zone_id: zoneId,
+                amount: parsedAmount,
+                total_amount: cleanedAmount,
                 payment_mode: 'WALLET',
                 order_type: 'CASH_ORDER',
                 currency: 'INR',
                 status: 'pending',
                 type: 'cash',
                 rider_earnings: riderEarnings,
-                hub_id: pickupLocation, // Hub UUID
-                pickup_location: pAddress, // Human-readable Hub Address
+                hub_id: pickupLocation,
+                pickup_location: pAddress,
                 delivery_address_text: dAddressText,
                 customer_phone_number: phone,
                 delivery_location: `POINT(${savedAddress.longitude || 0} ${savedAddress.latitude || 0})`,
                 otp_code: Math.floor(100000 + Math.random() * 900000).toString(),
                 delivery_fee: deliveryFee,
-                service_fee: platformFee, // Mapped from platformFee
+                service_fee: platformFee,
                 gst: gst,
                 delivery_tip: tipAmount,
                 reward_points: rewardPointsValue,
+                scheduled_at: selectedSlot || null,
                 meta_data: {
                     item_value: parsedAmount,
                     delivery_fee: deliveryFee,
@@ -387,32 +373,17 @@ const OrderCashSummary = () => {
                 }
             });
 
+
+
             const createOrderDirectly = async (aid: string, phone: string | null, pAddress: string | null, dAddressText: string) => {
                 const payload = getOrderPayload(aid, phone, pAddress, dAddressText);
-
-                if (!payload.hub_id) console.error("DEBUG: hub_id is NULL");
-
-                if (!payload.customer_phone_number) console.error("DEBUG: customer_phone_number fetch failed or is NULL");
-                if (!payload.pickup_location) console.error("DEBUG: pickup_location (hub address) fetch failed or is NULL");
-                if (!payload.delivery_address_text) console.error("DEBUG: delivery_address_text is NULL");
-
-
-
                 const { data, error } = await supabase
                     .from('orders')
                     .insert([payload])
                     .select()
                     .single();
 
-                if (error) {
-                    console.error('Supabase Insert Error:', error);
-                    throw new Error(`Database error: ${error.message || "Failed to insert order"}`);
-                }
-
-                if (!data) {
-                    throw new Error("Order creation failed: No data returned from database.");
-                }
-
+                if (error) throw new Error(`Database error: ${error.message}`);
                 return data;
             };
 
@@ -428,20 +399,15 @@ const OrderCashSummary = () => {
                 }
 
                 const customerPhoneNumber = userProfile.phone;
+                const dAddressText = savedAddress.displayAddress || getAddressDisplay();
 
-                let pAddress = pickupAddress;
-                // pickupLocation is the UUID, pickupAddress is the TEXT
-                
-                const dAddressText = savedAddress.displayAddress 
-                    || getAddressDisplay();
+                const payload = getOrderPayload(addressId!, customerPhoneNumber, pickupAddress, dAddressText);
+                // Diagnostic Log for Audit Check #4
+                console.log("[AUDIT] Final Order Payload:", payload);
 
-                // VERIFICATION LOG:
-
-                const orderData = await createOrderDirectly(addressId!, customerPhoneNumber, pAddress, dAddressText);
+                const orderData = await createOrderDirectly(addressId!, customerPhoneNumber, pickupAddress, dAddressText);
                 const orderId = orderData.id;
                 
-                // NEW: Link the hold transaction to the newly created order
-                // We fetch the most recent pending hold for this user to avoid matching multiple rows
                 const { data: holdTx } = await supabase
                     .from('wallet_transactions')
                     .select('id')
@@ -460,10 +426,7 @@ const OrderCashSummary = () => {
                         .eq('id', holdTx.id);
                 }
 
-                // Update app badge
                 setBadge(1);
-
-                // Refresh balance after successful order & hold
                 await refreshBalance();
 
                 navigate(`/order-details/${orderId}`, {
@@ -474,72 +437,7 @@ const OrderCashSummary = () => {
                     }
                 });
             } catch (orderError: unknown) {
-                console.error("First order attempt failed:", orderError);
-
-                const err = orderError as { message?: string; code?: string };
-                // Handle Stale Address ID (Foreign Key Violation)
-                const isAddressError = err.message?.toLowerCase().includes('foreign key') ||
-                    err.message?.toLowerCase().includes('address_id') ||
-                    err.code === '23503';
-
-                if (isAddressError && savedAddress) {
-                    try {
-                        const newAddress = await createAddress({
-                            user_id: userId,
-                            label: savedAddress.tag,
-                            apartment: savedAddress.house,
-                            area: savedAddress.area,
-                            landmark: savedAddress.landmark || "",
-                            city: savedAddress.city,
-                            state: savedAddress.state,
-                            plus_code: savedAddress.plusCode || null,
-                            latitude: 0,
-                            longitude: 0,
-                            contact_name: savedAddress.name,
-                            contact_phone: savedAddress.phone
-                        });
-
-                        const newAddressId = newAddress.id;
-                        const updatedAddr = { ...savedAddress, id: newAddressId };
-                        setSavedAddress(updatedAddr);
-                        localStorage.setItem("gridpe_user_address", JSON.stringify(updatedAddr));
-
-                        
-                        const { data: retryProfile, error: retryError } = await supabase
-                            .from('profiles')
-                            .select('phone')
-                            .eq('id', userId)
-                            .single();
-
-                        if (retryError || !retryProfile || !retryProfile.phone) {
-                            throw new Error("A valid phone number is required to proceed.");
-                        }
-
-                        const retryPhone = retryProfile.phone;
-                        const retryDAddressText = updatedAddr.displayAddress 
-                            || getAddressDisplay();
-
-                        const retryData = await createOrderDirectly(newAddressId, retryPhone, pickupAddress, retryDAddressText);
-                        const retryOrderId = retryData.id;
-
-                        if (retryOrderId) {
-                            setBadge(1);
-                            navigate(`/order-details/${retryOrderId}`, {
-                                state: {
-                                    totalAmount: totalAmount,
-                                    savedAddress: updatedAddr,
-                                    order: retryData
-                                }
-                            });
-                            return; // Success on retry!
-                        }
-                    } catch (retryErr: any) {
-                        console.error("Retry attempt failed:", retryErr);
-                        throw new Error(`Retry failed: ${retryErr.message}`);
-                    }
-                }
-
-                // If not address issue, or retry failed, propagate original error
+                console.error("Order attempt failed:", orderError);
                 throw orderError;
             }
 
@@ -586,6 +484,11 @@ const OrderCashSummary = () => {
         boxShadow: "none"
     };
 
+    const isConfirmDisabled = !savedAddress || totalAmount > walletBalance || quoteLoading || (isScheduledFlow && !selectedSlot);
+    
+    // Normal flow (not isScheduledFlow) should always be interactive unless balance/address issues
+    const isVisualDisabled = isConfirmDisabled;
+
     return (
         <div
             className={`h-full w-full ${containerOverflow} flex flex-col safe-top relative`}
@@ -597,7 +500,6 @@ const OrderCashSummary = () => {
                 backgroundRepeat: "no-repeat",
             }}
         >
-            {/* Light Mode Purple Glow */}
             {!isDarkMode && (
                 <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
             )}
@@ -663,17 +565,39 @@ const OrderCashSummary = () => {
                         >
                             <img src={deliveryIcon} alt="Delivery" className={`w-[24px] h-[24px] ${!isDarkMode ? 'brightness-0' : ''}`} />
                         </div>
-                        <div>
+                        <div className="max-w-[140px]">
                             <p className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>Delivery</p>
-                            <p className={`text-[14px] font-normal font-sans ${isDarkMode ? 'text-white/60' : 'text-black'}`}>Deliver now</p>
+                            <p className={`text-[12px] font-normal font-sans leading-tight ${isDarkMode ? 'text-white/60' : 'text-black'}`}>
+                                {isScheduledFlow && !selectedSlot 
+                                    ? "Select the earliest available slot to place your order" 
+                                    : selectedSlot 
+                                        ? `${new Date(selectedSlot).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} at ${new Date(selectedSlot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                                        : "Deliver now"
+                                }
+                            </p>
                         </div>
                     </div>
-                    <div
-                        className="flex items-center gap-2 cursor-pointer opacity-80 hover:opacity-100"
-                        onClick={() => navigate("/schedule-delivery")}
-                    >
-                        <img src={calendarIcon} alt="Calendar" className={`w-[18px] h-[18px] ${!isDarkMode ? 'brightness-0' : ''}`} />
-                        <span className={`text-[14px] font-medium font-sans underline underline-offset-2 ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>Want it later?</span>
+                    <div className="flex items-center gap-3 shrink-0">
+                        {selectedSlot && (
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedSlot(null);
+                                }}
+                                className="p-1 hover:opacity-70 transition-opacity"
+                            >
+                                <img src={crossIcon} alt="Clear" className={`w-4 h-4 ${!isDarkMode ? 'brightness-0' : ''}`} />
+                            </button>
+                        )}
+                        <div
+                            className="flex items-center gap-2 cursor-pointer opacity-80 hover:opacity-100"
+                            onClick={() => navigate("/schedule-delivery", { state: { amount, isScheduledFlow } })}
+                        >
+                            <img src={calendarIcon} alt="Calendar" className={`w-[18px] h-[18px] ${!isDarkMode ? 'brightness-0' : ''}`} />
+                            <span className={`text-[14px] font-medium font-sans underline underline-offset-2 ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}>
+                                {selectedSlot ? "Change" : "Want it later?"}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -797,205 +721,8 @@ const OrderCashSummary = () => {
                                 />
                             </button>
                         </div>
-
-                        {!isTipCollapsed && (
-                            <div className="px-[12px] pb-[16px]">
-                                <p className={`text-[13px] font-normal font-sans mb-5 leading-snug ${isDarkMode ? 'text-white/80' : 'text-black'}`}>
-                                    A small tip, goes a big way! Totally optional – but your rider will appreciate it â¤ï¸
-                                </p>
-                                <div className="flex items-center gap-3">
-                                    {['10', '20', '30'].map((val) => (
-                                        <div key={val} className="relative shrink-0" style={{ width: '74px', height: '38px' }}>
-                                            <button
-                                                onClick={() => handleTipSelect(val)}
-                                                className={`relative block w-full h-full transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${val === '20' ? 'rounded-[19px]' : ''} ${!isDarkMode ? 'rounded-full' : ''}`}
-                                                style={isDarkMode ? {
-                                                    backgroundImage: `url(${selectedTipOption === val ? selectedPillBg : pillBg})`,
-                                                    backgroundSize: '100% 100%',
-                                                    backgroundRepeat: 'no-repeat',
-                                                    boxSizing: 'border-box'
-                                                } : { backgroundColor: selectedTipOption === val ? '#5260FE' : '#FFFFFF', border: '1px solid #E6E8EB' }}
-                                            >
-                                                {/* Content Wrapper */}
-                                                <div
-                                                    className={`absolute left-0 right-0 flex justify-center items-center gap-[10px] z-20 ${val === '20' ? 'top-[2px]' : 'top-1/2 -translate-y-1/2'}`}
-                                                >
-                                                    <span className={`font-medium font-sans text-[15px] leading-none ${isDarkMode || selectedTipOption === val ? 'text-white' : 'text-black'}`}>
-                                                        ₹{val}
-                                                    </span>
-
-                                                    {selectedTipOption === val && (
-                                                        <div
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleClearTip(e);
-                                                                setIsTipContainerVisible(false);
-                                                            }}
-                                                            className="cursor-pointer hover:opacity-80 flex items-center justify-center w-[12px] h-[12px]"
-                                                        >
-                                                            <img src={crossIcon} alt="Remove" className="w-full h-full object-contain" />
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Most Tipped Banner - Only for 20 */}
-                                                {val === '20' && (
-                                                    <div className="absolute top-[23px] left-0 right-0 h-[14px] bg-[#5260FE] flex items-center justify-center z-10 pointer-events-none">
-                                                        <span className="text-white text-[7px] font-bold font-sans uppercase tracking-wider leading-none">
-                                                            MOST TIPPED
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <div className="relative shrink-0" style={{ width: '74px', height: '38px' }}>
-                                        <button
-                                            onClick={() => handleTipSelect('other')}
-                                            className={`relative flex items-center justify-center transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${selectedTipOption === 'other' ? 'flex-row gap-[10px]' : ''} ${!isDarkMode ? 'rounded-full' : ''}`}
-                                            style={isDarkMode ? {
-                                                width: '74px',
-                                                height: '38px',
-                                                minWidth: '74px',
-                                                minHeight: '38px',
-                                                maxWidth: '74px',
-                                                maxHeight: '38px',
-                                                backgroundImage: `url(${selectedTipOption === 'other' ? selectedPillBg : pillBg})`,
-                                                backgroundSize: '100% 100%',
-                                                backgroundRepeat: 'no-repeat',
-                                                boxSizing: 'border-box'
-                                            } : {
-                                                width: '74px',
-                                                height: '38px',
-                                                backgroundColor: selectedTipOption === 'other' ? '#5260FE' : '#FFFFFF',
-                                                border: '1px solid #E6E8EB'
-                                            }}
-                                        >
-                                            <span className={`font-medium font-sans text-[15px] z-20 relative leading-none ${isDarkMode || selectedTipOption === 'other' ? 'text-white' : 'text-black'}`}>Other</span>
-                                            {selectedTipOption === 'other' && (
-                                                <div
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleClearCustomTip();
-                                                    }}
-                                                    className="z-30 cursor-pointer hover:opacity-80 flex items-center justify-center w-[12px] h-[12px]"
-                                                >
-                                                    <img src={crossIcon} alt="Remove" className="w-full h-full object-contain" />
-                                                </div>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                                {selectedTipOption === 'other' && (
-                                    <div className={`mt-[15px] h-[48px] w-full rounded-full border flex items-center pl-4 pr-4 ${isDarkMode ? 'bg-[#191919] border-white/10' : 'bg-white border-[#E6E8EB]'}`}>
-                                        <span className={`font-medium font-sans mr-2 ${isDarkMode ? 'text-white' : 'text-black'}`}>₹</span>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter tip amount"
-                                            value={customTipValue}
-                                            onChange={handleCustomTipChange}
-                                            className={`bg-transparent font-sans text-[14px] focus:outline-none flex-1 ${isDarkMode ? 'text-white placeholder:text-white/30' : 'text-black placeholder:text-black/30'}`}
-                                        />
-                                        <button
-                                            onClick={tipAmount > 0 ? handleClearCustomTip : handleApplyCustomTip}
-                                            className="text-[#5260FE] text-[13px] font-medium font-sans ml-2"
-                                        >
-                                            {tipAmount > 0 ? "Clear" : "Apply"}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
                 )}
-
-                <div style={containerStyle} className="w-full overflow-hidden">
-                    <div
-                        className={`w-full px-[12px] flex flex-col cursor-pointer transition-all pt-[14px] ${isPayOpen ? 'pb-0' : 'pb-[14px]'}`}
-                        onClick={() => setIsPayOpen(!isPayOpen)}
-                    >
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-2">
-                                <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>To Pay</span>
-                                <span className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                    {quoteLoading ? "Calculating..." : `+₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
-                                </span>
-                            </div>
-                            <img
-                                src={chevronDownIcon}
-                                alt="Toggle"
-                                className={`w-4 h-4 transition-transform duration-200 ${isPayOpen ? 'rotate-180' : ''} ${!isDarkMode ? 'brightness-0' : ''}`}
-                            />
-                        </div>
-                        <p className={`text-[12px] font-normal font-sans mt-[6px] ${isDarkMode ? 'text-white/60' : 'text-black'}`}>
-                            Incl. all taxes & charges
-                        </p>
-                        {isPayOpen && (
-                            <div className="w-full mt-[10px]">
-                                <div className={`w-full h-[1px] mb-[10px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
-                                <div className="flex justify-between items-center mb-[2px]">
-                                    <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Item Value</span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{parsedAmount}</span>
-                                </div>
-                                {rewardApplied && (
-                                    <div className="flex justify-between items-center mb-[2px]">
-                                        <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Reward Discount ({rewardPointsValue} pts)</span>
-                                        <span className="text-[#FF3B30] font-bold font-sans text-[13px]">-₹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between items-center">
-                                    <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Delivery Fee | 1.2 kms</span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{deliveryFee}</span>
-                                </div>
-                                <p className={`font-light font-sans text-[13px] mt-[12px] mb-[8px] leading-snug ${isDarkMode ? 'text-white/50' : 'text-black'}`}>
-                                    This fee fairly goes to our delivery partners for delivering your orders.
-                                </p>
-                                <div className={`w-full h-[1px] mb-[8px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
-                                <div className="flex justify-between items-center mb-[2px]">
-                                    <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Delivery Tip</span>
-                                    {tipAmount > 0 ? (
-                                        <span
-                                            className={`font-bold font-sans text-[13px] cursor-pointer hover:underline ${isDarkMode ? 'text-white' : 'text-black'}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsTipContainerVisible(true);
-                                            }}
-                                        >
-                                            ₹{tipAmount}
-                                        </span>
-                                    ) : (
-                                        <span
-                                            className="text-[#5260FE] cursor-pointer font-medium font-sans text-[13px] relative z-50"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsTipContainerVisible(true);
-                                                setIsTipCollapsed(false);
-                                            }}
-                                        >
-                                            Add Tip
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex justify-between items-center mb-[2px]">
-                                    <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                        GST ({((quoteData?.gst_rate || 0.18) * 100).toFixed(0)}%)
-                                    </span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{gst.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center mb-[8px]">
-                                    <span className={`font-light font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Platform Fee</span>
-                                    <span className={`font-bold font-sans text-[13px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{platformFee.toFixed(2)}</span>
-                                </div>
-                                <div className={`w-full h-[1px] mb-[8px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`} />
-                                <div className="flex justify-between items-center pb-[18px]">
-                                    <span className={`font-medium font-sans text-[15px] ${isDarkMode ? 'text-white' : 'text-black'}`}>Total Payable</span>
-                                    <span className={`font-bold font-sans text-[15px] ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="h-4 flex-none" />
             </div>
 
             <AddressSelectionSheet
@@ -1018,11 +745,18 @@ const OrderCashSummary = () => {
                 <p className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}>
                     {quoteLoading ? "Syncing pricing..." : totalAmount > walletBalance ? "Insufficient funds in wallet" : "You won’t be charged unless the delivery is completed."}
                 </p>
-                <SlideToPay
-                    onComplete={handlePay}
-                    disabled={!savedAddress || totalAmount > walletBalance || quoteLoading}
-                    label={quoteLoading ? "Calculating..." : totalAmount > walletBalance ? "Low Balance" : "Slide to Pay"}
-                />
+                <div style={{ opacity: isVisualDisabled ? 0.5 : 1, transition: 'opacity 0.3s ease' }}>
+                    <SlideToPay
+                        onComplete={handlePay}
+                        disabled={isConfirmDisabled}
+                        label={quoteLoading ? "Calculating..." : totalAmount > walletBalance ? "Low Balance" : (isScheduledFlow && !selectedSlot) ? "Select a Slot" : "Slide to Pay"}
+                    />
+                </div>
+                {isScheduledFlow && !selectedSlot && (
+                    <p className="text-[#FF3B30] text-[12px] font-medium font-sans mt-2 text-center animate-pulse">
+                        Please select a delivery slot above to continue
+                    </p>
+                )}
             </div>
 
             {/* Delivery Tip Popup */}
@@ -1091,5 +825,3 @@ const OrderCashSummary = () => {
 };
 
 export default OrderCashSummary;
-
-

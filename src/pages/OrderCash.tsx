@@ -1,5 +1,5 @@
 import React, { useState , useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "next-themes";
@@ -14,6 +14,7 @@ import { useWebScroll } from "@/hooks/useWebScroll";
 const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
+  const location = useLocation();
   const { walletLimit, walletBalance } = useUser();
   const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>("0.00");
@@ -205,7 +206,12 @@ const OrderCash = () => {
 
               <div className="w-full mt-[32px]">
                 <Button
-                  onClick={() => navigate("/order-cash-summary", { state: { amount } })}
+                  onClick={() => navigate("/order-cash-summary", { 
+                    state: { 
+                      amount, 
+                      isScheduledFlow: location.state?.isScheduledFlow 
+                    } 
+                  })}
                   disabled={parseFloat(amount) < 500 || parseFloat(amount) > walletBalance}
                   className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 >
