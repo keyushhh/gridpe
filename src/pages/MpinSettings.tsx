@@ -80,7 +80,7 @@ const MpinSettings = () => {
         {/* Status Card */}
         <div className="mt-6 flex justify-center">
           <div
-            className={`w-[362px] h-[101px] rounded-xl relative overflow-hidden flex items-center px-5 shrink-0 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+            className={`w-[362px] min-h-[101px] rounded-xl relative overflow-hidden flex items-center px-5 shrink-0 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
             style={isDarkMode ? {
               backgroundImage: `url(${bannerAsset})`,
               backgroundSize: "100% 100%",
@@ -200,7 +200,7 @@ const MpinSettings = () => {
               style={{
                 marginTop: '24px',
                 width: '318px',
-                height: '73px',
+                minHeight: '73px',
                 borderRadius: '16px',
               }}
             >

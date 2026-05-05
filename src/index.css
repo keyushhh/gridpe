@@ -150,6 +150,8 @@ html.font-pending body {
     -webkit-overflow-scrolling: touch;
     /* `manipulation` kills the 300ms double-tap zoom delay on iOS WKWebView. */
     touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   /* Restore text selection for inputs and pin font-size to 16px so iOS Safari

@@ -1,6 +1,7 @@
 package com.gridpe.customer;
 
 import android.os.Bundle;
+import android.webkit.WebView;
 import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 
@@ -17,6 +18,7 @@ public class MainActivity extends BridgeActivity {
         // Capacitor 8's SystemBars plugin adds a listener that forces paddingBottom 
         // to match the keyboard height, even if disabled in config.
         if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().getSettings().setTextZoom(100);
             androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(
                 (android.view.View) getBridge().getWebView().getParent(),
                 (v, insets) -> {

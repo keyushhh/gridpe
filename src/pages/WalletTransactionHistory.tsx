@@ -435,7 +435,7 @@ const WalletTransactionHistory = () => {
 
                     {/* Detail Container */}
                     <div
-                        className="mt-[9px] w-[318px] h-[174px] rounded-[16px] p-[11px_15px] flex flex-col justify-between"
+                        className="mt-[9px] w-[318px] min-h-[174px] rounded-[16px] p-[11px_15px] flex flex-col justify-between"
                         style={{
                             background: '#FFFFFF',
                             border: '1px solid #F0F0F0'

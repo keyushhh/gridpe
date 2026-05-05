@@ -124,7 +124,7 @@ const WalletUpgradeSuccess = () => {
 
             {/* Details Container */}
             <div
-                className="w-full max-w-[362px] h-[162px] mt-[35px] rounded-[13px] relative z-10"
+                className="w-full max-w-[362px] min-h-[162px] mt-[35px] rounded-[13px] relative z-10"
                 style={isDarkMode ? {
                     backgroundColor: "rgba(0, 0, 0, 0.20)",
                     border: "1px solid rgba(255, 255, 255, 0.06)",

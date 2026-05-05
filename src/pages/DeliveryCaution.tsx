@@ -140,7 +140,7 @@ const DeliveryCaution = () => {
                     </h2>
 
                     {/* Note Container */}
-                    <div className={`mt-[32px] w-[362px] h-[79px] rounded-[13px] backdrop-blur-md border p-[11px] flex items-center relative z-10 ${isDarkMode ? 'bg-white/[0.06] border-white/10' : 'bg-[#F7F8FA] border-[#E9EAEB]'}`}>
+                    <div className={`mt-[32px] w-[362px] min-h-[79px] rounded-[13px] backdrop-blur-md border p-[11px] flex items-center relative z-10 ${isDarkMode ? 'bg-white/[0.06] border-white/10' : 'bg-[#F7F8FA] border-[#E9EAEB]'}`}>
                         <p className={`text-[16px] font-normal font-satoshi leading-[120%] text-left opacity-90 ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             We couldn’t verify the delivery partner’s identity.
                             For your safety, please confirm whether you want to continue with this delivery.

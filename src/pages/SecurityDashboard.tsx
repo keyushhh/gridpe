@@ -196,7 +196,7 @@ const SecurityDashboard = () => {
 
   const renderSubmenu = () => {
     // Menu Config
-    const rowHeight = "h-[68px]";
+    const rowHeight = "min-h-[68px]";
     const paddingClass = "pt-[7px] pb-[7px] pl-[18px]"; // Padding: top 7, bottom 7, left 18
     const chevronClass = `${isDarkMode ? 'text-[#7E7E7E]' : 'text-black'} w-5 h-5 mr-[10px]`;
     const iconClass = `w-[20px] h-[20px] object-contain ${!isDarkMode ? 'filter brightness-0' : ''}`; // Icon 20x20
@@ -371,12 +371,12 @@ const SecurityDashboard = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
         {/* Radar Animation Section */}
-        <div className="shrink-0 h-[320px] mb-3 flex flex-col items-center justify-center relative">
-          <div className="max-w-[260px] w-full aspect-square flex items-center justify-center relative">
+        <div className="shrink-0 h-[380px] mb-3 flex flex-col items-center justify-center relative">
+          <div className="max-w-[310px] w-full aspect-square flex items-center justify-center relative">
             {/* Replicated 5-circle structure for both modes to ensure consistent size */}
             {/* 5th Circle (Outer) */}
             <div
-              className="absolute w-[254px] h-[254px] rounded-full"
+              className="absolute w-[304px] h-[304px] rounded-full"
               style={{
                 border: '1px solid transparent',
                 background: !isDarkMode
@@ -386,7 +386,7 @@ const SecurityDashboard = () => {
             />
             {/* 4th Circle */}
             <div
-              className="absolute w-[234px] h-[234px] rounded-full"
+              className="absolute w-[280px] h-[280px] rounded-full"
               style={{
                 border: '1px solid transparent',
                 background: !isDarkMode
@@ -396,7 +396,7 @@ const SecurityDashboard = () => {
             />
             {/* 3rd Circle */}
             <div
-              className="absolute w-[180px] h-[180px] rounded-full"
+              className="absolute w-[215px] h-[215px] rounded-full"
               style={{
                 border: '1px solid transparent',
                 background: !isDarkMode
@@ -406,7 +406,7 @@ const SecurityDashboard = () => {
             />
             {/* 2nd Circle */}
             <div
-              className="absolute w-[126px] h-[126px] rounded-full"
+              className="absolute w-[150px] h-[150px] rounded-full"
               style={{
                 border: '1px solid transparent',
                 background: !isDarkMode
@@ -416,7 +416,7 @@ const SecurityDashboard = () => {
             />
             {/* 1st Circle */}
             <div
-              className="absolute w-[72px] h-[72px] rounded-full"
+              className="absolute w-[86px] h-[86px] rounded-full"
               style={{
                 border: '1px solid transparent',
                 background: !isDarkMode

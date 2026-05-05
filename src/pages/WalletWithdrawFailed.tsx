@@ -68,7 +68,7 @@ const WalletWithdrawFailed = () => {
 
                 {/* Container - 25px below sub-text */}
                 <div
-                    className={`mt-[25px] w-[362px] h-[180px] rounded-[13px] relative overflow-hidden flex flex-col items-start justify-center text-left px-[22px] border ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+                    className={`mt-[25px] w-[362px] min-h-[180px] rounded-[13px] relative overflow-hidden flex flex-col items-start justify-center text-left px-[22px] border ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
                     style={{
                         backgroundColor: isDarkMode ? "rgba(255, 255, 255, 0.06)" : "transparent",
                         backdropFilter: isDarkMode ? "blur(25px)" : "none",

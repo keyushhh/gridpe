@@ -277,10 +277,10 @@ const MyCards = () => {
                                     backgroundImage: `url(${savedCardsBg})`,
                                     backgroundSize: "cover",
                                     backgroundPosition: "center",
-                                    height: "140px",
+                                    minHeight: "140px",
                                 } : {
                                     backgroundColor: "#FFFFFF",
-                                    height: "140px",
+                                    minHeight: "140px",
                                 }}
                             >
                                 <div className="flex items-center justify-between">
@@ -681,7 +681,7 @@ const MyCards = () => {
                             style={{
                                 marginTop: '24px',
                                 width: '318px',
-                                height: '73px',
+                                minHeight: '73px',
                                 borderRadius: '16px',
                             }}
                         >

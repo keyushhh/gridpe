@@ -231,7 +231,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                         className="relative mb-[13px] mx-auto overflow-hidden"
                         style={{
                             width: '362px',
-                            height: '137px',
+                            minHeight: '137px',
                             background: isDarkMode
                                 ? `linear-gradient(${(config.bgColor || config.color)}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}, ${(config.bgColor || config.color)}${Math.round(config.bgOpacity * 255).toString(16).padStart(2, '0')}) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box`
                                 : `${(config.bgColor || config.color)}36`, // ~21% opacity
@@ -320,7 +320,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
                             {isProcessing && (
                                 <div className="w-full px-0">
-                                    <div className={`relative h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
+                                    <div className={`relative min-h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
                                         <div className="p-[14px]">
                                             <div className="max-w-[170px]">
                                                 <p className={`text-[14px] font-medium font-satoshi leading-tight mb-[2px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
@@ -356,7 +356,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
 
                             {isSuccess && (
                                 <div className="w-full px-0">
-                                    <div className={`relative h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
+                                    <div className={`relative min-h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}>
                                         <div className="p-[14px]">
                                             <div className="flex gap-4 items-start">
                                                 <div className="w-[64px] h-[68px] relative shrink-0 rounded-[6px] overflow-hidden">
@@ -743,7 +743,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                             </h2>
 
                             <div
-                                className={`rounded-xl px-[12px] ${isDarkMode ? 'w-full py-[11px] bg-black' : 'w-[318px] h-[172px] mt-[24px] bg-white rounded-[16px] pt-[11px]'}`}
+                                className={`rounded-xl px-[12px] ${isDarkMode ? 'w-full py-[11px] bg-black' : 'w-[318px] min-h-[172px] mt-[24px] bg-white rounded-[16px] pt-[11px]'}`}
                             >
                                 <p className={`font-sans leading-[140%] text-left mb-[6px] ${isDarkMode ? 'text-[13px] font-normal text-white' : 'text-[13px] font-normal text-black'}`}>
                                     Our delivery partners ride through traffic, harsh weather, and long distances to bring your cash safely to your door.

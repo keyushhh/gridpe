@@ -314,7 +314,7 @@ const FxExchange = () => {
                 <div className="relative flex flex-col gap-2">
                     {/* From Card */}
                     <div
-                        className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+                        className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} rounded-[20px] p-6 border relative min-h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
                     >
                         <div className="flex justify-between items-center mb-2">
                             <span className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium`}>Convert</span>
@@ -355,7 +355,7 @@ const FxExchange = () => {
 
                     {/* To Card */}
                     <div
-                        className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+                        className={`${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} rounded-[20px] p-6 border relative min-h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
                     >
                         <div className="flex justify-between items-center mb-2">
                             <span className={`${isDarkMode ? "text-white/40" : "text-black/40"} text-[14px] font-medium`}>To</span>
@@ -382,7 +382,7 @@ const FxExchange = () => {
                 </div>
 
                 {/* Price Breakdown */}
-                <div className={`mt-[18px] ${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} border backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'h-[270px] rounded-[13px]' : 'h-[64px] rounded-[8px]'}`}>
+                <div className={`mt-[18px] ${isDarkMode ? "bg-[#191919]/[0.31] border-white/5" : "bg-white border-[#E6E8EB] shadow-sm"} border backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'min-h-[270px] rounded-[13px]' : 'min-h-[64px] rounded-[8px]'}`}>
                     {/* Header Section */}
                     <div className={`pt-[14px] px-[12px] flex justify-between items-start ${!isBreakdownOpen ? 'pb-[12px]' : ''}`}>
                         <div className="text-left">
@@ -459,7 +459,7 @@ const FxExchange = () => {
 
                 {/* Wallet Section */}
                 <div
-                    className={`${!isDarkMode ? "border border-[#E6E8EB]" : ""} mt-4 h-[101px] rounded-[20px] relative overflow-hidden`}
+                    className={`${!isDarkMode ? "border border-[#E6E8EB]" : ""} mt-4 min-h-[101px] rounded-[20px] relative overflow-hidden`}
                     style={{
                         backgroundImage: `url(${isDarkMode ? (tierBackgrounds[walletTier] || walletStarterBg) : (tierBackgroundsLight[walletTier] || walletStarterBgLight)})`,
                         backgroundSize: 'cover',

@@ -100,16 +100,16 @@ const WalletSettings = () => {
                                 {walletTier === 'Supreme' ? (
                                     <button
                                         disabled
-                                        className="mx-auto h-[48px] flex items-center justify-center rounded-full text-white text-[16px] font-medium transition-transform opacity-50 cursor-not-allowed"
-                                        style={{ background: "#6C72FF", width: "326px", maxWidth: "100%" }}
+                                        className="mx-auto min-h-[48px] flex items-center justify-center rounded-full text-white text-[16px] font-medium transition-transform opacity-50 cursor-not-allowed"
+                                        style={{ background: "#6C72FF", width: "326px", maxWidth: "100%", padding: "8px" }}
                                     >
                                         Current Plan
                                     </button>
                                 ) : (
                                     <button
                                         onClick={handleUpgrade}
-                                        className={`mx-auto h-[48px] flex items-center justify-center rounded-full text-white text-[18px] font-medium active:scale-95 transition-transform ${scheduledDowngrade ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        style={{ background: "#6C72FF", width: "326px", maxWidth: "100%" }}
+                                        className={`mx-auto min-h-[48px] flex items-center justify-center rounded-full text-white text-[18px] font-medium active:scale-95 transition-transform ${scheduledDowngrade ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        style={{ background: "#6C72FF", width: "326px", maxWidth: "100%", padding: "8px" }}
                                         disabled={!!scheduledDowngrade}
                                     >
                                         {currentTier.buttonText}
@@ -151,7 +151,7 @@ const WalletSettings = () => {
                                     key={tier.name}
                                     onClick={() => navigate(`/wallet-tier/${tier.name.toLowerCase()}`)}
                                     className="snap-center shrink-0 relative transition-transform cursor-pointer active:scale-95"
-                                    style={{ width: "205px", height: "276px" }}
+                                    style={{ width: "205px", minHeight: "276px" }}
                                 >
                                     {/* Selected / Non-selected background ONLY */}
                                     <div
@@ -167,13 +167,14 @@ const WalletSettings = () => {
                                     <div className="relative z-10 flex flex-col h-full">
                                         <div className="flex justify-between items-start">
                                             {/* Chip badge with text (top-right) */}
-                                            <div
+                                                <div
                                                 className="absolute flex items-center justify-center rounded-full text-[10px] font-medium text-white z-20"
                                                 style={{
                                                     top: "13px",
                                                     right: "13px",
                                                     width: "88px",
-                                                    height: "24px",
+                                                    minHeight: "24px",
+                                                    padding: "0 4px",
                                                     ...chipStyle,
                                                 }}
                                             >
@@ -277,7 +278,7 @@ const WalletSettings = () => {
                                 resetForDemo();
                                 navigate('/');
                             }}
-                            className={`w-full h-[48px] flex items-center justify-center rounded-full text-[14px] font-medium border active:scale-95 transition-transform ${isDarkMode
+                            className={`w-full min-h-[48px] flex items-center justify-center rounded-full text-[14px] font-medium border active:scale-95 transition-transform ${isDarkMode
                                 ? 'text-white/40 border-white/10'
                                 : 'text-black/40 border-black/10'
                                 }`}
