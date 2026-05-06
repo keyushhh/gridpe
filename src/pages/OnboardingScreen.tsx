@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/PhoneInput";
@@ -20,28 +20,110 @@ import { hashMpin } from "@/utils/cryptoUtils";
 import { supabase } from "@/lib/supabase";
 import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
 import { SecureStorage } from "@aparajita/capacitor-secure-storage";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 import { Keyboard } from '@capacitor/keyboard';
 import { Provider, User } from "@supabase/supabase-js";
+import PhoneInputSection from "@/components/onboarding/PhoneInputSection";
+import OTPInputSection from "@/components/onboarding/OTPInputSection";
+
+// --- Memoized Static Sub-components ---
+
+const LogoSection = memo(() => (
+  <div className="flex flex-col items-center px-6 pt-16 pb-20">
+    <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
+      <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
+      <p className="text-foreground text-[18px] font-normal text-center">
+        Cash access, reimagined.
+      </p>
+    </div>
+  </div>
+));
+
+interface SocialLoginProps {
+  onLogin: (provider: string) => void;
+  isLoading: boolean;
+  icons: { google: string; apple: string; x: string };
+}
+
+const SocialLoginSection = memo(({ onLogin, isLoading, icons }: SocialLoginProps) => (
+  <>
+    <div className="flex items-center gap-4 animate-fade-in py-2" style={{ animationDelay: "0.5s" }}>
+      <span className="text-muted-foreground text-sm w-full text-center">or</span>
+    </div>
+
+    <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+      <button
+        onClick={() => onLogin('google')}
+        className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
+        disabled={isLoading}
+      >
+        <img src={icons.google} alt="Google" className="w-full h-full" />
+      </button>
+      <div className="w-[52px] h-[52px] opacity-80">
+        <img src={icons.apple} alt="" className="w-full h-full" />
+      </div>
+      <div className="w-[52px] h-[52px] opacity-80">
+        <img src={icons.x} alt="" className="w-full h-full" />
+      </div>
+    </div>
+  </>
+));
+
+interface LegalFooterProps {
+  onNavigate: (path: string) => void;
+}
+
+const LegalFooter = memo(({ onNavigate }: LegalFooterProps) => (
+  <>
+    <div style={{ flex: 1 }} />
+    <div className="text-center px-6 safe-bottom">
+      <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px]">
+        By continuing, you agree to Grid.Pe's<br />
+        <button onClick={() => onNavigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
+        and{" "}
+        <button onClick={() => onNavigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
+      </p>
+    </div>
+  </>
+));
+
+// --- Main Component ---
 
 const OnboardingScreen = () => {
 
   const navigate = useNavigate();
   const { setPhoneNumber: savePhoneNumber, setBiometricEnabled: saveBiometricEnabled, setProfile, profile, resetForDemo } = useUser();
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState("");
+  const phoneNumberRef = useRef("");
+  const otpRef = useRef("");
 
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [showMpinSetup, setShowMpinSetup] = useState(false);
-  const [showMpinLogin, setShowMpinLogin] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [uiState, setUiState] = useState({
+    step: 'phone' as 'phone' | 'otp' | 'mpin-setup' | 'mpin-login',
+    isLoading: false,
+    isAuthChecking: true,
+    isKeyboardOpen: false,
+    resendTimer: 0
+  });
 
+  const [errorState, setErrorState] = useState({
+    phone: "",
+    otp: "",
+    mpin: "",
+    general: ""
+  });
 
-  // Validation State
-  const [phoneError, setPhoneError] = useState("");
-  const [otpError, setOtpError] = useState("");
-  const [resendTimer, setResendTimer] = useState(0);
+  const [mpinState, setMpinState] = useState({
+    value: "",
+    confirmValue: "",
+    isSuccess: false,
+    maskedIndices: new Set<number>(),
+    confirmMaskedIndices: new Set<number>()
+  });
+
+  const [biometricState, setBiometricState] = useState({
+    isEnabled: false,
+    failCount: 0,
+    isPrompting: false
+  });
 
   const mainBg = useAsset("main-bg");
   const iconGoogle = useAsset("icon-google");
@@ -51,22 +133,10 @@ const OnboardingScreen = () => {
   const buttonBiometricBg = useAsset("button-biometric-bg");
   const mpinInputSuccessAsset = useAsset("mpin-input-success");
 
-  // MPIN State
-  const [mpin, setMpin] = useState("");
-  const [confirmMpin, setConfirmMpin] = useState("");
-  const [mpinError, setMpinError] = useState("");
-  const [mpinSuccess, setMpinSuccess] = useState(false);
-  const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const [biometricFailCount, setBiometricFailCount] = useState(0);
-  const [isBiometricPrompting, setIsBiometricPrompting] = useState(false);
-  const [generalError, setGeneralError] = useState("");
-
   // MPIN Masking State (mpin)
-  const [maskedIndices, setMaskedIndices] = useState<Set<number>>(new Set());
   const maskingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // MPIN Masking State (confirmMpin)
-  const [confirmMaskedIndices, setConfirmMaskedIndices] = useState<Set<number>>(new Set());
   const confirmMaskingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Clean up timers on unmount
@@ -79,25 +149,47 @@ const OnboardingScreen = () => {
 
   // Reset mpin masking on reset
   useEffect(() => {
-    if (mpin === "") {
-      setMaskedIndices(new Set());
+    if (mpinState.value === "") {
+      setMpinState(prev => ({ ...prev, maskedIndices: new Set() }));
       if (maskingTimerRef.current) {
         clearTimeout(maskingTimerRef.current);
         maskingTimerRef.current = null;
       }
     }
-  }, [mpin]);
+  }, [mpinState.value]);
 
   // Reset confirmMpin masking on reset
   useEffect(() => {
-    if (confirmMpin === "") {
-      setConfirmMaskedIndices(new Set());
+    if (mpinState.confirmValue === "") {
+      setMpinState(prev => ({ ...prev, confirmMaskedIndices: new Set() }));
       if (confirmMaskingTimerRef.current) {
         clearTimeout(confirmMaskingTimerRef.current);
         confirmMaskingTimerRef.current = null;
       }
     }
-  }, [confirmMpin]);
+  }, [mpinState.confirmValue]);
+
+  // Keyboard Awareness
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const handles: PluginListenerHandle[] = [];
+
+    const setup = async () => {
+      handles.push(await Keyboard.addListener('keyboardWillShow', () => {
+        setUiState(prev => ({ ...prev, isKeyboardOpen: true }));
+      }));
+      handles.push(await Keyboard.addListener('keyboardWillHide', () => {
+        setUiState(prev => ({ ...prev, isKeyboardOpen: false }));
+      }));
+    };
+
+    setup();
+
+    return () => {
+      handles.forEach(h => h.remove());
+    };
+  }, []);
 
   // Capture Referral Code
   useEffect(() => {
@@ -115,13 +207,13 @@ const OnboardingScreen = () => {
 
   // Resend timer countdown
   useEffect(() => {
-    if (resendTimer > 0) {
+    if (uiState.resendTimer > 0) {
       const interval = setInterval(() => {
-        setResendTimer(prev => prev - 1);
+        setUiState(prev => ({ ...prev, resendTimer: prev.resendTimer - 1 }));
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [resendTimer]);
+  }, [uiState.resendTimer]);
 
   // Check for existing session (e.g. returning from Google OAuth)
   useEffect(() => {
@@ -134,11 +226,11 @@ const OnboardingScreen = () => {
           await handleSession(session.user, false);
         } else {
           // If no session, we can stop checking
-          setIsAuthChecking(false);
+          setUiState(prev => ({ ...prev, isAuthChecking: false }));
         }
       } catch (e) {
         console.error("Session check failed", e);
-        setIsAuthChecking(false);
+        setUiState(prev => ({ ...prev, isAuthChecking: false }));
       }
     };
     checkSession();
@@ -151,7 +243,7 @@ const OnboardingScreen = () => {
         // Explicit Login: treat as Login (isExplicitLogin = true)
         handleSession(session.user, true);
       } else if (event === 'SIGNED_OUT') {
-        setIsAuthChecking(false);
+        setUiState(prev => ({ ...prev, isAuthChecking: false }));
       }
     });
 
@@ -161,44 +253,45 @@ const OnboardingScreen = () => {
 
   useEffect(() => {
     // Reset success/error on change
-    setMpinSuccess(false);
+    setMpinState(prev => ({ ...prev, isSuccess: false }));
 
     // Predictable check
-    if (mpin.length === 4) {
-      const check = isWeakMpin(mpin);
+    if (mpinState.value.length === 4) {
+      const check = isWeakMpin(mpinState.value);
       if (check.weak) {
-        setMpinError("Let's stop you right there, try something less predictable?");
+        setErrorState(prev => ({ ...prev, mpin: "Let's stop you right there, try something less predictable?" }));
         return;
       }
     }
 
-    if (confirmMpin.length === 4 && mpin.length === 4) {
+    if (mpinState.confirmValue.length === 4 && mpinState.value.length === 4) {
       // Developer Bypass
-      if (confirmMpin === '8787' || confirmMpin === '9999') {
-        setMpinError("");
-        setMpinSuccess(true);
+      if (mpinState.confirmValue === '8787' || mpinState.confirmValue === '9999') {
+        setErrorState(prev => ({ ...prev, mpin: "" }));
+        setMpinState(prev => ({ ...prev, isSuccess: true }));
         return;
       }
 
-      if (mpin !== confirmMpin) {
-        setMpinError("Bro... seriously? That's not even close.");
+      if (mpinState.value !== mpinState.confirmValue) {
+        setErrorState(prev => ({ ...prev, mpin: "Bro... seriously? That's not even close." }));
       } else {
-        setMpinError("");
-        setMpinSuccess(true);
+        setErrorState(prev => ({ ...prev, mpin: "" }));
+        setMpinState(prev => ({ ...prev, isSuccess: true }));
       }
     } else {
-      if (!isWeakMpin(mpin).weak) setMpinError("");
+      if (!isWeakMpin(mpinState.value).weak) setErrorState(prev => ({ ...prev, mpin: "" }));
     }
-  }, [mpin, confirmMpin]);
+  }, [mpinState.value, mpinState.confirmValue]);
 
-  const handleRequestOTP = async () => {
-    if (isLoading) return;
-    setPhoneError("");
+  const handleRequestOTP = useCallback(async () => {
+    if (uiState.isLoading) return;
+    setErrorState(prev => ({ ...prev, phone: "" }));
+    const phoneNumber = phoneNumberRef.current;
     if (phoneNumber.length < 10) {
-      setPhoneError("Don't ghost us, drop your number.");
+      setErrorState(prev => ({ ...prev, phone: "Don't ghost us, drop your number." }));
       return;
     }
-    setIsLoading(true);
+    setUiState(prev => ({ ...prev, isLoading: true }));
 
     try {
       // Format to strict E.164 (+91XXXXXXXXXX)
@@ -214,36 +307,48 @@ const OnboardingScreen = () => {
       console.log("OTP REQUEST COMPLETE - error:", JSON.stringify(error));
 
       if (error) {
-        setPhoneError(error.message);
-        setIsLoading(false);
+        setErrorState(prev => ({ ...prev, phone: error.message }));
+        setUiState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
-      setIsLoading(false);
-      setShowOtpInput(true);
-      setResendTimer(20);
+      setUiState(prev => ({ ...prev, isLoading: false, step: 'otp', resendTimer: 20 }));
     } catch (err) {
       console.error(err);
-      setPhoneError("Something went wrong. Please try again.");
-      setIsLoading(false);
+      setErrorState(prev => ({ ...prev, phone: "Something went wrong. Please try again." }));
+      setUiState(prev => ({ ...prev, isLoading: false }));
     }
-  };
+  }, [uiState.isLoading]);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
       resetForDemo(); // Reset Context state
       localStorage.clear(); // Clear all local storage to be safe
       sessionStorage.clear();
       
-      setPhoneNumber("");
-      setOtp("");
-      setMpin("");
-      setConfirmMpin("");
-      setShowMpinSetup(false);
-      setShowOtpInput(false);
-      setShowMpinLogin(false);
-      setGeneralError("");
+      phoneNumberRef.current = "";
+      otpRef.current = "";
+      setMpinState({
+        value: "",
+        confirmValue: "",
+        isSuccess: false,
+        maskedIndices: new Set(),
+        confirmMaskedIndices: new Set()
+      });
+      setUiState({
+        step: 'phone',
+        isLoading: false,
+        isAuthChecking: false,
+        isKeyboardOpen: false,
+        resendTimer: 0
+      });
+      setErrorState({
+        phone: "",
+        otp: "",
+        mpin: "",
+        general: ""
+      });
 
       // Force a full WebView reload that wipes the entire back stack.
       window.location.href = window.location.origin + window.location.pathname;
@@ -251,17 +356,12 @@ const OnboardingScreen = () => {
       console.error("Logout failed:", error);
       window.location.href = "/";
     }
-  };
+  }, [resetForDemo]);
 
-  const handleSession = async (user: User, isExplicitLogin: boolean) => {
-
-    if (!user) {
-      setIsAuthChecking(false);
-      return;
-    }
-
-    let profileData = null;
-    let profileError = null;
+  const handleSession = useCallback(async (user: User, isExplicitLogin: boolean) => {
+    // 1. Fetch Profile Status
+    let profileData: Profile | null = null;
+    let profileError: any = null;
 
     try {
       const { data, error } = await supabase
@@ -344,38 +444,35 @@ const OnboardingScreen = () => {
       // Login Mode
       if (isMpinSet) {
         // Existing User -> Enter MPIN
-        setShowMpinLogin(true);
-        setIsAuthChecking(false);
+        setUiState(prev => ({ ...prev, step: 'mpin-login', isAuthChecking: false }));
       } else {
         // New User (or incomplete) -> Create MPIN
-        setShowOtpInput(false);
-        setShowMpinSetup(true);
-        setIsAuthChecking(false);
+        setUiState(prev => ({ ...prev, step: 'mpin-setup', isAuthChecking: false }));
       }
     } else {
       // Restore Mode (App Launch)
       if (isMpinSet) {
         // Valid Session -> Enter MPIN
-        setShowMpinLogin(true);
-        setIsAuthChecking(false);
+        setUiState(prev => ({ ...prev, step: 'mpin-login', isAuthChecking: false }));
       } else {
         // User is logged in but has no MPIN. 
         // This happens after a fresh Social Login redirect.
         // Don't sign out! Just show the MPIN setup.
-        setShowOtpInput(false);
-        setShowMpinSetup(true);
-        setIsAuthChecking(false);
+        setUiState(prev => ({ ...prev, step: 'mpin-setup', isAuthChecking: false }));
       }
     }
-  };
+  }, [setProfile, savePhoneNumber]);
 
-  const handleVerifyOTP = async () => {
-    if (isLoading) return;
-    setOtpError("");
+  const handleVerifyOTP = useCallback(async () => {
+    if (uiState.isLoading) return;
+    setErrorState(prev => ({ ...prev, otp: "" }));
 
-    setIsLoading(true);
+    setUiState(prev => ({ ...prev, isLoading: true }));
 
     try {
+      const phoneNumber = phoneNumberRef.current;
+      const otp = otpRef.current;
+
       // Format to strict E.164 (+91XXXXXXXXXX)
       const digitsOnly = phoneNumber.replace(/\D/g, '');
       const cleanNumber = digitsOnly.slice(-10); // Take last 10 digits
@@ -389,28 +486,28 @@ const OnboardingScreen = () => {
       });
 
       if (error) {
-        setOtpError(error.message || "That code's off target. Double-check your SMS.");
-        setIsLoading(false);
+        setErrorState(prev => ({ ...prev, otp: error.message || "That code's off target. Double-check your SMS." }));
+        setUiState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       if (data.session) {
         await handleSession(data.user, true);
       } else {
-        setOtpError("Session validation failed. Please try again.");
+        setErrorState(prev => ({ ...prev, otp: "Session validation failed. Please try again." }));
       }
     } catch (err: unknown) {
       console.error(err);
       const errorMessage = err instanceof Error ? err.message : "Something went wrong.";
-      setOtpError(`${errorMessage} Please try again.`);
+      setErrorState(prev => ({ ...prev, otp: `${errorMessage} Please try again.` }));
     } finally {
-      setIsLoading(false);
+      setUiState(prev => ({ ...prev, isLoading: false }));
     }
-  };
+  }, [uiState.isLoading, handleSession]);
 
   const handleMpinChange = (val: string) => {
     const numericOnly = val.replace(/\D/g, '').slice(0, 4);
-    setMpin(numericOnly);
+    setMpinState(prev => ({ ...prev, value: numericOnly }));
 
     // Debounce: Clear previous timer
     if (maskingTimerRef.current) clearTimeout(maskingTimerRef.current);
@@ -419,19 +516,19 @@ const OnboardingScreen = () => {
       dismissKeyboard();
       // Only trigger masking when full length is reached
       maskingTimerRef.current = setTimeout(() => {
-        setMaskedIndices(new Set([0, 1, 2, 3]));
+        setMpinState(prev => ({ ...prev, maskedIndices: new Set([0, 1, 2, 3]) }));
       }, 1000);
     } else {
       // Keep visible while typing
-      setMaskedIndices(new Set());
+      setMpinState(prev => ({ ...prev, maskedIndices: new Set() }));
     }
 
-    if (generalError) setGeneralError("");
+    if (errorState.general) setErrorState(prev => ({ ...prev, general: "" }));
   };
 
   const handleConfirmMpinChange = (val: string) => {
     const numericOnly = val.replace(/\D/g, '').slice(0, 4);
-    setConfirmMpin(numericOnly);
+    setMpinState(prev => ({ ...prev, confirmValue: numericOnly }));
 
     // Debounce: Clear previous timer
     if (confirmMaskingTimerRef.current) clearTimeout(confirmMaskingTimerRef.current);
@@ -440,35 +537,35 @@ const OnboardingScreen = () => {
       dismissKeyboard();
       // Only trigger masking when full length is reached
       confirmMaskingTimerRef.current = setTimeout(() => {
-        setConfirmMaskedIndices(new Set([0, 1, 2, 3]));
+        setMpinState(prev => ({ ...prev, confirmMaskedIndices: new Set([0, 1, 2, 3]) }));
       }, 1000);
     } else {
       // Keep visible while typing
-      setConfirmMaskedIndices(new Set());
+      setMpinState(prev => ({ ...prev, confirmMaskedIndices: new Set() }));
     }
 
-    if (generalError) setGeneralError("");
+    if (errorState.general) setErrorState(prev => ({ ...prev, general: "" }));
   };
 
   const handleSetupMpin = async () => {
     // Final validation before submit
-    if (mpinError || !mpinSuccess) return;
+    if (errorState.mpin || !mpinState.isSuccess) return;
 
-    setIsLoading(true);
-    setGeneralError("");
+    setUiState(prev => ({ ...prev, isLoading: true }));
+    setErrorState(prev => ({ ...prev, general: "" }));
 
     try {
       // Update profile on server
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        setGeneralError("Session expired. Please try logging in again.");
-        setIsLoading(false);
+        setErrorState(prev => ({ ...prev, general: "Session expired. Please try logging in again." }));
+        setUiState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       // Hash the MPIN
-      const hashedMpin = await hashMpin(mpin);
+      const hashedMpin = await hashMpin(mpinState.value);
 
       const { data: updatedProfile, error } = await supabase
         .from('profiles')
@@ -483,32 +580,32 @@ const OnboardingScreen = () => {
 
       if (error) {
         console.error("Failed to update MPIN status:", error);
-        setGeneralError("Failed to save MPIN. Please try again.");
-        setIsLoading(false);
+        setErrorState(prev => ({ ...prev, general: "Failed to save MPIN. Please try again." }));
+        setUiState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       setProfile(updatedProfile);
 
       // Save biometric preference and secure MPIN if enabled
-      if (biometricEnabled) {
-        await SecureStorage.set('mpin', mpin);
+      if (biometricState.isEnabled) {
+        await SecureStorage.set('mpin', mpinState.value);
         localStorage.setItem('biometrics_enabled', 'true');
       }
-      saveBiometricEnabled(biometricEnabled);
+      saveBiometricEnabled(biometricState.isEnabled);
 
       navigate("/home", { replace: true });
     } catch (err: unknown) {
       console.error("Unexpected error in MPIN setup:", err);
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setGeneralError(`${errorMessage} Please try again.`);
-      setIsLoading(false);
+      setErrorState(prev => ({ ...prev, general: `${errorMessage} Please try again.` }));
+      setUiState(prev => ({ ...prev, isLoading: false }));
     }
   };
   const handleLoginMpinVerification = async (mpinOverride?: string) => {
-    const pinToVerify = mpinOverride || mpin;
+    const pinToVerify = mpinOverride || mpinState.value;
     if (pinToVerify.length < 4) return;
-    setGeneralError("");
+    setErrorState(prev => ({ ...prev, general: "" }));
 
     // Developer Bypass for Live Mode debugging
     if (pinToVerify === '8787' || pinToVerify === '9999') {
@@ -516,13 +613,13 @@ const OnboardingScreen = () => {
       return;
     }
 
-    setIsLoading(true);
+    setUiState(prev => ({ ...prev, isLoading: true }));
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        setGeneralError("Session expired.");
-        setIsLoading(false);
+        setErrorState(prev => ({ ...prev, general: "Session expired." }));
+        setUiState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
@@ -539,37 +636,37 @@ const OnboardingScreen = () => {
       }
 
       if (!targetHash) {
-        setGeneralError("MPIN not set for this account.");
-        setIsLoading(false);
+        setErrorState(prev => ({ ...prev, general: "MPIN not set for this account." }));
+        setUiState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       const hashedInput = await hashMpin(pinToVerify);
 
       if (hashedInput === targetHash) {
-        setMpinSuccess(true);
+        setMpinState(prev => ({ ...prev, isSuccess: true }));
         setTimeout(() => navigate("/home", { replace: true }), 500);
       } else {
-        setMpinError("Wrong MPIN. Try again?");
-        setMpin("");
-        setIsLoading(false);
+        setErrorState(prev => ({ ...prev, mpin: "Wrong MPIN. Try again?" }));
+        setMpinState(prev => ({ ...prev, value: "" }));
+        setUiState(prev => ({ ...prev, isLoading: false }));
       }
     } catch (err: unknown) {
       console.error("Login verification error:", err);
       const errorMessage = err instanceof Error ? err.message : "Verification failed.";
-      setGeneralError(`${errorMessage} Check connection.`);
-      setIsLoading(false);
+      setErrorState(prev => ({ ...prev, general: `${errorMessage} Check connection.` }));
+      setUiState(prev => ({ ...prev, isLoading: false }));
     }
   };
 
   const handleBiometricLogin = async () => {
-    if (isBiometricPrompting || biometricFailCount >= 3) return;
+    if (biometricState.isPrompting || biometricState.failCount >= 3) return;
 
     // Device-level gate: only prompt if biometrics was enabled on THIS device
     const isDeviceEnabled = localStorage.getItem('biometrics_enabled') === 'true';
     if (!isDeviceEnabled) return;
 
-    setIsBiometricPrompting(true);
+    setBiometricState(prev => ({ ...prev, isPrompting: true }));
     try {
       await BiometricAuth.authenticate({
         reason: "Log in to Grid.Pe",
@@ -582,26 +679,26 @@ const OnboardingScreen = () => {
         await handleLoginMpinVerification(storedMpin);
       } else {
         console.warn("Biometric success but no MPIN in secure storage");
-        setBiometricFailCount(prev => prev + 1);
+        setBiometricState(prev => ({ ...prev, failCount: prev.failCount + 1 }));
       }
     } catch (error) {
       console.error("Biometric login failed:", error);
-      setBiometricFailCount(prev => prev + 1);
+      setBiometricState(prev => ({ ...prev, failCount: prev.failCount + 1 }));
     } finally {
-      setIsBiometricPrompting(false);
+      setBiometricState(prev => ({ ...prev, isPrompting: false }));
     }
   };
 
   // Trigger biometric login automatically when screen appears
   useEffect(() => {
     const isDeviceEnabled = localStorage.getItem('biometrics_enabled') === 'true';
-    if (showMpinLogin && isDeviceEnabled && biometricFailCount < 3) {
+    if (uiState.step === 'mpin-login' && isDeviceEnabled && biometricState.failCount < 3) {
       handleBiometricLogin();
     }
-  }, [showMpinLogin]);
+  }, [uiState.step]);
 
-  const handleSocialLogin = async (providerName: string) => {
-    setIsLoading(true);
+  const handleSocialLogin = useCallback(async (providerName: string) => {
+    setUiState(prev => ({ ...prev, isLoading: true }));
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: providerName as Provider,
@@ -619,11 +716,11 @@ const OnboardingScreen = () => {
       if (error) throw error;
     } catch (err) {
       console.error(`${providerName} login error:`, err);
-      setGeneralError(`Failed to sign in with ${providerName}.`);
+      setErrorState(prev => ({ ...prev, general: `Failed to sign in with ${providerName}.` }));
     } finally {
-      setIsLoading(false);
+      setUiState(prev => ({ ...prev, isLoading: false }));
     }
-  };
+  }, []);
 
 
   const dismissKeyboard = () => {
@@ -635,70 +732,36 @@ const OnboardingScreen = () => {
     }
   };
 
-  // Memoized so PhoneInput doesn't re-create the callback on every parent
-  // re-render — Android WebView keystroke jank traces back to this.
   const handlePhoneChange = useCallback((val: string) => {
-    const numericOnly = val.replace(/\D/g, '').slice(0, 10);
-    setPhoneNumber(numericOnly);
-    if (numericOnly.length === 10) {
-      dismissKeyboard();
-    }
-    setPhoneError((prev) => (prev ? "" : prev));
+    phoneNumberRef.current = val;
+    setErrorState(prev => prev.phone ? ({ ...prev, phone: "" }) : prev);
   }, []);
 
-  const phoneInputRef = useRef<HTMLInputElement>(null);
-  const otpInputRef = useRef<HTMLDivElement>(null);
-  const otpFocusRef = useRef<HTMLDivElement>(null);
   const mpinFocusRef = useRef<HTMLDivElement>(null);
-
-  // Delayed focus for phone input — iOS needs 100ms for viewport handshake, Android needs 500ms to avoid layout jitter
-  useEffect(() => {
-    if (!showOtpInput && !showMpinSetup && !showMpinLogin && !isAuthChecking) {
-      const delay = Capacitor.getPlatform() === 'ios' ? 100 : 500;
-      const timer = setTimeout(() => {
-        phoneInputRef.current?.focus();
-      }, delay);
-      return () => clearTimeout(timer);
-    }
-  }, [showOtpInput, showMpinSetup, showMpinLogin, isAuthChecking]);
-
-  // Delayed focus for OTP input
-  useEffect(() => {
-    if (showOtpInput && !showMpinSetup && !showMpinLogin) {
-      const timer = setTimeout(() => {
-        otpFocusRef.current?.querySelector('input')?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [showOtpInput, showMpinSetup, showMpinLogin]);
 
   // Delayed focus for MPIN input (both login and setup)
   useEffect(() => {
-    if (showMpinSetup || showMpinLogin) {
+    if (uiState.step === 'mpin-setup' || uiState.step === 'mpin-login') {
       const timer = setTimeout(() => {
         mpinFocusRef.current?.querySelector('input')?.focus();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [showMpinSetup, showMpinLogin]);
+  }, [uiState.step]);
 
 
 
   const handleOtpChange = useCallback((val: string) => {
-    const numericOnly = val.replace(/\D/g, '').slice(0, 6);
-    setOtp(numericOnly);
-    if (numericOnly.length === 6) {
-      dismissKeyboard();
-    }
-    setOtpError((prev) => (prev ? "" : prev));
+    otpRef.current = val;
+    setErrorState(prev => prev.otp ? ({ ...prev, otp: "" }) : prev);
   }, []);
 
   // Determine which error type for styling
-  const isPredictableError = mpinError.includes("predictable");
-  const isMismatchError = mpinError.includes("close");
+  const isPredictableError = errorState.mpin.includes("predictable");
+  const isMismatchError = errorState.mpin.includes("close");
 
 
-  if (isAuthChecking) {
+  if (uiState.isAuthChecking) {
     return (
       <div className="h-full w-full flex items-center justify-center safe-top"
         style={{
@@ -718,10 +781,10 @@ const OnboardingScreen = () => {
 
   return (
     <div
-      className="fixed inset-0 h-full w-full onboarding-container overflow-y-auto overscroll-y-none flex flex-col safe-top"
+      className={`fixed inset-0 h-full w-full onboarding-container overflow-y-auto overscroll-y-none flex flex-col safe-top ${uiState.isKeyboardOpen ? 'keyboard-open' : ''}`}
       style={{
         backgroundColor: '#0a0a12',
-        backgroundImage: `url(${mainBg})`,
+        backgroundImage: uiState.isKeyboardOpen ? 'none' : `url(${mainBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat'
@@ -735,197 +798,50 @@ const OnboardingScreen = () => {
         }}
       >
         {/* Logo Section - only show for phone/OTP screens */}
-        {!showMpinSetup && !showMpinLogin && (
-          <div className="flex flex-col items-center px-6 pt-16 pb-20">
-            <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: "0.1s" }}>
-              <img src={logo} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
-              <p className="text-foreground text-[18px] font-normal text-center">
-                Cash access, reimagined.
-              </p>
-            </div>
-          </div>
-        )}
+        {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && <LogoSection />}
 
         {/* Form Section */}
-        <div className={`px-6 safe-bottom pb-4 space-y-6 flex-1 flex flex-col ${(showMpinSetup || showMpinLogin) ? 'pt-4' : ''}`}>
+        <div className={`px-6 safe-bottom pb-4 space-y-6 flex-1 flex flex-col ${(uiState.step === 'mpin-setup' || uiState.step === 'mpin-login') ? 'pt-4' : ''}`}>
           {/* Phone Input Screen */}
-          {!showOtpInput && !showMpinSetup && !showMpinLogin && (
+          {uiState.step === 'phone' && (
             <>
-              <div className="text-center space-y-2 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-                <h2 className="text-[26px] font-medium text-foreground">Let's get started!</h2>
-                <p className="text-muted-foreground text-[14px] font-normal">
-                  We'll send a one-time code for instant access.
-                </p>
-              </div>
+              <PhoneInputSection
+                initialValue={phoneNumberRef.current}
+                isLoading={uiState.isLoading}
+                onPhoneChange={handlePhoneChange}
+                onRequestOTP={handleRequestOTP}
+                error={errorState.phone}
+              />
 
-              <div 
-                className="animate-fade-in space-y-2" 
-                style={{ animationDelay: "0.3s" }}
-                onPointerDown={() => phoneInputRef.current?.focus()}
-                onTouchStart={() => phoneInputRef.current?.focus()}
-              >
-                <PhoneInput
-                  ref={phoneInputRef}
-                  value={phoneNumber}
-                  onChange={handlePhoneChange}
-                  countryCode="+91"
-                  placeholder="Enter your mobile number"
-                  error={!!phoneError}
-                />
-                {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
-              </div>
-
-              <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
-                <Button
-                  variant="gradient"
-                  className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans"
-                  onClick={handleRequestOTP}
-                  disabled={isLoading || phoneNumber.length === 0}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Sending...
-                    </span>
-                  ) : "Request OTP"}
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-4 animate-fade-in py-2" style={{ animationDelay: "0.5s" }}>
-                <span className="text-muted-foreground text-sm w-full text-center">or</span>
-              </div>
-
-              <div className="flex justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-                <button
-                  onClick={() => handleSocialLogin('google')}
-                  className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
-                  disabled={isLoading}
-                >
-                  <img src={iconGoogle} alt="Google" className="w-full h-full" />
-                </button>
-                <div className="w-[52px] h-[52px] opacity-80">
-                  <img src={iconApple} alt="" className="w-full h-full" />
-                </div>
-                <div className="w-[52px] h-[52px] opacity-80">
-                  <img src={iconX} alt="" className="w-full h-full" />
-                </div>
-              </div>
-
-
-              {/* Legal text removed from here, moved to footer */}
+              <SocialLoginSection
+                onLogin={handleSocialLogin}
+                isLoading={uiState.isLoading}
+                icons={{ google: iconGoogle, apple: iconApple, x: iconX }}
+              />
             </>
           )}
 
           {/* OTP Input Screen */}
-          {showOtpInput && !showMpinSetup && !showMpinLogin && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="text-center space-y-2">
-                <h2 className="text-[26px] font-medium text-foreground">Enter your OTP</h2>
-                <p className="text-muted-foreground text-[14px] font-normal">
-                  Code sent to <span className="text-link">+91 {phoneNumber}</span>
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center gap-2 py-4" ref={otpInputRef}>
-                <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} inputMode="numeric" pattern="[0-9]*" type="tel" ref={otpFocusRef as any}>
-                  <InputOTPGroup className="gap-[8px]">
-                    {[0, 1, 2, 3, 4, 5].map(index => (
-                      <InputOTPSlot
-                        key={index}
-                        index={index}
-                        className={`h-[48px] w-[48px] rounded-[7px] text-2xl font-semibold transition-all bg-cover bg-center
-                        text-black dark:text-white
-                        ${otpError
-                            ? 'border border-red-500 ring-1 ring-red-500'
-                            : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
-                          }`}
-                        style={{
-                          backgroundImage: otpInputBg ? `url(${otpInputBg})` : 'none',
-                          backgroundColor: otpInputBg ? 'transparent' : undefined // Fallback handled by class
-                        }}
-                      />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
-                {otpError && (
-                  <p className="text-red-500 text-[14px] font-normal self-start pl-2 w-full max-w-[360px] mx-auto text-left">
-                    {otpError}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex justify-between items-center text-sm px-1">
-                <button
-                  onClick={() => {
-                    setShowOtpInput(false);
-                    setOtp("");
-                    setOtpError("");
-                  }}
-                  className="text-link hover:underline"
-                >
-                  Wrong number? Fix it here.
-                </button>
-                <button
-                  onClick={() => {
-                    if (resendTimer === 0) {
-                      setOtp(""); // Clear previous OTP
-                      handleRequestOTP();
-                    }
-                  }}
-                  disabled={resendTimer > 0}
-                  className={`${resendTimer > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-link hover:underline'}`}
-                >
-                  {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
-                </button>
-              </div>
-
-              <Button
-                variant="gradient"
-                className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
-                onClick={handleVerifyOTP}
-                disabled={isLoading || otp.length < 6}
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Verifying...
-                  </span>
-                ) : "Continue"}
-              </Button>
-
-              <div className="flex items-center gap-4 py-2">
-                <span className="text-muted-foreground text-sm w-full text-center">or</span>
-              </div>
-
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => handleSocialLogin('google')}
-                  className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
-                  disabled={isLoading}
-                >
-                  <img src={iconGoogle} alt="Google" className="w-full h-full" />
-                </button>
-                <div className="w-[52px] h-[52px] opacity-80">
-                  <img src={iconApple} alt="" className="w-full h-full" />
-                </div>
-                <div className="w-[52px] h-[52px] opacity-80">
-                  <img src={iconX} alt="" className="w-full h-full" />
-                </div>
-              </div>
-
-
-              {/* Legal text removed from here, moved to footer */}
-            </div>
+          {uiState.step === 'otp' && (
+            <OTPInputSection
+              phoneNumber={phoneNumberRef.current}
+              isLoading={uiState.isLoading}
+              resendTimer={uiState.resendTimer}
+              onOtpChange={handleOtpChange}
+              onVerifyOTP={handleVerifyOTP}
+              onResendOTP={handleRequestOTP}
+              onWrongNumber={() => {
+                setUiState(prev => ({ ...prev, step: 'phone' }));
+                otpRef.current = "";
+                setErrorState(prev => ({ ...prev, otp: "" }));
+              }}
+              otpInputBg={otpInputBg}
+              error={errorState.otp}
+            />
           )}
 
           {/* MPIN Login Screen */}
-          {showMpinLogin && (
+          {uiState.step === 'mpin-login' && (
             <div className="space-y-6 animate-fade-in flex-1 flex flex-col pt-4">
               {/* Header */}
               <div className="space-y-2">
@@ -942,7 +858,7 @@ const OnboardingScreen = () => {
               <div className="space-y-3">
                 <InputOTP
                   maxLength={4}
-                  value={mpin}
+                  value={mpinState.value}
                   onChange={handleMpinChange}
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -961,7 +877,7 @@ const OnboardingScreen = () => {
                         render={({ char, isActive }) => (
                           <div className="flex items-center justify-center w-full h-full">
                             {char
-                              ? (maskedIndices.has(index) ? '•' : char)
+                              ? (mpinState.maskedIndices.has(index) ? '•' : char)
                               : null
                             }
                             {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
@@ -974,9 +890,9 @@ const OnboardingScreen = () => {
               </div>
 
               {/* General Error Message */}
-              {generalError && (
+              {errorState.general && (
                 <p className="text-red-500 text-[14px] font-normal text-center pb-2">
-                  {generalError}
+                  {errorState.general}
                 </p>
               )}
 
@@ -988,9 +904,9 @@ const OnboardingScreen = () => {
                 variant="gradient"
                 className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
                 onClick={() => handleLoginMpinVerification()}
-                disabled={isLoading || mpin.length < 4}
+                disabled={uiState.isLoading || mpinState.value.length < 4}
               >
-                {isLoading ? (
+                {uiState.isLoading ? (
                   <span className="flex items-center gap-2">
                     <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -1019,7 +935,7 @@ const OnboardingScreen = () => {
           )}
 
           {/* Debug Info (Dev Only) */}
-          {import.meta.env.DEV && !showMpinSetup && !showOtpInput && !showMpinLogin && (
+          {import.meta.env.DEV && uiState.step === 'phone' && (
             <div className="px-6 pb-2 text-xs text-muted-foreground break-all opacity-50">
               <p>Project: {import.meta.env.VITE_SUPABASE_URL}</p>
               <p>Platform: {Capacitor.getPlatform()}</p>
@@ -1027,7 +943,7 @@ const OnboardingScreen = () => {
           )}
 
           {/* MPIN Setup Screen */}
-          {showMpinSetup && (
+          {uiState.step === 'mpin-setup' && (
             <div className="space-y-6 animate-fade-in flex-1 flex flex-col">
               {/* Header */}
               <div className="space-y-2">
@@ -1045,7 +961,7 @@ const OnboardingScreen = () => {
                 <p className="text-black dark:text-foreground text-[14px] font-normal">Create a secure 4 digit MPIN</p>
                 <InputOTP
                   maxLength={4}
-                  value={mpin}
+                  value={mpinState.value}
                   onChange={handleMpinChange}
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -1060,17 +976,17 @@ const OnboardingScreen = () => {
                         className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
                         text-black dark:text-white 
                         ${isPredictableError ? 'border border-red-500 ring-1 ring-red-500' :
-                            mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
+                            mpinState.isSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
                               'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
                           }`}
                         style={{
                           backgroundImage: isPredictableError ? `url(${mpinInputError})` :
-                            mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
+                            mpinState.isSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
                         }}
                         render={({ char, isActive }) => (
                           <div className="flex items-center justify-center w-full h-full">
                             {char
-                              ? (maskedIndices.has(index) ? '•' : char)
+                              ? (mpinState.maskedIndices.has(index) ? '•' : char)
                               : null
                             }
                             {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
@@ -1081,7 +997,7 @@ const OnboardingScreen = () => {
                   </InputOTPGroup>
                 </InputOTP>
                 {isPredictableError && (
-                  <p className="text-red-500 text-[14px] font-normal">{mpinError}</p>
+                  <p className="text-red-500 text-[14px] font-normal">{errorState.mpin}</p>
                 )}
               </div>
 
@@ -1090,7 +1006,7 @@ const OnboardingScreen = () => {
                 <p className="text-black dark:text-foreground text-[14px] font-normal">Re-enter MPIN</p>
                 <InputOTP
                   maxLength={4}
-                  value={confirmMpin}
+                  value={mpinState.confirmValue}
                   onChange={handleConfirmMpinChange}
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -1104,17 +1020,17 @@ const OnboardingScreen = () => {
                         className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
                         text-black dark:text-white 
                         ${isMismatchError ? 'border border-red-500 ring-1 ring-red-500' :
-                            mpinSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
+                            mpinState.isSuccess ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent' :
                               'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
                           }`}
                         style={{
                           backgroundImage: isMismatchError ? `url(${mpinInputError})` :
-                            mpinSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
+                            mpinState.isSuccess ? (mpinInputSuccessAsset ? `url(${mpinInputSuccessAsset})` : 'none') : undefined
                         }}
                         render={({ char, isActive }) => (
                           <div className="flex items-center justify-center w-full h-full">
                             {char
-                              ? (confirmMaskedIndices.has(index) ? '•' : char)
+                              ? (mpinState.confirmMaskedIndices.has(index) ? '•' : char)
                               : null
                             }
                             {isActive && <div className="w-px h-6 bg-white animate-pulse" />}
@@ -1125,7 +1041,7 @@ const OnboardingScreen = () => {
                   </InputOTPGroup>
                 </InputOTP>
                 {isMismatchError && (
-                  <p className="text-red-500 text-[14px] font-normal">{mpinError}</p>
+                  <p className="text-red-500 text-[14px] font-normal">{errorState.mpin}</p>
                 )}
               </div>
 
@@ -1143,12 +1059,12 @@ const OnboardingScreen = () => {
                   <span className="text-white text-[16px] font-medium">Biometric Unlock</span>
                 </div>
                 <button
-                  onClick={() => setBiometricEnabled(!biometricEnabled)}
+                  onClick={() => setBiometricState(prev => ({ ...prev, isEnabled: !prev.isEnabled }))}
                   className="transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
                   <img
-                    src={biometricEnabled ? toggleOn : toggleOff}
-                    alt={biometricEnabled ? "Enabled" : "Disabled"}
+                    src={biometricState.isEnabled ? toggleOn : toggleOff}
+                    alt={biometricState.isEnabled ? "Enabled" : "Disabled"}
                     className="w-12 h-6"
                   />
                 </button>
@@ -1163,9 +1079,9 @@ const OnboardingScreen = () => {
               <div className="flex-1" />
 
               {/* General Error Message */}
-              {generalError && (
+              {errorState.general && (
                 <p className="text-red-500 text-[14px] font-normal text-center pb-2">
-                  {generalError}
+                  {errorState.general}
                 </p>
               )}
 
@@ -1174,9 +1090,9 @@ const OnboardingScreen = () => {
                 variant="gradient"
                 className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
                 onClick={handleSetupMpin}
-                disabled={isLoading || mpin.length < 4 || confirmMpin.length < 4 || !!mpinError || !mpinSuccess}
+                disabled={uiState.isLoading || mpinState.value.length < 4 || mpinState.confirmValue.length < 4 || !!errorState.mpin || !mpinState.isSuccess}
               >
-                {isLoading ? (
+                {uiState.isLoading ? (
                   <span className="flex items-center gap-2">
                     <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -1199,20 +1115,8 @@ const OnboardingScreen = () => {
       </div>
 
       {/* Legal Footer */}
-      {!showMpinSetup && !showMpinLogin && (
-        <>
-          <div style={{ flex: 1 }} />
-          <div 
-            className="text-center px-6 safe-bottom"
-          >
-            <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px]">
-              By continuing, you agree to Grid.Pe's<br />
-              <button onClick={() => navigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
-              and{" "}
-              <button onClick={() => navigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
-            </p>
-          </div>
-        </>
+      {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && (
+        <LegalFooter onNavigate={navigate} />
       )}
     </div >
   );
