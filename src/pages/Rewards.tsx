@@ -168,16 +168,16 @@ const Rewards = () => {
             case 'processing':
             case 'out_for_delivery':
             case 'arrived':
-                return { text: 'Ongoing', color: '#FACC15' };
+                return { text: 'Ongoing', textClass: 'text-yellow-700 dark:text-yellow-600' };
             case 'delivered':
             case 'success':
-                return { text: 'Completed', color: '#16B751' };
+                return { text: 'Completed', textClass: 'text-green-700 dark:text-green-500' };
             case 'cancelled':
             case 'failed':
             case 'rejected':
-                return { text: 'Rejected', color: '#FF3B30' };
+                return { text: 'Rejected', textClass: 'text-red-600 dark:text-red-400' };
             default:
-                return { text: status || 'Pending', color: '#FACC15' };
+                return { text: status || 'Pending', textClass: 'text-yellow-700 dark:text-yellow-600' };
         }
     };
 
@@ -313,7 +313,7 @@ const Rewards = () => {
                 {/* Transaction History */}
                 <div className="flex flex-col min-h-[300px] relative z-10">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Transaction History</h3>
+                        <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Rewards History</h3>
                         <button onClick={() => navigate('/order-history?rewards=true')} className="text-[#5260FE] text-[14px]">
                             View All
                         </button>
@@ -378,8 +378,7 @@ const Rewards = () => {
                                             {/* Status Column */}
                                             <div className="text-right">
                                                 <span
-                                                    className="text-[13px] font-normal font-sans capitalize"
-                                                    style={{ color: getStatusInfo(status).color }}
+                                                    className={`text-[13px] font-normal font-sans capitalize ${getStatusInfo(status).textClass}`}
                                                 >
                                                     {getStatusInfo(status).text}
                                                 </span>

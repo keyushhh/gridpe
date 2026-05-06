@@ -128,7 +128,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
         const s = status.toLowerCase();
                 if (s === 'processing' || s === 'out_for_delivery' || s === 'arrived' || s === 'accepted' || s === 'picked_up' || s === 'at_store') {
             return {
-                color: isDarkMode ? '#FACC15' : '#C09A00',
+                textClass: 'text-yellow-700 dark:text-yellow-600',
                 bgColor: '#FACC15',
                 bgOpacity: 0.21,
                 icon: processingIcon,
@@ -138,7 +138,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
             };
         } else if (s === 'success' || s === 'delivered') {
             return {
-                color: '#1CB956',
+                textClass: 'text-green-700 dark:text-green-500',
                 bgColor: '#1CB956',
                 bgOpacity: 0.21,
                 icon: successIcon,
@@ -147,7 +147,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
             };
         } else {
             return {
-                color: '#FF1E1E',
+                textClass: 'text-red-600 dark:text-red-400',
                 bgColor: '#FF1E1E',
                 bgOpacity: 0.21,
                 icon: failedIcon,
@@ -245,7 +245,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({ isOpen, onClose, 
                         <div className="h-[25px] flex items-center pl-[13.5px]">
                             <div className="flex items-center gap-[6px]">
                                 <img src={config.statusIcon} alt="" className="w-[14px] h-[14px]" style={!isDarkMode ? { filter: config.statusFilter } : {}} />
-                                <span className="text-[12px] font-bold font-satoshi tracking-wide" style={{ color: config.color }}>
+                                <span className={`text-[12px] font-bold font-satoshi tracking-wide ${config.textClass}`}>
                                     {config.label}
                                 </span>
                             </div>

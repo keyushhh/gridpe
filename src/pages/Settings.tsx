@@ -42,17 +42,17 @@ const getSecurityConfig = (status: SecurityStatus, assets: { complete: string, p
     verified: { 
       bg: "rgba(28, 185, 86, 0.21)", // #1CB956
       border: "#1CB956",
-      text: isDarkMode ? "text-green-500" : "text-[#0B902B]"
+      text: "text-green-700 dark:text-green-500"
     },
     pending: { 
       bg: "rgba(250, 204, 21, 0.21)", // #FACC15
       border: "#FACC15",
-      text: isDarkMode ? "text-yellow-500" : "text-[#FACC15]"
+      text: "text-yellow-700 dark:text-yellow-600"
     },
     incomplete: { 
       bg: "rgba(255, 30, 30, 0.21)", // #FF1E1E
       border: "#FF1E1E",
-      text: isDarkMode ? "text-red-400" : "text-[#FF1E1E]"
+      text: "text-red-600 dark:text-red-400"
     }
   };
 

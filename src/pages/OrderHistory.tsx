@@ -166,7 +166,7 @@ const OrderHistory = () => {
         const s = status.toLowerCase();
         if (s === 'processing' || s === 'out_for_delivery' || s === 'arrived') {
             return {
-                color: isDarkMode ? '#FACC15' : '#C09A00',
+                textClass: 'text-yellow-700 dark:text-yellow-600',
                 bgColor: '#FACC15',
                 bgOpacity: 0.21,
                 icon: processingIcon,
@@ -176,7 +176,7 @@ const OrderHistory = () => {
             };
         } else if (s === 'success' || s === 'delivered') {
             return {
-                color: '#1CB956',
+                textClass: 'text-green-700 dark:text-green-500',
                 bgColor: '#1CB956',
                 bgOpacity: 0.21,
                 icon: successIcon,
@@ -186,7 +186,7 @@ const OrderHistory = () => {
             };
         } else if (s === 'failed' || s === 'cancelled') {
             return {
-                color: '#FF1E1E',
+                textClass: 'text-red-600 dark:text-red-400',
                 bgColor: '#FF1E1E',
                 bgOpacity: 0.21,
                 icon: failedIcon,
@@ -197,7 +197,7 @@ const OrderHistory = () => {
         }
         // Default fallback
         return {
-            color: '#FFFFFF',
+            textClass: 'text-white',
             bgOpacity: 0.1,
             icon: processingIcon,
             statusIcon: refreshIcon,
@@ -257,8 +257,7 @@ const OrderHistory = () => {
                     <div className="relative z-10 flex items-center mt-[2px]">
                         <img src={config.statusIcon} alt="" className="w-3 h-3 mr-[4px]" style={{ filter: config.iconFilter }} />
                         <span
-                            className="text-[12px] font-bold font-satoshi"
-                            style={{ color: config.color }}
+                            className={`text-[12px] font-bold font-satoshi ${config.textClass}`}
                         >
                             {config.label}
                         </span>

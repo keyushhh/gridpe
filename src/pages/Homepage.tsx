@@ -441,16 +441,16 @@ const Homepage = () => {
       case 'processing':
       case 'out_for_delivery':
       case 'arrived':
-        return { text: 'Ongoing', color: '#FACC15' };
+        return { text: 'Ongoing', textClass: 'text-yellow-700 dark:text-yellow-600' };
       case 'delivered':
       case 'success':
-        return { text: 'Completed', color: '#16B751' };
+        return { text: 'Completed', textClass: 'text-green-700 dark:text-green-500' };
       case 'cancelled':
       case 'failed':
       case 'rejected':
-        return { text: 'Rejected', color: '#FF3B30' };
+        return { text: 'Rejected', textClass: 'text-red-600 dark:text-red-400' };
       default:
-        return { text: status, color: '#FACC15' };
+        return { text: status, textClass: 'text-yellow-700 dark:text-yellow-600' };
     }
   };
 
@@ -1013,8 +1013,7 @@ const Homepage = () => {
 
                             <div className="text-right">
                               <span
-                                className="text-[13px] font-normal font-sans capitalize"
-                                style={{ color: getStatusInfo(tx.status).color }}
+                                className={`text-[13px] font-normal font-sans capitalize ${getStatusInfo(tx.status).textClass}`}
                               >
                                 {getStatusInfo(tx.status).text}
                               </span>

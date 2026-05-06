@@ -74,17 +74,14 @@ interface LegalFooterProps {
 }
 
 const LegalFooter = memo(({ onNavigate }: LegalFooterProps) => (
-  <>
-    <div style={{ flex: 1 }} />
-    <div className="text-center px-6 safe-bottom">
-      <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px]">
-        By continuing, you agree to Grid.Pe's<br />
-        <button onClick={() => onNavigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
-        and{" "}
-        <button onClick={() => onNavigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
-      </p>
-    </div>
-  </>
+  <div className="text-center px-6 safe-bottom">
+    <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px]">
+      By continuing, you agree to Grid.Pe's<br />
+      <button onClick={() => onNavigate('/legal/terms')} className="text-[#5260FE] font-bold">Terms & Conditions</button>{" "}
+      and{" "}
+      <button onClick={() => onNavigate('/legal/privacy')} className="text-[#5260FE] font-bold">Privacy Policy</button>
+    </p>
+  </div>
 ));
 
 // --- Main Component ---
@@ -781,27 +778,23 @@ const OnboardingScreen = () => {
 
   return (
     <div
-      className={`fixed inset-0 h-full w-full onboarding-container overflow-y-auto overscroll-y-none flex flex-col safe-top ${uiState.isKeyboardOpen ? 'keyboard-open' : ''}`}
-      style={{
-        backgroundColor: '#0a0a12',
-        backgroundImage: uiState.isKeyboardOpen ? 'none' : `url(${mainBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'top center',
-        backgroundRepeat: 'no-repeat'
-      }}
+      className={`fixed inset-0 onboarding-container overflow-hidden ${uiState.isKeyboardOpen ? 'keyboard-open' : ''}`}
+      style={{ backgroundColor: '#0a0a12' }}
     >
       <div
+        className="absolute inset-0 overflow-y-auto overscroll-y-none flex flex-col safe-top"
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1
+          backgroundImage: uiState.isKeyboardOpen ? 'none' : `url(${mainBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'top center',
+          backgroundRepeat: 'no-repeat'
         }}
       >
         {/* Logo Section - only show for phone/OTP screens */}
         {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && <LogoSection />}
 
         {/* Form Section */}
-        <div className={`px-6 safe-bottom pb-4 space-y-6 flex-1 flex flex-col ${(uiState.step === 'mpin-setup' || uiState.step === 'mpin-login') ? 'pt-4' : ''}`}>
+        <div className={`px-6 safe-bottom pb-4 space-y-6 ${(uiState.step === 'mpin-setup' || uiState.step === 'mpin-login') ? 'pt-4' : ''}`}>
           {/* Phone Input Screen */}
           {uiState.step === 'phone' && (
             <>
@@ -1112,13 +1105,16 @@ const OnboardingScreen = () => {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Legal Footer */}
-      {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && (
-        <LegalFooter onNavigate={navigate} />
-      )}
-    </div >
+        {/* Spacer to push footer down */}
+        <div className="flex-1" />
+
+        {/* Legal Footer */}
+        {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && (
+          <LegalFooter onNavigate={navigate} />
+        )}
+      </div>
+    </div>
   );
 };
 

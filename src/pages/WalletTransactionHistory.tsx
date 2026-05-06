@@ -113,7 +113,7 @@ const WalletTransactionHistory = () => {
         setupChannel();
 
         const handleCustomRefresh = (e: CustomEvent<{ userId: string }>) => {
-            if (e.detail?.userId === currentUserId) {
+            if (e.detail?.userId === userId) {
                 loadTransactions();
             }
         };
@@ -399,7 +399,7 @@ const WalletTransactionHistory = () => {
 
                 {/* Pop-up Container */}
                 <div
-                    className="relative z-10 w-[362px] h-[436px] flex flex-col items-center"
+                    className="relative z-10 w-full h-[436px] flex flex-col items-center"
                     style={{
                         backgroundImage: `url(${transactionDetailsLightBg})`,
                         backgroundSize: '100% 100%',
@@ -435,7 +435,7 @@ const WalletTransactionHistory = () => {
 
                     {/* Detail Container */}
                     <div
-                        className="mt-[9px] w-[318px] min-h-[174px] rounded-[16px] p-[11px_15px] flex flex-col justify-between"
+                        className="mt-[9px] w-full min-h-[174px] rounded-[16px] p-[11px_15px] flex flex-col justify-between"
                         style={{
                             background: '#FFFFFF',
                             border: '1px solid #F0F0F0'
@@ -493,7 +493,7 @@ const WalletTransactionHistory = () => {
 
                     {/* CTA */}
                     <button
-                        className="mt-[10px] w-[318px] h-[44px] flex items-center justify-center rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform"
+                        className="mt-[10px] w-full h-[44px] flex items-center justify-center rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform"
                         style={{
                             backgroundColor: "#171717",
                             fontFamily: "'Satoshi', sans-serif"
@@ -735,11 +735,11 @@ const WalletTransactionHistory = () => {
                                         const icon = isUPIWithdrawal ? walletDebited : (isMoneyIn ? creditedArrow : debitedArrow);
 
                                         // Deduce Color
-                                        let amountColor = (type === 'credit' || type === 'deposit') ? '#1CB956' : '#FF1E1E';
+                                        let amountClass = (type === 'credit' || type === 'deposit') ? 'text-green-700 dark:text-green-500' : 'text-red-600 dark:text-red-400';
                                         if (status === 'pending' || status === 'held' || type === 'held') {
-                                            amountColor = '#F59E0B';
+                                            amountClass = 'text-yellow-700 dark:text-yellow-600';
                                         } else if (status === 'failed') {
-                                            amountColor = '#FF1E1E';
+                                            amountClass = 'text-red-600 dark:text-red-400';
                                         }
 
                                         const time = new Date(tx.created_at).toLocaleTimeString('en-IN', {
@@ -765,10 +765,7 @@ const WalletTransactionHistory = () => {
                                                         </div>
                                                     </div>
                                                     <div className="text-right flex flex-col items-end gap-[4px]">
-                                                        <span
-                                                            className="text-[15px] font-bold leading-[120%] tracking-[-0.3px]"
-                                                            style={{ color: amountColor }}
-                                                        >
+                                                        <span className={`text-[15px] font-bold leading-[120%] tracking-[-0.3px] ${amountClass}`}>
                                                             {(tx.type === 'credit' || tx.transaction_type === 'credit' || tx.type === 'deposit' || tx.transaction_type === 'deposit') ? '+' : '-'} {tx.metadata?.isFx
                                                                 ? `${currencySymbols[tx.metadata.toCurrency as string] || ''}${Number(tx.metadata.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                                 : `₹${Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`

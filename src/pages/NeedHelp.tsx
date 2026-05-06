@@ -52,7 +52,7 @@ const NeedHelp = () => {
 
         if (isProcessing) {
             return {
-                color: isDarkMode ? '#FACC15' : '#C09A00',
+                textClass: 'text-yellow-700 dark:text-yellow-600',
                 bgColor: '#FACC15',
                 bgOpacity: 0.21,
                 icon: processingIcon,
@@ -62,7 +62,7 @@ const NeedHelp = () => {
             };
         } else if (isSuccess) {
             return {
-                color: '#1CB956',
+                textClass: 'text-green-700 dark:text-green-500',
                 bgColor: '#1CB956',
                 bgOpacity: 0.21,
                 icon: successIcon,
@@ -72,7 +72,7 @@ const NeedHelp = () => {
             };
         } else {
             return {
-                color: '#FF1E1E',
+                textClass: 'text-red-600 dark:text-red-400',
                 bgColor: '#FF1E1E',
                 bgOpacity: 0.21,
                 icon: failedIcon,
@@ -150,7 +150,7 @@ const NeedHelp = () => {
                     <div className="h-[25px] flex items-center pl-[13.5px]">
                         <div className="flex items-center gap-[6px]">
                             <img src={config.statusIcon} alt="" className="w-[14px] h-[14px]" style={!isDarkMode ? { filter: config.statusFilter } : undefined} />
-                            <span className="text-[12px] font-bold font-satoshi tracking-wide" style={{ color: config.color }}>
+                            <span className={`text-[12px] font-bold font-satoshi tracking-wide ${config.textClass}`}>
                                 {config.label}
                             </span>
                         </div>

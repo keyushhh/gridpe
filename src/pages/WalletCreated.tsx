@@ -432,7 +432,7 @@ const WalletCreated = () => {
 
                 {/* Wallet Card */}
                 {/* Dynamic height based on content */}
-                <div className="w-full relative mx-auto shrink-0" style={{ width: '100%', maxWidth: '360px', minHeight: '200px' }}>
+                <div className="w-full relative shrink-0" style={{ width: '100%', minHeight: '200px' }}>
                     {/* Card Background */}
                     <div
                         className="absolute inset-0 w-full h-full"
@@ -482,9 +482,8 @@ const WalletCreated = () => {
                 {/* Important Section - Only show if balance is 0 */}
                 {walletBalance === 0 && (
                     <div
-                        className="mt-5 w-full mx-auto relative flex flex-col justify-center px-[19px] py-[9px]"
+                        className="mt-5 w-full relative flex flex-col justify-center px-[19px] py-[9px]"
                         style={{
-                            maxWidth: '362px',
                             minHeight: '81px',
                             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : 'rgba(82, 96, 254, 0.05)',
                             borderRadius: '13px',
@@ -504,7 +503,7 @@ const WalletCreated = () => {
                 <BalanceAlert className="mt-[14px] mb-5" />
 
                 {/* Transaction History */}
-                <div className="mt-5 w-full mx-auto mb-[20px]" style={{ maxWidth: '362px' }}>
+                <div className="mt-5 w-full mb-[20px]">
                     <div className="flex justify-between items-center mb-[12px]">
                         <h2 className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
                             Transaction History
