@@ -63,19 +63,17 @@ const OnboardingScreen = () => {
 
   // MPIN Masking State (mpin)
   const [maskedIndices, setMaskedIndices] = useState<Set<number>>(new Set());
-  const maskTimers = useRef<Record<number, NodeJS.Timeout>>({});
+  const maskingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // MPIN Masking State (confirmMpin)
   const [confirmMaskedIndices, setConfirmMaskedIndices] = useState<Set<number>>(new Set());
-  const confirmMaskTimers = useRef<Record<number, NodeJS.Timeout>>({});
+  const confirmMaskingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Clean up all timers on unmount
+  // Clean up timers on unmount
   useEffect(() => {
-    const mTimers = maskTimers.current;
-    const cTimers = confirmMaskTimers.current;
     return () => {
-      Object.values(mTimers).forEach(clearTimeout);
-      Object.values(cTimers).forEach(clearTimeout);
+      if (maskingTimerRef.current) clearTimeout(maskingTimerRef.current);
+      if (confirmMaskingTimerRef.current) clearTimeout(confirmMaskingTimerRef.current);
     };
   }, []);
 
@@ -83,8 +81,10 @@ const OnboardingScreen = () => {
   useEffect(() => {
     if (mpin === "") {
       setMaskedIndices(new Set());
-      Object.values(maskTimers.current).forEach(clearTimeout);
-      maskTimers.current = {};
+      if (maskingTimerRef.current) {
+        clearTimeout(maskingTimerRef.current);
+        maskingTimerRef.current = null;
+      }
     }
   }, [mpin]);
 
@@ -92,8 +92,10 @@ const OnboardingScreen = () => {
   useEffect(() => {
     if (confirmMpin === "") {
       setConfirmMaskedIndices(new Set());
-      Object.values(confirmMaskTimers.current).forEach(clearTimeout);
-      confirmMaskTimers.current = {};
+      if (confirmMaskingTimerRef.current) {
+        clearTimeout(confirmMaskingTimerRef.current);
+        confirmMaskingTimerRef.current = null;
+      }
     }
   }, [confirmMpin]);
 
@@ -408,93 +410,43 @@ const OnboardingScreen = () => {
 
   const handleMpinChange = (val: string) => {
     const numericOnly = val.replace(/\D/g, '').slice(0, 4);
-    const prevLength = mpin.length;
-    const newLength = numericOnly.length;
-
-    // If a digit was added (not deleted)
-    if (newLength > prevLength) {
-      const newIndex = newLength - 1;
-
-      // Clear any existing timer for this index
-      if (maskTimers.current[newIndex]) {
-        clearTimeout(maskTimers.current[newIndex]);
-      }
-
-      // Remove from masked set immediately (show digit)
-      setMaskedIndices(prev => {
-        const next = new Set(prev);
-        next.delete(newIndex);
-        return next;
-      });
-
-      // After 1 second, add to masked set (show *)
-      maskTimers.current[newIndex] = setTimeout(() => {
-        setMaskedIndices(prev => new Set(prev).add(newIndex));
-      }, 1000);
-    }
-
-    // If digit was deleted, remove from masked set
-    if (newLength < prevLength) {
-      setMaskedIndices(prev => {
-        const next = new Set(prev);
-        next.delete(newLength);
-        return next;
-      });
-      if (maskTimers.current[newLength]) {
-        clearTimeout(maskTimers.current[newLength]);
-      }
-    }
-
     setMpin(numericOnly);
+
+    // Debounce: Clear previous timer
+    if (maskingTimerRef.current) clearTimeout(maskingTimerRef.current);
+
     if (numericOnly.length === 4) {
       dismissKeyboard();
+      // Only trigger masking when full length is reached
+      maskingTimerRef.current = setTimeout(() => {
+        setMaskedIndices(new Set([0, 1, 2, 3]));
+      }, 1000);
+    } else {
+      // Keep visible while typing
+      setMaskedIndices(new Set());
     }
+
     if (generalError) setGeneralError("");
   };
 
   const handleConfirmMpinChange = (val: string) => {
     const numericOnly = val.replace(/\D/g, '').slice(0, 4);
-    const prevLength = confirmMpin.length;
-    const newLength = numericOnly.length;
-
-    // If a digit was added (not deleted)
-    if (newLength > prevLength) {
-      const newIndex = newLength - 1;
-
-      // Clear any existing timer for this index
-      if (confirmMaskTimers.current[newIndex]) {
-        clearTimeout(confirmMaskTimers.current[newIndex]);
-      }
-
-      // Remove from masked set immediately (show digit)
-      setConfirmMaskedIndices(prev => {
-        const next = new Set(prev);
-        next.delete(newIndex);
-        return next;
-      });
-
-      // After 1 second, add to masked set (show *)
-      confirmMaskTimers.current[newIndex] = setTimeout(() => {
-        setConfirmMaskedIndices(prev => new Set(prev).add(newIndex));
-      }, 1000);
-    }
-
-    // If digit was deleted, remove from masked set
-    if (newLength < prevLength) {
-      setConfirmMaskedIndices(prev => {
-        const next = new Set(prev);
-        next.delete(newLength);
-        return next;
-      });
-      if (confirmMaskTimers.current[newLength]) {
-        clearTimeout(confirmMaskTimers.current[newLength]);
-      }
-    }
-
     setConfirmMpin(numericOnly);
+
+    // Debounce: Clear previous timer
+    if (confirmMaskingTimerRef.current) clearTimeout(confirmMaskingTimerRef.current);
+
     if (numericOnly.length === 4) {
       dismissKeyboard();
+      // Only trigger masking when full length is reached
+      confirmMaskingTimerRef.current = setTimeout(() => {
+        setConfirmMaskedIndices(new Set([0, 1, 2, 3]));
+      }, 1000);
+    } else {
+      // Keep visible while typing
+      setConfirmMaskedIndices(new Set());
     }
+
     if (generalError) setGeneralError("");
   };
 

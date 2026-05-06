@@ -363,9 +363,11 @@ html.font-pending body {
   .safe-top {
     padding-top: clamp(20px, env(safe-area-inset-top), 100px);
   }
+
   .safe-bottom {
     padding-bottom: clamp(20px, env(safe-area-inset-bottom), 100px);
   }
+
   .safe-x {
     padding-left: clamp(20px, env(safe-area-inset-left), 100px);
     padding-right: clamp(20px, env(safe-area-inset-right), 100px);
@@ -398,7 +400,9 @@ html.font-pending body {
 }
 
 /* Lock the root viewport to prevent bounce/flicker */
-html, body, #root {
+html,
+body,
+#root {
   position: fixed;
   inset: 0;
   /* overflow: hidden; removed to ensure safe area is utilized */
