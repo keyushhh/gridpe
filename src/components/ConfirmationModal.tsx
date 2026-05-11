@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTheme } from "next-themes";
-import { hapticMedium, hapticWarning } from "@/utils/haptics";
+import { useTheme } from 'next-themes';
+import { hapticMedium, hapticWarning } from '@/utils/haptics';
 import popupBg from '../assets/popup-bg-remove.png';
 
 interface ConfirmationModalProps {
@@ -36,7 +36,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-md"
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation();
           onClose();
         }}
@@ -51,20 +51,28 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         {/* Card Background Container */}
         <div
           className="relative w-full overflow-hidden rounded-[32px] pt-[28px] pb-[22px] px-[17px]"
-          style={isDarkMode ? {
-            backgroundImage: `url(${popupBg})`,
-            backgroundSize: '100% 100%',
-            backgroundRepeat: 'no-repeat',
-          } : {
-            backgroundColor: '#FFFFFF',
-          }}
+          style={
+            isDarkMode
+              ? {
+                  backgroundImage: `url(${popupBg})`,
+                  backgroundSize: '100% 100%',
+                  backgroundRepeat: 'no-repeat',
+                }
+              : {
+                  backgroundColor: '#FFFFFF',
+                }
+          }
         >
           {/* Text Content */}
           <div className="mb-8 flex flex-col items-start text-left">
-            <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi mb-4`}>
+            <h2
+              className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi mb-4`}
+            >
               {title}
             </h2>
-            <p className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[16px] font-medium leading-relaxed font-satoshi`}>
+            <p
+              className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[16px] font-medium leading-relaxed font-satoshi`}
+            >
               {description}
             </p>
           </div>
@@ -72,9 +80,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {/* Buttons */}
           <div className="flex flex-col gap-3">
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
-                const destructiveActions = ['Remove Card', 'Remove Account', 'Yes, Delete', 'Delete', 'Remove'];
+                const destructiveActions = [
+                  'Remove Card',
+                  'Remove Account',
+                  'Yes, Delete',
+                  'Delete',
+                  'Remove',
+                ];
                 if (destructiveActions.some(action => primaryText.includes(action))) {
                   hapticWarning();
                 } else {
@@ -94,7 +108,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 <div
                   className="absolute inset-0 w-full h-full rounded-full pointer-events-none"
                   style={{
-                    backgroundColor: primaryText === 'Remove Card' || primaryText === 'Remove Account' || primaryText === 'Yes, Delete' ? '#FA1515' : '#5260FE' // #FA1515 for Remove, Blue for others
+                    backgroundColor:
+                      primaryText === 'Remove Card' ||
+                      primaryText === 'Remove Account' ||
+                      primaryText === 'Yes, Delete'
+                        ? '#FA1515'
+                        : '#5260FE', // #FA1515 for Remove, Blue for others
                   }}
                 />
               )}
@@ -104,7 +123,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             </button>
 
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 onClose();
               }}
@@ -119,7 +138,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               ) : (
                 <div className="absolute inset-0 w-full h-full rounded-full pointer-events-none bg-[#F2F3F5]" />
               )}
-              <span className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'} text-[16px] font-bold font-satoshi`}>
+              <span
+                className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'} text-[16px] font-bold font-satoshi`}
+              >
                 {secondaryText}
               </span>
             </button>

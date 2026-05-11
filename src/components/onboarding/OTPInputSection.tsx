@@ -1,6 +1,7 @@
-import React, { useState, useCallback, memo, useRef, useEffect } from "react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Button } from "@/components/ui/button";
+import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { Button } from '@/components/ui/button';
+import ButtonSpinner from '@/components/ui/ButtonSpinner';
 
 interface OTPInputSectionProps {
   phoneNumber: string;
@@ -25,8 +26,8 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
   otpInputBg,
   error: parentError,
 }) => {
-  const [otp, setOtp] = useState("");
-  const [localError, setLocalError] = useState("");
+  const [otp, setOtp] = useState('');
+  const [localError, setLocalError] = useState('');
   const otpFocusRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,12 +37,15 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const handleChange = useCallback((val: string) => {
-    const numericOnly = val.replace(/\D/g, '').slice(0, 6);
-    setOtp(numericOnly);
-    setLocalError("");
-    onOtpChange(numericOnly);
-  }, [onOtpChange]);
+  const handleChange = useCallback(
+    (val: string) => {
+      const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+      setOtp(numericOnly);
+      setLocalError('');
+      onOtpChange(numericOnly);
+    },
+    [onOtpChange]
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -69,13 +73,14 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
                 index={index}
                 className={`h-[48px] w-[48px] rounded-[7px] text-2xl font-semibold transition-all bg-cover bg-center
                 text-black dark:text-white
-                ${(localError || parentError)
+                ${
+                  localError || parentError
                     ? 'border border-red-500 ring-1 ring-red-500'
                     : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
-                  }`}
+                }`}
                 style={{
                   backgroundImage: otpInputBg ? `url(${otpInputBg})` : 'none',
-                  backgroundColor: otpInputBg ? 'transparent' : undefined
+                  backgroundColor: otpInputBg ? 'transparent' : undefined,
                 }}
               />
             ))}
@@ -89,16 +94,13 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
       </div>
 
       <div className="flex justify-between items-center text-sm px-1">
-        <button
-          onClick={onWrongNumber}
-          className="text-link hover:underline"
-        >
+        <button onClick={onWrongNumber} className="text-link hover:underline">
           Wrong number? Fix it here.
         </button>
         <button
           onClick={() => {
             if (resendTimer === 0) {
-              setOtp("");
+              setOtp('');
               onResendOTP();
             }
           }}
@@ -117,13 +119,12 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
-            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
+            <ButtonSpinner />
             Verifying...
           </span>
-        ) : "Continue"}
+        ) : (
+          'Continue'
+        )}
       </Button>
     </div>
   );

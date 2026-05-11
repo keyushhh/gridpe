@@ -9,12 +9,7 @@ interface SaveAddressSheetProps {
   icon?: string;
 }
 
-const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({
-  isOpen,
-  onClose,
-  onSave,
-  icon,
-}) => {
+const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({ isOpen, onClose, onSave, icon }) => {
   const [label, setLabel] = useState('');
 
   if (!isOpen) return null;
@@ -24,10 +19,7 @@ const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center pb-[32px]">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-md"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
 
       {/* Sheet Content */}
       <div
@@ -47,9 +39,7 @@ const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({
           <div className="text-left mb-6">
             <div className="flex items-center gap-2 mb-1">
               {icon && <img src={icon} alt="" className="w-5 h-5" />}
-              <h2 className="text-[18px] font-bold text-white font-satoshi">
-                Save address as
-              </h2>
+              <h2 className="text-[18px] font-bold text-white font-satoshi">Save address as</h2>
             </div>
             <p className="text-[16px] font-medium text-white/80 font-satoshi">
               This is not Home or Work. Name it.
@@ -61,14 +51,14 @@ const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({
             <input
               type="text"
               value={label}
-              onChange={(e) => setLabel(e.target.value)}
+              onChange={e => setLabel(e.target.value)}
               className={`w-full h-full bg-[#191919] border border-[#313131] rounded-full px-6 text-white text-[14px] outline-none transition-all focus:border-white/40 ${hasValue ? 'pt-0' : ''}`}
             />
             {!hasValue && (
-                <div className="absolute inset-0 flex items-center px-6 pointer-events-none">
-                    <span className="text-white/40 text-[14px]">Save as</span>
-                    <span className="text-[#FF3B30] ml-1">*</span>
-                </div>
+              <div className="absolute inset-0 flex items-center px-6 pointer-events-none">
+                <span className="text-white/40 text-[14px]">Save as</span>
+                <span className="text-[#FF3B30] ml-1">*</span>
+              </div>
             )}
           </div>
 

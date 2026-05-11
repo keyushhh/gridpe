@@ -1,23 +1,22 @@
 /**
  * Standardizes currency formatting for Indian Rupee (INR)
  */
-export const formatINR = (amount: number, options: { 
-  minimumFractionDigits?: number, 
-  maximumFractionDigits?: number,
-  showSymbol?: boolean 
-} = {}) => {
-  const { 
-    minimumFractionDigits = 2, 
-    maximumFractionDigits = 2,
-    showSymbol = true 
-  } = options;
+export const formatINR = (
+  amount: number,
+  options: {
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+    showSymbol?: boolean;
+  } = {}
+) => {
+  const { minimumFractionDigits = 2, maximumFractionDigits = 2, showSymbol = true } = options;
 
   const minDigits = Math.max(0, Math.min(20, minimumFractionDigits));
   const maxDigits = Math.max(minDigits, Math.min(20, maximumFractionDigits));
 
   const formatted = amount.toLocaleString('en-IN', {
     minimumFractionDigits: minDigits,
-    maximumFractionDigits: maxDigits
+    maximumFractionDigits: maxDigits,
   });
 
   return showSymbol ? `₹${formatted}` : formatted;
@@ -26,13 +25,16 @@ export const formatINR = (amount: number, options: {
 /**
  * Standardizes date formatting across the app
  */
-export const formatDate = (date: string | Date, options: {
-  type?: 'short' | 'long' | 'medium' | 'time' | 'full',
-  showTodayYesterday?: boolean
-} = {}) => {
+export const formatDate = (
+  date: string | Date,
+  options: {
+    type?: 'short' | 'long' | 'medium' | 'time' | 'full';
+    showTodayYesterday?: boolean;
+  } = {}
+) => {
   const { type = 'medium', showTodayYesterday = false } = options;
   const d = typeof date === 'string' ? new Date(date) : date;
-  
+
   if (isNaN(d.getTime())) return 'Invalid Date';
 
   if (showTodayYesterday) {
@@ -54,7 +56,7 @@ export const formatDate = (date: string | Date, options: {
     case 'time':
       return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
     case 'full':
-       return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} | ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+      return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} | ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
     default:
       return d.toLocaleDateString('en-GB');
   }

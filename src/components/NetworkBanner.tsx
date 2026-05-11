@@ -10,14 +10,14 @@ const NetworkBanner: React.FC = () => {
     let handlerPromise: any;
 
     // Initial status check
-    Network.getStatus().then((s) => {
+    Network.getStatus().then(s => {
       setStatus(s);
     });
 
     // Listen for changes
     const setupListener = async () => {
-      handlerPromise = await Network.addListener('networkStatusChange', (s) => {
-        setStatus((prev) => {
+      handlerPromise = await Network.addListener('networkStatusChange', s => {
+        setStatus(prev => {
           if (prev && !prev.connected && s.connected) {
             setShowBackOnline(true);
             setTimeout(() => setShowBackOnline(false), 3000);

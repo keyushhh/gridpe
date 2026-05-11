@@ -66,35 +66,37 @@ export const setDefaultBankAccount = async (id: string, userId: string) => {
   return data as BankAccount;
 };
 
-export const createPayout = async (payout: Omit<Payout, 'id' | 'created_at' | 'currency' | 'status'>) => {
-    const { data, error } = await supabase
-      .from('payouts')
-      .insert({
-          ...payout,
-          status: 'pending',
-          currency: 'INR'
-      })
-      .select()
-      .single();
-  
-    if (error) throw error;
-    return data as Payout;
+export const createPayout = async (
+  payout: Omit<Payout, 'id' | 'created_at' | 'currency' | 'status'>
+) => {
+  const { data, error } = await supabase
+    .from('payouts')
+    .insert({
+      ...payout,
+      status: 'pending',
+      currency: 'INR',
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Payout;
 };
 
 export const initiateUPIDisbursement = async (amount: number, upiId: string, userId: string) => {
-    const { data, error } = await supabase.functions.invoke('create-payout', {
-        body: { amount, upi_id: upiId, user_id: userId }
-    });
+  const { data, error } = await supabase.functions.invoke('create-payout', {
+    body: { amount, upi_id: upiId, user_id: userId },
+  });
 
-    if (error) throw error;
-    return data;
+  if (error) throw error;
+  return data;
 };
 
 export const verifyVPA = async (upiId: string) => {
-    const { data, error } = await supabase.functions.invoke('create-payout', {
-        body: { upi_id: upiId, action: 'verify-vpa' }
-    });
+  const { data, error } = await supabase.functions.invoke('create-payout', {
+    body: { upi_id: upiId, action: 'verify-vpa' },
+  });
 
-    if (error) throw error;
-    return data;
+  if (error) throw error;
+  return data;
 };

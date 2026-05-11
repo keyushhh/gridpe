@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { OpenLocationCode } from "open-location-code";
+import { OpenLocationCode } from 'open-location-code';
 import { Address } from '@/types';
 export type { Address };
 
@@ -7,24 +7,28 @@ export type { Address };
  * Ensures a Plus Code is in global format.
  * If a short code is provided, it uses the provided lat/lng as context to expand it.
  */
-export const ensureGlobalPlusCode = (plusCode: string | null, lat: number, lng: number): string | null => {
+export const ensureGlobalPlusCode = (
+  plusCode: string | null,
+  lat: number,
+  lng: number
+): string | null => {
   if (!plusCode) return null;
-  
+
   try {
     const olc = new OpenLocationCode();
     // Casting to any to avoid TSType error if the definitions are mismatched with the runtime
     const olcAny = olc as any;
-    
+
     if (olcAny.isFull(plusCode)) return plusCode.toUpperCase();
-    
+
     // If it's a short code, expand it
     if (olcAny.isShort(plusCode)) {
       return olcAny.recoverNearest(plusCode, lat, lng).toUpperCase();
     }
   } catch (err) {
-    console.error("Plus Code validation/expansion failed:", err);
+    console.error('Plus Code validation/expansion failed:', err);
   }
-  
+
   return plusCode;
 };
 
@@ -34,10 +38,12 @@ export const ensureGlobalPlusCode = (plusCode: string | null, lat: number, lng: 
  */
 export const getAuthUserId = async (): Promise<string | null> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user?.id || null;
   } catch (err) {
-    console.error("Failed to get auth user:", err);
+    console.error('Failed to get auth user:', err);
     return null;
   }
 };
@@ -69,11 +75,7 @@ export const createAddress = async (address: Omit<Address, 'id' | 'created_at'>)
     contact_phone: address.contact_phone || null,
   };
 
-  const { data, error } = await supabase
-    .from('addresses')
-    .insert(insertPayload)
-    .select()
-    .single();
+  const { data, error } = await supabase.from('addresses').insert(insertPayload).select().single();
 
   if (error) throw error;
   return data as Address;
@@ -92,11 +94,7 @@ export const updateAddress = async (id: string, updates: Partial<Address>) => {
 };
 
 export const deleteAddress = async (id: string, userId: string) => {
-  const { error } = await supabase
-    .from('addresses')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId);
+  const { error } = await supabase.from('addresses').delete().eq('id', id).eq('user_id', userId);
 
   if (error) throw error;
 };

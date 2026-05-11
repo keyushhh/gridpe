@@ -1,548 +1,566 @@
-import { useState, useEffect } from "react";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
-import { useNavigate, useLocation , Navigate } from 'react-router-dom';
-import BackButton from "@/components/ui/BackButton";
-import Map, { Marker, Source, Layer } from "react-map-gl/maplibre";
+import { ASSETS } from '@/constants/assets';
+import { useState, useEffect } from 'react';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { ROUTES } from '@/routes';
+import BackButton from '@/components/ui/BackButton';
+import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Bike } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { OpenLocationCode } from "open-location-code";
-import { Order } from "@/types";
-import { supabase } from "@/lib/supabase";
-import { setBadge } from "@/utils/badge";
-import { useTheme } from "next-themes";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
-import DevModeOverlay from "@/components/DevModeOverlay";
-
-import arrivingIcon from "@/assets/arriving.svg";
-import riderIcon from "@/assets/rider.svg";
-import verifiedIcon from "@/assets/verified.png";
-import callIcon from "@/assets/call.svg";
-import awaitingIcon from "@/assets/awaiting.svg";
-import verifiedCircleIcon from "@/assets/verified-circle.svg";
-import currentLocationIcon from "@/assets/current-location.svg";
-import arrivingContainerBg from "@/assets/arriving-container.png";
-import darkbgCta from "@/assets/darkbg-cta.png";
-
+import { Bike } from 'lucide-react';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { OpenLocationCode } from 'open-location-code';
+import { Order } from '@/types';
+import { supabase } from '@/lib/supabase';
+import { setBadge } from '@/utils/badge';
+import { useTheme } from 'next-themes';
+import DevModeOverlay from '@/components/DevModeOverlay';
 const OrderTracking = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme !== 'light';
-    const [order, setOrder] = useState<Order | null>(location.state?.order || null);
-    const [isLoading, setIsLoading] = useState(!location.state?.order);
-
-    // Map State
-    const [viewState, setViewState] = useState({
-        latitude: 12.9716, // Default Bangalore
-        longitude: 77.5946,
-        zoom: 14.5
-    });
-
-    const [userLocation, setUserLocation] = useState<{ latitude: number, longitude: number } | null>(null);
-
-    const [progress, setProgress] = useState(0);
-    const [riderName, setRiderName] = useState<string | null>(null);
-    const [riderLocation, setRiderLocation] = useState<{ lat: number, lng: number } | null>(null);
-    const [isOtpVerified, setIsOtpVerified] = useState(false);
-
-    // Initial check for terminal order status
-    useEffect(() => {
-        if (order?.status === 'delivered') {
-            navigate('/order-delivered', {
-                state: { order }
-            });
-        } else if (order?.status === 'cancelled') {
-            navigate('/order-cancelled', {
-                state: { order }
-            });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
+  const [order, setOrder] = useState<Order | null>(location.state?.order || null);
+  const [isLoading, setIsLoading] = useState(!location.state?.order);
+  // Map State
+  const [viewState, setViewState] = useState({
+    latitude: 12.9716, // Default Bangalore
+    longitude: 77.5946,
+    zoom: 14.5,
+  });
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(
+    null
+  );
+  const [progress, setProgress] = useState(0);
+  const [riderName, setRiderName] = useState<string | null>(null);
+  const [riderLocation, setRiderLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  // Initial check for terminal order status
+  useEffect(() => {
+    if (order?.status === 'delivered') {
+      navigate(ROUTES.ORDER_DELIVERED, {
+        state: { order },
+      });
+    } else if (order?.status === 'cancelled') {
+      navigate(ROUTES.ORDER_CANCELLED, {
+        state: { order },
+      });
+    }
+  }, [order?.status, navigate]);
+  useEffect(() => {
+    const activeOrder = order;
+    if (activeOrder?.addresses?.plus_code) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const olc = new OpenLocationCode() as any;
+        const decoded = olc.decode(activeOrder.addresses.plus_code);
+        const newLat = decoded.latitudeCenter;
+        const newLng = decoded.longitudeCenter;
+        setViewState(prev => ({
+          ...prev,
+          latitude: newLat,
+          longitude: newLng,
+        }));
+        setUserLocation({ latitude: newLat, longitude: newLng });
+      } catch (e) {
+        console.error('Failed to decode location', e);
+      }
+    } else if (activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude) {
+      const newLat = activeOrder.addresses.latitude;
+      const newLng = activeOrder.addresses.longitude;
+      setViewState(prev => ({
+        ...prev,
+        latitude: newLat,
+        longitude: newLng,
+      }));
+      setUserLocation({ latitude: newLat, longitude: newLng });
+    }
+    const interval = setInterval(() => {
+      setProgress(prev => (prev >= 100 ? 0 : prev + 1));
+    }, 600);
+    return () => clearInterval(interval);
+  }, [order]);
+  useEffect(() => {
+    if (!order?.id) return;
+    // Fetch rider details if assigned
+    if (order.rider_id) {
+      // Check if we already have the rider info from the joined order
+      if (order.rider?.full_name) {
+        setRiderName(order.rider.full_name);
+      }
+      const fetchRider = async () => {
+        const { data, error } = await supabase
+          .from('riders')
+          .select(
+            'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number'
+          )
+          .eq('id', order.rider_id)
+          .single();
+        if (data && !error) {
+          setRiderName(data.full_name);
+          setOrder(prev => (prev ? { ...prev, rider: data } : null));
         }
-    }, [order?.status, navigate]);
-
-    useEffect(() => {
-        const activeOrder = order;
-        if (activeOrder?.addresses?.plus_code) {
-            try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const olc = new OpenLocationCode() as any;
-                const decoded = olc.decode(activeOrder.addresses.plus_code);
-                const newLat = decoded.latitudeCenter;
-                const newLng = decoded.longitudeCenter;
-
-                setViewState(prev => ({
-                    ...prev,
-                    latitude: newLat,
-                    longitude: newLng
-                }));
-                setUserLocation({ latitude: newLat, longitude: newLng });
-            } catch (e) {
-                console.error("Failed to decode location", e);
+      };
+      fetchRider();
+      // Mission C: Subscribe to Real-time Map Tracking
+      const channel = supabase
+        .channel(`rider-location-${order.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'assigned_rider_location',
+            filter: `order_id=eq.${order.id}`,
+          },
+          (payload: any) => {
+            if (payload.new && payload.new.current_lat && payload.new.current_lng) {
+              setRiderLocation({
+                lat: payload.new.current_lat,
+                lng: payload.new.current_lng,
+              });
             }
-        } else if (activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude) {
-            const newLat = activeOrder.addresses.latitude;
-            const newLng = activeOrder.addresses.longitude;
-            setViewState(prev => ({
-                ...prev,
-                latitude: newLat,
-                longitude: newLng
-            }));
-            setUserLocation({ latitude: newLat, longitude: newLng });
-        }
-
-        const interval = setInterval(() => {
-            setProgress((prev) => (prev >= 100 ? 0 : prev + 1));
-        }, 600);
-        return () => clearInterval(interval);
-    }, [order]);
-
-    useEffect(() => {
-        if (!order?.id) return;
-
-        // Fetch rider details if assigned
-        if (order.rider_id) {
-            // Check if we already have the rider info from the joined order
-            if (order.rider?.full_name) {
-                setRiderName(order.rider.full_name);
-            }
-
-            const fetchRider = async () => {
-                const { data, error } = await supabase
-                    .from('riders')
-                    .select('id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number')
-                    .eq('id', order.rider_id)
-                    .single();
-
-                if (data && !error) {
-                    setRiderName(data.full_name);
-                    setOrder(prev => prev ? { ...prev, rider: data } : null);
-                }
-            };
-            fetchRider();
-
-            // Mission C: Subscribe to Real-time Map Tracking
-            const channel = supabase
-                .channel(`rider-location-${order.id}`)
-                .on(
-                    'postgres_changes',
-                    {
-                        event: '*',
-                        schema: 'public',
-                        table: 'assigned_rider_location',
-                        filter: `order_id=eq.${order.id}`
-                    },
-                    (payload: any) => {
-                        if (payload.new && payload.new.current_lat && payload.new.current_lng) {
-                            setRiderLocation({
-                                lat: payload.new.current_lat,
-                                lng: payload.new.current_lng
-                            });
-                        }
-                    }
-                )
-                .subscribe();
-
-            // Listen for order status changes
-            const orderChannel = supabase
-                .channel(`order-status-${order.id}`)
-                .on(
-                    'postgres_changes',
-                    {
-                        event: 'UPDATE',
-                        schema: 'public',
-                        table: 'orders',
-                        filter: `id=eq.${order.id}`
-                    },
-                    (payload: any) => {
-                        if (payload.new) {
-                            const newStatus = payload.new.status;
-                            setOrder(prev => prev ? { ...prev, ...payload.new } : payload.new);
-
-                            // Navigate to delivered screen when order is complete
-                            if (newStatus === 'delivered') {
-                                navigate('/order-delivered', {
-                                    state: { order: payload.new }
-                                });
-                            }
-
-                            // Navigate to cancelled screen if cancelled
-                            if (newStatus === 'cancelled') {
-                                navigate('/order-cancelled', {
-                                    state: { order: payload.new }
-                                });
-                            }
-
-                            // Manage app badge
-                            if (['delivered', 'success', 'cancelled', 'failed'].includes(newStatus)) {
-                                setBadge(0);
-                            } else {
-                                setBadge(1);
-                            }
-                        }
-                    }
-                )
-                .subscribe();
-
-            // Set initial badge if order is active
-            if (!['delivered', 'success', 'cancelled', 'failed'].includes(order.status)) {
+          }
+        )
+        .subscribe();
+      // Listen for order status changes
+      const orderChannel = supabase
+        .channel(`order-status-${order.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: `id=eq.${order.id}`,
+          },
+          (payload: any) => {
+            if (payload.new) {
+              const newStatus = payload.new.status;
+              setOrder(prev => (prev ? { ...prev, ...payload.new } : payload.new));
+              // Navigate to delivered screen when order is complete
+              if (newStatus === 'delivered') {
+                navigate(ROUTES.ORDER_DELIVERED, {
+                  state: { order: payload.new },
+                });
+              }
+              // Navigate to cancelled screen if cancelled
+              if (newStatus === 'cancelled') {
+                navigate(ROUTES.ORDER_CANCELLED, {
+                  state: { order: payload.new },
+                });
+              }
+              // Manage app badge
+              if (['delivered', 'success', 'cancelled', 'failed'].includes(newStatus)) {
+                setBadge(0);
+              } else {
                 setBadge(1);
+              }
             }
-
-            return () => {
-                supabase.removeChannel(channel);
-                supabase.removeChannel(orderChannel);
-            };
-        } else {
-            // If no order ID, we might be loading from a deep link or direct URL
-            // Simulate/Wait for data
-            const timer = setTimeout(() => setIsLoading(false), 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [order?.rider_id, order?.id]);
-
-    useEffect(() => {
-        // Simulate rider entering the OTP after 60 seconds
-        const timer = setTimeout(async () => {
-            // ... (rest of the existing OTP verification logic)
-        }, 60000);
-        return () => clearTimeout(timer);
-    }, [navigate, order]);
-
-    // Calculate dynamic coordinates
-    const currentLat = userLocation?.latitude || viewState.latitude;
-    const currentLng = userLocation?.longitude || viewState.longitude;
-
-    // Mission C: Real-time Map Tracking
-    const riderLat = riderLocation?.lat || currentLat + 0.003;
-    const riderLng = riderLocation?.lng || currentLng + 0.004;
-
-    const routeGeoJson = {
-        type: "Feature" as const,
-        properties: {},
-        geometry: {
-            type: "LineString" as const,
-            coordinates: [
-                [currentLng, currentLat], // User
-                [currentLng + 0.001, currentLat + 0.001],
-                [currentLng + 0.001, currentLat + 0.003],
-                [riderLng, riderLat], // Rider
-            ],
-        },
-    };
-
-    const routeLayer: any = {
-        id: "route-line",
-        type: "line",
-        paint: {
-            "line-color": "#5260FE",
-            "line-width": 4,
-        },
-    };
-
-    const getStatusText = () => {
-        if (!order) return "Processing...";
-        switch (order.status) {
-            case 'pending': return 'Looking for a rider...';
-            case 'accepted': return 'Rider is on the way to pick up your order';
-            case 'picked_up': return 'Out for Delivery';
-            case 'success':
-            case 'delivered': return 'Delivered!';
-            case 'cancelled': return 'Order Cancelled';
-            default: return 'Processing...';
-        }
-    };
-
-    const isDelivered = order?.status === 'success' || order?.status === 'delivered';
-
-    return (
+          }
+        )
+        .subscribe();
+      // Set initial badge if order is active
+      if (!['delivered', 'success', 'cancelled', 'failed'].includes(order.status)) {
+        setBadge(1);
+      }
+      return () => {
+        supabase.removeChannel(channel);
+        supabase.removeChannel(orderChannel);
+      };
+    } else {
+      // If no order ID, we might be loading from a deep link or direct URL
+      // Simulate/Wait for data
+      const timer = setTimeout(() => setIsLoading(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [order?.rider_id, order?.id]);
+  useEffect(() => {
+    // Simulate rider entering the OTP after 60 seconds
+    const timer = setTimeout(async () => {
+      // ... (rest of the existing OTP verification logic)
+    }, 60000);
+    return () => clearTimeout(timer);
+  }, [navigate, order]);
+  // Calculate dynamic coordinates
+  const currentLat = userLocation?.latitude || viewState.latitude;
+  const currentLng = userLocation?.longitude || viewState.longitude;
+  // Mission C: Real-time Map Tracking
+  const riderLat = riderLocation?.lat || currentLat + 0.003;
+  const riderLng = riderLocation?.lng || currentLng + 0.004;
+  const routeGeoJson = {
+    type: 'Feature' as const,
+    properties: {},
+    geometry: {
+      type: 'LineString' as const,
+      coordinates: [
+        [currentLng, currentLat], // User
+        [currentLng + 0.001, currentLat + 0.001],
+        [currentLng + 0.001, currentLat + 0.003],
+        [riderLng, riderLat], // Rider
+      ],
+    },
+  };
+  const routeLayer: any = {
+    id: 'route-line',
+    type: 'line',
+    paint: {
+      'line-color': '#5260FE',
+      'line-width': 4,
+    },
+  };
+  const getStatusText = () => {
+    if (!order) return 'Processing...';
+    switch (order.status) {
+      case 'pending':
+        return 'Looking for a rider...';
+      case 'accepted':
+        return 'Rider is on the way to pick up your order';
+      case 'picked_up':
+        return 'Out for Delivery';
+      case 'success':
+      case 'delivered':
+        return 'Delivered!';
+      case 'cancelled':
+        return 'Order Cancelled';
+      default:
+        return 'Processing...';
+    }
+  };
+  const isDelivered = order?.status === 'success' || order?.status === 'delivered';
+  return (
+    <div
+      className={`fixed inset-0 w-full flex flex-col safe-top overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      style={{
+        backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
+        backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+      }}
+    >
+      {/* Light Mode Purple Glow */}
+      {!isDarkMode && (
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+      )}
+      {/* Header Overlay */}
+      <div className="fixed top-0 left-0 right-0 z-10 pointer-events-none">
         <div
-            className={`fixed inset-0 w-full flex flex-col safe-top overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
-            style={{
-                backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
-                backgroundImage: isDarkMode ? `url(${bgDarkMode})` : 'none',
-                backgroundSize: "cover",
-                backgroundPosition: "top center",
-                backgroundRepeat: "no-repeat",
-                willChange: 'transform',
-                transform: 'translateZ(0)'
-            }}
+          className="overflow-hidden pointer-events-auto"
+          style={{
+            backgroundColor: 'transparent',
+            paddingBottom: '24px',
+          }}
         >
-            {/* Light Mode Purple Glow */}
-            {!isDarkMode && (
-                <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
-            )}
-
-
-            {/* Header Overlay */}
-            <div className="fixed top-0 left-0 right-0 z-10 pointer-events-none">
-                <div
-                    className="overflow-hidden pointer-events-auto"
-                    style={{
-                        backgroundColor: "transparent",
-                        paddingBottom: "24px"
-                    }}
-                >
-                    <div
-                        className="safe-top pt-4 px-5 flex items-center justify-between"
-                    >
-                        <BackButton onClick={() => navigate('/home')} />
-
-
-                        <h1 className={`text-[18px] font-medium font-sans flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            Order Tracking
-                        </h1>
-                    </div>
-                </div>
-            </div>
-
-            {/* Map Container */}
-            <div
-                className="w-full relative overflow-hidden shrink-0 rounded-b-[32px] z-0"
-                style={{ height: "305px" }}
+          <div className="safe-top pt-4 px-5 flex items-center justify-between">
+            <BackButton onClick={() => navigate(ROUTES.HOME)} />
+            <h1
+              className={`text-[18px] font-medium font-sans flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}
             >
-                {isLoading ? (
-                    <Skeleton height={305} borderRadius={0} />
-                ) : (
-                    <Map
-                        {...viewState}
-                        onMove={evt => setViewState(evt.viewState)}
-                        style={{ width: "100%", height: "100%" }}
-                        mapStyle={isDarkMode ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-                        attributionControl={false}
-                        scrollZoom={false}
-                        dragPan={true}
-                    >
-                        <Source id="route" type="geojson" data={routeGeoJson}>
-                            <Layer {...routeLayer} />
-                        </Source>
-
-                        <Marker latitude={currentLat} longitude={currentLng}>
-                            <div className="animate-pulse">
-                                <img src={currentLocationIcon} alt="User" className="w-6 h-6" width={24} height={24} />
-                            </div>
-                        </Marker>
-
-                        <Marker latitude={riderLat} longitude={riderLng}>
-                            <img src={riderIcon} alt="Rider" className="w-8 h-8 drop-shadow-md" width={32} height={32} />
-                        </Marker>
-                    </Map>
-                )}
-            </div>
-
-            <div className="px-5 mt-[20px] relative z-0">
-                <div
-                    className={`w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
-                    style={{
-                        height: "135px",
-                        backgroundImage: isDarkMode ? `url(${arrivingContainerBg})` : 'none',
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        border: isDelivered ? "1px solid #16B751" : (isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid #E9EAEB")
-                    }}
-                >
-                    <div className="flex justify-between items-start mb-[8px]">
-                        <div className="flex flex-col">
-                            <p className="text-[#7E7E7E] text-[12px] font-bold font-satoshi tracking-widest uppercase leading-none">
-                                {isDelivered ? "ORDER STATUS" : "ARRIVING IN"}
-                            </p>
-                            <p className={`text-[20px] font-bold font-satoshi mt-[1px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ lineHeight: "140%", color: isDelivered ? "#1CB956" : undefined }}>
-                                {isDelivered ? 'Delivered' : order?.status === 'arrived' ? 'Arrived' : '1 Min'}
-                            </p>
-                        </div>
-                        <div
-                            className="absolute"
-                            style={{
-                                top: "11px",
-                                right: "15px",
-                                width: "31px",
-                                height: "31px"
-                            }}
-                        >
-                            <img src={isDelivered ? verifiedCircleIcon : arrivingIcon} alt="StatusIcon" className="w-full h-full" style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined} width={31} height={31} />
-                        </div>
-                    </div>
-
-                    {/* Loader */}
-                    <div className={`h-[9px] rounded-full overflow-hidden mb-[14px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-                        <div
-                            className="h-full rounded-full transition-all duration-300 ease-linear"
-                            style={{
-                                width: isDelivered ? "100%" : `${progress}%`,
-                                backgroundColor: isDelivered ? "#16B751" : "#5260FE",
-                                boxShadow: isDelivered ? "0 0 10px rgba(22, 183, 81, 0.5)" : "0 0 10px rgba(82,96,254,0.5)"
-                            }}
-                        />
-                    </div>
-
-                    <div>
-                        <p className={`text-[12px] font-medium font-satoshi mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            {isLoading ? <Skeleton width="40%" /> : getStatusText()}
-                        </p>
-                        <p className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
-                            {isLoading ? (
-                                <Skeleton count={2} />
-                            ) : (
-                                isDelivered
-                                    ? "Your package has been handed over successfully."
-                                    : order?.status === 'accepted'
-                                        ? "Your rider is heading to the pickup hub"
-                                        : order?.status === 'picked_up'
-                                            ? "Your rider is on the way to you!"
-                                            : order?.status === 'processing'
-                                                ? "We're assigning a partner to your request."
-                                                : "Your delivery partner and order are tracked in real-time."
-                            )}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Rider Details Container */}
-            <div className="px-[15px] mt-[16px] relative z-0">
-                <div
-                    className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px] overflow-hidden"
-                    style={{
-                        height: order?.rider_id ? "340px" : "auto",
-                        maxWidth: "362px",
-                        backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#FFFFFF",
-                        backdropFilter: isDarkMode ? "blur(25.02px)" : "none",
-                        border: isDarkMode ? "0.63px solid rgba(255, 255, 255, 0.12)" : "1px solid #E9EAEB",
-                    }}
-                >
-                    {order?.rider_id ? (
-                        <div className="flex items-start gap-[12px] mb-6">
-                            {/* Photo Frame */}
-                            <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
-                                <img
-                                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
-                                    alt="Rider"
-                                    className="w-full h-full object-cover"
-                                />
-                                {/* Verified Tag Bar */}
-                                <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
-                                    <img src={verifiedIcon} alt="V" className="w-[12px] h-[12px]" />
-                                    <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
-                                </div>
-                            </div>
-
-                            {/* Rider Info */}
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                            Hi, I’m {riderName || order?.rider?.full_name || 'Partner'},<br />
-                                            your delivery partner
-                                        </p>
-                                    </div>
-                                    <button
-                                        className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20"
-                                    >
-                                        <img src={callIcon} alt="Call" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={() => navigate(`/view-rider-kyc/${order.id}`, { state: { order } })}
-                                    className="mt-[15px] rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
-                                    style={{
-                                        width: "248px",
-                                        height: "36px",
-                                        backgroundColor: "#1CB956",
-                                    }}
-                                >
-                                    View KYC
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="mb-6">
-                            <p className={`text-[16px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                Hi, please wait while we connect your order to a nearby rider.
-                            </p>
-                        </div>
-                    )}
-
-                    <p className={`text-[14px] font-normal font-satoshi leading-snug mb-[8px] ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}>
-                        {order?.rider_id 
-                            ? "Your delivery partner is KYC Verified. Please check the KYC details while accepting the order." 
-                            : "Average assignment time: < 2 mins"}
-                    </p>
-
-                    <div className={`h-[1px] w-full mb-[12px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />
-
-                    {/* OTP Section */}
-                    <div>
-                        <p className={`text-[15px] font-bold font-satoshi mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                            Please provide this OTP to confirm the delivery
-                        </p>
-                        {order?.status === 'picked_up' && (
-                            <p className="text-[#5260FE] text-[12px] font-medium mb-3">
-                                Share this OTP with your rider only at the time of delivery
-                            </p>
-                        )}
-                        <div className="w-full flex justify-center mb-6">
-                            <div className="flex gap-2">
-                                {(order?.otp_code || "000000").split('').map((digit, index) => (
-                                    <div
-                                        key={`otp-${index}`}
-                                        className={`w-[48px] h-[64px] rounded-[7px] flex items-center justify-center text-[32px] font-bold font-satoshi relative overflow-hidden ${isDarkMode ? 'text-white' : 'text-black'}`}
-                                        style={{
-                                            backgroundColor: isDarkMode ? "rgba(25, 25, 25, 0.31)" : "#F7F8FA",
-                                            backdropFilter: isDarkMode ? "blur(23.51px)" : "none",
-                                            WebkitBackdropFilter: isDarkMode ? "blur(23.51px)" : "none",
-                                            border: isDarkMode ? 'none' : '1px solid #E6E8EB'
-                                        }}
-                                    >
-                                        {/* Gradient Border Overlay - 0.59px */}
-                                        {isDarkMode && (
-                                            <div
-                                                className="absolute inset-0 pointer-events-none rounded-[7px]"
-                                                style={{
-                                                    padding: "0.59px",
-                                                    background: "linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))",
-                                                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                                                    WebkitMaskComposite: "xor",
-                                                    maskComposite: "exclude",
-                                                }}
-                                            />
-                                        )}
-                                        {digit}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* OTP Status Row */}
-                    <div className="flex items-center w-full mt-[12px]">
-                        <div className="flex items-center gap-3">
-                            <img src={isOtpVerified ? verifiedCircleIcon : awaitingIcon} alt="Status" className="w-[20px] h-[20px]" />
-                            <span className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                                {isOtpVerified ? "OTP Verified" : "Awaiting OTP verification"}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Need Help CTA */}
-            <div className="px-5 mt-auto mt-[16px] safe-bottom pb-4 relative z-0">
-                <button
-                    onClick={() => navigate('/help/report', { state: { order } })}
-                    className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${!isDarkMode ? 'bg-black' : ''}`}
-                    style={{
-                        backgroundImage: isDarkMode ? `url(${darkbgCta})` : 'none',
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat"
-                    }}
-                >
-                    Need Help?
-                </button>
-            </div>
-            <DevModeOverlay orderId={order?.id} />
+              Order Tracking
+            </h1>
+          </div>
         </div>
-    );
+      </div>
+      {/* Map Container */}
+      <div
+        className="w-full relative overflow-hidden shrink-0 rounded-b-[32px] z-0"
+        style={{ height: '305px' }}
+      >
+        {isLoading ? (
+          <Skeleton height={305} borderRadius={0} />
+        ) : (
+          <Map
+            {...viewState}
+            onMove={evt => setViewState(evt.viewState)}
+            style={{ width: '100%', height: '100%' }}
+            mapStyle={
+              isDarkMode
+                ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+                : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+            }
+            attributionControl={false}
+            scrollZoom={false}
+            dragPan={true}
+          >
+            <Source id="route" type="geojson" data={routeGeoJson}>
+              <Layer {...routeLayer} />
+            </Source>
+            <Marker latitude={currentLat} longitude={currentLng}>
+              <div className="animate-pulse">
+                <img
+                  src={ASSETS.CURRENT_LOCATION}
+                  alt="User"
+                  className="w-6 h-6"
+                  width={24}
+                  height={24}
+                />
+              </div>
+            </Marker>
+            <Marker latitude={riderLat} longitude={riderLng}>
+              <img
+                src={ASSETS.RIDER}
+                alt="Rider"
+                className="w-8 h-8 drop-shadow-md"
+                width={32}
+                height={32}
+              />
+            </Marker>
+          </Map>
+        )}
+      </div>
+      <div className="px-5 mt-[20px] relative z-0">
+        <div
+          className={`w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
+          style={{
+            height: '135px',
+            backgroundImage: isDarkMode ? `url(${ASSETS.ARRIVING_CONTAINER})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            border: isDelivered
+              ? '1px solid #16B751'
+              : isDarkMode
+                ? '1px solid rgba(255,255,255,0.1)'
+                : '1px solid #E9EAEB',
+          }}
+        >
+          <div className="flex justify-between items-start mb-[8px]">
+            <div className="flex flex-col">
+              <p className="text-[#7E7E7E] text-[12px] font-bold font-satoshi tracking-widest uppercase leading-none">
+                {isDelivered ? 'ORDER STATUS' : 'ARRIVING IN'}
+              </p>
+              <p
+                className={`text-[20px] font-bold font-satoshi mt-[1px] ${isDarkMode ? 'text-white' : 'text-black'}`}
+                style={{ lineHeight: '140%', color: isDelivered ? '#1CB956' : undefined }}
+              >
+                {isDelivered ? 'Delivered' : order?.status === 'arrived' ? 'Arrived' : '1 Min'}
+              </p>
+            </div>
+            <div
+              className="absolute"
+              style={{
+                top: '11px',
+                right: '15px',
+                width: '31px',
+                height: '31px',
+              }}
+            >
+              <img
+                src={isDelivered ? ASSETS.VERIFIED_CIRCLE : ASSETS.ARRIVING}
+                alt="StatusIcon"
+                className="w-full h-full"
+                style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined}
+                width={31}
+                height={31}
+              />
+            </div>
+          </div>
+          {/* Loader */}
+          <div
+            className={`h-[9px] rounded-full overflow-hidden mb-[14px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-300 ease-linear"
+              style={{
+                width: isDelivered ? '100%' : `${progress}%`,
+                backgroundColor: isDelivered ? '#16B751' : '#5260FE',
+                boxShadow: isDelivered
+                  ? '0 0 10px rgba(22, 183, 81, 0.5)'
+                  : '0 0 10px rgba(82,96,254,0.5)',
+              }}
+            />
+          </div>
+          <div>
+            <p
+              className={`text-[12px] font-medium font-satoshi mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}
+            >
+              {isLoading ? <Skeleton width="40%" /> : getStatusText()}
+            </p>
+            <p
+              className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+            >
+              {isLoading ? (
+                <Skeleton count={2} />
+              ) : isDelivered ? (
+                'Your package has been handed over successfully.'
+              ) : order?.status === 'accepted' ? (
+                'Your rider is heading to the pickup hub'
+              ) : order?.status === 'picked_up' ? (
+                'Your rider is on the way to you!'
+              ) : order?.status === 'processing' ? (
+                "We're assigning a partner to your request."
+              ) : (
+                'Your delivery partner and order are tracked in real-time.'
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+      {/* Rider Details Container */}
+      <div className="px-[15px] mt-[16px] relative z-0">
+        <div
+          className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px] overflow-hidden"
+          style={{
+            height: order?.rider_id ? '340px' : 'auto',
+            maxWidth: '362px',
+            backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
+            backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+            border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
+          }}
+        >
+          {order?.rider_id ? (
+            <div className="flex items-start gap-[12px] mb-6">
+              {/* Photo Frame */}
+              <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
+                  alt="Rider"
+                  className="w-full h-full object-cover"
+                />
+                {/* Verified Tag Bar */}
+                <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
+                  <img src={ASSETS.VERIFIED} alt="V" className="w-[12px] h-[12px]" />
+                  <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
+                </div>
+              </div>
+              {/* Rider Info */}
+              <div className="flex-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p
+                      className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    >
+                      Hi, I’m {riderName || order?.rider?.full_name || 'Partner'},<br />
+                      your delivery partner
+                    </p>
+                  </div>
+                  <button className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20">
+                    <img
+                      src={ASSETS.CALL}
+                      alt="Call"
+                      className="w-full h-full"
+                      style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
+                    />
+                  </button>
+                </div>
+                <button
+                  onClick={() =>
+                    navigate(ROUTES.VIEW_RIDER_KYC.replace(':orderId', order.id), {
+                      state: { order },
+                    })
+                  }
+                  className="mt-[15px] rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
+                  style={{
+                    width: '248px',
+                    height: '36px',
+                    backgroundColor: '#1CB956',
+                  }}
+                >
+                  View KYC
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-6">
+              <p
+                className={`text-[16px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}
+              >
+                Hi, please wait while we connect your order to a nearby rider.
+              </p>
+            </div>
+          )}
+          <p
+            className={`text-[14px] font-normal font-satoshi leading-snug mb-[8px] ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+          >
+            {order?.rider_id
+              ? 'Your delivery partner is KYC Verified. Please check the KYC details while accepting the order.'
+              : 'Average assignment time: < 2 mins'}
+          </p>
+          <div
+            className={`h-[1px] w-full mb-[12px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+          />
+          {/* OTP Section */}
+          <div>
+            <p
+              className={`text-[15px] font-bold font-satoshi mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}
+            >
+              Please provide this OTP to confirm the delivery
+            </p>
+            {order?.status === 'picked_up' && (
+              <p className="text-[#5260FE] text-[12px] font-medium mb-3">
+                Share this OTP with your rider only at the time of delivery
+              </p>
+            )}
+            <div className="w-full flex justify-center mb-6">
+              <div className="flex gap-2">
+                {(order?.otp_code || '000000').split('').map((digit, index) => (
+                  <div
+                    key={`otp-${index}`}
+                    className={`w-[48px] h-[64px] rounded-[7px] flex items-center justify-center text-[32px] font-bold font-satoshi relative overflow-hidden ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    style={{
+                      backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#F7F8FA',
+                      backdropFilter: isDarkMode ? 'blur(23.51px)' : 'none',
+                      WebkitBackdropFilter: isDarkMode ? 'blur(23.51px)' : 'none',
+                      border: isDarkMode ? 'none' : '1px solid #E6E8EB',
+                    }}
+                  >
+                    {/* Gradient Border Overlay - 0.59px */}
+                    {isDarkMode && (
+                      <div
+                        className="absolute inset-0 pointer-events-none rounded-[7px]"
+                        style={{
+                          padding: '0.59px',
+                          background:
+                            'linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))',
+                          WebkitMask:
+                            'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                          WebkitMaskComposite: 'xor',
+                          maskComposite: 'exclude',
+                        }}
+                      />
+                    )}
+                    {digit}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* OTP Status Row */}
+          <div className="flex items-center w-full mt-[12px]">
+            <div className="flex items-center gap-3">
+              <img
+                src={isOtpVerified ? ASSETS.VERIFIED_CIRCLE : ASSETS.AWAITING}
+                alt="Status"
+                className="w-[20px] h-[20px]"
+              />
+              <span
+                className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
+              >
+                {isOtpVerified ? 'OTP Verified' : 'Awaiting OTP verification'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Need Help CTA */}
+      <div className="px-5 mt-auto mt-[16px] safe-bottom pb-4 relative z-0">
+        <button
+          onClick={() => navigate(ROUTES.HELP_REPORT, { state: { order } })}
+          className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${!isDarkMode ? 'bg-black' : ''}`}
+          style={{
+            backgroundImage: isDarkMode ? `url(${ASSETS.DARKBG_CTA})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
+          Need Help?
+        </button>
+      </div>
+      <DevModeOverlay orderId={order?.id} />
+    </div>
+  );
 };
-
 export default OrderTracking;
-

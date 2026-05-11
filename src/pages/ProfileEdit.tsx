@@ -1,25 +1,20 @@
-import { useNavigate } from "react-router-dom";
-import BackButton from "@/components/ui/BackButton";
-import React, {  useState, useRef, useEffect  } from 'react';
-import { useTheme } from "next-themes";
-import { useUser } from "@/contexts/UserContext";
-import { useAsset } from "@/hooks/useAsset";
-import avatarImg from "@/assets/avatar.png";
-import verifiedPng from "@/assets/verified.png";
-import inputFieldBg from "@/assets/input-field-bg.png";
-import buttonCancel from "@/assets/button-cancel.png";
-import gridPeLogo from "@/assets/grid.pe.svg";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useCustomToaster } from "@/contexts/CustomToasterContext";
-import { supabase } from "@/lib/supabase";
-
+import { ASSETS } from '@/constants/assets';
+import { useNavigate } from 'react-router-dom';
+import BackButton from '@/components/ui/BackButton';
+import React, { useState, useRef, useEffect } from 'react';
+import { useTheme } from 'next-themes';
+import { useUser } from '@/contexts/UserContext';
+import { useAsset } from '@/hooks/useAsset';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { supabase } from '@/lib/supabase';
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
-  const mainBg = useAsset("main-bg");
+  const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const {
     phoneNumber,
     name: contextName,
@@ -30,35 +25,29 @@ const ProfileEdit = () => {
     setEmail: setContextEmail,
     setEmailVerified: setContextEmailVerified,
     setProfileImage: setContextProfileImage,
-    profile
+    profile,
   } = useUser();
   const userId = profile?.id;
-
-  const [name, setName] = useState(contextName || "");
-  const [email, setEmail] = useState(contextEmail || "");
+  const [name, setName] = useState(contextName || '');
+  const [email, setEmail] = useState(contextEmail || '');
   const [emailVerified, setEmailVerified] = useState(contextEmailVerified || false);
   const [profileImage, setProfileImage] = useState<string | null>(contextImage);
   const [isEditing, setIsEditing] = useState(false); // Default to read-only
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const helperText = contextImage
-    ? "Add or update your profile photo."
-    : "Tap to add your beautiful mugshot. Or cat. We’re not picky.";
-
-  const ctaLabel = isEditing ? "Save My Identity" : "Edit My Identity";
-
+    ? 'Add or update your profile photo.'
+    : 'Tap to add your beautiful mugshot. Or cat. We’re not picky.';
+  const ctaLabel = isEditing ? 'Save My Identity' : 'Edit My Identity';
   // Determine Email UI State
   const isEmailNonEmpty = email.trim().length > 0;
   const isEmailModified = email !== contextEmail;
   const wasVerified = contextEmailVerified;
-
-  let emailHelperText = "Verify your email. C’mon, do it for the plot!";
+  let emailHelperText = 'Verify your email. C’mon, do it for the plot!';
   if (emailVerified) {
-    emailHelperText = "Nice, now we trust you. As a promise, no spams! ;)";
+    emailHelperText = 'Nice, now we trust you. As a promise, no spams! ;)';
   } else if (wasVerified && isEmailModified) {
-    emailHelperText = "Second thoughts? Do it for the plot (again).";
+    emailHelperText = 'Second thoughts? Do it for the plot (again).';
   }
-
   const handleSaveProfile = () => {
     if (!isEditing) {
       setIsEditing(true);
@@ -66,7 +55,6 @@ const ProfileEdit = () => {
       handleSave();
     }
   };
-
   const handleSave = async () => {
     try {
       const { error } = await supabase
@@ -74,29 +62,25 @@ const ProfileEdit = () => {
         .update({
           name,
           avatar_url: profileImage,
-          email
+          email,
         })
         .eq('id', userId);
-
       if (error) throw error;
-
       setContextName(name);
       setContextEmail(email);
       setContextEmailVerified(emailVerified);
       setContextProfileImage(profileImage);
-      showToaster("Profile updated successfully", 'success');
+      showToaster('Profile updated successfully', 'success');
       navigate(-1);
     } catch (error) {
-      console.error("Error updating profile:", error);
-      showToaster("Failed to update profile", 'error');
+      console.error('Error updating profile:', error);
+      showToaster('Failed to update profile', 'error');
     }
   };
-
   const handleVerify = () => {
     setEmailVerified(true);
-    showToaster("Email verified!", 'success');
+    showToaster('Email verified!', 'success');
   };
-
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -107,40 +91,36 @@ const ProfileEdit = () => {
       reader.readAsDataURL(file);
     }
   };
-
   const triggerFileInput = () => {
     if (isEditing) {
       fileInputRef.current?.click();
     }
   };
-
   return (
     <div
       className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col"
       style={{
-        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',
-        backgroundSize: "cover",
-        backgroundPosition: "top center",
-        backgroundRepeat: "no-repeat",
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Header */}
       <div className="px-5 safe-top pt-4 flex items-center justify-between shrink-0">
         <BackButton onClick={() => navigate(-1)} />
-
         <h1 className="text-foreground text-[18px] font-semibold">Profile</h1>
         <div className="w-10" /> {/* Spacer */}
       </div>
-
       <div className="px-5 mt-8">
         <div className="bg-white dark:bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-[#E9EAEB] dark:border-white/10 h-[101px]">
           <img
-            src={profileImage || avatarImg}
+            src={profileImage || ASSETS.AVATAR}
             alt="Profile"
             className="w-16 h-16 rounded-full object-cover"
             style={{
-              border: '4px solid rgba(255, 255, 255, 0.17)'
+              border: '4px solid rgba(255, 255, 255, 0.17)',
             }}
           />
           <div className="flex-1">
@@ -156,11 +136,16 @@ const ProfileEdit = () => {
               onClick={triggerFileInput}
               disabled={!isEditing}
               className={`px-4 h-[32px] flex items-center justify-center rounded-full text-[14px] ${isDarkMode ? 'text-foreground' : 'text-white bg-black'} mb-2 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
-              style={isDarkMode ? {
-                backgroundImage: 'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")',
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              } : {}}
+              style={
+                isDarkMode
+                  ? {
+                      backgroundImage:
+                        'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }
+                  : {}
+              }
             >
               Upload Photo
             </button>
@@ -169,34 +154,31 @@ const ProfileEdit = () => {
             </p>
           </div>
         </div>
-
         <div className="mt-8">
           <p className="mb-[10px] text-muted-foreground text-[14px] font-bold tracking-wider">
             PERSONAL INFORMATION
           </p>
-
           <Input
             placeholder="What should we call you?"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={e => setName(e.target.value)}
             disabled={!isEditing}
             className="w-full h-[48px] rounded-full text-black dark:text-white placeholder:text-muted-foreground/60 px-6 border-[#E6E8EB] dark:border-none text-[14px] disabled:opacity-70 disabled:cursor-not-allowed"
             style={{
-              backgroundImage: isDarkMode ? `url(${inputFieldBg})` : 'none',
+              backgroundImage: isDarkMode ? `url(${ASSETS.INPUT_FIELD_BG})` : 'none',
               backgroundSize: '100% 100%',
               backgroundRepeat: 'no-repeat',
-              backgroundColor: isDarkMode ? 'transparent' : '#F7F8FA'
+              backgroundColor: isDarkMode ? 'transparent' : '#F7F8FA',
             }}
           />
-
           <div className="space-y-2 mt-[21px]">
             <div
               className="w-full h-[48px] rounded-full flex items-center px-6 justify-between border-[#E6E8EB] dark:border-none opacity-70 cursor-not-allowed"
               style={{
-                backgroundImage: isDarkMode ? `url(${inputFieldBg})` : 'none',
+                backgroundImage: isDarkMode ? `url(${ASSETS.INPUT_FIELD_BG})` : 'none',
                 backgroundSize: '100% 100%',
                 backgroundRepeat: 'no-repeat',
-                backgroundColor: isDarkMode ? 'transparent' : '#F3F3F3'
+                backgroundColor: isDarkMode ? 'transparent' : '#F3F3F3',
               }}
             >
               <div className="flex items-center gap-4 flex-1">
@@ -206,37 +188,31 @@ const ProfileEdit = () => {
                   {phoneNumber?.replace('+91', '').replace(/\s/g, '') || contextEmail}
                 </span>
               </div>
-              <img
-                src={verifiedPng}
-                className="w-4 h-4 object-contain"
-                alt="Verified"
-              />
+              <img src={ASSETS.VERIFIED} className="w-4 h-4 object-contain" alt="Verified" />
             </div>
             <p className="text-black dark:text-[#5B5B5B] text-[14px] font-normal px-4">
               This is how we know it's you. Or your evil twin.
             </p>
           </div>
-
           <div className="mt-[32px]">
             <div className="relative">
               <Input
                 placeholder="Drop your email, the real one."
                 value={email}
-                onChange={(e) => setEmail(e.target.value.toLowerCase())}
+                onChange={e => setEmail(e.target.value.toLowerCase())}
                 disabled={!isEditing}
                 className="w-full h-[48px] rounded-full text-black dark:text-white placeholder:text-muted-foreground/60 px-6 border-[#E6E8EB] dark:border-none text-[14px] pr-[100px] disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{
-                  backgroundImage: isDarkMode ? `url(${inputFieldBg})` : 'none',
+                  backgroundImage: isDarkMode ? `url(${ASSETS.INPUT_FIELD_BG})` : 'none',
                   backgroundSize: '100% 100%',
                   backgroundRepeat: 'no-repeat',
-                  backgroundColor: isDarkMode ? 'transparent' : '#F7F8FA'
+                  backgroundColor: isDarkMode ? 'transparent' : '#F7F8FA',
                 }}
               />
-
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
                 {emailVerified ? (
                   <img
-                    src={verifiedPng}
+                    src={ASSETS.VERIFIED}
                     className="w-4 h-4 object-contain mr-2"
                     alt="Verified"
                   />
@@ -245,14 +221,16 @@ const ProfileEdit = () => {
                     onClick={handleVerify}
                     className="px-4 h-[32px] flex items-center justify-center rounded-full text-[14px] text-foreground"
                     style={{
-                      backgroundImage: isDarkMode ? 'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")' : 'none',
+                      backgroundImage: isDarkMode
+                        ? 'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")'
+                        : 'none',
                       backgroundColor: isDarkMode ? 'transparent' : '#000000',
                       color: isDarkMode ? 'inherit' : '#ffffff',
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
                     }}
                   >
-                    {wasVerified ? "Change?" : "Verify"}
+                    {wasVerified ? 'Change?' : 'Verify'}
                   </button>
                 ) : null}
               </div>
@@ -261,7 +239,6 @@ const ProfileEdit = () => {
               {emailHelperText}
             </p>
           </div>
-
           <Button
             onClick={handleSaveProfile}
             className="w-full h-[48px] rounded-full text-[16px] font-medium bg-[#5260FE] hover:bg-[#5260FE]/90 text-white border-none mt-[65px]"
@@ -272,25 +249,24 @@ const ProfileEdit = () => {
             onClick={() => navigate(-1)}
             className="w-full h-[48px] rounded-full text-[16px] font-medium flex items-center justify-center transition-transform active:scale-95 mt-[14px]"
             style={{
-              backgroundImage: isDarkMode ? `url(${buttonCancel})` : 'none',
+              backgroundImage: isDarkMode ? `url(${ASSETS.BUTTON_CANCEL})` : 'none',
               backgroundColor: isDarkMode ? 'transparent' : '#EBEBEB',
               color: isDarkMode ? '#FFFFFF' : '#000000',
               backgroundSize: '100% 100%',
-              backgroundRepeat: 'no-repeat'
+              backgroundRepeat: 'no-repeat',
             }}
           >
             Cancel
           </button>
         </div>
       </div>
-
       <div className="px-5 safe-bottom pb-4 opacity-40 flex flex-col items-start mt-auto">
-        <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">grid.pe</p>
+        <p className="font-satoshi font-black text-[40px] text-foreground leading-none tracking-tight">
+          grid.pe
+        </p>
         <p className="text-sm mt-1">This is not where you find love.</p>
       </div>
-    </div >
+    </div>
   );
 };
-
 export default ProfileEdit;
-

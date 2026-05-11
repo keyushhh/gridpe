@@ -1,15 +1,15 @@
-import { useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import CardSkeleton from '@/components/skeletons/CardSkeleton';
 
 const AuthCallback = () => {
   useEffect(() => {
     const handleAuth = async () => {
-      
       // Robust Token Extraction for HashRouter
       // HashRouter puts its own route after the first #/
       // Google Auth puts Supabase tokens after ANOTHER # or in the same fragment
       // Example: /#/auth/v1/callback#access_token=...&refresh_token=...
-      
+
       const fullUrl = window.location.href;
 
       // 1. Manually extract tokens if they are in the fragment
@@ -26,13 +26,13 @@ const AuthCallback = () => {
         if (accessToken && refreshToken) {
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: refreshToken
+            refresh_token: refreshToken,
           });
-          
+
           if (!error) {
             tokensFound = true;
           } else {
-            console.error("AuthCallback: Error setting session:", error);
+            console.error('AuthCallback: Error setting session:', error);
           }
         }
       }
@@ -44,12 +44,14 @@ const AuthCallback = () => {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (!error) tokensFound = true;
-        else console.error("AuthCallback: Exchange error:", error);
+          else console.error('AuthCallback: Exchange error:', error);
         }
       }
 
       // 3. Final Check & Redirect
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session || tokensFound) {
         // We use window.location.href to break out of any stale router state
         window.location.href = `${window.location.origin}/#/`;
@@ -64,9 +66,9 @@ const AuthCallback = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[#0a0a12] text-white">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    <div className="flex flex-col items-center justify-center h-screen bg-[#0a0a12] text-white px-5">
+      <div className="w-full max-w-sm flex flex-col items-center gap-6">
+        <CardSkeleton height={120} />
         <p className="text-[14px] font-medium font-satoshi animate-pulse">Completing sign in...</p>
       </div>
     </div>

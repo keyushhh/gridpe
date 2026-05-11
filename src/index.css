@@ -89,12 +89,12 @@ html.font-pending body {
   button,
   a,
   input,
-  [role="button"],
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"],
-  input[type="checkbox"],
-  input[type="radio"],
+  [role='button'],
+  input[type='button'],
+  input[type='submit'],
+  input[type='reset'],
+  input[type='checkbox'],
+  input[type='radio'],
   label,
   summary {
     touch-action: manipulation;
@@ -187,16 +187,18 @@ html.font-pending body {
     -webkit-overflow-scrolling: touch;
   }
 
-
-
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-start)) 0%,
+      hsl(var(--gradient-end)) 100%
+    );
   }
 
   /* Special button gradient with blend mode effect */
   .btn-gradient {
     position: relative;
-    background-color: #5260FE;
+    background-color: #5260fe;
     overflow: hidden;
   }
 
@@ -204,7 +206,12 @@ html.font-pending body {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
     mix-blend-mode: overlay;
     pointer-events: none;
   }
@@ -218,12 +225,17 @@ html.font-pending body {
   }
 
   .gradient-bg {
-    background: radial-gradient(ellipse at 50% 0%, hsl(234 89% 64% / 0.15) 0%, transparent 50%),
+    background:
+      radial-gradient(ellipse at 50% 0%, hsl(234 89% 64% / 0.15) 0%, transparent 50%),
       linear-gradient(180deg, hsl(222 47% 8%) 0%, hsl(222 47% 4%) 100%);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-start)) 0%,
+      hsl(var(--gradient-end)) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -302,16 +314,23 @@ html.font-pending body {
     padding: 1px;
     /* The 'Stardust'-prevention stroke width */
     /* Master 'Contour Stroke' logic */
-    background: conic-gradient(from var(--glass-specular-angle, 135deg), transparent, white, transparent);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, var(--glass-rim-mask, linear-gradient(#fff 0 0));
-    mask: linear-gradient(#fff 0 0) content-box, var(--glass-rim-mask, linear-gradient(#fff 0 0));
+    background: conic-gradient(
+      from var(--glass-specular-angle, 135deg),
+      transparent,
+      white,
+      transparent
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      var(--glass-rim-mask, linear-gradient(#fff 0 0));
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      var(--glass-rim-mask, linear-gradient(#fff 0 0));
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: var(--glass-specular-intensity, 0.6);
     mix-blend-mode: plus-lighter;
   }
-
-
 
   /* Scoped Density: Internal Banner CTA (Check Security) */
   .glass-physics-cta {
@@ -328,7 +347,7 @@ html.font-pending body {
     --glass-blur: 4px;
     --glass-specular-intensity: 0.5;
     --glass-specular-angle: 0deg;
-    --glass-specular-color: #E0E7FF;
+    --glass-specular-color: #e0e7ff;
     /* Inner Glow for shape definition */
     box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.1);
   }
@@ -340,22 +359,29 @@ html.font-pending body {
   }
 
   .glass-physics-search .glass-rim-v2 {
-    background: conic-gradient(from var(--glass-specular-angle, 0deg), transparent, var(--glass-specular-color, white), transparent);
+    background: conic-gradient(
+      from var(--glass-specular-angle, 0deg),
+      transparent,
+      var(--glass-specular-color, white),
+      transparent
+    );
     mix-blend-mode: color-dodge;
     opacity: var(--glass-specular-intensity);
   }
 }
 
 .dark .glass-physics-search {
-  --glass-tint: #000000BA;
+  --glass-tint: #000000ba;
   --glass-tint-opacity: 0.73;
 }
 
 :root:not(.dark) .glass-physics-search {
-  --glass-tint: #FFFFFFB5;
+  --glass-tint: #ffffffb5;
   --glass-tint-opacity: 0.71;
   /* Light Mode Specifics: Ambient Dropshadow + Inner Glow + Inline Stroke */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(230, 232, 235, 0.4);
 }
 

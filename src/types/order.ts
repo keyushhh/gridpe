@@ -1,7 +1,17 @@
 import { Tables } from './database';
 import { Address } from './user';
 
-export type OrderStatus = 'pending' | 'accepted' | 'picked_up' | 'arrived' | 'delivered' | 'cancelled' | 'failed' | 'processing' | 'success' | 'out_for_delivery';
+export type OrderStatus =
+  | 'pending'
+  | 'accepted'
+  | 'picked_up'
+  | 'arrived'
+  | 'delivered'
+  | 'cancelled'
+  | 'failed'
+  | 'processing'
+  | 'success'
+  | 'out_for_delivery';
 
 export interface Rider {
   id: string;

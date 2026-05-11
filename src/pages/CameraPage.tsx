@@ -1,19 +1,16 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { X, Loader2 } from "lucide-react";
-import Webcam from "react-webcam";
-import { createWorker } from "tesseract.js";
-import flashIcon from "@/assets/flash.png";
-import shutterIcon from "@/assets/shutter.png";
-import cameraScanFrame from "@/assets/camera-scan-frame.png";
-
+import { ASSETS } from '@/constants/assets';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/routes';
+import { X, Loader2 } from 'lucide-react';
+import Webcam from 'react-webcam';
+import { createWorker } from 'tesseract.js';
 const CameraPage = () => {
   const navigate = useNavigate();
   const webcamRef = useRef<Webcam>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-
   const processImage = async (imageSrc: string) => {
     setIsProcessing(true);
     try {
@@ -22,51 +19,47 @@ const CameraPage = () => {
           if (m.status === 'recognizing text') {
             setProgress(parseInt((m.progress * 100).toFixed(0)));
           }
-        }
+        },
       });
-
-      const { data: { text } } = await worker.recognize(imageSrc);
+      const {
+        data: { text },
+      } = await worker.recognize(imageSrc);
       await worker.terminate();
-
-
       // Simple regex for card number (16 digits, possibly with spaces)
       const cardNumberMatch = text.replace(/\s/g, '').match(/\d{16}/);
       // Simple regex for expiry date (MM/YY or MM/YYYY)
       const expiryMatch = text.match(/(0[1-9]|1[0-2])\/?([2-9][0-9])/);
-
       if (cardNumberMatch) {
-        navigate("/cards/add", {
+        navigate(ROUTES.ADD_CARD, {
           state: {
             scanned: true,
             cardNumber: cardNumberMatch[0],
-            expiry: expiryMatch ? `${expiryMatch[1]}/${expiryMatch[2]}` : "",
-            cardHolder: "ABC" // As requested by user
-          }
+            expiry: expiryMatch ? `${expiryMatch[1]}/${expiryMatch[2]}` : '',
+            cardHolder: 'ABC', // As requested by user
+          },
         });
       } else {
         // Fallback for demo/manual trigger if no number found but shutter clicked
-        navigate("/cards/add", {
+        navigate(ROUTES.ADD_CARD, {
           state: {
             scanned: true,
-            cardNumber: "4242424242424242", // Default for demo as requested
-            expiry: "12/28",
-            cardHolder: "ABC"
-          }
+            cardNumber: '4242424242424242', // Default for demo as requested
+            expiry: '12/28',
+            cardHolder: 'ABC',
+          },
         });
       }
     } catch (err) {
-      console.error("OCR Error:", err);
+      console.error('OCR Error:', err);
       setIsProcessing(false);
     }
   };
-
   const handleCapture = useCallback(() => {
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
       processImage(imageSrc);
     }
   }, [webcamRef]);
-
   // Auto-scan trial (optional, every 3s if not processing)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -76,7 +69,6 @@ const CameraPage = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [isProcessing, isCapturing, handleCapture]);
-
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col safe-top safe-bottom">
       {/* Camera Header */}
@@ -89,7 +81,6 @@ const CameraPage = () => {
         </button>
         <div className="absolute top-4 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.8)]"></div>
       </div>
-
       {/* Camera Viewport */}
       <div className="flex-1 relative bg-black flex flex-col items-center justify-center overflow-hidden">
         <Webcam
@@ -97,13 +88,15 @@ const CameraPage = () => {
           ref={webcamRef}
           screenshotFormat="image/jpeg"
           className="absolute inset-0 w-full h-full object-cover"
-          videoConstraints={{ facingMode: "environment" }}
+          videoConstraints={{ facingMode: 'environment' }}
         />
-
         {/* Frame Asset Overlay */}
         <div className="relative w-[85%] aspect-[1.586/1] max-w-[360px] flex items-center justify-center z-10">
-          <img src={cameraScanFrame} alt="Align Card" className="w-full h-full object-contain" />
-
+          <img
+            src={ASSETS.CAMERA_SCAN_FRAME}
+            alt="Align Card"
+            className="w-full h-full object-contain"
+          />
           {isProcessing && (
             <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center rounded-xl backdrop-blur-sm">
               <Loader2 className="w-8 h-8 text-white animate-spin mb-2" />
@@ -111,19 +104,18 @@ const CameraPage = () => {
             </div>
           )}
         </div>
-
         {/* Text Instructions */}
         <div className="relative mt-12 flex flex-col items-center gap-4 z-10">
           <p className="text-white text-[20px] font-normal text-center">
             Align your card within the frame
           </p>
-
           <div className="w-[256px] h-[34px] bg-[#090909]/80 rounded-full flex items-center justify-center border border-white/5 backdrop-blur-sm">
-            <span className="text-white/80 text-[12px] font-normal">Avoid glare, light background.</span>
+            <span className="text-white/80 text-[12px] font-normal">
+              Avoid glare, light background.
+            </span>
           </div>
         </div>
       </div>
-
       {/* Camera Controls */}
       <div className="h-[120px] pb-8 flex items-center justify-center relative bg-black px-8">
         <button
@@ -131,18 +123,15 @@ const CameraPage = () => {
           disabled={isProcessing}
           className={`w-20 h-20 rounded-full flex items-center justify-center transition-transform z-20 ${isProcessing ? 'scale-90 opacity-50' : 'active:scale-95'}`}
         >
-          <img src={shutterIcon} alt="Capture" className="w-full h-full object-contain" />
+          <img src={ASSETS.SHUTTER} alt="Capture" className="w-full h-full object-contain" />
         </button>
-
         <div className="absolute inset-0 flex items-center justify-end px-12 pointer-events-none">
           <button className="w-8 h-8 flex items-center justify-center pointer-events-auto">
-            <img src={flashIcon} alt="Flash" className="w-full h-full object-contain" />
+            <img src={ASSETS.FLASH} alt="Flash" className="w-full h-full object-contain" />
           </button>
         </div>
       </div>
     </div>
   );
 };
-
 export default CameraPage;
-

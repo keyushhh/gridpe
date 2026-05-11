@@ -1,156 +1,161 @@
-import { useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
-import { hapticLight } from "@/utils/haptics";
-
-import addNavIcon from "@/assets/add-nav.svg";
-import navHome from "@/assets/nav-home.svg";
-import navHomeInactive from "@/assets/nav-home-inactive.png";
-import navCards from "@/assets/nav-cards.svg";
-import navCardsActive from "@/assets/nav-cards-active.png";
-import navRewards from "@/assets/nav-rewards.svg";
-import navRewardsActive from "@/assets/rewards-filled.svg";
-import navMore from "@/assets/more.svg";
-import navMoreFilled from "@/assets/more-filled.svg";
-import navbarOverlay from "@/assets/navbar-overlay.png";
-import navbarLight from "@/assets/navbar-light.png";
-import homeLight from "@/assets/home-light.svg";
-import homeNotselectedLight from "@/assets/home-notselected-light.svg";
-import cardLight from "@/assets/card-light.svg";
-import cardSelectedLight from "@/assets/card-selected-light.svg";
-import fabLight from "@/assets/fab-light.svg";
-import rewardLight from "@/assets/reward-light.svg";
-import rewardsSelectedLight from "@/assets/rewards-selected-light.svg";
-import moreLight from "@/assets/more-light.svg";
-import moreSelectedLight from "@/assets/more-selected-light.svg";
-
+import { ASSETS } from '@/constants/assets';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from 'next-themes';
+import { hapticLight } from '@/utils/haptics';
+import { ROUTES } from '@/routes';
 interface BottomNavigationProps {
-  activeTab?: "home" | "cards" | "rewards" | "more" | "";
+  activeTab?: 'home' | 'cards' | 'rewards' | 'more' | '';
   isHidden?: boolean;
 }
-
 const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
-
-
   if (isHidden) return null;
-
   return (
     <footer
       className={`fixed bottom-0 left-0 right-0 w-full z-50 ${isDarkMode ? 'bg-[#0a0a12] border-t border-white/5' : 'bg-white border-t border-[#E9EAEB]'}`}
       style={{
-        paddingBottom: "env(safe-area-inset-bottom)",
-        boxShadow: '0 -10px 30px rgba(0,0,0,0.15)'
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
       }}
     >
       {/* Background Overlay */}
       <div
         className="absolute inset-0 pointer-events-none z-[-1]"
         style={{
-          backgroundImage: `url(${isDarkMode ? navbarOverlay : navbarLight})`,
+          backgroundImage: `url(${isDarkMode ? ASSETS.NAVBAR_OVERLAY : ASSETS.NAVBAR_LIGHT})`,
           backgroundSize: 'cover',
           backgroundPosition: 'bottom center',
-          opacity: isDarkMode ? 0.08 : 0.9
+          opacity: isDarkMode ? 0.08 : 0.9,
         }}
       />
-      
       <div className="h-[64px] flex items-center justify-between px-6 pt-2">
         {/* Home */}
         <button
           onClick={() => {
             hapticLight();
-            navigate("/home");
+            navigate(ROUTES.HOME);
           }}
           className="flex flex-col items-center justify-center gap-1 w-12 h-12"
         >
           <img
-            src={!isDarkMode ? (activeTab === "home" ? homeLight : homeNotselectedLight) : (activeTab === "home" ? navHome : navHomeInactive)}
+            src={
+              !isDarkMode
+                ? activeTab === 'home'
+                  ? ASSETS.HOME_LIGHT
+                  : ASSETS.HOME_NOTSELECTED_LIGHT
+                : activeTab === 'home'
+                  ? ASSETS.NAV_HOME
+                  : ASSETS.NAV_HOME_INACTIVE
+            }
             alt="Home"
             className="w-6 h-6 object-contain"
           />
           <span
-            className={`text-[10px] font-medium ${activeTab === "home" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+            className={`text-[10px] font-medium ${activeTab === 'home' ? (isDarkMode ? 'text-white' : 'text-black') : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
           >
             Home
           </span>
         </button>
-
         {/* Cards */}
         <button
           onClick={() => {
             hapticLight();
-            navigate("/cards");
+            navigate(ROUTES.CARDS);
           }}
           className="flex flex-col items-center justify-center gap-1 w-12 h-12"
         >
           <img
-            src={!isDarkMode ? (activeTab === "cards" ? cardSelectedLight : cardLight) : (activeTab === "cards" ? navCardsActive : navCards)}
+            src={
+              !isDarkMode
+                ? activeTab === 'cards'
+                  ? ASSETS.CARD_SELECTED_LIGHT
+                  : ASSETS.CARD_LIGHT
+                : activeTab === 'cards'
+                  ? ASSETS.NAV_CARDS_ACTIVE
+                  : ASSETS.NAV_CARDS
+            }
             alt="Cards"
             className="w-6 h-6 object-contain"
           />
           <span
-            className={`text-[10px] font-medium ${activeTab === "cards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+            className={`text-[10px] font-medium ${activeTab === 'cards' ? (isDarkMode ? 'text-white' : 'text-black') : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
           >
             Cards
           </span>
         </button>
-
         {/* Center FAB Space */}
         <div className="flex items-center justify-center -mt-8">
           <button
             onClick={() => {
               hapticLight();
-              navigate("/wallet-add-money");
+              navigate(ROUTES.WALLET_ADD_MONEY);
             }}
             className="w-[68px] h-[68px] rounded-full flex items-center justify-center transition-transform active:scale-90 z-20"
             style={{
-              boxShadow: isDarkMode ? '0 8px 16px rgba(0, 0, 0, 0.4)' : '0 4px 12px rgba(0,0,0,0.15)'
+              boxShadow: isDarkMode
+                ? '0 8px 16px rgba(0, 0, 0, 0.4)'
+                : '0 4px 12px rgba(0,0,0,0.15)',
             }}
           >
             <img
-              src={!isDarkMode ? fabLight : addNavIcon}
+              src={!isDarkMode ? ASSETS.FAB_LIGHT : ASSETS.ADD_NAV}
               alt="Add Money"
               className="w-full h-full object-contain pointer-events-none"
             />
           </button>
         </div>
-
         {/* Rewards */}
         <button
           onClick={() => {
             hapticLight();
-            navigate("/rewards");
+            navigate(ROUTES.REWARDS);
           }}
           className="flex flex-col items-center justify-center gap-1 w-12 h-12"
         >
           <img
-            src={!isDarkMode ? (activeTab === "rewards" ? rewardsSelectedLight : rewardLight) : (activeTab === "rewards" ? navRewardsActive : navRewards)}
+            src={
+              !isDarkMode
+                ? activeTab === 'rewards'
+                  ? ASSETS.REWARDS_SELECTED_LIGHT
+                  : ASSETS.REWARD_LIGHT
+                : activeTab === 'rewards'
+                  ? ASSETS.REWARDS_FILLED
+                  : ASSETS.NAV_REWARDS
+            }
             alt="Rewards"
             className="w-6 h-6 object-contain"
           />
           <span
-            className={`text-[10px] font-medium ${activeTab === "rewards" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+            className={`text-[10px] font-medium ${activeTab === 'rewards' ? (isDarkMode ? 'text-white' : 'text-black') : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
           >
             Rewards
           </span>
         </button>
-
         {/* More */}
         <button
           onClick={() => {
             hapticLight();
-            navigate("/more");
+            navigate(ROUTES.MORE);
           }}
           className="flex flex-col items-center justify-center gap-1 w-12 h-12"
         >
           <img
-            src={!isDarkMode ? (activeTab === "more" ? moreSelectedLight : moreLight) : (activeTab === "more" ? navMoreFilled : navMore)}
+            src={
+              !isDarkMode
+                ? activeTab === 'more'
+                  ? ASSETS.MORE_SELECTED_LIGHT
+                  : ASSETS.MORE_LIGHT
+                : activeTab === 'more'
+                  ? ASSETS.MORE_FILLED
+                  : ASSETS.MORE
+            }
             alt="More"
             className="w-6 h-6 object-contain"
           />
           <span
-            className={`text-[10px] font-medium ${activeTab === "more" ? (isDarkMode ? "text-white" : "text-black") : (isDarkMode ? "text-white/40" : "text-black/40")}`}
+            className={`text-[10px] font-medium ${activeTab === 'more' ? (isDarkMode ? 'text-white' : 'text-black') : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
           >
             More
           </span>
@@ -159,5 +164,4 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
     </footer>
   );
 };
-
 export default BottomNavigation;

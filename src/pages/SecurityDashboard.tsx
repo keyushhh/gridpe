@@ -1,83 +1,65 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import BackButton from "@/components/ui/BackButton";
-import { ChevronRight } from "lucide-react";
-import { useUser } from "@/contexts/UserContext";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
-import bannerIncomplete from "@/assets/banner-incomplete.png";
-import bannerPending from "@/assets/banner-pending.png";
-import bannerComplete from "@/assets/banner-complete.png";
-import kycAlertIcon from "@/assets/kyc-alert-icon.png";
-import kycBadge from "@/assets/kyc-badge.png";
-import kycIconMenu from "@/assets/kyc-icon-menu.png";
-import biometricIcon from "@/assets/biometric-icon-menu.png";
-import mpinIcon from "@/assets/mpin-icon.png";
-import deleteAccountIcon from "@/assets/delete-account-icon.png";
-import toggleActive from "@/assets/toggle-active.png";
-import toggleInactive from "@/assets/toggle-inactive.png";
-import Lottie from "lottie-react";
-import { useTheme } from "next-themes";
-import { useAsset } from "@/hooks/useAsset";
-import gridpeRadarAnimation from "@/assets/gridpe-radar.json";
-import errorRadarAnimation from "@/assets/error.json";
-import inProgressRadarAnimation from "@/assets/in-progress.json";
-import MpinSheet from "@/components/MpinSheet";
-import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
-import { SecureStorage } from "@aparajita/capacitor-secure-storage";
-import { toast } from "sonner";
-import { Switch } from "@/components/ui/switch";
-import { hapticLight } from "@/utils/haptics";
-import { Capacitor } from "@capacitor/core";
-import { useWebScroll } from "@/hooks/useWebScroll";
-
+import { ASSETS } from '@/constants/assets';
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ROUTES } from '@/routes';
+import BackButton from '@/components/ui/BackButton';
+import { ChevronRight } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
+import Lottie from 'lottie-react';
+import { useTheme } from 'next-themes';
+import { useAsset } from '@/hooks/useAsset';
+import MpinSheet from '@/components/MpinSheet';
+import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
+import { SecureStorage } from '@aparajita/capacitor-secure-storage';
+import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
+import { hapticLight } from '@/utils/haptics';
+import { Capacitor } from '@capacitor/core';
+import { useWebScroll } from '@/hooks/useWebScroll';
 const SecurityDashboard = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const originPath = (location.state as any)?.originPath || "/settings";
+  const originPath = (location.state as any)?.originPath || '/settings';
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
   const { profile, kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showMpinForBiometric, setShowMpinForBiometric] = useState(false);
-
   // Local device-level gate state, initialized from localStorage
   const [isDeviceEnabled, setIsDeviceEnabled] = useState(() => {
     return localStorage.getItem('biometrics_enabled') === 'true';
   });
-
   // Get assets via useAsset for theme support
-  const securityCompleteAsset = useAsset("security-complete");
-  const securityPendingAsset = useAsset("security-pending");
-  const securityIncompleteAsset = useAsset("security-incomplete");
-  const mainBg = useAsset("main-bg");
-
+  const securityCompleteAsset = useAsset(ASSETS.SECURITY_COMPLETE, ASSETS.SECURITY_ACTIVE_LIGHT);
+  const securityPendingAsset = useAsset(ASSETS.SECURITY_PENDING, ASSETS.SECURITY_PENDING_LIGHT);
+  const securityIncompleteAsset = useAsset(
+    ASSETS.SECURITY_INCOMPLETE,
+    ASSETS.SECURITY_INCOMPLETE_LIGHT
+  );
+  const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const getStatusBanner = () => {
     // Shared Color Schema with Settings.tsx (21% opacity bg, 100% border)
     const colors: Record<string, string> = {
-      incomplete: "#FF1E1E",
-      pending: "#FF1E1E",
-      in_review: "#FACC15",
-      verified: "#1CB956"
+      incomplete: '#FF1E1E',
+      pending: '#FF1E1E',
+      in_review: '#FACC15',
+      verified: '#1CB956',
     };
-
     const statusLabel = {
-      incomplete: "Security Breach-ish.",
-      pending: "Security Breach-ish.",
-      in_review: "In Progress…",
-      verified: "Looks Good!"
+      incomplete: 'Security Breach-ish.',
+      pending: 'Security Breach-ish.',
+      in_review: 'In Progress…',
+      verified: 'Looks Good!',
     };
-
     const statusSubtext = {
-      incomplete: "Some settings need your attention. Give ‘em a tap.",
-      pending: "Some settings need your attention. Give ‘em a tap.",
-      in_review: "We’re working our magic. Check back soon.",
-      verified: "Your security setup looks good and completed."
+      incomplete: 'Some settings need your attention. Give ‘em a tap.',
+      pending: 'Some settings need your attention. Give ‘em a tap.',
+      in_review: 'We’re working our magic. Check back soon.',
+      verified: 'Your security setup looks good and completed.',
     };
-
     const currentColor = colors[kycStatus] || colors.incomplete;
     const bannerBg = `rgba(${parseInt(currentColor.slice(1, 3), 16)}, ${parseInt(currentColor.slice(3, 5), 16)}, ${parseInt(currentColor.slice(5, 7), 16)}, 0.21)`;
-
     return (
       <div
         className={`w-full min-h-[80px] rounded-xl flex items-center justify-between px-4 cursor-pointer relative ${containerOverflow} backdrop-blur-[25px] border transition-all duration-300`}
@@ -87,9 +69,9 @@ const SecurityDashboard = () => {
           borderWidth: '0.63px',
           paddingTop: '17px',
           paddingLeft: '17px',
-          paddingBottom: '15px'
+          paddingBottom: '15px',
         }}
-        onClick={kycStatus !== 'verified' ? () => navigate("/kyc-intro") : undefined}
+        onClick={kycStatus !== 'verified' ? () => navigate(ROUTES.KYC_INTRO) : undefined}
       >
         <div className="flex flex-col justify-center w-full h-full relative z-10">
           <div className="flex items-center gap-2">
@@ -98,8 +80,8 @@ const SecurityDashboard = () => {
                 className="w-[24px] h-[24px]"
                 style={{
                   backgroundColor: currentColor,
-                  WebkitMaskImage: `url(${kycBadge})`,
-                  maskImage: `url(${kycBadge})`,
+                  WebkitMaskImage: `url(${ASSETS.KYC_BADGE})`,
+                  maskImage: `url(${ASSETS.KYC_BADGE})`,
                   WebkitMaskSize: 'contain',
                   maskSize: 'contain',
                   WebkitMaskRepeat: 'no-repeat',
@@ -107,7 +89,11 @@ const SecurityDashboard = () => {
                 }}
               />
             ) : (
-              <img src={kycBadge} className="w-[24px] h-[24px] object-contain" alt="Badge" />
+              <img
+                src={ASSETS.KYC_BADGE}
+                className="w-[24px] h-[24px] object-contain"
+                alt="Badge"
+              />
             )}
             <span
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium font-sans`}
@@ -115,40 +101,45 @@ const SecurityDashboard = () => {
               {statusLabel[kycStatus]}
             </span>
           </div>
-          <span className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal font-sans mt-[2px]`}>
+          <span
+            className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal font-sans mt-[2px]`}
+          >
             {statusSubtext[kycStatus]}
           </span>
         </div>
       </div>
     );
   };
-
   const handleKycClick = () => {
     if (kycStatus !== 'verified') {
-      navigate("/kyc-intro");
+      navigate(ROUTES.KYC_INTRO);
     } else {
-      navigate("/kyc-status-complete");
+      navigate(ROUTES.KYC_STATUS_COMPLETE);
     }
   };
-
   const handleBiometricToggle = async () => {
-    try { await hapticLight(); } catch (_) { /* non-critical */ }
-    
+    try {
+      await hapticLight();
+    } catch (_) {
+      /* non-critical */
+    }
     if (isDeviceEnabled) {
       // Disable locally + sync to Supabase
       localStorage.setItem('biometrics_enabled', 'false');
       setIsDeviceEnabled(false);
       await setBiometricEnabled(false);
-      toast.success("Biometric unlock disabled on this device");
+      toast.success('Biometric unlock disabled on this device');
     } else {
       // Enable
       try {
         const availability = await BiometricAuth.checkBiometry();
         console.log('Biometry check result:', JSON.stringify(availability, null, 2));
-        console.log(`Platform: ${Capacitor.getPlatform()}, Available: ${availability.isAvailable}, Type: ${availability.biometryType}, Reason: ${availability.reason || 'none'}`);
-        
+        console.log(
+          `Platform: ${Capacitor.getPlatform()}, Available: ${availability.isAvailable}, Type: ${availability.biometryType}, Reason: ${availability.reason || 'none'}`
+        );
         if (!availability.isAvailable) {
-          const reason = availability.reason || "Biometric authentication is not available on this device";
+          const reason =
+            availability.reason || 'Biometric authentication is not available on this device';
           console.warn('Biometry unavailable:', reason);
           toast.error(reason);
           return;
@@ -157,81 +148,70 @@ const SecurityDashboard = () => {
         setShowMpinForBiometric(true);
       } catch (error: any) {
         console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
-        toast.error(error?.message || "Failed to check biometric availability");
+        toast.error(error?.message || 'Failed to check biometric availability');
       }
     }
   };
-
   const onMpinVerifySuccess = async (mpin?: string) => {
     if (!mpin) return;
-
     try {
       // Wrap authenticate() in a timeout so the UI doesn't hang
       // if the native biometric prompt fails to appear on Android
       const authPromise = BiometricAuth.authenticate({
-        reason: "Confirm your identity to enable biometrics",
-        cancelTitle: "Cancel"
+        reason: 'Confirm your identity to enable biometrics',
+        cancelTitle: 'Cancel',
       });
-
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Biometric prompt timed out. Please try again.")), 30000)
+        setTimeout(() => reject(new Error('Biometric prompt timed out. Please try again.')), 30000)
       );
-
       await Promise.race([authPromise, timeoutPromise]);
-
       // On Success — persist to local, context state, Supabase, and secure storage
       localStorage.setItem('biometrics_enabled', 'true');
       setIsDeviceEnabled(true);
       await setBiometricEnabled(true);
       await SecureStorage.set('mpin', mpin);
-      
-      toast.success("Biometric unlock enabled!");
+      toast.success('Biometric unlock enabled!');
     } catch (error: any) {
       console.error('Biometric authentication failed:', JSON.stringify(error, null, 2));
-      toast.error(error?.message || "Authentication failed or cancelled");
+      toast.error(error?.message || 'Authentication failed or cancelled');
     } finally {
       setShowMpinForBiometric(false);
     }
   };
-
   const renderSubmenu = () => {
     // Menu Config
-    const rowHeight = "min-h-[68px]";
-    const paddingClass = "pt-[7px] pb-[7px] pl-[18px]"; // Padding: top 7, bottom 7, left 18
+    const rowHeight = 'min-h-[68px]';
+    const paddingClass = 'pt-[7px] pb-[7px] pl-[18px]'; // Padding: top 7, bottom 7, left 18
     const chevronClass = `${isDarkMode ? 'text-[#7E7E7E]' : 'text-black'} w-5 h-5 mr-[10px]`;
     const iconClass = `w-[20px] h-[20px] object-contain ${!isDarkMode ? 'filter brightness-0' : ''}`; // Icon 20x20
     const headerClass = `${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-sans`; // Header Medium 14
     const subTextClass = `${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[12px] font-normal font-sans leading-tight`; // Sub Regular 12
-    const textGap = "gap-[5px]"; // Space between header and sub-text
-    const textWrapperClass = "flex flex-col justify-center pr-[56px]"; // Line break 56px from right
-
+    const textGap = 'gap-[5px]'; // Space between header and sub-text
+    const textWrapperClass = 'flex flex-col justify-center pr-[56px]'; // Line break 56px from right
     // KYC Row Logic
-    let kycBg = isDarkMode ? "#0B0B0B" : "#FFFFFF";
-    let kycBorder = isDarkMode ? "none" : "1px solid #E9EAEB";
-    let kycIcon = kycIconMenu;
-
+    let kycBg = isDarkMode ? '#0B0B0B' : '#FFFFFF';
+    let kycBorder = isDarkMode ? 'none' : '1px solid #E9EAEB';
+    let kycIcon = ASSETS.KYC_ICON_MENU;
     // Override for light mode KYC
     if (!isDarkMode) {
-      if (kycStatus === "incomplete" || kycStatus === "pending") {
-        kycBg = "rgba(255, 30, 30, 0.15)";
-        kycBorder = "none";
-      } else if (kycStatus === "in_review") {
-        kycBg = "rgba(250, 204, 21, 0.15)";
-        kycBorder = "none";
+      if (kycStatus === 'incomplete' || kycStatus === 'pending') {
+        kycBg = 'rgba(255, 30, 30, 0.15)';
+        kycBorder = 'none';
+      } else if (kycStatus === 'in_review') {
+        kycBg = 'rgba(250, 204, 21, 0.15)';
+        kycBorder = 'none';
       }
     } else {
       // Dark Mode logic
-      if (kycStatus === "incomplete" || kycStatus === "pending") {
-        kycBg = "rgba(255, 30, 30, 0.12)";
-        kycIcon = kycAlertIcon;
-      } else if (kycStatus === "in_review") {
-        kycBg = "rgba(250, 204, 21, 0.12)";
+      if (kycStatus === 'incomplete' || kycStatus === 'pending') {
+        kycBg = 'rgba(255, 30, 30, 0.12)';
+        kycIcon = ASSETS.KYC_ALERT_ICON;
+      } else if (kycStatus === 'in_review') {
+        kycBg = 'rgba(250, 204, 21, 0.12)';
       }
     }
-
     return (
       <div className="flex flex-col gap-[4px] w-full">
-
         {/* ROW 1: KYC */}
         <div
           className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} cursor-pointer rounded-t-xl rounded-b-none`}
@@ -242,12 +222,13 @@ const SecurityDashboard = () => {
             <img src={kycIcon} alt="KYC" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>KYC</span>
-              <span className={subTextClass}>KYC also unlocks wallet limits, faster refunds, and your inner peace.</span>
+              <span className={subTextClass}>
+                KYC also unlocks wallet limits, faster refunds, and your inner peace.
+              </span>
             </div>
           </div>
           <ChevronRight className={chevronClass} />
         </div>
-
         {/* ROW 2: MPIN */}
         <div
           className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer`}
@@ -255,15 +236,16 @@ const SecurityDashboard = () => {
           onClick={() => setShowMpinSheet(true)}
         >
           <div className="flex items-center gap-4 w-full">
-            <img src={mpinIcon} alt="MPIN" className={iconClass} />
+            <img src={ASSETS.MPIN_ICON} alt="MPIN" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>MPIN</span>
-              <span className={subTextClass}>No birthdays, no 1234. We're judging you silently.</span>
+              <span className={subTextClass}>
+                No birthdays, no 1234. We're judging you silently.
+              </span>
             </div>
           </div>
           <ChevronRight className={chevronClass} />
         </div>
-
         {/* ROW 3: Biometric */}
         <div
           className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer relative z-50`}
@@ -271,7 +253,7 @@ const SecurityDashboard = () => {
           onClick={handleBiometricToggle}
         >
           <div className="flex items-center gap-4 w-full">
-            <img src={biometricIcon} alt="Biometric" className={iconClass} />
+            <img src={ASSETS.BIOMETRIC_ICON_MENU} alt="Biometric" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>Biometric Unlock</span>
               <span className={subTextClass}>
@@ -281,71 +263,65 @@ const SecurityDashboard = () => {
           </div>
           {/* Toggle Switch — z-50 ensures it's above any transparent overlay on Android WebView */}
           <div className="mr-[10px] flex items-center justify-center shrink-0 relative z-50">
-            <Switch
-              checked={isDeviceEnabled}
-              onCheckedChange={handleBiometricToggle}
-            />
+            <Switch checked={isDeviceEnabled} onCheckedChange={handleBiometricToggle} />
           </div>
         </div>
-
         {/* ROW 4: Delete Account */}
         <div
           className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer rounded-t-none rounded-b-xl`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
-          onClick={() => navigate("/delete-account", { state: { originPath } })}
+          onClick={() => navigate(ROUTES.DELETE_ACCOUNT, { state: { originPath } })}
         >
           <div className="flex items-center gap-4 w-full">
-            <img src={deleteAccountIcon} alt="Delete" className={iconClass} />
+            <img src={ASSETS.DELETE_ACCOUNT_ICON} alt="Delete" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>Delete Account</span>
-              <span className={subTextClass}>Thinking of leaving? It's okay, we can handle heartbreak.</span>
+              <span className={subTextClass}>
+                Thinking of leaving? It's okay, we can handle heartbreak.
+              </span>
             </div>
           </div>
           <ChevronRight className={chevronClass} />
         </div>
-
       </div>
     );
   };
-
   const getRadarAnimation = () => {
     // Light mode logic (using dark assets + opacity fallback since light assets are missing)
     if (!isDarkMode) {
       switch (kycStatus) {
-        case "incomplete":
-        case "pending":
-          return errorRadarAnimation;
-        case "in_review":
-          return inProgressRadarAnimation;
-        case "verified":
-          return gridpeRadarAnimation;
+        case 'incomplete':
+        case 'pending':
+          return ASSETS.ERROR;
+        case 'in_review':
+          return ASSETS.IN_PROGRESS;
+        case 'verified':
+          return ASSETS.GRIDPE_RADAR;
         default:
-          return gridpeRadarAnimation;
+          return ASSETS.GRIDPE_RADAR;
       }
     }
-
     switch (kycStatus) {
-      case "incomplete":
-      case "pending":
-        return errorRadarAnimation;
-      case "in_review":
-        return inProgressRadarAnimation;
-      case "verified":
-        return gridpeRadarAnimation;
+      case 'incomplete':
+      case 'pending':
+        return ASSETS.ERROR;
+      case 'in_review':
+        return ASSETS.IN_PROGRESS;
+      case 'verified':
+        return ASSETS.GRIDPE_RADAR;
       default:
-        return gridpeRadarAnimation;
+        return ASSETS.GRIDPE_RADAR;
     }
   };
-
   return (
     <div
       className="h-full w-full min-h-screen flex flex-col relative"
       style={{
-        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
+        backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',
-        backgroundSize: "cover",
-        backgroundPosition: "top center",
-        backgroundRepeat: "no-repeat",
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Light Mode Status Blob (Top Glow) */}
@@ -353,21 +329,28 @@ const SecurityDashboard = () => {
         <div
           className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
           style={{
-            backgroundColor: kycStatus === "verified" ? "#1CB956" : kycStatus === "in_review" ? "#FACC15" : "#FF1E1E",
-            filter: "blur(60px)",
+            backgroundColor:
+              kycStatus === 'verified'
+                ? '#1CB956'
+                : kycStatus === 'in_review'
+                  ? '#FACC15'
+                  : '#FF1E1E',
+            filter: 'blur(60px)',
             opacity: 0.8,
-            mixBlendMode: "normal"
+            mixBlendMode: 'normal',
           }}
         />
       )}
       {/* Header - Fixed */}
       <div className="px-5 safe-top pt-4 flex items-center justify-between relative z-50 flex-none">
         <BackButton onClick={() => navigate(originPath)} />
-
-        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}>Security & Kyc</h1>
+        <h1
+          className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-semibold font-sans`}
+        >
+          Security & Kyc
+        </h1>
         <div className="w-10 h-10" /> {/* Spacer for centering */}
       </div>
-
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
         {/* Radar Animation Section */}
@@ -438,35 +421,29 @@ const SecurityDashboard = () => {
               key={kycStatus}
               animationData={getRadarAnimation()}
               loop={true}
-              className={`w-full h-full relative z-10 ${isDarkMode ? "" : "opacity-70"}`}
+              className={`w-full h-full relative z-10 ${isDarkMode ? '' : 'opacity-70'}`}
             />
           </div>
         </div>
-
         {/* Content Container */}
         <div className="px-5 pb-8 flex flex-col gap-4">
-
           {/* Dynamic KYC Banner */}
           {getStatusBanner()}
-
           {/* Submenu */}
           {renderSubmenu()}
-
         </div>
       </div>
-
       {/* MPIN Sheet Modal */}
       {showMpinSheet && (
         <MpinSheet
           onClose={() => setShowMpinSheet(false)}
           mode="verify"
-          onSuccess={(mpin) => {
+          onSuccess={mpin => {
             setShowMpinSheet(false);
-            navigate('/security/mpin-settings');
+            navigate(ROUTES.MPIN_SETTINGS);
           }}
         />
       )}
-
       {/* MPIN Sheet for Biometric Enrollment */}
       {showMpinForBiometric && (
         <MpinSheet
@@ -478,5 +455,4 @@ const SecurityDashboard = () => {
     </div>
   );
 };
-
 export default SecurityDashboard;

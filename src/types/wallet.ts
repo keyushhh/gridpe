@@ -40,7 +40,11 @@ export interface RewardMetadata {
   [key: string]: any;
 }
 
-export type TransactionMetadata = DepositMetadata | WithdrawalMetadata | OrderPaymentMetadata | RewardMetadata;
+export type TransactionMetadata =
+  | DepositMetadata
+  | WithdrawalMetadata
+  | OrderPaymentMetadata
+  | RewardMetadata;
 
 export interface WalletTransaction {
   id: string;
@@ -52,10 +56,10 @@ export interface WalletTransaction {
   reference_id?: string | null;
   metadata?: TransactionMetadata | null;
   created_at: string;
-  
+
   // UI & Legacy Aliases
-  transaction_type?: 'credit' | 'debit' | 'held' | 'deposit'; 
-  date?: string; 
+  transaction_type?: 'credit' | 'debit' | 'held' | 'deposit';
+  date?: string;
   payout_method?: string;
   vpa?: string;
 }

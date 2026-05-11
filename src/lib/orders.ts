@@ -2,8 +2,12 @@ import { supabase } from './supabase';
 import { Order } from '@/types';
 
 // Internal helper to fetch addresses for a list of orders
-const fetchAddressesForOrders = async <T extends { address_id: string | null }>(orders: T[]): Promise<(T & { addresses?: any })[]> => {
-  const addressIds = Array.from(new Set(orders.map(o => o.address_id).filter((id): id is string => !!id)));
+const fetchAddressesForOrders = async <T extends { address_id: string | null }>(
+  orders: T[]
+): Promise<(T & { addresses?: any })[]> => {
+  const addressIds = Array.from(
+    new Set(orders.map(o => o.address_id).filter((id): id is string => !!id))
+  );
   if (addressIds.length === 0) return orders;
 
   const { data: addresses, error } = await supabase
@@ -16,24 +20,26 @@ const fetchAddressesForOrders = async <T extends { address_id: string | null }>(
   const addressMap = new Map(addresses.map(a => [a.id, a]));
   return orders.map(o => ({
     ...o,
-    addresses: o.address_id ? addressMap.get(o.address_id) : undefined
+    addresses: o.address_id ? addressMap.get(o.address_id) : undefined,
   }));
 };
 
 // Internal helper to normalize orders from different tables
 const normalizeOrder = (o: Order, type: 'CASH_ORDER' | 'FX_EXCHANGE'): Order => ({
   ...o,
-  amount: type === 'CASH_ORDER' ? (o.total_amount || o.amount) : (o.total_amount || o.amount),
+  amount: type === 'CASH_ORDER' ? o.total_amount || o.amount : o.total_amount || o.amount,
   order_type: type,
   created_at: o.created_at || o.updated_at,
   // Ensure addresses field is handled
-  addresses: o.addresses
+  addresses: o.addresses,
 });
 
 export const fetchRecentOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
-    .select('*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)')
+    .select(
+      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)'
+    )
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(5);
@@ -47,7 +53,9 @@ export const fetchRecentOrders = async (userId: string) => {
 export const getOrderById = async (orderId: string) => {
   const { data: orderData, error } = await supabase
     .from('orders')
-    .select('*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)')
+    .select(
+      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)'
+    )
     .eq('id', orderId)
     .maybeSingle();
 
@@ -68,7 +76,9 @@ export const getOrderById = async (orderId: string) => {
 export const fetchActiveOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
-    .select('*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)')
+    .select(
+      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)'
+    )
     .eq('user_id', userId)
     .in('status', ['processing', 'out_for_delivery', 'arrived', 'pending', 'accepted', 'picked_up'])
     .order('updated_at', { ascending: false });
@@ -94,10 +104,11 @@ export const fetchPastOrders = async (userId: string) => {
 };
 
 export const cancelOrder = async (orderId: string, reasonType: string, reasonText: string) => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.user?.id) throw new Error('Unauthorized');
   const userId = session.user.id;
-
 
   // 1. Fetch order details for diagnostic logging
   const { data: order, error: fetchError } = await supabase
@@ -106,7 +117,7 @@ export const cancelOrder = async (orderId: string, reasonType: string, reasonTex
     .eq('id', orderId)
     .single();
 
-  if (fetchError || !order) throw new Error("Order not found");
+  if (fetchError || !order) throw new Error('Order not found');
 
   // Add requested log for confirmation
 
@@ -116,13 +127,13 @@ export const cancelOrder = async (orderId: string, reasonType: string, reasonTex
     p_order_id: orderId,
     p_user_id: userId,
     p_cancel_reason_type: reasonType,
-    p_cancel_reason_text: reasonText
+    p_cancel_reason_text: reasonText,
   });
 
   if (rpcError) throw rpcError;
   const result = data as { success: boolean; error?: string } | null;
   if (!result || result.success === false) {
-    throw new Error(result?.error || "Failed to cancel order");
+    throw new Error(result?.error || 'Failed to cancel order');
   }
 
   return result;
@@ -132,7 +143,7 @@ export const deliverOrder = async (orderId: string, userId: string, isFx: boolea
   const rpcName = isFx ? 'complete_fx_order' : 'complete_cash_order';
   const { data, error } = await supabase.rpc(rpcName, {
     p_order_id: orderId,
-    p_user_id: userId
+    p_user_id: userId,
   });
 
   if (error) throw error;
@@ -155,19 +166,19 @@ export const dev_seedMockOrders = async (userId: string) => {
   const mockOrders = [
     {
       user_id: userId,
-      amount: 1250.50,
-      total_amount: 1350.00,
+      amount: 1250.5,
+      total_amount: 1350.0,
       status: 'delivered',
       type: 'cash',
       payment_mode: 'wallet',
       address_id: addressId,
       created_at: new Date(Date.now() - 3600000).toISOString(),
-      meta_data: { type: 'CASH_ORDER', item_value: 1250.50 }
+      meta_data: { type: 'CASH_ORDER', item_value: 1250.5 },
     },
     {
       user_id: userId,
-      amount: 840.00,
-      total_amount: 940.00,
+      amount: 840.0,
+      total_amount: 940.0,
       status: 'cancelled',
       type: 'cash',
       payment_mode: 'wallet',
@@ -175,12 +186,12 @@ export const dev_seedMockOrders = async (userId: string) => {
       created_at: new Date(Date.now() - 86400000).toISOString(),
       meta_data: {
         type: 'CASH_ORDER',
-        item_value: 840.00,
+        item_value: 840.0,
         cancelled_by: 'user',
         cancel_reason_type: 'I changed my mind',
-        cancelled_at: new Date(Date.now() - 86300000).toISOString()
-      }
-    }
+        cancelled_at: new Date(Date.now() - 86300000).toISOString(),
+      },
+    },
   ];
 
   const { error } = await supabase.from('orders').insert(mockOrders);

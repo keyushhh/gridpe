@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface UseSensitiveInputOptions {
   maskDelay?: number; // default 5000ms
@@ -8,7 +8,7 @@ interface UseSensitiveInputOptions {
 export const useSensitiveInput = (options: UseSensitiveInputOptions = {}) => {
   const { maskDelay = 5000, isPermanentlyVisible = false } = options;
 
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState('');
   const [isTempVisible, setIsTempVisible] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -16,20 +16,23 @@ export const useSensitiveInput = (options: UseSensitiveInputOptions = {}) => {
   const isVisible = isPermanentlyVisible || isTempVisible;
 
   // Function to handle changes (typing)
-  const handleChange = useCallback((newValue: string) => {
-    setValue(newValue);
+  const handleChange = useCallback(
+    (newValue: string) => {
+      setValue(newValue);
 
-    // Trigger temporary visibility
-    if (!isPermanentlyVisible) {
-      setIsTempVisible(true);
+      // Trigger temporary visibility
+      if (!isPermanentlyVisible) {
+        setIsTempVisible(true);
 
-      // Reset timer
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        setIsTempVisible(false);
-      }, maskDelay);
-    }
-  }, [maskDelay, isPermanentlyVisible]);
+        // Reset timer
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+          setIsTempVisible(false);
+        }, maskDelay);
+      }
+    },
+    [maskDelay, isPermanentlyVisible]
+  );
 
   // Cleanup timer on unmount
   useEffect(() => {

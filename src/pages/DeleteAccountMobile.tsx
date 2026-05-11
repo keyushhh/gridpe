@@ -1,29 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import BackButton from "@/components/ui/BackButton";
-import { useTheme } from "next-themes";
-import bgDarkMode from "@/assets/bg-dark-mode.png";
-import inputFieldBg from "@/assets/input-field-bg.png";
-import buttonCancel from "@/assets/button-cancel-wide.png";
-import { Button } from "@/components/ui/button";
-import { useUser } from "@/contexts/UserContext";
-
+import { ASSETS } from '@/constants/assets';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ROUTES } from '@/routes';
+import BackButton from '@/components/ui/BackButton';
+import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
+import { useUser } from '@/contexts/UserContext';
 const DeleteAccountMobile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
   const { phoneNumber } = useUser();
-  const [mobile, setMobile] = useState("");
+  const [mobile, setMobile] = useState('');
   const [error, setError] = useState<string | null>(null);
-
   // Normalize user's phone number (remove +91, spaces) for comparison
-  const normalizedUserPhone = phoneNumber.replace(/\D/g, "").slice(-10);
-
+  const normalizedUserPhone = phoneNumber.replace(/\D/g, '').slice(-10);
   useEffect(() => {
     if (mobile.length === 10) {
       if (mobile !== normalizedUserPhone) {
-        setError("Please enter the same number you used to login to grid.pe");
+        setError('Please enter the same number you used to login to grid.pe');
       } else {
         setError(null);
       }
@@ -31,35 +27,30 @@ const DeleteAccountMobile = () => {
       setError(null);
     }
   }, [mobile, normalizedUserPhone]);
-
   const isValid = mobile.length === 10 && !error;
-
   const handleRequestOtp = () => {
-    navigate("/delete-account-otp", {
+    navigate(ROUTES.DELETE_ACCOUNT_OTP, {
       state: {
         ...location.state,
-        mobile
-      }
+        mobile,
+      },
     });
   };
-
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || "/settings", { replace: true });
+    navigate((location.state as any)?.originPath || ROUTES.SETTINGS, { replace: true });
   };
-
   const handleGoBack = () => {
     navigate(-1);
   };
-
   return (
     <div
       className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-bottom pb-4 relative"
       style={{
-        backgroundColor: isDarkMode ? "#0a0a12" : "#FFFFFF",
-        backgroundImage: isDarkMode ? `url(${bgDarkMode})` : "none",
-        backgroundSize: "cover",
-        backgroundPosition: "top center",
-        backgroundRepeat: "no-repeat",
+        backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
+        backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Light Mode Red Glow Blob */}
@@ -67,80 +58,93 @@ const DeleteAccountMobile = () => {
         <div
           className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-[166px] h-[40px] rounded-full pointer-events-none z-0"
           style={{
-            backgroundColor: "#FF1E1E",
-            filter: "blur(60px)",
+            backgroundColor: '#FF1E1E',
+            filter: 'blur(60px)',
             opacity: 0.8,
-            mixBlendMode: "normal"
+            mixBlendMode: 'normal',
           }}
         />
       )}
-
       <div className="px-5 safe-top pt-4 flex items-center relative z-50 mb-8">
         <div className="absolute left-5">
           <BackButton onClick={handleGoBack} />
         </div>
-
-        <h1 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans w-full text-center`}>Delete Account</h1>
+        <h1
+          className={`${isDarkMode ? 'text-white' : 'text-black'} text-[22px] font-medium font-sans w-full text-center`}
+        >
+          Delete Account
+        </h1>
       </div>
-
       <div className="px-5 flex-1 flex flex-col relative z-10">
         {/* Title Section */}
         <div className="mb-8">
-          <h2 className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans mb-[6px] leading-tight`}>
+          <h2
+            className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans mb-[6px] leading-tight`}
+          >
             Confirm Deletion
           </h2>
-          <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans leading-relaxed`}>
+          <p
+            className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans leading-relaxed`}
+          >
             Still doing this? Okay... enter your number so we can at least say goodbye properly.
           </p>
         </div>
-
         {/* Mobile Input */}
         <div className="space-y-2">
-          <h3 className={`${isDarkMode ? 'text-[#707070]' : 'text-black/50'} text-[14px] font-bold font-sans uppercase mb-[6px]`}>
+          <h3
+            className={`${isDarkMode ? 'text-[#707070]' : 'text-black/50'} text-[14px] font-bold font-sans uppercase mb-[6px]`}
+          >
             CONFIRM MOBILE NUMBER
           </h3>
-          <p className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-italic font-sans italic mb-[6px]`}>
+          <p
+            className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-italic font-sans italic mb-[6px]`}
+          >
             We won't call. We won't cry. We just need to know if it's really you.
           </p>
           <div
-            className={`w-full h-[48px] rounded-full flex items-center px-6 justify-between border transition-all duration-200 ${error ? "border-[#FF3B30] bg-[#FF3B30]/10" : "border-transparent"
-              }`}
-            style={isDarkMode ? {
-              backgroundImage: error ? undefined : `url(${inputFieldBg})`,
-              backgroundSize: '100% 100%',
-              backgroundRepeat: 'no-repeat',
-              backgroundColor: error ? undefined : 'transparent'
-            } : {
-              backgroundColor: error ? undefined : '#FFFFFF',
-              border: error ? undefined : '1px solid #E9EAEB',
-            }}
+            className={`w-full h-[48px] rounded-full flex items-center px-6 justify-between border transition-all duration-200 ${
+              error ? 'border-[#FF3B30] bg-[#FF3B30]/10' : 'border-transparent'
+            }`}
+            style={
+              isDarkMode
+                ? {
+                    backgroundImage: error ? undefined : `url(${ASSETS.INPUT_FIELD_BG})`,
+                    backgroundSize: '100% 100%',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: error ? undefined : 'transparent',
+                  }
+                : {
+                    backgroundColor: error ? undefined : '#FFFFFF',
+                    border: error ? undefined : '1px solid #E9EAEB',
+                  }
+            }
           >
             <div className="flex items-center gap-4 flex-1">
-              <span className={`${isDarkMode ? 'text-white/60' : 'text-black/40'} text-[14px]`}>+91</span>
+              <span className={`${isDarkMode ? 'text-white/60' : 'text-black/40'} text-[14px]`}>
+                +91
+              </span>
               <div className={`h-4 w-px ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}></div>
               <input
                 type="tel"
                 value={mobile}
-                onChange={(e) => {
+                onChange={e => {
                   const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                   setMobile(val);
                 }}
                 placeholder="9876543210"
-                className={`bg-transparent border-none outline-none text-[14px] w-full font-sans tracking-wide ${isDarkMode
-                  ? 'text-white placeholder:text-white/20'
-                  : 'text-black placeholder:text-black/20'
-                  }`}
+                className={`bg-transparent border-none outline-none text-[14px] w-full font-sans tracking-wide ${
+                  isDarkMode
+                    ? 'text-white placeholder:text-white/20'
+                    : 'text-black placeholder:text-black/20'
+                }`}
               />
             </div>
           </div>
           {error && (
-            <p className="text-[#FF3B30] text-[12px] font-medium font-sans px-4">
-              {error}
-            </p>
+            <p className="text-[#FF3B30] text-[12px] font-medium font-sans px-4">{error}</p>
           )}
         </div>
       </div>
-
       {/* Footer Button */}
       <div className="px-5 safe-bottom pb-4 mt-auto flex flex-col gap-3 relative z-10">
         <Button
@@ -150,7 +154,6 @@ const DeleteAccountMobile = () => {
         >
           Request OTP
         </Button>
-
         {/* Cancel */}
         <button
           className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
@@ -158,14 +161,19 @@ const DeleteAccountMobile = () => {
         >
           {isDarkMode ? (
             <img
-              src={buttonCancel}
+              src={ASSETS.BUTTON_CANCEL_WIDE}
               alt="Cancel"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
             />
           ) : (
-            <div className="absolute inset-0 w-full h-full rounded-full pointer-events-none" style={{ backgroundColor: '#EBEBEB' }} />
+            <div
+              className="absolute inset-0 w-full h-full rounded-full pointer-events-none"
+              style={{ backgroundColor: '#EBEBEB' }}
+            />
           )}
-          <span className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium font-sans`}>
+          <span
+            className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium font-sans`}
+          >
             Cancel
           </span>
         </button>
@@ -173,5 +181,4 @@ const DeleteAccountMobile = () => {
     </div>
   );
 };
-
 export default DeleteAccountMobile;

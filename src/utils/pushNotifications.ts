@@ -17,24 +17,23 @@ export const registerPushNotifications = async () => {
 
     PushNotifications.addListener('registration', async ({ value: token }) => {
       // Save FCM/APNs token to Supabase profiles table
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
-        await supabase
-          .from('profiles')
-          .update({ push_token: token })
-          .eq('id', user.id);
+        await supabase.from('profiles').update({ push_token: token }).eq('id', user.id);
       }
     });
 
-    PushNotifications.addListener('registrationError', (error) => {
+    PushNotifications.addListener('registrationError', error => {
       console.error('Push registration error:', error);
     });
 
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    PushNotifications.addListener('pushNotificationReceived', notification => {
       // App is in foreground — show a toast with notification title and body
     });
 
-    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+    PushNotifications.addListener('pushNotificationActionPerformed', action => {
       // User tapped the notification — navigate based on data payload
       const data = action.notification.data;
       if (data?.orderId) {

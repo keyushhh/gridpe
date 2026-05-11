@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/routes';
 
 interface DevModeOverlayProps {
   orderId?: string;
@@ -35,7 +36,7 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
     if (data) {
       setBalances({
         available: data.available_balance,
-        held: data.held_balance
+        held: data.held_balance,
       });
     }
   };
@@ -46,9 +47,9 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
       const rpcName = isFx ? 'complete_fx_order' : 'complete_cash_order';
       const { data, error } = await supabase.rpc(rpcName, {
         p_order_id: orderId,
-        p_user_id: profile.id
+        p_user_id: profile.id,
       });
-      
+
       if (error) throw error;
       const result = data as { success: boolean; error?: string } | null;
       if (result?.success === false) throw new Error(result.error);
@@ -56,10 +57,10 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
       showToaster('Order marked delivered!', 'success');
       await refreshBalance();
       await fetchBalances();
-      
+
       // Navigate to order-delivered screen
       setTimeout(() => {
-        navigate('/order-delivered', { state: { orderId } });
+        navigate(ROUTES.ORDER_DELIVERED, { state: { orderId } });
       }, 1000);
     } catch (err: any) {
       showToaster(err.message, 'error');
@@ -73,9 +74,9 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
         p_order_id: orderId,
         p_user_id: profile.id,
         p_cancel_reason_type: 'Dev Mode Cancellation',
-        p_cancel_reason_text: 'Cancelled via Dev Overlay'
+        p_cancel_reason_text: 'Cancelled via Dev Overlay',
       });
-      
+
       if (error) throw error;
       const result = data as { success: boolean; error?: string } | null;
       if (result?.success === false) throw new Error(result.error);
@@ -96,9 +97,9 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
         .from('wallets')
         .update({ held_balance: 0 })
         .eq('user_id', profile.id);
-      
+
       if (error) throw error;
-      
+
       showToaster('Hold released (emergency)!', 'success');
       await refreshBalance();
       await fetchBalances();
@@ -127,7 +128,7 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '14px'
+            fontSize: '14px',
           }}
         >
           🛠 Dev
@@ -144,31 +145,68 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.2)',
             boxShadow: '0 12px 48px rgba(0,0,0,0.7)',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
+            fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#5260FE' }}>Dev Controls</h3>
-            <button 
-              onClick={() => setIsOpen(false)} 
-              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}
+          >
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#5260FE' }}>
+              Dev Controls
+            </h3>
+            <button
+              onClick={() => setIsOpen(false)}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               ✕
             </button>
           </div>
 
-          <div style={{ fontSize: '13px', marginBottom: '20px', padding: '12px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div
+            style={{
+              fontSize: '13px',
+              marginBottom: '20px',
+              padding: '12px',
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              borderRadius: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#888' }}>Order ID:</span>
-              <span style={{ fontFamily: 'monospace' }}>{orderId ? orderId.slice(0, 8) : 'None'}</span>
+              <span style={{ fontFamily: 'monospace' }}>
+                {orderId ? orderId.slice(0, 8) : 'None'}
+              </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#888' }}>Available:</span>
-              <span style={{ fontWeight: 'bold' }}>₹{balances.available.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span style={{ fontWeight: 'bold' }}>
+                ₹{balances.available.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#888' }}>Held:</span>
-              <span style={{ fontWeight: 'bold', color: balances.held > 0 ? '#f59e0b' : '#888' }}>₹{balances.held.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span style={{ fontWeight: 'bold', color: balances.held > 0 ? '#f59e0b' : '#888' }}>
+                ₹{balances.held.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
 
@@ -176,16 +214,16 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
             <button
               onClick={handleMarkDelivered}
               disabled={!orderId}
-              style={{ 
-                padding: '12px', 
-                backgroundColor: orderId ? '#22c55e' : '#1e293b', 
-                border: 'none', 
-                borderRadius: '8px', 
-                color: 'white', 
-                cursor: orderId ? 'pointer' : 'not-allowed', 
+              style={{
+                padding: '12px',
+                backgroundColor: orderId ? '#22c55e' : '#1e293b',
+                border: 'none',
+                borderRadius: '8px',
+                color: 'white',
+                cursor: orderId ? 'pointer' : 'not-allowed',
                 fontWeight: 'bold',
                 transition: 'all 0.2s',
-                opacity: orderId ? 1 : 0.5
+                opacity: orderId ? 1 : 0.5,
               }}
             >
               Mark Delivered
@@ -193,31 +231,31 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
             <button
               onClick={handleCancelOrder}
               disabled={!orderId}
-              style={{ 
-                padding: '12px', 
-                backgroundColor: orderId ? '#ef4444' : '#1e293b', 
-                border: 'none', 
-                borderRadius: '8px', 
-                color: 'white', 
-                cursor: orderId ? 'pointer' : 'not-allowed', 
+              style={{
+                padding: '12px',
+                backgroundColor: orderId ? '#ef4444' : '#1e293b',
+                border: 'none',
+                borderRadius: '8px',
+                color: 'white',
+                cursor: orderId ? 'pointer' : 'not-allowed',
                 fontWeight: 'bold',
                 transition: 'all 0.2s',
-                opacity: orderId ? 1 : 0.5
+                opacity: orderId ? 1 : 0.5,
               }}
             >
               Cancel Order
             </button>
             <button
               onClick={handleReleaseHold}
-              style={{ 
-                padding: '12px', 
-                backgroundColor: 'transparent', 
-                border: '1px solid #f59e0b', 
-                borderRadius: '8px', 
-                color: '#f59e0b', 
-                cursor: 'pointer', 
+              style={{
+                padding: '12px',
+                backgroundColor: 'transparent',
+                border: '1px solid #f59e0b',
+                borderRadius: '8px',
+                color: '#f59e0b',
+                cursor: 'pointer',
                 fontWeight: 'bold',
-                marginTop: '8px'
+                marginTop: '8px',
               }}
             >
               Release Hold (Emergency)

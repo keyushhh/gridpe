@@ -13,7 +13,7 @@ export interface BankAccount {
   created_at: string;
 
   // UI & Legacy Aliases
-  bankName?: string; 
+  bankName?: string;
   accountNumber?: string;
   accountType?: string;
   ifsc?: string;

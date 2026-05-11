@@ -4,31 +4,31 @@ export interface Card {
   holder: string;
   expiry: string;
   cvv?: string;
-  type: "visa" | "mastercard" | "rupay" | null;
+  type: 'visa' | 'mastercard' | 'rupay' | null;
   isDefault: boolean;
   backgroundIndex: number;
 }
 
-const STORAGE_KEY = "gridpe_user_cards";
+const STORAGE_KEY = 'gridpe_user_cards';
 
 export const getCards = (): Card[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (e) {
-    console.error("Failed to load cards", e);
+    console.error('Failed to load cards', e);
     return [];
   }
 };
 
-export const addCard = (card: Omit<Card, "id" | "isDefault" | "backgroundIndex">): Card => {
+export const addCard = (card: Omit<Card, 'id' | 'isDefault' | 'backgroundIndex'>): Card => {
   const currentCards = getCards();
 
   const newCard: Card = {
     ...card,
     id: Date.now().toString(),
     isDefault: currentCards.length === 0,
-    backgroundIndex: (currentCards.length % 6) + 1
+    backgroundIndex: (currentCards.length % 6) + 1,
   };
 
   const updatedCards = [...currentCards, newCard];
@@ -54,7 +54,7 @@ export const setDefaultCard = (id: string): void => {
   const currentCards = getCards();
   const updatedCards = currentCards.map(card => ({
     ...card,
-    isDefault: card.id === id
+    isDefault: card.id === id,
   }));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCards));
 };

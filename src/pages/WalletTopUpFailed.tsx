@@ -1,61 +1,54 @@
+import { ASSETS } from '@/constants/assets';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/routes';
 import failedLightIcon from '../assets/failed-light.svg';
-import cancelledIco from '@/assets/cancelled-ico.svg';
-import darkBgCta from '@/assets/darkbg-cta.png';
 import elipseRedIcon from '../assets/elipse-red.svg';
-
 const WalletTopUpFailed: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [amount, setAmount] = useState<number>(0);
-  const errorMessage = location.state?.error || "Transaction could not be completed.";
-
+  const errorMessage = location.state?.error || 'Transaction could not be completed.';
   useEffect(() => {
     if (location.state?.amount) {
       setAmount(Number(location.state.amount));
     }
   }, [location.state]);
-
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
     }).format(val);
-
   const handleTryAgain = () => {
-    navigate('/order-summary', {
+    navigate(ROUTES.ORDER_SUMMARY, {
       state: {
         amount,
         retry: true,
         paymentMethod: location.state?.paymentMethod || null,
         upiId: location.state?.upiId || undefined,
-      }
+      },
     });
   };
-
   const handleGoBack = () => {
-    navigate('/wallet-add-money');
+    navigate(ROUTES.WALLET_ADD_MONEY);
   };
-
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans safe-top bg-white dark:bg-[#0F1115] dark:bg-[url('@/assets/error-bg.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat">
+    <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden font-sans safe-top bg-background dark:bg-background dark:bg-[url('@/assets/error-bg.png')] dark:bg-cover dark:bg-center dark:bg-no-repeat">
       {/* Red Glowing Orb at the top */}
       <div
         className="absolute top-[-150px] left-1/2 transform -translate-x-1/2 w-[500px] h-[400px] pointer-events-none z-0"
         style={{
-          background: 'radial-gradient(circle, rgba(255, 59, 48, 0.12) 0%, rgba(255, 255, 255, 0) 75%)',
+          background:
+            'radial-gradient(circle, rgba(255, 59, 48, 0.12) 0%, rgba(255, 255, 255, 0) 75%)',
           filter: 'blur(50px)',
         }}
       />
-
       {/* Top Content */}
       <div className="flex flex-col items-center w-full mt-10 z-10">
         {/* Heading */}
-        <h1 className="text-[#1A1A1A] dark:text-white text-[26px] font-bold tracking-tight dark:font-satoshi dark:font-medium dark:text-[22px]">
+        <h1 className="text-foreground dark:text-white text-[26px] font-bold tracking-tight dark:font-satoshi dark:font-medium dark:text-[22px]">
           Payment Failed!
         </h1>
-
         {/* Failed Icon – 12px below heading */}
         <div className="mt-[12px]">
           <img
@@ -64,48 +57,46 @@ const WalletTopUpFailed: React.FC = () => {
             className="w-[62px] h-[62px] object-contain dark:hidden"
           />
           <img
-            src={cancelledIco}
+            src={ASSETS.CANCELLED_ICO}
             alt="Failed Dark"
             className="hidden dark:block w-[62px] h-[62px] object-contain"
           />
         </div>
-
         {/* Error Text – 35px below icon */}
-        <h2 className="mt-[35px] text-black dark:text-white text-[18px] font-bold text-center max-w-[90%] leading-none">
+        <h2 className="mt-[35px] text-foreground dark:text-white text-[18px] font-bold text-center max-w-[90%] leading-none">
           {errorMessage}
         </h2>
-
         {/* Info Card – 20px below text */}
         <div
-          className={`mt-[20px] w-full rounded-[12px] pt-[11px] pb-[18px] px-[15px] relative border ${document.documentElement.classList.contains('dark') ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`mt-[20px] w-full rounded-[12px] pt-[11px] pb-[18px] px-[15px] relative border border-border`}
           style={{
-            backgroundColor: document.documentElement.classList.contains('dark') ? "rgba(255, 255, 255, 0.06)" : "transparent",
-            backdropFilter: document.documentElement.classList.contains('dark') ? "blur(25px)" : "none",
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            backdropFilter: 'blur(25px)',
           }}
         >
-          <p className="text-[#1A1A1A] dark:text-white text-[16px] font-medium leading-normal">
+          <p className="text-foreground dark:text-white text-[16px] font-medium leading-normal">
             We tried. Your bank tried. Even your card looked motivated.
           </p>
-
-          <p className="mt-[12px] text-[#4A4A4A] dark:text-[#AFAFAF] text-[16px] font-normal" style={{ lineHeight: '120%' }}>
-            But something tripped in the matrix, and{" "}
-            <span className="text-[#1A1A1A] dark:text-white font-medium">
+          <p
+            className="mt-[12px] text-muted-foreground dark:text-muted-foreground text-[16px] font-normal"
+            style={{ lineHeight: '120%' }}
+          >
+            But something tripped in the matrix, and{' '}
+            <span className="text-foreground dark:text-white font-medium">
               {formatCurrency(amount)}
-            </span>{" "}
-            didn’t make it to your wallet. Don’t worry – if any money was deducted,
-            it’ll crawl back to you within 2–3 biz days. In the meantime? Deep breaths
-            and check your balance. Emotionally and otherwise.
+            </span>{' '}
+            didn’t make it to your wallet. Don’t worry – if any money was deducted, it’ll crawl back
+            to you within 2–3 biz days. In the meantime? Deep breaths and check your balance.
+            Emotionally and otherwise.
           </p>
-
           <div className="mt-[20px] flex items-center gap-[12px]">
             <img src={elipseRedIcon} alt="" className="w-[12px] h-[12px] object-contain" />
-            <span className="text-[#666666] dark:text-[#888888] text-[12px] font-normal">
+            <span className="text-muted-foreground dark:text-muted-foreground text-[12px] font-normal">
               Transaction Ghosted
             </span>
           </div>
         </div>
       </div>
-
       {/* CTAs – 40px below container */}
       <div className="w-full mt-[40px] flex flex-col gap-[12px] z-10">
         <button
@@ -114,10 +105,9 @@ const WalletTopUpFailed: React.FC = () => {
         >
           Try Again (If you dare)
         </button>
-
         <button
           onClick={handleGoBack}
-          className="w-full h-[48px] flex items-center justify-center text-black dark:text-white bg-[#EBEBEB] dark:bg-[#1E2128] text-[16px] font-medium font-sans active:scale-[0.98] transition-all rounded-full"
+          className="w-full h-[48px] flex items-center justify-center text-foreground dark:text-white bg-muted dark:bg-muted text-[16px] font-medium font-sans active:scale-[0.98] transition-all rounded-full"
         >
           Go Back!
         </button>
@@ -125,5 +115,4 @@ const WalletTopUpFailed: React.FC = () => {
     </div>
   );
 };
-
 export default WalletTopUpFailed;

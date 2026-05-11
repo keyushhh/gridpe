@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-import { OTPInputContext } from "input-otp";
-import { cn } from "@/lib/utils";
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { OTPInputContext } from 'input-otp';
+import { cn } from '@/lib/utils';
 
 const MASK_DELAY_MS = 1000;
-const MASK_CHAR = "•";
+const MASK_CHAR = '•';
 
-interface MaskedInputOTPSlotProps extends React.ComponentPropsWithoutRef<"div"> {
+interface MaskedInputOTPSlotProps extends React.ComponentPropsWithoutRef<'div'> {
   index: number;
 }
 
@@ -42,13 +42,13 @@ export const MaskedInputOTPSlot = React.forwardRef<HTMLDivElement, MaskedInputOT
     return (
       <div
         ref={ref}
-        className={cn("flex items-center justify-center", className)}
+        className={cn('flex items-center justify-center', className)}
         style={style}
         {...props}
       >
-        {char ? (masked ? MASK_CHAR : char) : ""}
+        {char ? (masked ? MASK_CHAR : char) : ''}
       </div>
     );
-  },
+  }
 );
-MaskedInputOTPSlot.displayName = "MaskedInputOTPSlot";
+MaskedInputOTPSlot.displayName = 'MaskedInputOTPSlot';
