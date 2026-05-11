@@ -26,7 +26,7 @@ const FxPassportGate = () => {
     const navigate = useNavigate();
     const { walletTier, isPassportVerified, fetchProfileData } = useUser();
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
     const mainBg = useAsset("main-bg");
     const [isLoading, setIsLoading] = useState(true);
 

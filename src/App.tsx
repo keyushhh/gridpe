@@ -159,6 +159,19 @@ const BackNavigationHandler = ({ currentPathRef }: { currentPathRef: React.Mutab
 };
 
 const App = () => {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !resolvedTheme) {
+    const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
+    const isDark = savedTheme === 'dark' || (savedTheme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    return <div className="fixed inset-0" style={{ backgroundColor: isDark ? '#0a0a12' : '#FFFFFF' }} />;
+  }
+
   const currentPathRef = useRef("/");
   const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -251,8 +264,7 @@ const App = () => {
     };
   }, []);
 
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme === 'dark';
+  const isDarkMode = resolvedTheme !== 'light';
 
   return (
     <SkeletonTheme

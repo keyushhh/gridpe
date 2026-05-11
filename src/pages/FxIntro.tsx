@@ -9,7 +9,7 @@ const FxIntro = () => {
     const navigate = useNavigate();
     const { walletTier } = useUser();
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
     const mainBg = useAsset("main-bg");
 
     // Redirect if already upgraded

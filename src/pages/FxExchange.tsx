@@ -52,7 +52,7 @@ interface CurrencyModalProps {
 const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }: CurrencyModalProps) => {
     const [searchQuery, setSearchQuery] = useState('');
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
 
     if (!isOpen) return null;
 
@@ -137,7 +137,7 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
 const PassportUpgradeModal = ({ isOpen }: { isOpen: boolean }) => {
     const navigate = useNavigate();
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
 
     if (!isOpen) return null;
 
@@ -192,7 +192,7 @@ const FxExchange = () => {
     const [isSelectingTo, setIsSelectingTo] = useState(false);
     const [timer, setTimer] = useState(600); // 10 minutes in seconds
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
 
     // Fetch Currencies and Live Rate
     useEffect(() => {

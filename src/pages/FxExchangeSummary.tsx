@@ -46,7 +46,7 @@ const FxExchangeSummary = () => {
     const location = useLocation();
     const { showToaster } = useCustomToaster();
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
     const { profile, walletBalance, rewardPoints: availableRewardPoints, refreshBalance } = useUser();
     const currentUserId = profile?.id;
 

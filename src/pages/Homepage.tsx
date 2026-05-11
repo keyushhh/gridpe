@@ -69,7 +69,7 @@ const Homepage = () => {
   const circleButtonBg = useAsset("circle-button-bg");
   const bannerBg = useAsset("banner-bg");
   const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme === 'dark';
+  const isDarkMode = resolvedTheme !== 'light';
   const [showBalance, setShowBalance] = useState(false);
   const { walletBalance, walletTier, isPassportVerified, profileImage, name, scheduledDowngrade, profile } = useUser();
   const userId = profile?.id;

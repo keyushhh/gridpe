@@ -43,7 +43,7 @@ const FxSuccess = () => {
     const location = useLocation();
     const { orderId } = useParams<{ orderId: string }>();
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
     const hasDebited = useRef(false);
 
     const [order, setOrder] = useState<Order | null>(null);

@@ -10,7 +10,7 @@ interface BackButtonProps {
 
 const BackButton: React.FC<BackButtonProps> = ({ onClick, className }) => {
   const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme === 'dark';
+  const isDarkMode = resolvedTheme !== 'light';
 
   return (
     <button

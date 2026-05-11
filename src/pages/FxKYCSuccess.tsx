@@ -11,7 +11,7 @@ import darkBgCta from "@/assets/darkbg-cta.png";
 const FxKYCSuccess = () => {
     const navigate = useNavigate();
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
     const { setPassportVerifiedInDb } = useUser();
 
     const [loading, setLoading] = useState(false);

@@ -23,7 +23,7 @@ const CurrencyModal = ({ isOpen, onClose, onSelect, current, currencies, type }:
 }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
     if (!isOpen) return null;
 
     const filteredCurrencies = Object.entries(currencies).filter(([code, name]) =>
@@ -90,7 +90,7 @@ const LiveRates = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { resolvedTheme } = useTheme();
-    const isDarkMode = resolvedTheme === "dark";
+    const isDarkMode = resolvedTheme !== "light";
     const initialFrom = location.state?.from || 'USD';
     const initialTo = location.state?.to || 'INR';
 

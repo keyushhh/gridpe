@@ -25,6 +25,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import { Provider, User } from "@supabase/supabase-js";
 import PhoneInputSection from "@/components/onboarding/PhoneInputSection";
 import OTPInputSection from "@/components/onboarding/OTPInputSection";
+import { useTheme } from "next-themes";
 
 // --- Memoized Static Sub-components ---
 
@@ -87,6 +88,8 @@ const LegalFooter = memo(({ onNavigate }: LegalFooterProps) => (
 // --- Main Component ---
 
 const OnboardingScreen = () => {
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme !== 'light';
 
   const navigate = useNavigate();
   const { setPhoneNumber: savePhoneNumber, setBiometricEnabled: saveBiometricEnabled, setProfile, profile, resetForDemo } = useUser();
@@ -762,7 +765,7 @@ const OnboardingScreen = () => {
     return (
       <div className="h-full w-full flex items-center justify-center safe-top"
         style={{
-          backgroundColor: '#0a0a12',
+          backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
           backgroundImage: `url(${mainBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'top center',
@@ -779,7 +782,7 @@ const OnboardingScreen = () => {
   return (
     <div
       className={`fixed inset-0 onboarding-container overflow-hidden ${uiState.isKeyboardOpen ? 'keyboard-open' : ''}`}
-      style={{ backgroundColor: '#0a0a12' }}
+      style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}
     >
       <div
         className="absolute inset-0 overflow-y-auto overscroll-y-none flex flex-col safe-top"
