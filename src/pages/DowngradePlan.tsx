@@ -61,7 +61,7 @@ const DowngradePlan = () => {
   if (!currentConfig) return null;
   return (
     <div
-      className={`absolute inset-0 overflow-y-auto overscroll-y-contain flex flex-col safe-top safe-bottom pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`absolute inset-0 overflow-y-auto overscroll-y-contain flex flex-col safe-top safe-bottom pb-4 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         fontFamily: "'Satoshi', sans-serif",
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -72,7 +72,7 @@ const DowngradePlan = () => {
     >
       {/* Light Mode Purple Glow (Top Center) */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       <header className="px-5 pt-4 pb-2 flex items-center relative z-10">
         <div className="absolute left-5">
@@ -114,7 +114,7 @@ const DowngradePlan = () => {
           )}
           {/* Chip */}
           <div
-            className={`absolute top-[12px] right-[12px] w-[86px] h-[23px] flex items-center justify-center rounded-full ${!isDarkMode ? 'bg-[#5260FE]' : ''} z-20`}
+            className={`absolute top-[12px] right-[12px] w-[86px] h-[23px] flex items-center justify-center rounded-full ${!isDarkMode ? 'bg-brand-primary' : ''} z-20`}
             style={
               isDarkMode
                 ? {
@@ -141,7 +141,7 @@ const DowngradePlan = () => {
             <div className="mt-[8px] flex items-start">
               {/* Verification */}
               <div className="flex flex-col w-[118px]">
-                <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+                <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                   Verification
                 </span>
                 <span
@@ -152,7 +152,7 @@ const DowngradePlan = () => {
               </div>
               {/* Wallet Limit */}
               <div className="flex flex-col w-[100px] ml-1">
-                <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+                <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                   Wallet limit
                 </span>
                 <span
@@ -163,7 +163,7 @@ const DowngradePlan = () => {
               </div>
               {/* Withdraw Limit */}
               <div className="flex flex-col">
-                <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+                <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                   Withdraw limit
                 </span>
                 <span
@@ -175,7 +175,7 @@ const DowngradePlan = () => {
             </div>
             {/* Row 2: Limitations */}
             <div className="mt-[8px] flex flex-col pr-8">
-              <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+              <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                 Limitations
               </span>
               <p
@@ -257,7 +257,7 @@ const DowngradePlan = () => {
               <div className="mt-[8px] flex items-start">
                 {/* Verification */}
                 <div className="flex flex-col w-[118px]">
-                  <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+                  <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                     Verification
                   </span>
                   <span
@@ -276,7 +276,7 @@ const DowngradePlan = () => {
                 </div>
                 {/* Wallet Limit */}
                 <div className="flex flex-col w-[100px] ml-1">
-                  <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+                  <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                     Wallet limit
                   </span>
                   <span
@@ -287,7 +287,7 @@ const DowngradePlan = () => {
                 </div>
                 {/* Withdraw Limit */}
                 <div className="flex flex-col">
-                  <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+                  <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                     Withdraw limit
                   </span>
                   <span
@@ -299,7 +299,7 @@ const DowngradePlan = () => {
               </div>
               {/* Row 2: Limitations */}
               <div className="mt-[8px] flex flex-col pr-8">
-                <span className="text-[#8F8F8F] text-[12px] font-regular font-satoshi">
+                <span className="text-brand-text-dim text-[12px] font-regular font-satoshi">
                   Limitations
                 </span>
                 <span
@@ -332,21 +332,21 @@ const DowngradePlan = () => {
       {/* Fixed Bottom Confirmation Container */}
       {selectedTier && (
         <div
-          className={`fixed bottom-0 left-0 right-0 flex flex-col items-center pt-[20px] safe-bottom pb-4 z-[100] ${isDarkMode ? 'bg-black' : 'bg-white border-t border-[#E9EAEB]'}`}
+          className={`fixed bottom-0 left-0 right-0 flex flex-col items-center pt-[20px] safe-bottom pb-4 z-[100] ${isDarkMode ? 'bg-black' : 'bg-white border-t border-brand-border-light'}`}
         >
           {/* Note Container */}
           <div
-            className={`w-[340px] min-h-[50px] rounded-[10px] border flex items-start p-[9px_10px] relative ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+            className={`w-[340px] min-h-[50px] rounded-[10px] border flex items-start p-[9px_10px] relative ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
             onClick={() => setIsConfirmed(!isConfirmed)}
           >
             {/* Custom Checkbox */}
             <div
               className={`w-5 h-5 rounded-[4px] border-2 shrink-0 transition-colors flex items-center justify-center ${
                 isConfirmed
-                  ? 'bg-[#5260FE] border-[#5260FE]'
+                  ? 'bg-brand-primary border-brand-primary'
                   : isDarkMode
-                    ? 'border-[#5260FE]'
-                    : 'border-[#5260FE]'
+                    ? 'border-brand-primary'
+                    : 'border-brand-primary'
               }`}
             >
               {isConfirmed && (
@@ -383,9 +383,9 @@ const DowngradePlan = () => {
             disabled={!isConfirmed}
             className={`w-[362px] h-[48px] mt-[12px] rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-all ${
               isConfirmed
-                ? 'bg-[#5260FE] text-white'
+                ? 'bg-brand-primary text-white'
                 : isDarkMode
-                  ? 'bg-[#5260FE]/20 text-white/50'
+                  ? 'bg-brand-primary/20 text-white/50'
                   : 'bg-[#EBEBEB] text-black/50'
             }`}
           >

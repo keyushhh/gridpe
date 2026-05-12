@@ -76,7 +76,7 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
                 ${
                   localError || parentError
                     ? 'border border-red-500 ring-1 ring-red-500'
-                    : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
+                    : 'bg-brand-bg-light border border-brand-border-light dark:bg-transparent dark:border-none dark:ring-1 dark:ring-white/10'
                 }`}
                 style={{
                   backgroundImage: otpInputBg ? `url(${otpInputBg})` : 'none',

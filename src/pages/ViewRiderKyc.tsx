@@ -45,8 +45,8 @@ const ViewRiderKyc = () => {
           const { data, error: riderError } = await supabase
             .from('riders')
             .select(
-              'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number'
-            )
+            'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, profile_photo'
+          )
             .eq('id', currentOrder.rider_id)
             .single();
           if (data && !riderError) {
@@ -70,7 +70,7 @@ const ViewRiderKyc = () => {
   if (isLoading) {
     return (
       <div
-        className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+        className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       >
         <div className="w-full px-5 flex flex-col items-center gap-6">
           <CardSkeleton height={402} />
@@ -86,7 +86,7 @@ const ViewRiderKyc = () => {
   if (error || !rider) {
     return (
       <div
-        className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center p-6 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+        className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center p-6 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       >
         <div className="text-center">
           <p className={`text-[18px] font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-black'}`}>
@@ -94,7 +94,7 @@ const ViewRiderKyc = () => {
           </p>
           <button
             onClick={() => navigate(-1)}
-            className="px-6 py-2 bg-[#5260FE] text-white rounded-full font-medium"
+            className="px-6 py-2 bg-brand-primary text-white rounded-full font-medium"
           >
             Go Back
           </button>
@@ -130,7 +130,7 @@ const ViewRiderKyc = () => {
   };
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -141,7 +141,7 @@ const ViewRiderKyc = () => {
     >
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div
@@ -194,12 +194,13 @@ const ViewRiderKyc = () => {
                 {/* Rider Photo - Fixed 72x80px */}
                 <div className="w-[72px] h-[80px] rounded-[4px] overflow-hidden border border-black/5 shrink-0 shadow-sm">
                   <img
-                    src={
-                      rider?.kyc_photo ||
-                      rider?.kyc_id_url ||
-                      'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80'
-                    }
-                    alt="Rider"
+                    src={(() => {
+                      const photo = rider?.kyc_photo || (rider as any)?.profile_photo || rider?.kyc_id_url;
+                      if (!photo) return ASSETS.AVATAR;
+                      if (photo.startsWith('http')) return photo;
+                      return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;
+                    })()}
+                    alt={`${rider?.full_name || 'Rider'}'s photo`}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -275,7 +276,7 @@ const ViewRiderKyc = () => {
         {/* Close Button - 17px below container */}
         <button
           onClick={() => navigate(-1)}
-          className={`mt-[17px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 ${!isDarkMode ? 'bg-[#5260FE] rounded-full' : ''}`}
+          className={`mt-[17px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 ${!isDarkMode ? 'bg-brand-primary rounded-full' : ''}`}
           style={{
             backgroundImage: isDarkMode ? `url(${ASSETS.POP_UP_CLOSE_BTN})` : 'none',
             backgroundSize: '100% 100%',
@@ -304,14 +305,14 @@ const ViewRiderKyc = () => {
         </div>
         {/* Footer Security Text - 55px below need help */}
         <p
-          className={`mt-[55px] text-[16px] font-medium font-satoshi text-center ${isDarkMode ? 'text-[#9C9C9C]' : 'text-[#7E7E7E]'}`}
+          className={`mt-[55px] text-[16px] font-medium font-satoshi text-center ${isDarkMode ? 'text-[#9C9C9C]' : 'text-brand-text-muted'}`}
         >
           (Optional – helps us keep things secure)
         </p>
         {/* Hyperlink - 10px below security text */}
         <button
           onClick={() => navigate(ROUTES.VERIFY_RIDER_KYC)}
-          className={`mt-[10px] text-[16px] font-medium font-satoshi text-center underline pb-20 active:opacity-70 transition-opacity ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
+          className={`mt-[10px] text-[16px] font-medium font-satoshi text-center underline pb-20 active:opacity-70 transition-opacity ${isDarkMode ? 'text-white' : 'text-brand-primary'}`}
         >
           Does this KYC look correct?
         </button>

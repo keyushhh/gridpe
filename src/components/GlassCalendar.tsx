@@ -148,7 +148,7 @@ function GlassCalendar({
               'w-10 h-10 rounded-[10px] backdrop-blur-sm border flex items-center justify-center transition-all active:scale-95',
               isDarkMode
                 ? 'bg-white/10 border-white/20 hover:bg-white/20'
-                : 'bg-[#F7F8FA] border-[#E9EAEB] hover:bg-gray-100'
+                : 'bg-brand-bg-light border-brand-border-light hover:bg-gray-100'
             )}
           >
             <ChevronLeft className={cn('w-5 h-5', isDarkMode ? 'text-white' : 'text-black')} />
@@ -177,7 +177,7 @@ function GlassCalendar({
               'w-10 h-10 rounded-[10px] backdrop-blur-sm border flex items-center justify-center transition-all active:scale-95',
               isDarkMode
                 ? 'bg-white/10 border-white/20 hover:bg-white/20'
-                : 'bg-[#F7F8FA] border-[#E9EAEB] hover:bg-gray-100'
+                : 'bg-brand-bg-light border-brand-border-light hover:bg-gray-100'
             )}
           >
             <ChevronRight className={cn('w-5 h-5', isDarkMode ? 'text-white' : 'text-black')} />
@@ -190,7 +190,7 @@ function GlassCalendar({
               'absolute left-1/2 -translate-x-1/2 top-16 z-50 w-[160px] rounded-[16px] overflow-hidden',
               isDarkMode
                 ? 'backdrop-blur-[25.2px]'
-                : 'bg-white shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-[#E9EAEB]'
+                : 'bg-white shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-brand-border-light'
             )}
             style={
               isDarkMode
@@ -207,7 +207,7 @@ function GlassCalendar({
             <div
               className={cn(
                 'px-4 py-3 flex items-center justify-between border-b cursor-pointer',
-                isDarkMode ? 'border-black/10' : 'border-[#E9EAEB]'
+                isDarkMode ? 'border-black/10' : 'border-brand-border-light'
               )}
               onClick={() => setShowYearDropdown(false)}
             >
@@ -231,10 +231,10 @@ function GlassCalendar({
                       y === year
                         ? isDarkMode
                           ? 'bg-[rgba(0,0,0,0.49)]'
-                          : 'bg-[#5260FE] text-white'
+                          : 'bg-brand-primary text-white'
                         : isDarkMode
                           ? 'hover:bg-black/20'
-                          : 'hover:bg-[#F7F8FA]'
+                          : 'hover:bg-brand-bg-light'
                     )}
                   >
                     {y}
@@ -277,10 +277,10 @@ function GlassCalendar({
                         : 'text-black',
                     !isSelected(day) &&
                       !isDisabledDate(day) &&
-                      (isDarkMode ? 'hover:bg-white/10' : 'hover:bg-[#F7F8FA]'),
+                      (isDarkMode ? 'hover:bg-white/10' : 'hover:bg-brand-bg-light'),
                     !isDarkMode &&
                       isSelected(day) &&
-                      'bg-[#5260FE] text-white shadow-[0_4px_12px_rgba(82,96,254,0.3)]'
+                      'bg-brand-primary text-white shadow-[0_4px_12px_rgba(82,96,254,0.3)]'
                   )}
                   style={
                     isDarkMode && isSelected(day)

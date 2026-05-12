@@ -53,7 +53,7 @@ const OrderSummary = () => {
     />
   );
   const Divider = () => (
-    <div className={`w-full h-[1px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`} />
+    <div className={`w-full h-[1px] mx-auto ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`} />
   );
   return (
     <div
@@ -68,7 +68,7 @@ const OrderSummary = () => {
     >
       {/* Light Mode Purple Glow (Top Center) */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div className="px-5 pt-4 pb-2 flex items-center justify-between relative z-10 shrink-0">
@@ -131,7 +131,7 @@ const OrderSummary = () => {
             To Pay
           </span>
           <p
-            className={`text-[14px] font-normal font-sans mt-[6px] leading-tight ${isDarkMode ? 'text-white/60' : 'text-[#000000] opacity-100'}`}
+            className={`text-[14px] font-normal font-sans mt-[6px] leading-tight ${isDarkMode ? 'text-white/60' : 'text-black opacity-100'}`}
           >
             No additional taxes apply. Processing fee is inclusive of all charges.
           </p>
@@ -239,7 +239,7 @@ const OrderSummary = () => {
               }
             />
             <p
-              className={`text-[13px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#000000] opacity-100'}`}
+              className={`text-[13px] font-normal font-sans leading-snug ${isDarkMode ? 'text-white/60' : 'text-black opacity-100'}`}
             >
               This fee helps cover gateway and transaction costs. UPI methods are free.
             </p>

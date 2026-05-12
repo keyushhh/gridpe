@@ -12,7 +12,7 @@ const ReportRiderConfirm = () => {
   const otpDigits = ['1', '3', '0', '5', '9', '6'];
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-y-auto ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.WARNING_BACKGROUND})` : 'none',
@@ -62,14 +62,14 @@ const ReportRiderConfirm = () => {
         </h2>
         {/* Summary Box - mt-8 */}
         <div
-          className={`mt-8 p-4 rounded-[12px] border relative z-10 ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`mt-8 p-4 rounded-[12px] border relative z-10 ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
             backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <p
-            className={`text-[14px] font-normal font-satoshi leading-[150%] ${isDarkMode ? 'text-white/70' : 'text-[#7E7E7E]'}`}
+            className={`text-[14px] font-normal font-satoshi leading-[150%] ${isDarkMode ? 'text-white/70' : 'text-brand-text-muted'}`}
           >
             Your report has been logged and the rider is now under the scanner. This helps keep
             Grid.Pe safe. If the documents don’t add up, action will be taken.
@@ -77,14 +77,14 @@ const ReportRiderConfirm = () => {
         </div>
         {/* Proceed Question - 9px below first container */}
         <div
-          className={`w-full mt-[9px] rounded-[12px] border overflow-hidden relative z-10 ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`w-full mt-[9px] rounded-[12px] border overflow-hidden relative z-10 ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
             backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <div
-            className={`px-4 py-3 border-b ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}`}
+            className={`px-4 py-3 border-b ${isDarkMode ? 'border-white/5' : 'border-brand-border-light'}`}
           >
             <p
               className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -94,14 +94,14 @@ const ReportRiderConfirm = () => {
           </div>
           <div className="flex flex-col">
             <label
-              className={`flex items-center px-4 py-3 cursor-pointer border-b transition-colors ${isDarkMode ? 'border-white/5 active:bg-white/5' : 'border-[#E9EAEB] active:bg-gray-50'}`}
+              className={`flex items-center px-4 py-3 cursor-pointer border-b transition-colors ${isDarkMode ? 'border-white/5 active:bg-white/5' : 'border-brand-border-light active:bg-gray-50'}`}
               onClick={() => setSelectedOption('yes')}
             >
               <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedOption === 'yes' ? 'border-[#5260FE]' : isDarkMode ? 'border-white/30' : 'border-[#E6E8EB]'}`}
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedOption === 'yes' ? 'border-brand-primary' : isDarkMode ? 'border-white/30' : 'border-brand-border-light'}`}
               >
                 {selectedOption === 'yes' && (
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5260FE]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
                 )}
               </div>
               <span
@@ -115,10 +115,10 @@ const ReportRiderConfirm = () => {
               onClick={() => setSelectedOption('no')}
             >
               <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedOption === 'no' ? 'border-[#5260FE]' : isDarkMode ? 'border-white/30' : 'border-[#E6E8EB]'}`}
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedOption === 'no' ? 'border-brand-primary' : isDarkMode ? 'border-white/30' : 'border-brand-border-light'}`}
               >
                 {selectedOption === 'no' && (
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5260FE]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
                 )}
               </div>
               <span
@@ -187,13 +187,13 @@ const ReportRiderConfirm = () => {
             {/* Bottom Disclaimer & Button */}
             <div className="mt-10 px-2 w-full relative z-10">
               <p
-                className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+                className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
               >
                 You’re about to proceed with this delivery despite a flagged KYC. Please confirm.
               </p>
               <button
                 onClick={() => navigate(ROUTES.ORDER_DELIVERED)}
-                className="mt-3 w-full h-[48px] rounded-full bg-[#5260FE] text-white text-[16px] font-medium font-satoshi active:scale-95 transition-all"
+                className="mt-3 w-full h-[48px] rounded-full bg-brand-primary text-white text-[16px] font-medium font-satoshi active:scale-95 transition-all"
               >
                 Proceed with Delivery
               </button>
@@ -209,7 +209,7 @@ const ReportRiderConfirm = () => {
                 We’re so sorry for the inconvenience.
               </h3>
               <p
-                className={`mt-4 text-[14px] font-normal font-satoshi leading-[140%] ${isDarkMode ? 'text-white/70' : 'text-[#7E7E7E]'}`}
+                className={`mt-4 text-[14px] font-normal font-satoshi leading-[140%] ${isDarkMode ? 'text-white/70' : 'text-brand-text-muted'}`}
               >
                 The amount held in your wallet for this order will be refunded within 30 minutes if
                 you proceed with the cancellation of the order. No additional charges.
@@ -220,7 +220,7 @@ const ReportRiderConfirm = () => {
                   <div className="w-[12px] h-[12px] rounded-full bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
                 </div>
                 <span
-                  className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+                  className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
                 >
                   Awaiting delivery confirmation
                 </span>
@@ -230,7 +230,7 @@ const ReportRiderConfirm = () => {
             <div className="mt-[37px] px-2 w-full relative z-10">
               <button
                 onClick={() => navigate(ROUTES.ORDER_CANCELLED)}
-                className={`w-full h-12 rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-all ${isDarkMode ? 'border border-white/20 bg-white/5 text-white' : 'border border-[#E9EAEB] bg-white text-black'}`}
+                className={`w-full h-12 rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-all ${isDarkMode ? 'border border-white/20 bg-white/5 text-white' : 'border border-brand-border-light bg-white text-black'}`}
               >
                 Cancel
               </button>

@@ -1,0 +1,37 @@
+{
+  "brand": {
+    "primary": { "$value": "#5260FE", "$type": "color", "$description": "Main brand accent" },
+    "primary-light": { "$value": "#6C72FF", "$type": "color", "$description": "Lighter brand accent" },
+    "bg-dark": { "$value": "#0A0A12", "$type": "color", "$description": "Deep dark background" },
+    "bg-light": { "$value": "#F7F8FA", "$type": "color", "$description": "Light mode surface/background" },
+    "bg-deep": { "$value": "#09090B", "$type": "color", "$description": "Near-black Shadcn-style background" },
+    "border-light": { "$value": "#E9EAEB", "$type": "color", "$description": "Standard light mode border" },
+    "border-dark": { "$value": "#202020", "$type": "color", "$description": "Dark mode divider/border" },
+    "card-dark": { "$value": "#191919", "$type": "color", "$description": "Dark mode card background" },
+    "text-muted": { "$value": "#7E7E7E", "$type": "color", "$description": "Light mode secondary text" },
+    "text-dim": { "$value": "#8F8F8F", "$type": "color", "$description": "Mid-range dimmed text" },
+    "text-placeholder": { "$value": "#A4A4A4", "$type": "color", "$description": "Placeholder text gray" },
+    "error": { "$value": "#FF3B30", "$type": "color", "$description": "iOS-style error red" },
+    "destructive": { "$value": "#FF1E1E", "$type": "color", "$description": "Vibrant red for destructive actions" },
+    "success": { "$value": "#1CB956", "$type": "color", "$description": "Standard success green" },
+    "success-vibrant": { "$value": "#16B751", "$type": "color", "$description": "Vibrant success green" },
+    "warning": { "$value": "#FACC15", "$type": "color", "$description": "Standard warning yellow" }
+  },
+  "semantic": {
+    "primary": { "$value": "#5260FE", "$type": "color", "$description": "Maps to CSS var --primary" },
+    "background": { "$value": "#FFFFFF", "$type": "color", "$description": "Maps to CSS var --background" },
+    "foreground": { "$value": "#080B14", "$type": "color", "$description": "Maps to CSS var --foreground" },
+    "muted": { "$value": "#F1F5F9", "$type": "color", "$description": "Maps to CSS var --muted" },
+    "accent": { "$value": "#F1F5F9", "$type": "color", "$description": "Maps to CSS var --accent" },
+    "destructive": { "$value": "#EF4444", "$type": "color", "$description": "Maps to CSS var --destructive" },
+    "border": { "$value": "#E2E8F0", "$type": "color", "$description": "Maps to CSS var --border" },
+    "input": { "$value": "#E2E8F0", "$type": "color", "$description": "Maps to CSS var --input" },
+    "ring": { "$value": "#5260FE", "$type": "color", "$description": "Maps to CSS var --ring" },
+    "link": { "$value": "#4350E0", "$type": "color", "$description": "Maps to CSS var --link-color" },
+    "error": { "$value": "{brand.error}", "$type": "color", "$description": "Alias to brand.error" },
+    "success": { "$value": "{brand.success}", "$type": "color", "$description": "Alias to brand.success" }
+  },
+  "surface": {
+    "elevated": { "$value": "#FFFFFF", "$type": "color", "$description": "Maps to CSS var --surface-elevated" }
+  }
+}

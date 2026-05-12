@@ -67,7 +67,7 @@ const PaymentMissing = () => {
         </p>
         {/* Styled Container - 35px below subtext */}
         <div
-          className={`mt-[35px] rounded-[13px] relative overflow-hidden px-[22px] flex flex-col items-start justify-center text-left border ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`mt-[35px] rounded-[13px] relative overflow-hidden px-[22px] flex flex-col items-start justify-center text-left border ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             width: '362px',
             height: '158px',

@@ -127,8 +127,8 @@ const DeleteAccountOTP = () => {
                   index={index}
                   className={`w-[52px] h-[68px] rounded-[7px] text-[24px] font-bold ${
                     isDarkMode
-                      ? 'bg-[#191919]/30 border border-white/20 text-white'
-                      : 'bg-[#F7F8FA] border border-[#E6E8EB] text-black'
+                      ? 'bg-brand-card-dark/30 border border-white/20 text-white'
+                      : 'bg-brand-bg-light border border-brand-border-light text-black'
                   }`}
                 />
               ))}
@@ -140,14 +140,14 @@ const DeleteAccountOTP = () => {
               onClick={() =>
                 navigate(ROUTES.DELETE_ACCOUNT_MOBILE, { state: location.state, replace: true })
               }
-              className="text-[14px] font-sans text-[#5260FE] underline opacity-80"
+              className="text-[14px] font-sans text-brand-primary underline opacity-80"
             >
               Wrong number? Fix it here.
             </button>
             <button
               onClick={handleResend}
               disabled={!canResend}
-              className={`text-[14px] font-sans ${canResend ? 'text-[#5260FE]' : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
+              className={`text-[14px] font-sans ${canResend ? 'text-brand-primary' : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
             >
               {canResend ? 'Resend OTP' : `Resend OTP in ${timeLeft}s`}
             </button>
@@ -170,7 +170,7 @@ const DeleteAccountOTP = () => {
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
             />
           ) : (
-            <div className="absolute inset-0 w-full h-full rounded-full bg-[#FF3B30] pointer-events-none" />
+            <div className="absolute inset-0 w-full h-full rounded-full bg-brand-error pointer-events-none" />
           )}
           <span className="relative z-10 text-white text-[16px] font-semibold font-sans">
             I'll Miss You

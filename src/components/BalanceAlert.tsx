@@ -25,9 +25,9 @@ const BalanceAlert = ({ className = '' }: BalanceAlertProps) => {
   if (!alertData) return null;
   return (
     <div
-      className={`p-4 rounded-[13px] bg-[#FF3B30]/10 border border-[#FF3B30]/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500 ${className}`}
+      className={`p-4 rounded-[13px] bg-brand-error/10 border border-brand-error/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500 ${className}`}
     >
-      <div className="w-10 h-10 rounded-full bg-[#FF3B30]/20 flex items-center justify-center shrink-0">
+      <div className="w-10 h-10 rounded-full bg-brand-error/20 flex items-center justify-center shrink-0">
         <img src={ASSETS.FAILED} alt="Alert" className="w-6 h-6" />
       </div>
       <div className="flex-1 text-left">

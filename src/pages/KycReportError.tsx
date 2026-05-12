@@ -20,7 +20,7 @@ const KycReportError = () => {
   }, [navigate]);
   return (
     <div
-      className="fixed inset-0 w-full h-full flex flex-col bg-[#0a0a12] safe-top safe-bottom overflow-hidden"
+      className="fixed inset-0 w-full h-full flex flex-col bg-brand-bg-dark safe-top safe-bottom overflow-hidden"
       style={{
         backgroundImage: `url(${ASSETS.ERROR_BG})`,
         backgroundSize: 'cover',

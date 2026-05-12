@@ -49,7 +49,7 @@ const OrderDelivered = () => {
   }, [navigate]);
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col items-center ${containerOverflow} ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full h-full flex flex-col items-center ${containerOverflow} ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.SUCCESS_BG})` : 'none',
         backgroundSize: 'cover',
@@ -92,7 +92,7 @@ const OrderDelivered = () => {
         </p>
         {/* Container: 362x187px, radius 12px, 75px below sub-text */}
         <div
-          className={`mt-[75px] rounded-[12px] border overflow-hidden relative ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`mt-[75px] rounded-[12px] border overflow-hidden relative ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             width: '362px',
             height: '187px',
@@ -111,7 +111,7 @@ const OrderDelivered = () => {
           </h2>
           {/* Body text: Satoshi - regular - 16px, color #AFAFAF, 12px below heading */}
           <p
-            className={`mt-[12px] text-[16px] font-normal font-satoshi leading-[1.4] ${isDarkMode ? 'text-[#AFAFAF]' : 'text-[#7E7E7E]'}`}
+            className={`mt-[12px] text-[16px] font-normal font-satoshi leading-[1.4] ${isDarkMode ? 'text-[#AFAFAF]' : 'text-brand-text-muted'}`}
           >
             The amount held in your wallet for this order will be debited shortly. You will be
             notified for the same. Thank you for using Grid.Pe!
@@ -120,7 +120,7 @@ const OrderDelivered = () => {
           <div className="mt-[20px] flex items-center gap-[12px]">
             <img src={ASSETS.VERIFIED_CIRCLE} alt="Verified" className="w-[14px] h-[14px]" />
             <span
-              className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-[#D0D0D0]' : 'text-[#7E7E7E]'}`}
+              className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-[#D0D0D0]' : 'text-brand-text-muted'}`}
             >
               Delivery confirmed
             </span>

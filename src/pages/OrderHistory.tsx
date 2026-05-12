@@ -11,6 +11,206 @@ import { Order } from '@/types';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
 import { toast } from '@/components/ui/use-toast';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
+
+const OrderCard = React.memo(
+  ({
+    order,
+    isActive,
+    isDarkMode,
+    showOnlyPast,
+    onSelect,
+  }: {
+    order: Order;
+    isActive: boolean;
+    isDarkMode: boolean;
+    showOnlyPast: boolean;
+    onSelect: (order: Order) => void;
+  }) => {
+    const navigate = useNavigate();
+
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      const timeStr = date.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+      const isToday = date.toDateString() === new Date().toDateString();
+      if (isToday) {
+        return `Today | ${timeStr}`;
+      } else {
+        return `${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} | ${timeStr}`;
+      }
+    };
+
+    const getStatusConfig = (status: string) => {
+      const s = status.toLowerCase();
+      if (s === 'processing' || s === 'out_for_delivery' || s === 'arrived') {
+        return {
+          textClass: 'text-yellow-700 dark:text-yellow-600',
+          bgColor: '#FACC15',
+          bgOpacity: 0.21,
+          icon: ASSETS.PROCESSING,
+          statusIcon: ASSETS.REFRESH,
+          label: 'Processing',
+          iconFilter: !isDarkMode
+            ? 'brightness(0) saturate(100%) invert(54%) sepia(93%) saturate(2311%) hue-rotate(18deg) brightness(96%) contrast(101%)'
+            : undefined,
+        };
+      } else if (s === 'success' || s === 'delivered') {
+        return {
+          textClass: 'text-green-700 dark:text-green-500',
+          bgColor: '#1CB956',
+          bgOpacity: 0.21,
+          icon: ASSETS.SUCCESS,
+          statusIcon: ASSETS.CHECK,
+          label: 'Success',
+          iconFilter: !isDarkMode
+            ? 'invert(53%) sepia(76%) saturate(446%) hue-rotate(92deg) brightness(94%) contrast(92%)'
+            : undefined,
+        };
+      } else if (s === 'failed' || s === 'cancelled') {
+        return {
+          textClass: 'text-red-600 dark:text-red-400',
+          bgColor: '#FF1E1E',
+          bgOpacity: 0.21,
+          icon: ASSETS.FAILED,
+          statusIcon: ASSETS.CROSS,
+          label: s === 'cancelled' ? 'Cancelled' : 'Failed',
+          iconFilter: !isDarkMode
+            ? 'invert(27%) sepia(91%) saturate(7483%) hue-rotate(356deg) brightness(101%) contrast(106%)'
+            : undefined,
+        };
+      }
+      return {
+        textClass: 'text-white',
+        bgOpacity: 0.1,
+        icon: ASSETS.PROCESSING,
+        statusIcon: ASSETS.REFRESH,
+        label: status,
+      };
+    };
+
+    const config = getStatusConfig(order.status);
+
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        className="w-full rounded-[12px] overflow-hidden mb-[16px] cursor-pointer active:opacity-90 transition-opacity relative outline-none focus:ring-2 focus:ring-primary/50"
+        style={{
+          height: '100px',
+          background: isDarkMode
+            ? `${config.bgColor}${Math.round(config.bgOpacity * 255)
+                .toString(16)
+                .padStart(2, '0')}`
+            : `${config.bgColor}36`,
+          border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
+        }}
+        onClick={() => {
+          if (showOnlyPast) {
+            navigate('/help/report', { state: { order } });
+            return;
+          }
+          const s = order.status.toLowerCase();
+          const isCompleted = s === 'success' || s === 'delivered';
+          const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
+          if (isActive || isCompleted || isFailedOrCancelled) {
+            onSelect(order);
+          } else {
+            navigate(`/order-details/${order.id}`, { state: { order } });
+          }
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (showOnlyPast) {
+              navigate('/help/report', { state: { order } });
+              return;
+            }
+            const s = order.status.toLowerCase();
+            const isCompleted = s === 'success' || s === 'delivered';
+            const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
+            if (isActive || isCompleted || isFailedOrCancelled) {
+              onSelect(order);
+            } else {
+              navigate(`/order-details/${order.id}`, { state: { order } });
+            }
+          }
+        }}
+      >
+        {/* Top Container */}
+        <div className="w-full h-[25px] flex items-center px-[18px] relative overflow-hidden">
+          <div className="relative z-10 flex items-center mt-[2px]">
+            <img
+              src={config.statusIcon}
+              alt=""
+              className="w-3 h-3 mr-[4px]"
+              style={{ filter: config.iconFilter }}
+            />
+            <span className={`text-[12px] font-bold font-satoshi ${config.textClass}`}>
+              {config.label}
+            </span>
+          </div>
+        </div>
+        {/* Main Content Container */}
+        <div
+          className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border-x border-b border-brand-border-light' : ''}`}
+          style={
+            {
+              height: '75px',
+              '--glass-radius': '0 0 12px 12px',
+              '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)',
+            } as any
+          }
+        >
+          {isDarkMode && (
+            <>
+              <div className="glass-lens" />
+              <div
+                className="absolute inset-0 z-[1] pointer-events-none"
+                style={{ backgroundColor: 'var(--glass-tint)' }}
+              />
+              <span className="glass-rim-v2" />
+            </>
+          )}
+          <div className="relative z-10 flex items-start justify-between py-[14px] pl-[16px] pr-[14px]">
+            <div className="flex items-start gap-[16px]">
+              <img
+                src={config.icon}
+                alt={config.label}
+                className="w-[35px] h-[35px]"
+                width={35}
+                height={35}
+              />
+              <div className="flex flex-col">
+                <span
+                  className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
+                >
+                  {(order.meta_data as any)?.isFx
+                    ? `Exchange: ${formatDate(order.created_at)}`
+                    : `Withdrawal: ${formatDate(order.created_at)}`}
+                </span>
+                <span
+                  className={`text-[12px] font-regular font-satoshi mt-1 ${isDarkMode ? 'text-brand-text-muted' : 'text-black/50'}`}
+                >
+                  ID: {order.id.slice(0, 8).toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end">
+              <span
+                className={`text-[16px] font-bold font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
+              >
+                ₹{(order.amount / 100).toLocaleString('en-IN')}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -59,7 +259,7 @@ const OrderHistory = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
   const queryClient = useQueryClient();
-  const { data: ordersData, isLoading } = useQuery({
+  const { data: ordersData, isLoading, isError, refetch } = useQuery({
     queryKey: ['orders', userId, showOnlyRewards],
     queryFn: async () => {
       if (!userId) return { active: [] as Order[], past: [] as Order[] };
@@ -84,6 +284,7 @@ const OrderHistory = () => {
       return { active, past };
     },
     enabled: !!userId,
+    staleTime: 60 * 1000,
   });
   const activeOrders = ordersData?.active ?? [];
   const pastOrders = ordersData?.past ?? [];
@@ -138,77 +339,17 @@ const OrderHistory = () => {
     });
     setFilteredPastOrders(filtered);
   }, [searchQuery, pastOrders]);
-  // Helper for formatting date/time
-  const formatDateTime = (isoString: string) => {
-    const date = new Date(isoString);
-    const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
-    const timeStr = date.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-    if (isToday) {
-      return `Today | ${timeStr}`;
-    } else {
-      return `${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} | ${timeStr}`;
-    }
-  };
-  // Helper for status styles
-  const getStatusConfig = (status: string) => {
-    const s = status.toLowerCase();
-    if (s === 'processing' || s === 'out_for_delivery' || s === 'arrived') {
-      return {
-        textClass: 'text-yellow-700 dark:text-yellow-600',
-        bgColor: '#FACC15',
-        bgOpacity: 0.21,
-        icon: ASSETS.PROCESSING,
-        statusIcon: ASSETS.REFRESH,
-        label: 'Processing',
-        iconFilter: !isDarkMode
-          ? 'brightness(0) saturate(100%) invert(54%) sepia(93%) saturate(2311%) hue-rotate(18deg) brightness(96%) contrast(101%)'
-          : undefined,
-      };
-    } else if (s === 'success' || s === 'delivered') {
-      return {
-        textClass: 'text-green-700 dark:text-green-500',
-        bgColor: '#1CB956',
-        bgOpacity: 0.21,
-        icon: ASSETS.SUCCESS,
-        statusIcon: ASSETS.CHECK,
-        label: 'Success',
-        iconFilter: !isDarkMode
-          ? 'invert(53%) sepia(76%) saturate(446%) hue-rotate(92deg) brightness(94%) contrast(92%)'
-          : undefined,
-      };
-    } else if (s === 'failed' || s === 'cancelled') {
-      return {
-        textClass: 'text-red-600 dark:text-red-400',
-        bgColor: '#FF1E1E',
-        bgOpacity: 0.21,
-        icon: ASSETS.FAILED,
-        statusIcon: ASSETS.CROSS,
-        label: s === 'cancelled' ? 'Cancelled' : 'Failed',
-        iconFilter: !isDarkMode
-          ? 'invert(27%) sepia(91%) saturate(7483%) hue-rotate(356deg) brightness(101%) contrast(106%)'
-          : undefined,
-      };
-    }
-    // Default fallback
-    return {
-      textClass: 'text-white',
-      bgOpacity: 0.1,
-      icon: ASSETS.PROCESSING,
-      statusIcon: ASSETS.REFRESH,
-      label: status,
-    };
-  };
+  const handleSelectOrder = React.useCallback((order: Order) => {
+    setSelectedOrderForSheet(order);
+    setIsSheetOpen(true);
+  }, []);
+
   const handleCancelOrder = async (orderId: string) => {
     try {
       await cancelOrder(orderId, 'User Request', 'Cancelled from history');
       setIsSheetOpen(false);
-      // Refresh counts
-      loadOrders();
+      // Refresh cache
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (e: any) {
       console.error('Failed to cancel order', e);
       toast({
@@ -217,119 +358,6 @@ const OrderHistory = () => {
         description: e.message || 'Please try again later.',
       });
     }
-  };
-  const renderOrderCard = (order: Order, isActive: boolean) => {
-    const config = getStatusConfig(order.status);
-    return (
-      <div
-        key={order.id}
-        className="w-full rounded-[12px] overflow-hidden mb-[16px] cursor-pointer active:opacity-90 transition-opacity relative"
-        style={{
-          height: '100px',
-          background: isDarkMode
-            ? `${config.bgColor}${Math.round(config.bgOpacity * 255)
-                .toString(16)
-                .padStart(2, '0')}`
-            : `${config.bgColor}36`,
-          border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
-        }}
-        onClick={() => {
-          if (showOnlyPast) {
-            navigate('/help/report', { state: { order } });
-            return;
-          }
-          const s = order.status.toLowerCase();
-          const isCompleted = s === 'success' || s === 'delivered';
-          const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
-          if (isActive || isCompleted || isFailedOrCancelled) {
-            setSelectedOrderForSheet(order);
-            setIsSheetOpen(true);
-          } else {
-            navigate(`/order-details/${order.id}`, { state: { order } });
-          }
-        }}
-      >
-        {/* Top Container */}
-        <div className="w-full h-[25px] flex items-center px-[18px] relative overflow-hidden">
-          <div className="relative z-10 flex items-center mt-[2px]">
-            <img
-              src={config.statusIcon}
-              alt=""
-              className="w-3 h-3 mr-[4px]"
-              style={{ filter: config.iconFilter }}
-            />
-            <span className={`text-[12px] font-bold font-satoshi ${config.textClass}`}>
-              {config.label}
-            </span>
-          </div>
-        </div>
-        {/* Main Content Container (Inner Frame) */}
-        <div
-          className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border-x border-b border-[#E9EAEB]' : ''}`}
-          style={
-            {
-              height: '75px',
-              '--glass-radius': '0 0 12px 12px',
-              '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)',
-            } as any
-          }
-        >
-          {isDarkMode && (
-            <>
-              <div className="glass-lens" />
-              <div
-                className="absolute inset-0 z-[1] pointer-events-none"
-                style={{ backgroundColor: 'var(--glass-tint)' }}
-              />
-              <span className="glass-rim-v2" />
-            </>
-          )}
-          <div className="relative z-10 flex items-start justify-between py-[14px] pl-[16px] pr-[14px]">
-            <div className="flex items-start gap-[16px]">
-              <img
-                src={config.icon}
-                alt={config.label}
-                className="w-[35px] h-[35px]"
-                width={35}
-                height={35}
-              />
-              <div className="flex flex-col">
-                <span
-                  className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
-                >
-                  {(order.meta_data as any)?.isFx
-                    ? 'FX Exchange'
-                    : (order.meta_data as any)?.item_value
-                      ? `Ordered ₹${(order.meta_data as any).item_value} Cash`
-                      : order.addresses?.label
-                        ? `Order to ${order.addresses.label}`
-                        : 'Cash Order'}
-                </span>
-                <div className="flex items-center gap-2 pt-4">
-                  <span
-                    className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black/50'}`}
-                  >
-                    {formatDateTime(order.created_at)}
-                  </span>
-                  {(order.status === 'success' || order.status === 'delivered') && (
-                    <div className="w-[4px] h-[4px] rounded-full bg-[#1CB956]" />
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="h-[35px] flex items-center">
-              <span
-                className={`text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
-              >
-                {(order.meta_data as any)?.isFx
-                  ? `${currencySymbols[(order.meta_data as any)?.toCurrency as string] || ''}${Number((order.meta_data as any)?.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  : `₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
   // Helper to group orders while preserving order
   const groupedPastOrders = React.useMemo(() => {
@@ -361,7 +389,7 @@ const OrderHistory = () => {
   const searchBar = (
     <div className="px-5 mb-[38px] relative z-10">
       <div
-        className={`w-full h-[48px] rounded-full flex items-center px-[10px] transition-all ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#E9EAEB] shadow-sm'}`}
+        className={`w-full h-[48px] rounded-full flex items-center px-[10px] transition-all ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-brand-border-light shadow-sm'}`}
       >
         <div className="w-[16px] h-[16px] ml-[6px] mr-[16px] flex items-center justify-center">
           <img
@@ -397,7 +425,7 @@ const OrderHistory = () => {
     >
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* DEV SEEDER */}
       {import.meta.env.DEV && (
@@ -407,7 +435,7 @@ const OrderHistory = () => {
               try {
                 if (userId) {
                   await dev_seedMockOrders(userId);
-                  await loadOrders();
+                  await refetch();
                   toast({
                     title: 'Mock Data Seeded',
                     description: '3 orders added to history.',
@@ -455,26 +483,93 @@ const OrderHistory = () => {
           >
             Active orders
           </h2>
-          {activeOrders.map(order => renderOrderCard(order, true))}
+          {activeOrders.map(order => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              isActive={true}
+              isDarkMode={isDarkMode}
+              showOnlyPast={showOnlyPast}
+              onSelect={handleSelectOrder}
+            />
+          ))}
         </div>
       )}
+
       {groupedPastOrders.length > 0 && !isLoading && (
         <div className="px-5 safe-bottom pb-4 relative z-10 flex flex-col gap-[24px]">
           {groupedPastOrders.map(group => (
             <div key={group.title}>
               <h2
-                className={`${showOnlyPast ? 'text-[#7E7E7E] text-[14px] font-medium uppercase' : isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi mb-[12px]`}
+                className={`${showOnlyPast ? 'text-brand-text-muted text-[14px] font-medium uppercase' : isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi mb-[12px]`}
               >
                 {group.title}
               </h2>
-              {group.orders.map(order => renderOrderCard(order, false))}
+              {group.orders.map(order => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  isActive={false}
+                  isDarkMode={isDarkMode}
+                  showOnlyPast={showOnlyPast}
+                  onSelect={handleSelectOrder}
+                />
+              ))}
             </div>
           ))}
         </div>
       )}
 
+      {activeOrders.length === 0 && groupedPastOrders.length === 0 && !isLoading && !isError && (
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-10 relative z-20 pb-32">
+          <div
+            className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
+          >
+            <img
+              src={ASSETS.ORDER_HISTORY}
+              alt="No orders"
+              className="w-12 h-12 opacity-40"
+              style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
+            />
+          </div>
+          <h2
+            className={`text-[20px] font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
+          >
+            No orders yet
+          </h2>
+          <p
+            className={`text-[14px] leading-relaxed mb-10 ${isDarkMode ? 'text-white/60' : 'text-black/40'}`}
+          >
+            Place your first cash withdrawal and it'll show up here.
+          </p>
+          <button
+            onClick={() => navigate(ROUTES.ORDER_CASH)}
+            className={`w-full max-w-[240px] h-[48px] rounded-full font-medium transition-all active:scale-95 shadow-lg ${isDarkMode ? 'bg-white text-black shadow-white/5' : 'bg-brand-primary text-white shadow-brand-primary/20'}`}
+          >
+            Withdraw Cash Now
+          </button>
+        </div>
+      )}
+
+      {isError && (
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-10 relative z-20 pb-32">
+          <div className={`p-4 rounded-full mb-4 ${isDarkMode ? 'bg-red-500/10' : 'bg-red-50'}`}>
+            <img src={ASSETS.FAILED} alt="Error" className="w-8 h-8" />
+          </div>
+          <p className={`${isDarkMode ? 'text-white/60' : 'text-black/40'} text-[18px] mb-6`}>
+            Failed to load orders. Please check your connection.
+          </p>
+          <button
+            onClick={() => refetch()}
+            className={`px-8 py-3 rounded-full font-medium transition-all active:scale-95 ${isDarkMode ? 'bg-white text-black' : 'bg-brand-primary text-white'}`}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {isLoading && (
-        <div className="mt-8 space-y-4 px-5">
+        <div className="mt-8 space-y-4 px-5 relative z-10">
           <BaseListSkeleton rows={5} />
         </div>
       )}

@@ -11,8 +11,19 @@ import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 import { Button } from '@/components/ui/button';
-import ConfirmationModal from '@/components/ConfirmationModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 import { hapticWarning } from '@/utils/haptics';
 // Assets
 const SavedAddresses = () => {
@@ -25,7 +36,6 @@ const SavedAddresses = () => {
   const [loading, setLoading] = useState(true);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
   useEffect(() => {
     loadAddresses();
   }, []);
@@ -41,36 +51,12 @@ const SavedAddresses = () => {
       setLoading(false);
     }
   };
-  const handleDelete = async () => {
-    if (!addressToDelete) return;
-    const idToDelete = addressToDelete.id;
-    const nameToDelete = addressToDelete.contact_name || 'Address';
-    // Close modal first
-    setAddressToDelete(null);
-    showToaster('Processing deletion...', 'success');
-    try {
-      await deleteAddress(idToDelete);
-      showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
-      setAddresses(prev => prev.filter(a => a.id !== idToDelete));
-      // Clear from localStorage if this was the selected address
-      const currentSelected = localStorage.getItem('gridpe_user_address');
-      if (currentSelected) {
-        try {
-          const parsed = JSON.parse(currentSelected);
-          if (parsed.id === idToDelete) {
-            localStorage.removeItem('gridpe_user_address');
-          }
-        } catch (err) {
-          console.warn('Corrupted selection data found during delete.');
-          localStorage.removeItem('gridpe_user_address');
-        }
-      }
-    } catch (e: any) {
-      console.error('Failed to delete address', e);
-      showToaster(e.message || 'Failed to delete address. Please try again.', 'error');
-    }
-  };
+
   const handleShare = async (addr: Address) => {
+    if (!Capacitor.isNativePlatform()) {
+      showToaster('Sharing is only available on mobile devices.', 'error');
+      return;
+    }
     try {
       const addressText = `${addr.apartment}, ${addr.area}, ${addr.city}, ${addr.state} — 560078`;
       await Share.share({
@@ -107,7 +93,7 @@ const SavedAddresses = () => {
   };
   return (
     <div
-      className={`fixed inset-0 flex flex-col ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-[#FFFFFF] text-black'} font-satoshi overflow-hidden safe-bottom`}
+      className={`fixed inset-0 flex flex-col ${isDarkMode ? 'bg-brand-bg-dark text-white' : 'bg-white text-black'} font-satoshi overflow-hidden safe-bottom`}
     >
       {/* Background */}
       <div
@@ -141,7 +127,7 @@ const SavedAddresses = () => {
       {/* Search Bar */}
       <div className="relative z-10 px-5 mb-6">
         <div
-          className={`relative h-12 flex items-center rounded-full px-4 backdrop-blur-md border ${!isDarkMode ? 'bg-white border-[#E6E8EB]' : 'border-transparent'}`}
+          className={`relative h-12 flex items-center rounded-full px-4 backdrop-blur-md border ${!isDarkMode ? 'bg-white border-brand-border-light' : 'border-transparent'}`}
           style={
             isDarkMode
               ? {
@@ -173,19 +159,40 @@ const SavedAddresses = () => {
             <BaseListSkeleton rows={3} />
           </div>
         ) : addresses.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center px-10">
-            <p
-              className={`${isDarkMode ? 'text-white/60' : 'text-black/40'} text-[18px] leading-relaxed`}
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-10 pt-20">
+            <div
+              className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
             >
-              You have no saved addresses. Do you live in the woods?
+              <img
+                src={ASSETS.SAVED_ADDRESSES}
+                alt="No addresses"
+                className="w-12 h-12 opacity-40"
+                style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
+              />
+            </div>
+            <h2
+              className={`text-[20px] font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
+            >
+              No saved addresses
+            </h2>
+            <p
+              className={`text-[14px] leading-relaxed mb-10 ${isDarkMode ? 'text-white/60' : 'text-black/40'}`}
+            >
+              Add your home or work address to order cash faster.
             </p>
+            <button
+              onClick={() => navigate(ROUTES.ADD_ADDRESS)}
+              className={`w-full max-w-[240px] h-[48px] rounded-full font-medium transition-all active:scale-95 shadow-lg ${isDarkMode ? 'bg-white text-black shadow-white/5' : 'bg-brand-primary text-white shadow-brand-primary/20'}`}
+            >
+              Add Address
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
             {filteredAddresses.map((addr, idx) => (
               <div
                 key={addr.id}
-                className={`${isDarkMode ? 'bg-[#0D0D0D]/60 border-white/10 active:bg-white/5' : 'bg-white border-[#E6E8EB] active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-colors`}
+                className={`${isDarkMode ? 'bg-[#0D0D0D]/60 border-white/10 active:bg-white/5' : 'bg-white border-brand-border-light active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-colors`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -202,7 +209,7 @@ const SavedAddresses = () => {
                     </span>
                     {idx === 0 && (
                       <span
-                        className={`px-3 py-0.5 ${isDarkMode ? 'bg-[#008A22]/20 border-[#008A22]/30 text-[#00E037]' : 'bg-[#1CB956] border-[#1CB956] text-white'} border text-[12px] font-medium rounded-full`}
+                        className={`px-3 py-0.5 ${isDarkMode ? 'bg-[#008A22]/20 border-[#008A22]/30 text-[#00E037]' : 'bg-brand-success border-brand-success text-white'} border text-[12px] font-medium rounded-full`}
                       >
                         Default
                       </span>
@@ -239,20 +246,72 @@ const SavedAddresses = () => {
                         style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
                       />
                     </button>
-                    <button
-                      onClick={() => {
-                        hapticWarning();
-                        setAddressToDelete(addr);
-                      }}
-                      className="opacity-70 active:opacity-100"
-                    >
-                      <img
-                        src={ASSETS.DELETE}
-                        alt="Delete"
-                        className="w-5 h-5"
-                        style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
-                      />
-                    </button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            hapticWarning();
+                          }}
+                          className="opacity-70 active:opacity-100"
+                        >
+                          <img
+                            src={ASSETS.DELETE}
+                            alt="Delete"
+                            className="w-5 h-5"
+                            style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
+                          />
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className={`${isDarkMode ? 'bg-[#12121a] border-white/10 text-white' : 'bg-white'}`}>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remove Address?</AlertDialogTitle>
+                          <AlertDialogDescription className={`${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                            This address will be removed from your account. You can always add it back later.
+                            <br />
+                            <span className="mt-2 block font-medium">
+                              {addr.label} | {addr.apartment}, {addr.area}
+                            </span>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className={`${isDarkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : ''}`}>Keep it</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={async () => {
+                              const idToDelete = addr.id;
+                              const nameToDelete = addr.contact_name || 'Address';
+                              showToaster('Processing deletion...', 'success');
+                              try {
+                                if (userId) {
+                                  await deleteAddress(idToDelete, userId);
+                                  showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
+                                  setAddresses(prev => prev.filter(a => a.id !== idToDelete));
+                                }
+                                // Clear from localStorage if this was the selected address
+                                const currentSelected = localStorage.getItem('gridpe_user_address');
+                                if (currentSelected) {
+                                  try {
+                                    const parsed = JSON.parse(currentSelected);
+                                    if (parsed.id === idToDelete) {
+                                      localStorage.removeItem('gridpe_user_address');
+                                    }
+                                  } catch (err) {
+                                    console.warn('Corrupted selection data found during delete.');
+                                    localStorage.removeItem('gridpe_user_address');
+                                  }
+                                }
+                              } catch (e: any) {
+                                console.error('Failed to delete address', e);
+                                showToaster(e.message || 'Failed to delete address. Please try again.', 'error');
+                              }
+                            }}
+                            className="bg-red-500 hover:bg-red-600 text-white border-none"
+                          >
+                            Remove
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
                 <div
@@ -272,41 +331,23 @@ const SavedAddresses = () => {
         )}
       </div>
       {/* Bottom CTA */}
-      {!addressToDelete && (
-        <div
-          className={`absolute bottom-0 left-0 right-0 p-5 pt-10 safe-bottom pb-4 z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}
+      <div
+        className={`absolute bottom-0 left-0 right-0 p-5 pt-10 safe-bottom pb-4 z-20 ${isDarkMode ? 'bg-gradient-to-t from-brand-bg-dark via-brand-bg-dark/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}
+      >
+        <button
+          onClick={() => navigate(ROUTES.ADD_ADDRESS)}
+          className={`w-full h-[48px] border backdrop-blur-xl rounded-full flex items-center justify-center text-[16px] font-medium active:scale-95 transition-transform ${isDarkMode ? 'bg-black/40 border-white/20 text-white' : 'bg-brand-primary border-brand-primary text-white shadow-lg shadow-brand-primary/20'}`}
+          style={
+            isDarkMode
+              ? {
+                  boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+                }
+              : {}
+          }
         >
-          <button
-            onClick={() => navigate(ROUTES.ADD_ADDRESS)}
-            className={`w-full h-[48px] border backdrop-blur-xl rounded-full flex items-center justify-center text-[16px] font-medium active:scale-95 transition-transform ${isDarkMode ? 'bg-black/40 border-white/20 text-white' : 'bg-[#5260FE] border-[#5260FE] text-white shadow-lg shadow-[#5260FE]/20'}`}
-            style={
-              isDarkMode
-                ? {
-                    boxShadow: '0 0 20px rgba(0,0,0,0.5)',
-                  }
-                : {}
-            }
-          >
-            Add New Address
-          </button>
-        </div>
-      )}
-      {/* Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={addressToDelete !== null}
-        onClose={() => setAddressToDelete(null)}
-        title="Are you sure you want to delete this address?"
-        description={
-          addressToDelete
-            ? `${addressToDelete.contact_name} | ${addressToDelete.apartment}, ${addressToDelete.area}`
-            : ''
-        }
-        primaryButtonSrc={ASSETS.BUTTON_REMOVE_CARD}
-        primaryText="Yes, Delete"
-        onPrimaryClick={handleDelete}
-        secondaryButtonSrc={ASSETS.BUTTON_CANCEL_WIDE}
-        secondaryText="No"
-      />
+          Add New Address
+        </button>
+      </div>
     </div>
   );
 };

@@ -72,11 +72,11 @@ const LegalFooter = memo(({ onNavigate }: LegalFooterProps) => (
     <p className="text-black dark:text-muted-foreground leading-relaxed font-normal text-[16px]">
       By continuing, you agree to Grid.Pe's
       <br />
-      <button onClick={() => onNavigate(ROUTES.LEGAL_TERMS)} className="text-[#5260FE] font-bold">
+      <button onClick={() => onNavigate(ROUTES.LEGAL_TERMS)} className="text-brand-primary font-bold">
         Terms & Conditions
       </button>{' '}
       and{' '}
-      <button onClick={() => onNavigate(ROUTES.LEGAL_PRIVACY)} className="text-[#5260FE] font-bold">
+      <button onClick={() => onNavigate(ROUTES.LEGAL_PRIVACY)} className="text-brand-primary font-bold">
         Privacy Policy
       </button>
     </p>
@@ -513,7 +513,8 @@ const OnboardingScreen = () => {
         localStorage.setItem('biometrics_enabled', 'true');
       }
       saveBiometricEnabled(biometricState.isEnabled);
-      navigate(ROUTES.HOME, { replace: true });
+      localStorage.setItem('gridpe_reloading', '1');
+      window.location.href = `${window.location.origin}/#/home`;
     } catch (err: unknown) {
       console.error('Unexpected error in MPIN setup:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
@@ -527,7 +528,8 @@ const OnboardingScreen = () => {
     setErrorState(prev => ({ ...prev, general: '' }));
     // Developer Bypass for Live Mode debugging
     if (pinToVerify === '8787' || pinToVerify === '9999') {
-      navigate(ROUTES.HOME, { replace: true });
+      localStorage.setItem('gridpe_reloading', '1');
+      window.location.href = `${window.location.origin}/#/home`;
       return;
     }
     setUiState(prev => ({ ...prev, isLoading: true }));
@@ -558,7 +560,10 @@ const OnboardingScreen = () => {
       const hashedInput = await hashMpin(pinToVerify);
       if (hashedInput === targetHash) {
         setMpinState(prev => ({ ...prev, isSuccess: true }));
-        setTimeout(() => navigate(ROUTES.HOME, { replace: true }), 500);
+        setTimeout(() => {
+          localStorage.setItem('gridpe_reloading', '1');
+          window.location.href = `${window.location.origin}/#/home`;
+        }, 500);
       } else {
         setErrorState(prev => ({ ...prev, mpin: 'Wrong MPIN. Try again?' }));
         setMpinState(prev => ({ ...prev, value: '' }));
@@ -760,7 +765,7 @@ const OnboardingScreen = () => {
                         index={index}
                         className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
                         text-black dark:text-white 
-                        bg-[#F7F8FA] border border-[#E6E8EB] 
+                        bg-brand-bg-light border border-brand-border-light 
                         dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10`}
                         render={({ char, isActive }) => (
                           <div className="flex items-center justify-center w-full h-full">
@@ -859,7 +864,7 @@ const OnboardingScreen = () => {
                             ? 'border border-red-500 ring-1 ring-red-500'
                             : mpinState.isSuccess
                               ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent'
-                              : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
+                              : 'bg-brand-bg-light border border-brand-border-light dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
                         }`}
                         style={{
                           backgroundImage: isPredictableError
@@ -909,7 +914,7 @@ const OnboardingScreen = () => {
                             ? 'border border-red-500 ring-1 ring-red-500'
                             : mpinState.isSuccess
                               ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent'
-                              : 'bg-[#F7F8FA] border border-[#E6E8EB] dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
+                              : 'bg-brand-bg-light border border-brand-border-light dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
                         }`}
                         style={{
                           backgroundImage: isMismatchError

@@ -25,7 +25,7 @@ const NeedHelp = () => {
   const [description, setDescription] = useState('');
   if (!order) {
     return (
-      <div className="min-h-screen bg-[#0a0a12] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-brand-bg-dark flex items-center justify-center text-white">
         <p>Order not found</p>
         <button onClick={() => navigate(-1)}>Back</button>
       </div>
@@ -96,7 +96,7 @@ const NeedHelp = () => {
     .padStart(2, '0');
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full flex flex-col ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
         backgroundSize: 'cover',
@@ -106,7 +106,7 @@ const NeedHelp = () => {
     >
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <header className="px-5 safe-top pt-4 pb-4 flex items-center justify-between relative z-10 shrink-0">
@@ -152,7 +152,7 @@ const NeedHelp = () => {
             </div>
           </div>
           <div
-            className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+            className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-brand-border-light' : ''}`}
             style={
               {
                 height: '112px',
@@ -189,7 +189,7 @@ const NeedHelp = () => {
                       : 'Cash Order'}
                 </span>
                 <span
-                  className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}
+                  className={`text-[12px] font-medium font-satoshi mt-1 ${isDarkMode ? 'text-white' : 'text-brand-text-muted'}`}
                 >
                   {formatOrderDate(order.created_at)}
                 </span>
@@ -200,7 +200,7 @@ const NeedHelp = () => {
                 ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
               <div
-                className={`absolute left-[12px] h-[1px] ${isDarkMode ? 'bg-[#363636]' : 'bg-[#E9EAEB]'}`}
+                className={`absolute left-[12px] h-[1px] ${isDarkMode ? 'bg-[#363636]' : 'bg-brand-border-light'}`}
                 style={{ top: '65px', width: '338px' }}
               />
               <div
@@ -208,7 +208,7 @@ const NeedHelp = () => {
                 style={{ top: '78px' }}
               >
                 <span
-                  className={`text-[12px] font-satoshi font-medium ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}
+                  className={`text-[12px] font-satoshi font-medium ${isDarkMode ? 'text-white' : 'text-brand-text-muted'}`}
                 >
                   Order ID
                 </span>
@@ -223,7 +223,7 @@ const NeedHelp = () => {
         </div>
         {/* Issue Category Section */}
         <section
-          className={`w-full mb-4 pb-[14px] glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+          className={`w-full mb-4 pb-[14px] glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-brand-border-light' : ''}`}
           style={
             {
               minHeight: '309px',
@@ -250,21 +250,21 @@ const NeedHelp = () => {
                 Issue Category
               </h3>
             </div>
-            <div className={`w-full h-[1px] ${isDarkMode ? 'bg-[#747474]/23' : 'bg-[#E9EAEB]'}`} />
+            <div className={`w-full h-[1px] ${isDarkMode ? 'bg-[#747474]/23' : 'bg-brand-border-light'}`} />
             <div className="flex flex-col">
               {ISSUE_CATEGORIES.map((cat, idx) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`flex items-center gap-[12px] px-[14px] py-[8.5px] ${idx < ISSUE_CATEGORIES.length - 1 ? (isDarkMode ? 'border-b border-white/5' : 'border-b border-[#E9EAEB]') : ''}`}
+                  className={`flex items-center gap-[12px] px-[14px] py-[8.5px] ${idx < ISSUE_CATEGORIES.length - 1 ? (isDarkMode ? 'border-b border-white/5' : 'border-b border-brand-border-light') : ''}`}
                 >
                   {selectedCategory === cat ? (
-                    <div className="w-[18px] h-[18px] rounded-full bg-[#5260FE] flex items-center justify-center shrink-0">
+                    <div className="w-[18px] h-[18px] rounded-full bg-brand-primary flex items-center justify-center shrink-0">
                       <div className="w-[6px] h-[6px] rounded-full bg-white" />
                     </div>
                   ) : (
                     <div
-                      className={`w-[18px] h-[18px] rounded-full border-2 shrink-0 ${isDarkMode ? 'border-[#5260FE]' : 'border-[#E6E8EB]'}`}
+                      className={`w-[18px] h-[18px] rounded-full border-2 shrink-0 ${isDarkMode ? 'border-brand-primary' : 'border-brand-border-light'}`}
                     />
                   )}
                   <span
@@ -279,7 +279,7 @@ const NeedHelp = () => {
         </section>
         {/* Description Section */}
         <section
-          className={`w-full mb-4 glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+          className={`w-full mb-4 glass-container glass-physics-clear relative z-10 rounded-[12px] ${!isDarkMode ? 'bg-white border border-brand-border-light' : ''}`}
           style={
             {
               minHeight: '166px',
@@ -309,10 +309,10 @@ const NeedHelp = () => {
                 value={description}
                 onChange={e => setDescription(e.target.value.slice(0, 200))}
                 placeholder="Add any extra details about your issue..."
-                className={`w-full h-[85px] bg-transparent text-[14px] font-satoshi resize-none focus:outline-none ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-[#7E7E7E]'}`}
+                className={`w-full h-[85px] bg-transparent text-[14px] font-satoshi resize-none focus:outline-none ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-brand-text-muted'}`}
               />
               <span
-                className={`absolute -bottom-1 right-0 text-[10px] font-satoshi ${isDarkMode ? 'text-white/20' : 'text-[#7E7E7E]'}`}
+                className={`absolute -bottom-1 right-0 text-[10px] font-satoshi ${isDarkMode ? 'text-white/20' : 'text-brand-text-muted'}`}
               >
                 {description.length}/200
               </span>
@@ -322,7 +322,7 @@ const NeedHelp = () => {
       </main>
       {/* Bottom Submit Button */}
       <div
-        className={`fixed bottom-0 left-0 right-0 p-5 safe-bottom pb-4 z-20 ${isDarkMode ? 'bg-[#0a0a12]/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-[#E9EAEB]'}`}
+        className={`fixed bottom-0 left-0 right-0 p-5 safe-bottom pb-4 z-20 ${isDarkMode ? 'bg-brand-bg-dark/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md border-t border-brand-border-light'}`}
       >
         <button
           disabled={!selectedCategory}

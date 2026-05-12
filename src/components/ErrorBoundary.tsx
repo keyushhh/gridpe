@@ -70,7 +70,7 @@ class ErrorBoundary extends Component<Props, State> {
           </div>
           <Button
             onClick={this.handleRestart}
-            className="w-full max-w-[280px] h-14 text-lg font-bold rounded-2xl bg-[#5260FE] hover:bg-[#4350E0] text-white shadow-[0_8px_16px_rgba(82,96,254,0.3)] transition-all active:scale-95"
+            className="w-full max-w-[280px] h-14 text-lg font-bold rounded-2xl bg-brand-primary hover:bg-[#4350E0] text-white shadow-[0_8px_16px_rgba(82,96,254,0.3)] transition-all active:scale-95"
           >
             Restart App
           </Button>

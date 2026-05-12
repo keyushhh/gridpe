@@ -203,7 +203,7 @@ const ScheduleDelivery = () => {
     >
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6 font-sans">
@@ -236,7 +236,7 @@ const ScheduleDelivery = () => {
         </div>
         {/* Time Selection Container */}
         <div
-          className={`w-full rounded-[24px] overflow-hidden backdrop-blur-[24px] border ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`w-full rounded-[24px] overflow-hidden backdrop-blur-[24px] border ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.30)' : '#FFFFFF',
             paddingBottom: '24px',
@@ -262,7 +262,7 @@ const ScheduleDelivery = () => {
           </div>
           {/* Inner Container: Clock + Picker */}
           <div
-            className={`mx-5 rounded-[24px] overflow-hidden backdrop-blur-[24px] border relative transition-colors duration-300 ${isDarkMode ? 'border-white/10' : 'border-[#E6E8EB]'}`}
+            className={`mx-5 rounded-[24px] overflow-hidden backdrop-blur-[24px] border relative transition-colors duration-300 ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
             style={{
               backgroundColor: isDarkMode ? '#0E0E0F' : '#FFFFFF', // Use white for light mode
               height: '150px',
@@ -277,7 +277,7 @@ const ScheduleDelivery = () => {
                 AM
               </button>
               <div
-                className={`h-[1px] w-[30px] my-[4px] ${isDarkMode ? 'bg-[#2D2D30]' : 'bg-[#E6E8EB]'}`}
+                className={`h-[1px] w-[30px] my-[4px] ${isDarkMode ? 'bg-[#2D2D30]' : 'bg-brand-border-light'}`}
               />
               <button
                 onClick={() => handleMeridiemClick('PM')}
@@ -364,7 +364,7 @@ const ScheduleDelivery = () => {
           {/* Invalid Time Message */}
           {isInvalidTime && (
             <div className="px-5 pt-2 text-center animate-fade-in">
-              <p className="text-[#FF3B30] text-[13px] font-medium">
+              <p className="text-brand-error text-[13px] font-medium">
                 Hey man, even we need rest and sleep!
               </p>
             </div>

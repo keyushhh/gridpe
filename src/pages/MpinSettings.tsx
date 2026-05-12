@@ -75,7 +75,7 @@ const MpinSettings = () => {
         {/* Status Card */}
         <div className="mt-6 flex justify-center">
           <div
-            className={`w-[362px] min-h-[101px] rounded-xl relative overflow-hidden flex items-center px-5 shrink-0 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+            className={`w-[362px] min-h-[101px] rounded-xl relative overflow-hidden flex items-center px-5 shrink-0 ${!isDarkMode ? 'border border-brand-border-light' : ''}`}
             style={
               isDarkMode
                 ? {
@@ -117,7 +117,7 @@ const MpinSettings = () => {
                 </div>
               </div>
               <p
-                className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal leading-tight mt-1`}
+                className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/50'} text-[13px] font-normal leading-tight mt-1`}
               >
                 Your MPIN's set. Want to update it? Tap 'Change MPIN' below.
               </p>
@@ -132,7 +132,7 @@ const MpinSettings = () => {
             setSheetMode('change');
             setShowMpinSheet(true);
           }}
-          className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium"
+          className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium"
         >
           Change MPIN
         </Button>

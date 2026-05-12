@@ -127,14 +127,14 @@ const AddPaymentMethod = () => {
       }}
     />
   );
-  const Divider = () => <div className="w-[338px] h-[1px] bg-[#202020] mx-auto" />;
+  const Divider = () => <div className="w-[338px] h-[1px] bg-brand-border-dark mx-auto" />;
   const RadioButton = ({ selected }: { selected: boolean }) => (
     <div
       className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-        selected ? 'border-[#6C72FF]' : 'border-[#6C72FF]/50'
+        selected ? 'border-brand-primary-light' : 'border-brand-primary-light/50'
       }`}
     >
-      {selected && <div className="w-[12px] h-[12px] rounded-full bg-[#6C72FF]" />}
+      {selected && <div className="w-[12px] h-[12px] rounded-full bg-brand-primary-light" />}
     </div>
   );
   const handleProceed = () => {
@@ -205,7 +205,7 @@ const AddPaymentMethod = () => {
       </div>
       {!isLast && (
         <div
-          className={`w-[338px] h-[1px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+          className={`w-[338px] h-[1px] mx-auto ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
         />
       )}
       {!isLast && <div className="h-[10px]" />}
@@ -224,7 +224,7 @@ const AddPaymentMethod = () => {
     >
       {/* Light Mode Purple Glow (Top Center) */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div className="px-5 pt-4 pb-2 flex items-center justify-between relative z-10 shrink-0">
@@ -361,8 +361,8 @@ const AddPaymentMethod = () => {
           disabled={!selectedMethod}
           className={`w-full h-[48px] rounded-full text-white text-[16px] font-bold transition-all flex items-center justify-center ${
             selectedMethod
-              ? 'bg-[#6C72FF] active:scale-95 shadow-lg shadow-[#6C72FF]/20'
-              : 'bg-[#6C72FF]/40 cursor-not-allowed'
+              ? 'bg-brand-primary-light active:scale-95 shadow-lg shadow-brand-primary-light/20'
+              : 'bg-brand-primary-light/40 cursor-not-allowed'
           }`}
         >
           Proceed

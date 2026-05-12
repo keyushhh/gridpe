@@ -103,7 +103,7 @@ const DeleteAccountReasons = () => {
           {isDarkMode ? (
             <div className="relative rounded-[10px] p-[1px] bg-gradient-to-b from-white/12 to-black/20">
               <div
-                className="w-full bg-[#191919]/30 backdrop-blur-[24px] rounded-[10px] flex flex-col overflow-hidden"
+                className="w-full bg-brand-card-dark/30 backdrop-blur-[24px] rounded-[10px] flex flex-col overflow-hidden"
                 style={{ height: '185px' }}
               >
                 {reasons.map((reason, index) => (
@@ -130,7 +130,7 @@ const DeleteAccountReasons = () => {
             </div>
           ) : (
             <div
-              className="w-full rounded-[10px] flex flex-col overflow-hidden border border-[#E9EAEB]"
+              className="w-full rounded-[10px] flex flex-col overflow-hidden border border-brand-border-light"
               style={{ height: '185px', backgroundColor: '#FFFFFF' }}
             >
               {reasons.map((reason, index) => (
@@ -138,7 +138,7 @@ const DeleteAccountReasons = () => {
                   key={index}
                   onClick={() => setSelectedReason(index)}
                   className={`flex-1 flex items-center px-4 cursor-pointer relative ${
-                    index !== reasons.length - 1 ? 'border-b border-[#E9EAEB]' : ''
+                    index !== reasons.length - 1 ? 'border-b border-brand-border-light' : ''
                   }`}
                 >
                   <div className="shrink-0 mr-3">
@@ -169,8 +169,8 @@ const DeleteAccountReasons = () => {
               placeholder={'Go ahead, break our heart. Tell us how we failed you\u2026'}
               className={`w-full h-[146px] rounded-[10px] p-4 text-[12px] font-light font-sans resize-none focus:outline-none ${
                 isDarkMode
-                  ? 'bg-[#191919]/30 border border-white/10 text-white focus:border-white/20 placeholder:text-[#878787]'
-                  : 'bg-white border border-[#E9EAEB] text-black focus:border-black/20 placeholder:text-[#AAAAAA]'
+                  ? 'bg-brand-card-dark/30 border border-white/10 text-white focus:border-white/20 placeholder:text-[#878787]'
+                  : 'bg-white border border-brand-border-light text-black focus:border-black/20 placeholder:text-[#AAAAAA]'
               } placeholder:font-light placeholder:text-[12px]`}
             />
             <div
@@ -198,7 +198,7 @@ const DeleteAccountReasons = () => {
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
             />
           ) : (
-            <div className="absolute inset-0 w-full h-full rounded-full bg-[#FF3B30] pointer-events-none" />
+            <div className="absolute inset-0 w-full h-full rounded-full bg-brand-error pointer-events-none" />
           )}
           <span className="relative z-10 text-white text-[16px] font-semibold font-sans">
             Delete Anyway

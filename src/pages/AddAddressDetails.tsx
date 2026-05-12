@@ -233,42 +233,49 @@ const AddAddressDetails = () => {
   ];
   // Helper to get input font class
   const getInputClass = (val: string) =>
-    `w-full h-full bg-transparent border-none outline-none ${isDarkMode ? 'text-white' : 'text-[#09090B]'} transition-all ${
+    `w-full h-full bg-transparent border-none outline-none ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'} transition-all ${
       val ? 'font-bold' : 'font-light'
     } text-[14px] font-satoshi z-10 relative`;
   // Custom Input with Placeholder Overlay
   const renderInput = (
+    id: string,
     value: string,
     setValue: (val: string) => void,
     placeholder: string,
     mandatory: boolean = false
   ) => {
     return (
-      <div
-        className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-[#191919] border border-[#313131]' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
-      >
-        {!value && (
-          <div className="absolute inset-0 px-6 flex items-center pointer-events-none">
-            <span
-              className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}
-            >
-              {placeholder}
-              {mandatory && <span className="text-[#FF3B30] ml-1">*</span>}
-            </span>
-          </div>
-        )}
-        <input
-          type="text"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          className={getInputClass(value)}
-        />
+      <div className="flex flex-col gap-2">
+        <label htmlFor={id} className="sr-only">
+          {placeholder}
+        </label>
+        <div
+          className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
+        >
+          {!value && (
+            <div className="absolute inset-0 px-6 flex items-center pointer-events-none">
+              <span
+                className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}
+              >
+                {placeholder}
+                {mandatory && <span className="text-brand-error ml-1">*</span>}
+              </span>
+            </div>
+          )}
+          <input
+            id={id}
+            type="text"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            className={getInputClass(value)}
+          />
+        </div>
       </div>
     );
   };
   return (
     <div
-      className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} text-[#09090B]`}
+      className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} text-brand-bg-deep`}
     >
       {/* Background - Applied to a container to avoid scroll issues if needed, but fixed attachment works on scrollable too */}
       {isDarkMode && (
@@ -299,14 +306,14 @@ const AddAddressDetails = () => {
           >
             <BackButton onClick={() => navigate(-1)} className="mr-2" />
             <h1
-              className={`flex-1 text-center text-[22px] font-medium font-satoshi pr-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+              className={`flex-1 text-center text-[22px] font-medium font-satoshi pr-10 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
             >
               {isEditMode ? 'Edit Address' : 'Add New Address'}
             </h1>
           </div>
           {/* Address Container */}
           <div
-            className={`relative w-full rounded-[12px] p-[11px] mb-[12px] mt-[44px] ${!isDarkMode ? 'bg-white shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border border-[#E6E8EB]' : ''}`}
+            className={`relative w-full rounded-[12px] p-[11px] mb-[12px] mt-[44px] ${!isDarkMode ? 'bg-white shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border border-brand-border-light' : ''}`}
             style={{ height: '88px' }}
           >
             {/* Background Image - Only Dark Mode */}
@@ -321,7 +328,7 @@ const AddAddressDetails = () => {
               {/* Top Row: City/Country + Change Button */}
               <div className="flex justify-between items-center w-full">
                 <span
-                  className={`font-bold text-[16px] truncate pr-2 font-satoshi ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+                  className={`font-bold text-[16px] truncate pr-2 font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
                 >
                   {initialState ? `${initialState.city}, India` : 'Location Details'}
                 </span>
@@ -356,15 +363,15 @@ const AddAddressDetails = () => {
           </div>
           {/* Helper Text */}
           <p
-            className={`text-[12px] font-regular mb-[12px] font-satoshi ${isDarkMode ? 'text-[#FFFFFF]' : 'text-[#666666]'}`}
+            className={`text-[12px] font-regular mb-[12px] font-satoshi ${isDarkMode ? 'text-white' : 'text-[#666666]'}`}
           >
             A detailed address will help our delivery partner reach your doorstep with ease
           </p>
           {/* Tags Section */}
           <h2
-            className={`text-[14px] font-medium mb-[8px] mt-[22px] font-satoshi ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+            className={`text-[14px] font-medium mb-[8px] mt-[22px] font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
           >
-            Save address as<span className="text-[#FF3B30] ml-0.5">*</span>
+            Save address as<span className="text-brand-error ml-0.5">*</span>
           </h2>
           <div className="flex flex-wrap gap-2 mb-[32px]">
             {tags.map(tag => {
@@ -374,10 +381,10 @@ const AddAddressDetails = () => {
               // Light Mode: Selected (Purple + No Image), Unselected (White + Border)
               const unselectedClass = isDarkMode
                 ? 'bg-[rgba(255,255,255,0.05)] border-white/20 text-white'
-                : 'bg-white border-[#E6E8EB] text-[#09090B] shadow-sm';
+                : 'bg-white border-brand-border-light text-brand-bg-deep shadow-sm';
               const selectedClass = isDarkMode
                 ? 'border-transparent' // dark mode uses image bg
-                : 'bg-[#5260FE] border-transparent shadow-md'; // light mode uses purple bg
+                : 'bg-brand-primary border-transparent shadow-md'; // light mode uses purple bg
               const selectedTextClass = 'text-white';
               return (
                 <button
@@ -398,7 +405,7 @@ const AddAddressDetails = () => {
                     />
                   )}
                   <div
-                    className={`relative z-10 flex items-center gap-2 ${isSelected ? selectedTextClass : isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+                    className={`relative z-10 flex items-center gap-2 ${isSelected ? selectedTextClass : isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
                   >
                     <img
                       src={tag.icon}
@@ -415,14 +422,14 @@ const AddAddressDetails = () => {
           {/* Input Fields Container */}
           <div className="space-y-[10px] mb-[28px]">
             {/* House / Flat */}
-            {renderInput(house, setHouse, 'House / Flat / Floor', true)}
+            {renderInput('addr-house', house, setHouse, 'House / Flat / Floor', true)}
             {/* Apartment / Road */}
-            {renderInput(area, setArea, 'Apartment / Road / Area', true)}
+            {renderInput('addr-area', area, setArea, 'Apartment / Road / Area', true)}
             {/* Landmark */}
-            {renderInput(landmark, setLandmark, 'Landmark (Optional)', false)}
+            {renderInput('addr-landmark', landmark, setLandmark, 'Landmark (Optional)', false)}
             {/* Plus Code */}
             <div
-              className={`h-[48px] rounded-full px-6 flex items-center justify-between transition-colors ${isDarkMode ? 'bg-[#191919] border border-[#313131]' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
+              className={`h-[48px] rounded-full px-6 flex items-center justify-between transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
             >
               <input
                 type="text"
@@ -442,25 +449,25 @@ const AddAddressDetails = () => {
           </div>
           {/* Contact Information */}
           <h2
-            className={`text-[14px] font-medium mb-[12px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+            className={`text-[14px] font-medium mb-[12px] ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
           >
-            Enter contact information<span className="text-[#FF3B30] ml-0.5">*</span>
+            Enter contact information<span className="text-brand-error ml-0.5">*</span>
           </h2>
           <div className="space-y-[12px] mb-[26px]">
             {/* Name */}
-            {renderInput(name, setName, 'Your Name', true)}
+            {renderInput('addr-name', name, setName, 'Your Name', true)}
             {/* Phone Number */}
             <div
-              className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-[#191919] border border-[#313131]' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
+              className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
             >
               <span
-                className={`text-[14px] font-medium pl-[30px] pr-[22px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+                className={`text-[14px] font-medium pl-[30px] pr-[22px] ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
               >
                 +91
               </span>
               {/* Divider */}
               <div
-                className={`h-[32px] w-[1px] ${isDarkMode ? 'bg-[#313131]' : 'bg-[#E6E8EB]'}`}
+                className={`h-[32px] w-[1px] ${isDarkMode ? 'bg-[#313131]' : 'bg-brand-border-light'}`}
               ></div>
               {/* Input */}
               <div className="flex-1 ml-[22px] mr-[20px] relative h-full flex items-center">
@@ -495,7 +502,7 @@ const AddAddressDetails = () => {
             {isEditMode && (
               <Button
                 onClick={() => navigate(-1)}
-                className={`w-full rounded-full border ${isDarkMode ? 'bg-[#191919] hover:bg-[#252525] text-white border-white/20' : 'bg-white hover:bg-gray-50 text-[#09090B] border-[#E6E8EB]'}`}
+                className={`w-full rounded-full border ${isDarkMode ? 'bg-brand-card-dark hover:bg-[#252525] text-white border-white/20' : 'bg-white hover:bg-gray-50 text-brand-bg-deep border-brand-border-light'}`}
                 variant="secondary"
               >
                 Cancel

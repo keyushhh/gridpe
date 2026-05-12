@@ -52,7 +52,7 @@ const KYCStatusComplete = () => {
       <div className="px-5 flex-1">
         {/* Banner — same as SecurityDashboard "Looks Good!" banner */}
         <div
-          className={`w-full h-[80px] rounded-xl flex items-center justify-between px-4 relative overflow-hidden pt-[17px] pl-[17px] pb-[15px] ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+          className={`w-full h-[80px] rounded-xl flex items-center justify-between px-4 relative overflow-hidden pt-[17px] pl-[17px] pb-[15px] ${!isDarkMode ? 'border border-brand-border-light' : ''}`}
           style={{
             backgroundImage: `url(${bannerAsset})`,
             backgroundSize: 'cover',
@@ -89,7 +89,7 @@ const KYCStatusComplete = () => {
               </span>
             </div>
             <span
-              className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal font-sans mt-[2px]`}
+              className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/50'} text-[13px] font-normal font-sans mt-[2px]`}
             >
               Your KYC status looks good and completed.
             </span>
@@ -108,7 +108,7 @@ const KYCStatusComplete = () => {
       {/* Footer / CTA */}
       <div className="px-5 safe-bottom pb-4 mt-auto">
         <Button
-          className={`w-full h-[48px] text-white rounded-full font-semibold text-[16px] ${isDarkMode ? 'border-none' : 'bg-[#5260FE] hover:bg-[#5260FE]/90'}`}
+          className={`w-full h-[48px] text-white rounded-full font-semibold text-[16px] ${isDarkMode ? 'border-none' : 'bg-brand-primary hover:bg-brand-primary/90'}`}
           style={
             isDarkMode
               ? {

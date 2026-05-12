@@ -94,7 +94,10 @@ const AddAddress = () => {
             return;
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error('Plus Code search error:', err);
+        showToaster("Couldn't save address. Please try again.", 'error');
+      }
     }
     // 2. Text Search (Nominatim)
     try {
@@ -446,7 +449,7 @@ const AddAddress = () => {
             />
             {/* If icon is white svg, invert for dark text. Assuming icon is white. */}
             <span
-              className={`font-medium text-[14px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+              className={`font-medium text-[14px] ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
               style={{ fontFamily: 'Satoshi, sans-serif' }}
             >
               Drag the pin to set your location
@@ -552,7 +555,7 @@ const AddAddress = () => {
                   ) : (
                     <>
                       <h4
-                        className={`font-bold text-[16px] ${isDarkMode ? 'text-white' : 'text-[#09090B]'}`}
+                        className={`font-bold text-[16px] ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
                         style={{ fontFamily: 'Satoshi, sans-serif' }}
                       >
                         {addressTitle}

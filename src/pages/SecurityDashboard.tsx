@@ -102,7 +102,7 @@ const SecurityDashboard = () => {
             </span>
           </div>
           <span
-            className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[13px] font-normal font-sans mt-[2px]`}
+            className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/50'} text-[13px] font-normal font-sans mt-[2px]`}
           >
             {statusSubtext[kycStatus]}
           </span>
@@ -133,14 +133,9 @@ const SecurityDashboard = () => {
       // Enable
       try {
         const availability = await BiometricAuth.checkBiometry();
-        console.log('Biometry check result:', JSON.stringify(availability, null, 2));
-        console.log(
-          `Platform: ${Capacitor.getPlatform()}, Available: ${availability.isAvailable}, Type: ${availability.biometryType}, Reason: ${availability.reason || 'none'}`
-        );
         if (!availability.isAvailable) {
           const reason =
             availability.reason || 'Biometric authentication is not available on this device';
-          console.warn('Biometry unavailable:', reason);
           toast.error(reason);
           return;
         }
@@ -182,10 +177,10 @@ const SecurityDashboard = () => {
     // Menu Config
     const rowHeight = 'min-h-[68px]';
     const paddingClass = 'pt-[7px] pb-[7px] pl-[18px]'; // Padding: top 7, bottom 7, left 18
-    const chevronClass = `${isDarkMode ? 'text-[#7E7E7E]' : 'text-black'} w-5 h-5 mr-[10px]`;
+    const chevronClass = `${isDarkMode ? 'text-brand-text-muted' : 'text-black'} w-5 h-5 mr-[10px]`;
     const iconClass = `w-[20px] h-[20px] object-contain ${!isDarkMode ? 'filter brightness-0' : ''}`; // Icon 20x20
     const headerClass = `${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-sans`; // Header Medium 14
-    const subTextClass = `${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/50'} text-[12px] font-normal font-sans leading-tight`; // Sub Regular 12
+    const subTextClass = `${isDarkMode ? 'text-brand-text-muted' : 'text-black/50'} text-[12px] font-normal font-sans leading-tight`; // Sub Regular 12
     const textGap = 'gap-[5px]'; // Space between header and sub-text
     const textWrapperClass = 'flex flex-col justify-center pr-[56px]'; // Line break 56px from right
     // KYC Row Logic

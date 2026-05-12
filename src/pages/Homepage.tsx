@@ -665,7 +665,11 @@ const Homepage = () => {
                   <p className="text-black dark:text-muted-foreground text-[14px]">
                     Available Balance
                   </p>
-                  <button onClick={() => setShowBalance(!showBalance)} className="p-1">
+                  <button
+                    onClick={() => setShowBalance(!showBalance)}
+                    className="p-1"
+                    aria-label={showBalance ? 'Hide balance' : 'Show balance'}
+                  >
                     {showBalance ? (
                       <Eye className="w-5 h-5 text-black dark:text-muted-foreground" />
                     ) : (
@@ -673,7 +677,10 @@ const Homepage = () => {
                     )}
                   </button>
                 </div>
-                <p className="text-foreground text-[32px] font-normal">
+                <p
+                  className="text-foreground text-[32px] font-normal"
+                  aria-live="polite"
+                >
                   {showBalance ? formatINR(walletBalance) : '******'}
                 </p>
                 <Button
@@ -698,8 +705,8 @@ const Homepage = () => {
               </div>
               {/* Balance Alert Banner */}
               {balanceAlert && (
-                <div className="mx-5 mt-6 p-4 rounded-[13px] bg-[#FF3B30]/10 border border-[#FF3B30]/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <div className="w-10 h-10 rounded-full bg-[#FF3B30]/20 flex items-center justify-center shrink-0">
+                <div className="mx-5 mt-6 p-4 rounded-[13px] bg-brand-error/10 border border-brand-error/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="w-10 h-10 rounded-full bg-brand-error/20 flex items-center justify-center shrink-0">
                     <img src={ASSETS.FAILED} alt="Alert" className="w-6 h-6" />
                   </div>
                   <div className="flex-1 text-left">
@@ -791,7 +798,7 @@ const Homepage = () => {
                   </div>
                   {/* Body: Order Details & Map */}
                   <div
-                    className={`p-[16px] flex items-center justify-between rounded-b-[13px] border-x border-b ${isDarkMode ? 'bg-[#121212] border-white/10' : 'bg-white border-[#E9EAEB]'} cursor-pointer active:scale-[0.99] transition-all`}
+                    className={`p-[16px] flex items-center justify-between rounded-b-[13px] border-x border-b ${isDarkMode ? 'bg-[#121212] border-white/10' : 'bg-white border-brand-border-light'} cursor-pointer active:scale-[0.99] transition-all`}
                     onClick={() =>
                       navigate(ROUTES.ORDER_TRACKING, { state: { order: activeOrder } })
                     }
@@ -803,7 +810,7 @@ const Homepage = () => {
                         {getActiveOrderBannerContent().title}
                       </h4>
                       <p
-                        className={`text-[12px] font-medium font-satoshi leading-snug ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+                        className={`text-[12px] font-medium font-satoshi leading-snug ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
                       >
                         {getActiveOrderBannerContent().sub}
                       </p>
@@ -848,7 +855,7 @@ const Homepage = () => {
                     <div className="flex gap-3">
                       <div className="flex-[0_0_100%] min-w-0 pr-0">
                         <div
-                          className="rounded-[16px] overflow-hidden flex bg-white dark:bg-black border-[#E9EAEB] dark:border-transparent border relative"
+                          className="rounded-[16px] overflow-hidden flex bg-white dark:bg-black border-brand-border-light dark:border-transparent border relative"
                           style={{
                             backgroundImage: isDarkMode && bannerBg ? `url(${bannerBg})` : 'none',
                             backgroundSize: 'cover',
@@ -890,7 +897,7 @@ const Homepage = () => {
                         }}
                       >
                         <div
-                          className="shrink-0 w-full h-[104px] rounded-[16px] flex relative overflow-hidden bg-white dark:bg-black border-[#E9EAEB] dark:border-transparent border"
+                          className="shrink-0 w-full h-[104px] rounded-[16px] flex relative overflow-hidden bg-white dark:bg-black border-brand-border-light dark:border-transparent border"
                           style={{
                             backgroundImage: isDarkMode && bannerBg ? `url(${bannerBg})` : 'none',
                             backgroundSize: 'cover',
@@ -978,10 +985,10 @@ const Homepage = () => {
                               </div>
                             </div>
                             <div
-                              className="absolute top-[35%] right-[18px] w-[8px] h-[8px] rounded-full bg-[#16B751]"
+                              className="absolute top-[35%] right-[18px] w-[8px] h-[8px] rounded-full bg-brand-success-vibrant"
                               style={{ boxShadow: '0 0 12px #16B751' }}
                             />
-                            <div className="absolute top-[16px] bottom-[26px] right-[21.5px] w-[1px] bg-[#16B751]/40" />
+                            <div className="absolute top-[16px] bottom-[26px] right-[21.5px] w-[1px] bg-brand-success-vibrant/40" />
                           </div>
                         </div>
                       </div>
@@ -989,10 +996,10 @@ const Homepage = () => {
                   </div>
                   <div className="flex justify-center gap-2 mt-3">
                     <div
-                      className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0 ? 'bg-[#5260FE]' : 'bg-[#5260FE]/10 dark:bg-muted'}`}
+                      className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 0 ? 'bg-brand-primary' : 'bg-brand-primary/10 dark:bg-muted'}`}
                     />
                     <div
-                      className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1 ? 'bg-[#5260FE]' : 'bg-[#5260FE]/10 dark:bg-muted'}`}
+                      className={`w-2 h-2 rounded-full transition-colors ${activeBannerIndex === 1 ? 'bg-brand-primary' : 'bg-brand-primary/10 dark:bg-muted'}`}
                     />
                   </div>
                 </div>
@@ -1003,7 +1010,7 @@ const Homepage = () => {
                   <button
                     onClick={() => navigate(ROUTES.ORDER_HISTORY)}
                     disabled={transactionHistory.length === 0 && !activeOrder}
-                    className={`text-[#5260FE] text-[14px] transition-colors ${
+                    className={`text-brand-primary text-[14px] transition-colors ${
                       transactionHistory.length === 0 && !activeOrder
                         ? 'opacity-50 cursor-not-allowed'
                         : 'hover:text-primary/80 cursor-pointer'
@@ -1018,17 +1025,17 @@ const Homepage = () => {
                       <div className="w-full">
                         <div className="grid grid-cols-[1fr_100px_80px] gap-x-6 mb-[12px] px-0">
                           <div>
-                            <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
+                            <span className="text-brand-text-muted text-[12px] font-normal font-sans">
                               Details
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
+                            <span className="text-brand-text-muted text-[12px] font-normal font-sans">
                               Price
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">
+                            <span className="text-brand-text-muted text-[12px] font-normal font-sans">
                               Status
                             </span>
                           </div>
@@ -1070,7 +1077,7 @@ const Homepage = () => {
                                           ? `Order to ${tx.addresses.label}`
                                           : 'Cash Order'}
                                   </span>
-                                  <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
+                                  <span className="text-brand-text-muted text-[12px] font-normal font-sans leading-none">
                                     {new Date(tx.created_at).toLocaleDateString('en-IN', {
                                       day: 'numeric',
                                       month: 'short',

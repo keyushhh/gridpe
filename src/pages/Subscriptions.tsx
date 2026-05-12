@@ -100,7 +100,7 @@ const Subscriptions = () => {
   if (!currentTierConfig || Object.keys(tierPrices).length === 0) {
     return (
       <div
-        className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-bottom pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+        className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-bottom pb-4 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
         style={{
           fontFamily: "'Satoshi', sans-serif",
           backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -274,7 +274,7 @@ const Subscriptions = () => {
   }, [lastDowngradeLoss, showToaster]);
   return (
     <div
-      className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-bottom pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-bottom pb-4 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         fontFamily: "'Satoshi', sans-serif",
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -285,7 +285,7 @@ const Subscriptions = () => {
     >
       {/* Light Mode Purple Glow (Top Center) */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <header className="px-5 safe-top pt-4 pb-2 flex items-center relative z-10 shrink-0">
@@ -390,7 +390,7 @@ const Subscriptions = () => {
                   <button
                     onClick={handleRenew}
                     disabled={isLoadingPay}
-                    className={`w-full h-[48px] mt-4 rounded-full ${isDarkMode ? 'bg-[#5260FE]' : 'bg-black'} text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center mb-3`}
+                    className={`w-full h-[48px] mt-4 rounded-full ${isDarkMode ? 'bg-brand-primary' : 'bg-black'} text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center mb-3`}
                   >
                     {isLoadingPay
                       ? 'Processing...'
@@ -407,7 +407,7 @@ const Subscriptions = () => {
                         isRenewalPending ||
                         profile?.subscription_status === 'pending')
                     }
-                    className={`w-full h-[48px] mt-4 rounded-full text-white text-[16px] font-medium font-satoshi flex items-center justify-center ${isProPlus && (paymentStatus === 'pending' || isRenewalPending || profile?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-[#5260FE] active:scale-95 transition-transform mb-3'}`}
+                    className={`w-full h-[48px] mt-4 rounded-full text-white text-[16px] font-medium font-satoshi flex items-center justify-center ${isProPlus && (paymentStatus === 'pending' || isRenewalPending || profile?.subscription_status === 'pending') ? 'bg-gray-500 cursor-not-allowed opacity-50' : 'bg-brand-primary active:scale-95 transition-transform mb-3'}`}
                   >
                     Upgrade Now ₹{upgradePrice}/month
                   </button>
@@ -462,14 +462,14 @@ const Subscriptions = () => {
               >
                 You’ve got {formatINR(walletLimit)} wallet limit
               </h2>
-              <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mt-[9px] text-center px-4">
+              <p className="text-brand-text-muted text-[14px] font-medium font-satoshi mt-[9px] text-center px-4">
                 {walletTier === 'Starter'
                   ? 'This is a free subscription'
                   : `This is a ₹${currentTierConfig.badge.replace(/[^\d]/g, '')} per month recurring subscription. Amount will be deducted automatically from your linked bank/UPI account.`}
               </p>
               {/* Progress Bar (Loader) */}
               <div
-                className={`w-full h-[14px] rounded-full mt-[22px] overflow-hidden ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-[#E9EAEB]'}`}
+                className={`w-full h-[14px] rounded-full mt-[22px] overflow-hidden ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-brand-border-light'}`}
               >
                 <div
                   className="h-full bg-[#797AFE] transition-all duration-500"
@@ -518,10 +518,10 @@ const Subscriptions = () => {
         <div className="mt-auto pt-4 px-5 safe-bottom pb-4 w-full flex flex-col items-center">
           {scheduledDowngrade && (
             <div
-              className={`w-full min-h-[80px] rounded-[12px] border p-[10px] flex flex-col mb-[24px] ${isDarkMode ? 'bg-black border-white/10' : 'bg-white border-[#E9EAEB]'}`}
+              className={`w-full min-h-[80px] rounded-[12px] border p-[10px] flex flex-col mb-[24px] ${isDarkMode ? 'bg-black border-white/10' : 'bg-white border-brand-border-light'}`}
             >
               <span
-                className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[10px] font-medium font-satoshi`}
+                className={`${isDarkMode ? 'text-brand-text-dim' : 'text-black'} text-[10px] font-medium font-satoshi`}
               >
                 Note:
               </span>
@@ -541,20 +541,20 @@ const Subscriptions = () => {
               walletTier === 'Starter' || !!scheduledDowngrade || !isSubscriptionActive
                 ? isDarkMode
                   ? 'bg-transparent border border-white/10 text-white/50'
-                  : 'bg-transparent border border-[#E9EAEB] text-black/50'
-                : 'bg-[#5260FE] text-white'
+                  : 'bg-transparent border border-brand-border-light text-black/50'
+                : 'bg-brand-primary text-white'
             }`}
           >
             Manage Subscription
           </button>
           {walletTier === 'Starter' && !scheduledDowngrade && (
-            <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi mt-[12px] text-center w-full">
+            <p className="text-brand-text-muted text-[14px] font-medium font-satoshi mt-[12px] text-center w-full">
               There’s nothing to manage here, this is the lowest you can go.
             </p>
           )}
           {scheduledDowngrade && (
             <div className="flex flex-col items-start mt-[12px] w-full">
-              <p className="text-[#7E7E7E] text-[14px] font-medium font-satoshi text-left w-full">
+              <p className="text-brand-text-muted text-[14px] font-medium font-satoshi text-left w-full">
                 Plan changes are locked until your downgrade takes effect.
               </p>
               {/* DEV TESTING TOOL */}
@@ -563,7 +563,7 @@ const Subscriptions = () => {
                   completeScheduledDowngrade();
                   // Use a slight timeout to ensure state update is processed or just check context after
                 }}
-                className="mt-8 px-4 py-2 border border-dashed border-[#5260FE] text-[#5260FE] text-[12px] rounded-md opacity-50 hover:opacity-100 transition-opacity self-center"
+                className="mt-8 px-4 py-2 border border-dashed border-brand-primary text-brand-primary text-[12px] rounded-md opacity-50 hover:opacity-100 transition-opacity self-center"
               >
                 [Dev Mode] Apply Downgrade Now
               </button>

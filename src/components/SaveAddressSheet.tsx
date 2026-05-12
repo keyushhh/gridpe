@@ -52,12 +52,12 @@ const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({ isOpen, onClose, on
               type="text"
               value={label}
               onChange={e => setLabel(e.target.value)}
-              className={`w-full h-full bg-[#191919] border border-[#313131] rounded-full px-6 text-white text-[14px] outline-none transition-all focus:border-white/40 ${hasValue ? 'pt-0' : ''}`}
+              className={`w-full h-full bg-brand-card-dark border border-[#313131] rounded-full px-6 text-white text-[14px] outline-none transition-all focus:border-white/40 ${hasValue ? 'pt-0' : ''}`}
             />
             {!hasValue && (
               <div className="absolute inset-0 flex items-center px-6 pointer-events-none">
                 <span className="text-white/40 text-[14px]">Save as</span>
-                <span className="text-[#FF3B30] ml-1">*</span>
+                <span className="text-brand-error ml-1">*</span>
               </div>
             )}
           </div>

@@ -51,9 +51,7 @@ const OrderTracking = () => {
     const activeOrder = order;
     if (activeOrder?.addresses?.plus_code) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const olc = new OpenLocationCode() as any;
-        const decoded = olc.decode(activeOrder.addresses.plus_code);
+        const decoded = OpenLocationCode.decode(activeOrder.addresses.plus_code);
         const newLat = decoded.latitudeCenter;
         const newLng = decoded.longitudeCenter;
         setViewState(prev => ({
@@ -92,7 +90,7 @@ const OrderTracking = () => {
         const { data, error } = await supabase
           .from('riders')
           .select(
-            'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number'
+            'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, kyc_status, profile_photo'
           )
           .eq('id', order.rider_id)
           .single();
@@ -230,7 +228,7 @@ const OrderTracking = () => {
   const isDelivered = order?.status === 'success' || order?.status === 'delivered';
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col safe-top overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full flex flex-col safe-top overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -243,7 +241,7 @@ const OrderTracking = () => {
     >
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header Overlay */}
       <div className="fixed top-0 left-0 right-0 z-10 pointer-events-none">
@@ -328,7 +326,7 @@ const OrderTracking = () => {
         >
           <div className="flex justify-between items-start mb-[8px]">
             <div className="flex flex-col">
-              <p className="text-[#7E7E7E] text-[12px] font-bold font-satoshi tracking-widest uppercase leading-none">
+              <p className="text-brand-text-muted text-[12px] font-bold font-satoshi tracking-widest uppercase leading-none">
                 {isDelivered ? 'ORDER STATUS' : 'ARRIVING IN'}
               </p>
               <p
@@ -379,7 +377,7 @@ const OrderTracking = () => {
               {isLoading ? <Skeleton width="40%" /> : getStatusText()}
             </p>
             <p
-              className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+              className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
             >
               {isLoading ? (
                 <Skeleton count={2} />
@@ -415,12 +413,18 @@ const OrderTracking = () => {
               {/* Photo Frame */}
               <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
                 <img
-                  src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
-                  alt="Rider"
+                  src={(() => {
+                    const rider = order?.rider;
+                    const photo = rider?.kyc_photo || (rider as any)?.profile_photo;
+                    if (!photo) return ASSETS.AVATAR;
+                    if (photo.startsWith('http')) return photo;
+                    return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;
+                  })()}
+                  alt={`${riderName || order?.rider?.full_name || 'Rider'}'s photo`}
                   className="w-full h-full object-cover"
                 />
                 {/* Verified Tag Bar */}
-                <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
+                <div className="absolute bottom-0 left-0 right-0 bg-brand-success-vibrant h-[18px] flex items-center justify-center gap-[6px] z-10">
                   <img src={ASSETS.VERIFIED} alt="V" className="w-[12px] h-[12px]" />
                   <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
                 </div>
@@ -472,14 +476,14 @@ const OrderTracking = () => {
             </div>
           )}
           <p
-            className={`text-[14px] font-normal font-satoshi leading-snug mb-[8px] ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+            className={`text-[14px] font-normal font-satoshi leading-snug mb-[8px] ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
           >
             {order?.rider_id
               ? 'Your delivery partner is KYC Verified. Please check the KYC details while accepting the order.'
               : 'Average assignment time: < 2 mins'}
           </p>
           <div
-            className={`h-[1px] w-full mb-[12px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+            className={`h-[1px] w-full mb-[12px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
           />
           {/* OTP Section */}
           <div>
@@ -489,7 +493,7 @@ const OrderTracking = () => {
               Please provide this OTP to confirm the delivery
             </p>
             {order?.status === 'picked_up' && (
-              <p className="text-[#5260FE] text-[12px] font-medium mb-3">
+              <p className="text-brand-primary text-[12px] font-medium mb-3">
                 Share this OTP with your rider only at the time of delivery
               </p>
             )}

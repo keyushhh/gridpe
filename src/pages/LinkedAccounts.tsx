@@ -72,7 +72,7 @@ const LinkedAccounts = () => {
         </p>
         {/* Unified Container */}
         <div
-          className={`relative w-full rounded-2xl overflow-hidden ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+          className={`relative w-full rounded-2xl overflow-hidden ${!isDarkMode ? 'border border-brand-border-light' : ''}`}
           style={
             isDarkMode
               ? {
@@ -87,7 +87,7 @@ const LinkedAccounts = () => {
         >
           {/* Container Header */}
           <div
-            className={`flex items-center justify-between px-5 py-4 border-b ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+            className={`flex items-center justify-between px-5 py-4 border-b ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           >
             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>
               Linked Bank Accounts ({AVAILABLE_BANKS.length})
@@ -121,7 +121,7 @@ const LinkedAccounts = () => {
                     />
                     {/* Logo */}
                     <div
-                      className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0 overflow-hidden mr-4 ${isDarkMode ? 'bg-white' : 'bg-[#F7F8FA] border border-[#E6E8EB]'}`}
+                      className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0 overflow-hidden mr-4 ${isDarkMode ? 'bg-white' : 'bg-brand-bg-light border border-brand-border-light'}`}
                     >
                       <img
                         src={account.logo}
@@ -146,7 +146,7 @@ const LinkedAccounts = () => {
                   {/* Divider (except for last item) */}
                   {index < AVAILABLE_BANKS.length - 1 && (
                     <div
-                      className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} mx-5`}
+                      className={`h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'} mx-5`}
                     />
                   )}
                 </div>

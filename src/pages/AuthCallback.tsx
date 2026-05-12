@@ -54,9 +54,11 @@ const AuthCallback = () => {
       } = await supabase.auth.getSession();
       if (session || tokensFound) {
         // We use window.location.href to break out of any stale router state
+        localStorage.setItem('gridpe_reloading', '1');
         window.location.href = `${window.location.origin}/#/`;
       } else {
         setTimeout(() => {
+          localStorage.setItem('gridpe_reloading', '1');
           window.location.href = `${window.location.origin}/#/`;
         }, 3000);
       }
@@ -66,7 +68,7 @@ const AuthCallback = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[#0a0a12] text-white px-5">
+    <div className="flex flex-col items-center justify-center h-screen bg-brand-bg-dark text-white px-5">
       <div className="w-full max-w-sm flex flex-col items-center gap-6">
         <CardSkeleton height={120} />
         <p className="text-[14px] font-medium font-satoshi animate-pulse">Completing sign in...</p>

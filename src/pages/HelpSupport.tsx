@@ -38,7 +38,7 @@ const HelpSupport = () => {
   }, []);
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
         backgroundSize: 'cover',
@@ -48,7 +48,7 @@ const HelpSupport = () => {
     >
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div className="px-5 safe-top pt-4 flex items-center justify-between flex-none">
@@ -70,7 +70,7 @@ const HelpSupport = () => {
             How can we help?
           </h2>
           <p
-            className={`text-[14px] font-normal font-satoshi ${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'}`}
+            className={`text-[14px] font-normal font-satoshi ${isDarkMode ? 'text-white/40' : 'text-brand-text-muted'}`}
           >
             We are happy to help you anytime
           </p>
@@ -103,7 +103,7 @@ const HelpSupport = () => {
         {recentOrder && (
           <div className="mb-[24px]">
             <h3
-              className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
+              className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
             >
               RECENT ORDER
             </h3>
@@ -144,13 +144,13 @@ const HelpSupport = () => {
                   />
                 </div>
                 <span
-                  className={`text-[12px] font-bold font-satoshi ${isDarkMode ? 'text-[#1CB956]' : 'text-[#16B751]'}`}
+                  className={`text-[12px] font-bold font-satoshi ${isDarkMode ? 'text-brand-success' : 'text-brand-success-vibrant'}`}
                 >
                   Success
                 </span>
               </div>
               <div
-                className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+                className={`!absolute top-[25px] left-0 w-full glass-container glass-physics-clear z-10 rounded-b-[12px] ${!isDarkMode ? 'bg-white border border-brand-border-light' : ''}`}
                 style={
                   {
                     height: '75px',
@@ -184,7 +184,7 @@ const HelpSupport = () => {
                           : 'Cash Order'}
                     </span>
                     <span
-                      className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}
+                      className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-text-muted'}`}
                     >
                       Today | 12:00 PM
                     </span>
@@ -199,7 +199,7 @@ const HelpSupport = () => {
             </div>
             <button
               onClick={() => navigate(ROUTES.ORDER_HISTORY, { state: { showOnlyPast: true } })}
-              className={`w-full h-[42px] rounded-[12px] flex items-center justify-between px-4 transition-all overflow-hidden relative ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
+              className={`w-full h-[42px] rounded-[12px] flex items-center justify-between px-4 transition-all overflow-hidden relative ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-brand-border-light'}`}
               style={
                 isDarkMode
                   ? ({ '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any)
@@ -222,7 +222,7 @@ const HelpSupport = () => {
                 Need help with previous orders?
               </span>
               <ChevronRight
-                className={`relative z-10 ${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'} w-5 h-5`}
+                className={`relative z-10 ${isDarkMode ? 'text-white/40' : 'text-brand-text-muted'} w-5 h-5`}
               />
             </button>
           </div>
@@ -230,12 +230,12 @@ const HelpSupport = () => {
         {/* Browse Categories */}
         <div className="mb-[20px]">
           <h3
-            className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
+            className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
           >
             BROWSE CATEGORIES
           </h3>
           <div
-            className={`w-full rounded-[12px] overflow-hidden relative flex flex-col gap-0 transition-colors ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-[#E9EAEB]'}`}
+            className={`w-full rounded-[12px] overflow-hidden relative flex flex-col gap-0 transition-colors ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-brand-border-light'}`}
             style={
               isDarkMode
                 ? ({ '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any)
@@ -278,7 +278,7 @@ const HelpSupport = () => {
                 <React.Fragment key={cat.label}>
                   <button
                     onClick={() => navigate(cat.route)}
-                    className={`w-full flex items-center justify-between pl-3 pr-[14px] py-[10px] transition-colors ${isDarkMode ? 'active:bg-white/5' : 'active:bg-[#F7F8FA]'}`}
+                    className={`w-full flex items-center justify-between pl-3 pr-[14px] py-[10px] transition-colors ${isDarkMode ? 'active:bg-white/5' : 'active:bg-brand-bg-light'}`}
                   >
                     <div className="flex items-center gap-3">
                       <img src={cat.icon} alt="" className="w-[18px] h-[18px]" />
@@ -289,12 +289,12 @@ const HelpSupport = () => {
                       </span>
                     </div>
                     <ChevronRight
-                      className={`${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'} w-5 h-5`}
+                      className={`${isDarkMode ? 'text-white/40' : 'text-brand-text-muted'} w-5 h-5`}
                     />
                   </button>
                   {idx < arr.length - 1 && (
                     <div
-                      className={`w-full h-[1px] ${isDarkMode ? 'bg-white/5' : 'bg-[#E9EAEB]'}`}
+                      className={`w-full h-[1px] ${isDarkMode ? 'bg-white/5' : 'bg-brand-border-light'}`}
                     />
                   )}
                 </React.Fragment>
@@ -305,13 +305,13 @@ const HelpSupport = () => {
         {/* Contact Us */}
         <div className="mb-10">
           <h3
-            className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
+            className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
           >
             CONTACT US
           </h3>
           <button
             onClick={() => navigate(ROUTES.HELP_CHAT)}
-            className={`w-full h-[72px] rounded-[12px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'glass-container glass-physics-clear active:bg-white/5' : 'bg-white border border-[#E9EAEB] active:bg-[#F7F8FA]'}`}
+            className={`w-full h-[72px] rounded-[12px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'glass-container glass-physics-clear active:bg-white/5' : 'bg-white border border-brand-border-light active:bg-brand-bg-light'}`}
             style={
               isDarkMode
                 ? ({ '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any)
@@ -342,13 +342,13 @@ const HelpSupport = () => {
                 Chat with us
               </h4>
               <p
-                className={`text-[12px] font-medium font-satoshi leading-tight text-left ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+                className={`text-[12px] font-medium font-satoshi leading-tight text-left ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
               >
                 Zing is here to help! Chat with Zing to clear your doubts.
               </p>
             </div>
             <ChevronRight
-              className={`absolute top-[12px] right-[14px] w-5 h-5 z-10 ${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'}`}
+              className={`absolute top-[12px] right-[14px] w-5 h-5 z-10 ${isDarkMode ? 'text-white/40' : 'text-brand-text-muted'}`}
             />
           </button>
         </div>

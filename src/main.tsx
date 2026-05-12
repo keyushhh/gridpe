@@ -16,7 +16,16 @@ if (Capacitor.getPlatform() === 'web') {
   document.documentElement.classList.add('web-platform');
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes
+      retry: 1,
+      refetchOnWindowFocus: false, // Prevents excessive refetching on mobile multitask switch
+    },
+  },
+});
 
 // Block paint until Satoshi is ready so glyphs like ₹ don't fall back to a
 // system font that lacks the codepoint. Capped so a slow CDN can't hang launch.
@@ -46,11 +55,11 @@ try {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <TooltipProvider>
-          <UserProvider>
-            <CustomToasterProvider>
+          <CustomToasterProvider>
+            <UserProvider>
               <App />
-            </CustomToasterProvider>
-          </UserProvider>
+            </UserProvider>
+          </CustomToasterProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

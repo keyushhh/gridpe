@@ -570,7 +570,7 @@ const FxExchangeSummary = () => {
     >
       {/* Light Mode Purple Glow Orb */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div className="flex-none px-5 safe-top pt-4 flex items-center justify-between z-10 mb-6">
@@ -677,7 +677,7 @@ const FxExchangeSummary = () => {
               className={`w-[18px] h-[18px] ${!isDarkMode ? 'brightness-0' : ''}`}
             />
             <span
-              className={`text-[14px] font-medium font-sans underline underline-offset-2 ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
+              className={`text-[14px] font-medium font-sans underline underline-offset-2 ${isDarkMode ? 'text-white' : 'text-brand-primary'}`}
             >
               Want it later?
             </span>
@@ -703,7 +703,7 @@ const FxExchangeSummary = () => {
             </li>
             <li>Please verify their ID before accepting the cash.</li>
           </ul>
-          <div className={`w-full h-[1px] my-3 ${isDarkMode ? 'bg-white/10' : 'bg-[#E6E8EB]'}`} />
+          <div className={`w-full h-[1px] my-3 ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'}`} />
           <p
             className={`text-[12px] font-normal font-sans ${isDarkMode ? 'text-white/40' : 'text-black'}`}
           >
@@ -744,7 +744,7 @@ const FxExchangeSummary = () => {
                     value={rewardPoints}
                     onChange={handleRewardChange}
                     placeholder="Enter reward points"
-                    className={`w-full h-full rounded-full px-4 font-sans text-[12px] focus:outline-none border ${isDarkMode ? 'bg-white/5 text-white border-white/20' : 'bg-white text-black border-[#E6E8EB]'} ${rewardError ? 'border-[#FF3B30]' : ''}`}
+                    className={`w-full h-full rounded-full px-4 font-sans text-[12px] focus:outline-none border ${isDarkMode ? 'bg-white/5 text-white border-white/20' : 'bg-white text-black border-brand-border-light'} ${rewardError ? 'border-brand-error' : ''}`}
                   />
                   {rewardApplied && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -778,7 +778,7 @@ const FxExchangeSummary = () => {
                 </button>
               </div>
               <p
-                className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/40' : 'text-black'}`}
+                className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-brand-error' : isDarkMode ? 'text-white/40' : 'text-black'}`}
               >
                 {rewardError ||
                   (rewardApplied
@@ -888,7 +888,7 @@ const FxExchangeSummary = () => {
                           )}
                         </div>
                         {val === '20' && (
-                          <div className="absolute top-[23px] left-0 right-0 h-[14px] bg-[#5260FE] flex items-center justify-center z-10 pointer-events-none">
+                          <div className="absolute top-[23px] left-0 right-0 h-[14px] bg-brand-primary flex items-center justify-center z-10 pointer-events-none">
                             <span className="text-white text-[7px] font-bold font-sans uppercase tracking-wider leading-none">
                               MOST TIPPED
                             </span>
@@ -945,7 +945,7 @@ const FxExchangeSummary = () => {
                 </div>
                 {selectedTipOption === 'other' && (
                   <div
-                    className={`mt-[15px] h-[48px] w-full rounded-full border flex items-center pl-4 pr-4 ${isDarkMode ? 'bg-[#191919] border-white/10' : 'bg-white border-[#E6E8EB]'}`}
+                    className={`mt-[15px] h-[48px] w-full rounded-full border flex items-center pl-4 pr-4 ${isDarkMode ? 'bg-brand-card-dark border-white/10' : 'bg-white border-brand-border-light'}`}
                   >
                     <span
                       className={`font-medium font-sans mr-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -961,7 +961,7 @@ const FxExchangeSummary = () => {
                     />
                     <button
                       onClick={tipAmount > 0 ? handleClearCustomTip : handleApplyCustomTip}
-                      className="text-[#5260FE] text-[13px] font-medium font-sans ml-2"
+                      className="text-brand-primary text-[13px] font-medium font-sans ml-2"
                     >
                       {tipAmount > 0 ? 'Clear' : 'Apply'}
                     </button>
@@ -973,7 +973,7 @@ const FxExchangeSummary = () => {
         )}
         {/* Price Breakdown */}
         <div
-          className={`mt-[18px] mb-[150px] ${isDarkMode ? 'bg-[#191919]/[0.31] border-white/5' : 'bg-white border-[#E6E8EB] shadow-sm'} border backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'h-[270px] rounded-[13px]' : 'h-[64px] rounded-[8px]'}`}
+          className={`mt-[18px] mb-[150px] ${isDarkMode ? 'bg-brand-card-dark/[0.31] border-white/5' : 'bg-white border-brand-border-light shadow-sm'} border backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'h-[270px] rounded-[13px]' : 'h-[64px] rounded-[8px]'}`}
         >
           {/* Header Section */}
           <div
@@ -1007,7 +1007,7 @@ const FxExchangeSummary = () => {
           >
             {/* First Divider */}
             <div
-              className={`h-[1px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'} w-[338px] mt-[10px]`}
+              className={`h-[1px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'} w-[338px] mt-[10px]`}
             />
             <div className="w-full mt-[10px] flex flex-col gap-0 text-[13px] font-satoshi">
               {/* Base Rate */}
@@ -1092,7 +1092,7 @@ const FxExchangeSummary = () => {
                   <span className={`${isDarkMode ? 'text-white/70' : 'text-black/60'} text-[13px]`}>
                     Reward Discount ({rewardPointsValue} pts)
                   </span>
-                  <span className="text-[#FF3B30] font-bold text-[13px]">
+                  <span className="text-brand-error font-bold text-[13px]">
                     -₹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -1100,7 +1100,7 @@ const FxExchangeSummary = () => {
             </div>
             {/* Second Divider */}
             <div
-              className={`h-[1px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'} w-[338px] mt-[8px]`}
+              className={`h-[1px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'} w-[338px] mt-[8px]`}
             />
             {/* Final Amount */}
             <div className="w-full mt-[8px] flex justify-between items-center h-[20px]">
@@ -1129,7 +1129,7 @@ const FxExchangeSummary = () => {
         onAddressSelect={handleAddressSelect}
       />
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? 'bg-[#171717]/30 backdrop-blur-[24px]' : 'bg-white border-t border-x border-[#E9EAEB]'}`}
+        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? 'bg-[#171717]/30 backdrop-blur-[24px]' : 'bg-white border-t border-x border-brand-border-light'}`}
         style={{
           minHeight: '255px',
           borderTopLeftRadius: '32px',
@@ -1144,7 +1144,7 @@ const FxExchangeSummary = () => {
             : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} will be held from wallet`}
         </p>
         <p
-          className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}
+          className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-brand-error' : isDarkMode ? 'text-white' : 'text-black'}`}
         >
           {quoteLoading
             ? 'Syncing pricing...'

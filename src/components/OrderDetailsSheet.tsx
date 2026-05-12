@@ -228,7 +228,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
           {/* Drag Handle Container */}
           <div className="w-full flex justify-center pb-6">
             <div
-              className={`w-[48px] h-[5px] rounded-full ${isDarkMode ? 'bg-[#313033]' : 'bg-[#E6E8EB]'}`}
+              className={`w-[48px] h-[5px] rounded-full ${isDarkMode ? 'bg-[#313033]' : 'bg-brand-border-light'}`}
             />
           </div>
           {/* Order Summary Card */}
@@ -238,11 +238,11 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               width: '362px',
               minHeight: '137px',
               background: isDarkMode
-                ? `linear-gradient(${config.bgColor || config.color}${Math.round(
+                ? `linear-gradient(${config.bgColor}${Math.round(
                     config.bgOpacity * 255
                   )
                     .toString(16)
-                    .padStart(2, '0')}, ${config.bgColor || config.color}${Math.round(
+                    .padStart(2, '0')}, ${config.bgColor}${Math.round(
                     config.bgOpacity * 255
                   )
                     .toString(16)
@@ -250,7 +250,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                       2,
                       '0'
                     )}) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box`
-                : `${config.bgColor || config.color}36`, // ~21% opacity
+                : `${config.bgColor}36`, // ~21% opacity
               border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
               borderRadius: '13px',
               backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
@@ -275,7 +275,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
             </div>
             {/* Inner Frame */}
             <div
-              className={`absolute top-[25px] left-0 w-full rounded-b-[13px] ${isDarkMode ? '' : 'bg-white border-t border-[#E9EAEB]'}`}
+              className={`absolute top-[25px] left-0 w-full rounded-b-[13px] ${isDarkMode ? '' : 'bg-white border-t border-brand-border-light'}`}
               style={{
                 height: '112px',
                 backgroundImage: isDarkMode ? `url(${ASSETS.INNER_FRAME})` : 'none',
@@ -339,13 +339,13 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
           </div>
           {/* Details Separator */}
           <div className="flex items-center gap-4 mb-6">
-            <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
+            <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'}`} />
             <span
               className={`text-[12px] font-bold tracking-[0.2em] ${isDarkMode ? 'text-white/40' : 'text-black'}`}
             >
               DETAILS
             </span>
-            <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'}`} />
+            <div className={`flex-1 h-[0.6px] ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'}`} />
           </div>
           {/* Delivery Container - Processing/Success only */}
           {(isProcessing || isSuccess) && (
@@ -372,7 +372,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               {isProcessing && (
                 <div className="w-full px-0">
                   <div
-                    className={`relative min-h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}
+                    className={`relative min-h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-brand-card-dark/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}
                   >
                     <div className="p-[14px]">
                       <div className="max-w-[170px]">
@@ -382,7 +382,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                           We’re assigning a delivery <br /> partner soon!
                         </p>
                         <p
-                          className={`text-[12px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/60' : 'text-[#7E7E7E]'}`}
+                          className={`text-[12px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/60' : 'text-brand-text-muted'}`}
                         >
                           Assigning a delivery partner in the next 2 minutes.
                         </p>
@@ -422,18 +422,24 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               {isSuccess && (
                 <div className="w-full px-0">
                   <div
-                    className={`relative min-h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-[#191919]/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}
+                    className={`relative min-h-[95px] w-full ${isDarkMode ? 'rounded-[13px] border-[1px] mt-1 bg-brand-card-dark/34 border-white/5 border-t-0 border-l-0 border-r-0' : 'bg-white'}`}
                   >
                     <div className="p-[14px]">
                       <div className="flex gap-4 items-start">
                         <div className="w-[64px] h-[68px] relative shrink-0 rounded-[6px] overflow-hidden">
                           <img
-                            src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&auto=format&fit=crop&q=80"
-                            alt="Rider"
+                            src={(() => {
+                              const rider = order?.rider;
+                              const photo = rider?.kyc_photo || (rider as any)?.profile_photo;
+                              if (!photo) return ASSETS.AVATAR;
+                              if (photo.startsWith('http')) return photo;
+                              return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;
+                            })()}
+                            alt={`${order?.rider?.full_name || 'Rider'}'s photo`}
                             className="w-full h-full object-cover"
                           />
                           {/* Verified Tag Bar */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-[#16B751] h-[18px] flex items-center justify-center gap-[6px] z-10">
+                          <div className="absolute bottom-0 left-0 right-0 bg-brand-success-vibrant h-[18px] flex items-center justify-center gap-[6px] z-10">
                             <img src={ASSETS.VERIFIED_SVG} alt="V" className="w-[12px] h-[12px]" />
                             <span className="text-white text-[10px] font-medium font-satoshi">
                               Verified
@@ -453,8 +459,17 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                                 size={20}
                                 fill={rating >= s ? '#FACC15' : 'none'}
                                 stroke="#FACC15"
-                                className="cursor-pointer"
+                                className="cursor-pointer outline-none focus:scale-110 transition-transform"
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`Rate ${s} star${s > 1 ? 's' : ''}`}
                                 onClick={() => setRating(s)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setRating(s);
+                                  }
+                                }}
                               />
                             ))}
                           </div>
@@ -485,7 +500,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 Transaction Details
               </h3>
               <div
-                className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`}
+                className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
               />
               <div className="flex flex-col gap-[8px] px-1">
                 <div className="flex justify-between items-center">
@@ -643,7 +658,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                         )}
                       </div>
                       {val === '20' && (
-                        <div className="absolute top-[23px] left-0 right-0 h-[14px] bg-[#5260FE] flex items-center justify-center z-10 pointer-events-none">
+                        <div className="absolute top-[23px] left-0 right-0 h-[14px] bg-brand-primary flex items-center justify-center z-10 pointer-events-none">
                           <span className="text-white text-[7px] font-bold font-satoshi uppercase tracking-wider leading-none">
                             MOST TIPPED
                           </span>
@@ -701,7 +716,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               {selectedTipOption === 'other' && (
                 <div className="w-full mb-[22px]">
                   <div
-                    className={`h-[48px] w-full rounded-full border flex items-center px-4 ${isDarkMode ? 'bg-[#191919] border-white/10' : 'bg-white border-[#E6E8EB]'}`}
+                    className={`h-[48px] w-full rounded-full border flex items-center px-4 ${isDarkMode ? 'bg-brand-card-dark border-white/10' : 'bg-white border-brand-border-light'}`}
                   >
                     <span
                       className={`font-medium font-satoshi mr-2 text-[14px] ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -718,7 +733,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                     />
                     <button
                       onClick={tipAmount > 0 ? handleClearCustomTip : handleApplyCustomTip}
-                      className="text-[#5260FE] text-[13px] font-medium font-satoshi ml-2"
+                      className="text-brand-primary text-[13px] font-medium font-satoshi ml-2"
                     >
                       {tipAmount > 0 ? 'Clear' : 'Apply'}
                     </button>
@@ -727,11 +742,11 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               )}
               {/* Feedback Section */}
               <div
-                className={`rounded-[12px] border overflow-hidden mb-[22px] ${isDarkMode ? 'border-white/10' : 'border-[#E6E8EB]'}`}
+                className={`rounded-[12px] border overflow-hidden mb-[22px] ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
                 style={{ width: '332px', height: '111px' }}
               >
                 <div
-                  className={`px-4 py-2 border-b ${isDarkMode ? 'border-white/10' : 'border-[#E6E8EB]'}`}
+                  className={`px-4 py-2 border-b ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
                 >
                   <span
                     className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -766,7 +781,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
           {/* Repeat Order Button */}
           {isSuccess && (
             <button
-              className="mx-auto rounded-full bg-[#5260FE] flex items-center justify-center mb-[10px] active:scale-[0.98] transition-all"
+              className="mx-auto rounded-full bg-brand-primary flex items-center justify-center mb-[10px] active:scale-[0.98] transition-all"
               style={{
                 width: '364px',
                 height: '48px',
@@ -799,7 +814,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 Reason for failure
               </h3>
               <div
-                className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`}
+                className={`w-[338px] h-[1px] mt-[10px] mb-[15px] mx-auto ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
               />
               <div className="flex flex-col gap-[12px] px-1">
                 <p
@@ -840,7 +855,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                   </span>
                 </div>
                 <div
-                  className={`w-full h-[1px] my-1 ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E6E8EB]'}`}
+                  className={`w-full h-[1px] my-1 ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
                 />
                 <p
                   className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}

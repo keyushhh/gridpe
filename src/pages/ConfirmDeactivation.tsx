@@ -54,7 +54,7 @@ const MaskedSlot = ({
           : isValid
             ? 'ring-green-500'
             : isActive
-              ? 'ring-[#5260FE]'
+              ? 'ring-brand-primary'
               : isDarkMode
                 ? 'ring-white/10'
                 : 'ring-black/10'
@@ -227,7 +227,7 @@ const ConfirmDeactivation = () => {
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
             />
           ) : (
-            <div className="absolute inset-0 w-full h-full rounded-full bg-[#FF3B30] pointer-events-none" />
+            <div className="absolute inset-0 w-full h-full rounded-full bg-brand-error pointer-events-none" />
           )}
           <span className="relative z-10 text-white text-[16px] font-semibold font-sans">
             Deactivate Account

@@ -15,6 +15,7 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick, className }) => {
   return (
     <button
       onClick={onClick}
+      aria-label="Go back"
       className={cn(
         'w-10 h-10 shrink-0 flex items-center justify-center rounded-full glass-container glass-physics-search relative z-20 overflow-hidden active:scale-95 transition-transform',
         className

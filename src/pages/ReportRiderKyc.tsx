@@ -29,7 +29,7 @@ const ReportRiderKyc = () => {
   };
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col safe-top overflow-y-auto ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full h-full flex flex-col safe-top overflow-y-auto ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -65,14 +65,14 @@ const ReportRiderKyc = () => {
       <div className="px-5 mt-8 safe-bottom pb-4 space-y-4">
         {/* Pick a Reason Section */}
         <div
-          className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
             backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <div
-            className={`px-4 py-3 border-b ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}`}
+            className={`px-4 py-3 border-b ${isDarkMode ? 'border-white/5' : 'border-brand-border-light'}`}
           >
             <p
               className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -84,14 +84,14 @@ const ReportRiderKyc = () => {
             {reasons.map((reason, index) => (
               <label
                 key={reason}
-                className={`flex items-center px-4 py-3 cursor-pointer transition-colors ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'} ${index !== reasons.length - 1 ? `border-b ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}` : ''}`}
+                className={`flex items-center px-4 py-3 cursor-pointer transition-colors ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'} ${index !== reasons.length - 1 ? `border-b ${isDarkMode ? 'border-white/5' : 'border-brand-border-light'}` : ''}`}
                 onClick={() => setSelectedReason(reason)}
               >
                 <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedReason === reason ? 'border-[#5260FE]' : isDarkMode ? 'border-white/30' : 'border-[#E6E8EB]'}`}
+                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedReason === reason ? 'border-brand-primary' : isDarkMode ? 'border-white/30' : 'border-brand-border-light'}`}
                 >
                   {selectedReason === reason && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#5260FE]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
                   )}
                 </div>
                 <span
@@ -105,14 +105,14 @@ const ReportRiderKyc = () => {
         </div>
         {/* Comment Section */}
         <div
-          className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
             backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <div
-            className={`px-4 py-3 border-b ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}`}
+            className={`px-4 py-3 border-b ${isDarkMode ? 'border-white/5' : 'border-brand-border-light'}`}
           >
             <p
               className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -125,13 +125,13 @@ const ReportRiderKyc = () => {
               value={comment}
               onChange={e => setComment(e.target.value)}
               placeholder="e.g. “Driver’s face didn’t match the photo”, or “Different person showed up.”"
-              className={`w-full h-24 bg-transparent text-[14px] font-normal font-satoshi resize-none outline-none ${isDarkMode ? 'text-white placeholder:text-white/30' : 'text-black placeholder:text-[#7E7E7E]'}`}
+              className={`w-full h-24 bg-transparent text-[14px] font-normal font-satoshi resize-none outline-none ${isDarkMode ? 'text-white placeholder:text-white/30' : 'text-black placeholder:text-brand-text-muted'}`}
             />
           </div>
         </div>
         {/* Attach Proofs Section */}
         <div
-          className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-[#E9EAEB]'}`}
+          className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
             backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
@@ -139,7 +139,7 @@ const ReportRiderKyc = () => {
         >
           <button
             onClick={() => setIsAttachmentsOpen(!isAttachmentsOpen)}
-            className={`w-full px-4 py-3 flex items-center justify-between ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}`}
+            className={`w-full px-4 py-3 flex items-center justify-between ${isDarkMode ? 'border-white/5' : 'border-brand-border-light'}`}
           >
             <p
               className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -147,24 +147,24 @@ const ReportRiderKyc = () => {
               Attach Proofs (Optional)
             </p>
             {isAttachmentsOpen ? (
-              <ChevronUp className={`w-5 h-5 ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`} />
+              <ChevronUp className={`w-5 h-5 ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`} />
             ) : (
               <ChevronDown
-                className={`w-5 h-5 ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+                className={`w-5 h-5 ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
               />
             )}
           </button>
           {isAttachmentsOpen && (
             <div
-              className={`px-4 pb-6 flex flex-col items-center justify-center border-t pt-4 animate-in fade-in slide-in-from-top-2 ${isDarkMode ? 'border-white/5' : 'border-[#E9EAEB]'}`}
+              className={`px-4 pb-6 flex flex-col items-center justify-center border-t pt-4 animate-in fade-in slide-in-from-top-2 ${isDarkMode ? 'border-white/5' : 'border-brand-border-light'}`}
             >
               <div
-                className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${isDarkMode ? 'bg-white/5' : 'bg-[#F7F8FA]'}`}
+                className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${isDarkMode ? 'bg-white/5' : 'bg-brand-bg-light'}`}
               >
                 <ImageIcon className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
               </div>
               <p
-                className={`text-[12px] font-normal font-satoshi text-center ${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'}`}
+                className={`text-[12px] font-normal font-satoshi text-center ${isDarkMode ? 'text-white/40' : 'text-brand-text-muted'}`}
               >
                 Upload a photo or video that shows the issue
               </p>
@@ -176,19 +176,19 @@ const ReportRiderKyc = () => {
           <button
             onClick={handleSubmit}
             disabled={!selectedReason || (isOtherSelected && !comment.trim())}
-            className={`w-full h-12 rounded-full flex items-center justify-center text-white text-[16px] font-medium font-satoshi transition-all active:scale-95 ${!selectedReason || (isOtherSelected && !comment.trim()) ? 'bg-[#5260FE]/50 opacity-50' : 'bg-[#5260FE]'}`}
+            className={`w-full h-12 rounded-full flex items-center justify-center text-white text-[16px] font-medium font-satoshi transition-all active:scale-95 ${!selectedReason || (isOtherSelected && !comment.trim()) ? 'bg-brand-primary/50 opacity-50' : 'bg-brand-primary'}`}
           >
             Submit
           </button>
           <button
             onClick={() => navigate(-1)}
-            className={`w-full h-12 rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-all ${isDarkMode ? 'text-white bg-white/5 border border-white/10' : 'text-black bg-white border border-[#E9EAEB]'}`}
+            className={`w-full h-12 rounded-full flex items-center justify-center text-[16px] font-medium font-satoshi active:scale-95 transition-all ${isDarkMode ? 'text-white bg-white/5 border border-white/10' : 'text-black bg-white border border-brand-border-light'}`}
           >
             Cancel
           </button>
         </div>
         <p
-          className={`text-[12px] font-normal text-left pt-2 leading-tight ${isDarkMode ? 'text-white/50' : 'text-[#7E7E7E]'}`}
+          className={`text-[12px] font-normal text-left pt-2 leading-tight ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
         >
           <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
             *All reports are confidential

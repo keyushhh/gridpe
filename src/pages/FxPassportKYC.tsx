@@ -59,12 +59,12 @@ const FxPassportKYC = () => {
                 <button
                   onClick={() => handleUpload('front')}
                   className={`w-full aspect-[1.6/1] rounded-[24px] border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all ${
-                    files.front ? 'border-[#5260FE] bg-[#5260FE]/5' : 'border-white/10 bg-white/5'
+                    files.front ? 'border-brand-primary bg-brand-primary/5' : 'border-white/10 bg-white/5'
                   }`}
                 >
                   {files.front ? (
                     <>
-                      <CheckCircle2 className="w-10 h-10 text-[#5260FE]" />
+                      <CheckCircle2 className="w-10 h-10 text-brand-primary" />
                       <span className="text-white text-[14px] font-medium">
                         Filename_Passport_Front.jpg
                       </span>
@@ -89,12 +89,12 @@ const FxPassportKYC = () => {
                 <button
                   onClick={() => handleUpload('back')}
                   className={`w-full aspect-[1.6/1] rounded-[24px] border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all ${
-                    files.back ? 'border-[#5260FE] bg-[#5260FE]/5' : 'border-white/10 bg-white/5'
+                    files.back ? 'border-brand-primary bg-brand-primary/5' : 'border-white/10 bg-white/5'
                   }`}
                 >
                   {files.back ? (
                     <>
-                      <CheckCircle2 className="w-10 h-10 text-[#5260FE]" />
+                      <CheckCircle2 className="w-10 h-10 text-brand-primary" />
                       <span className="text-white text-[14px] font-medium">
                         Filename_Passport_Back.jpg
                       </span>
@@ -118,7 +118,7 @@ const FxPassportKYC = () => {
                 onClick={handleSubmit}
                 className={`w-[362px] h-[54px] rounded-full text-white text-[16px] font-medium transition-all shadow-xl ${
                   files.front && files.back
-                    ? 'bg-[#5260FE] shadow-[#5260FE]/20 active:scale-95'
+                    ? 'bg-brand-primary shadow-brand-primary/20 active:scale-95'
                     : 'bg-white/10 text-white/20'
                 }`}
               >
@@ -130,9 +130,9 @@ const FxPassportKYC = () => {
         {step === 'processing' && (
           <div className="mt-20 flex flex-col items-center justify-center animate-in fade-in duration-700">
             <div className="relative">
-              <Loader2 className="w-20 h-20 text-[#5260FE] animate-spin" />
+              <Loader2 className="w-20 h-20 text-brand-primary animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 bg-[#5260FE]/10 rounded-full blur-xl" />
+                <div className="w-12 h-12 bg-brand-primary/10 rounded-full blur-xl" />
               </div>
             </div>
             <h3 className="mt-10 text-white text-[22px] font-bold">Verifying Details</h3>
@@ -143,8 +143,8 @@ const FxPassportKYC = () => {
         )}
         {step === 'success' && (
           <div className="mt-10 flex flex-col items-center animate-in zoom-in-95 duration-500">
-            <div className="w-[100px] h-[100px] bg-[#5260FE]/10 rounded-full flex items-center justify-center">
-              <div className="w-[70px] h-[70px] bg-[#5260FE] rounded-full flex items-center justify-center shadow-2xl shadow-[#5260FE]/50">
+            <div className="w-[100px] h-[100px] bg-brand-primary/10 rounded-full flex items-center justify-center">
+              <div className="w-[70px] h-[70px] bg-brand-primary rounded-full flex items-center justify-center shadow-2xl shadow-brand-primary/50">
                 <CheckCircle2 className="w-10 h-10 text-white" />
               </div>
             </div>
@@ -158,7 +158,7 @@ const FxPassportKYC = () => {
             <div className="mt-auto w-full">
               <button
                 onClick={() => navigate(ROUTES.FX_EXCHANGE)}
-                className="w-[362px] h-[54px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20"
+                className="w-[362px] h-[54px] bg-brand-primary rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform shadow-xl shadow-brand-primary/20"
               >
                 Open FX Exchange
               </button>

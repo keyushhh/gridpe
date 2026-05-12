@@ -101,7 +101,7 @@ const MorePage = () => {
   ];
   return (
     <div
-      className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} scrollbar-hide`}
+      className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} scrollbar-hide`}
       style={{
         backgroundImage: `url(${mainBg})`,
         backgroundSize: 'cover',

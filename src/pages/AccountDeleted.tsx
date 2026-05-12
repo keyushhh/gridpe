@@ -78,7 +78,7 @@ const AccountDeleted = () => {
       </h2>
       {/* Container */}
       <div
-        className={`w-full relative px-[15px] py-[11px] flex flex-col rounded-2xl z-10 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+        className={`w-full relative px-[15px] py-[11px] flex flex-col rounded-2xl z-10 ${!isDarkMode ? 'border border-brand-border-light' : ''}`}
         style={
           isDarkMode
             ? {
@@ -108,7 +108,7 @@ const AccountDeleted = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#FF3B30] shadow-[0_0_8px_rgba(255,59,48,0.6)]"></div>
+          <div className="w-3 h-3 rounded-full bg-brand-error shadow-[0_0_8px_rgba(255,59,48,0.6)]"></div>
           <span
             className={`${isDarkMode ? 'text-[#D0D0D0]' : 'text-black'} text-[12px] font-normal font-sans`}
           >

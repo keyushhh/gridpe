@@ -52,7 +52,7 @@ const NotAvailable: React.FC<NotAvailableProps> = ({ onOpenAddressSheet }) => {
               navigate(ROUTES.HOME);
             }
           }}
-          className="mt-[30px] w-[206px] h-[48px] rounded-full bg-[#5260FE] text-white font-satoshi font-medium text-[16px] flex items-center justify-center active:scale-95 transition-transform"
+          className="mt-[30px] w-[206px] h-[48px] rounded-full bg-brand-primary text-white font-satoshi font-medium text-[16px] flex items-center justify-center active:scale-95 transition-transform"
           style={{
             boxShadow: '0px 8px 24px rgba(82, 96, 254, 0.25)',
           }}

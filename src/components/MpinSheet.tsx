@@ -301,7 +301,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
   }) => (
     <button
       onClick={onClick}
-      className="w-[113px] h-[65px] bg-[#000000] rounded-xl flex items-center justify-center active:bg-white/10 transition-colors"
+      className="w-[113px] h-[65px] bg-black rounded-xl flex items-center justify-center active:bg-white/10 transition-colors"
     >
       {icon ? icon : <span className="text-white font-bold font-sans text-[32px]">{label}</span>}
     </button>
@@ -401,7 +401,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                   {mode !== 'change' && (
                     <button
                       onClick={() => navigate(ROUTES.FORGOT_MPIN)}
-                      className="text-[#5260FE]/80 text-[14px] underline underline-offset-2 self-start"
+                      className="text-brand-primary/80 text-[14px] underline underline-offset-2 self-start"
                     >
                       Forgot MPIN?
                     </button>
@@ -439,7 +439,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                 : createSuccess
                                   ? 'ring-green-500'
                                   : activeField === 'new'
-                                    ? 'ring-[#5260FE]'
+                                    ? 'ring-brand-primary'
                                     : isDarkMode
                                       ? 'ring-white/10'
                                       : 'ring-black/10'
@@ -487,7 +487,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                                 : createSuccess
                                   ? 'ring-green-500'
                                   : activeField === 'confirm'
-                                    ? 'ring-[#5260FE]'
+                                    ? 'ring-brand-primary'
                                     : isDarkMode
                                       ? 'ring-white/10'
                                       : 'ring-black/10'
@@ -526,7 +526,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                 <Button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium"
+                  className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium"
                 >
                   {isSaving ? (
                     <span className="flex items-center gap-2">

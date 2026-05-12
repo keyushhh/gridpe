@@ -26,7 +26,7 @@ const OrderCancelled = () => {
   }, [navigate]);
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-white'}`}
+      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.ERROR_BG})` : 'none',
         backgroundSize: 'cover',
@@ -64,7 +64,7 @@ const OrderCancelled = () => {
         </p>
         {/* Info Box - 32px below sub-text */}
         <div
-          className={`mt-[32px] p-4 rounded-[12px] border ${isDarkMode ? 'border-white/10 bg-white/[0.06]' : 'border-[#E9EAEB] bg-[#F7F8FA]'}`}
+          className={`mt-[32px] p-4 rounded-[12px] border ${isDarkMode ? 'border-white/10 bg-white/[0.06]' : 'border-brand-border-light bg-brand-bg-light'}`}
           style={{ width: '362px', backdropFilter: isDarkMode ? 'blur(25px)' : 'none' }}
         >
           <p
@@ -73,7 +73,7 @@ const OrderCancelled = () => {
             Your order for amount {formatINR(orderAmount)} has been cancelled.
           </p>
           <p
-            className={`text-[14px] font-normal font-satoshi leading-[150%] mb-4 ${isDarkMode ? 'text-white/60' : 'text-[#7E7E7E]'}`}
+            className={`text-[14px] font-normal font-satoshi leading-[150%] mb-4 ${isDarkMode ? 'text-white/60' : 'text-brand-text-muted'}`}
           >
             Since you’ve reported the rider’s KYC and rejected to accept the order, the amount will
             be refunded in your wallet within 30 minutes. We will look into this matter! Thanks for
@@ -83,7 +83,7 @@ const OrderCancelled = () => {
           <div className="flex items-start gap-2">
             <div className="w-[12px] h-[12px] rounded-full bg-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.5)] mt-0.5" />
             <span
-              className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-[#D0D0D0]' : 'text-[#7E7E7E]'}`}
+              className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-[#D0D0D0]' : 'text-brand-text-muted'}`}
             >
               Delivery rejected due to flagged verification.
             </span>

@@ -20,8 +20,22 @@ export const useAuth = () => {
         DiditSDK.shared.destroy();
       }
 
-      // 4. Clear all storage to ensure zero persistence
+      // 4. Clear sensitive storage while preserving theme preferences
+      const savedTheme = localStorage.getItem('theme');
+      
+      // Remove specific auth and app keys
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('USER_STORAGE_KEY');
+      localStorage.removeItem('gridpe_reloading');
+      localStorage.removeItem('sb-keyushhh-gridpe-auth-token'); // Supabase default key pattern
+      
+      // Clear all other keys if needed, but preserve 'theme'
+      // Or just clear and restore as requested
       localStorage.clear();
+      if (savedTheme) {
+        localStorage.setItem('theme', savedTheme);
+      }
+      
       sessionStorage.clear();
 
       // 5. HARD RESET: Force a full WebView reload to the base origin.

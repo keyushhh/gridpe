@@ -81,7 +81,7 @@ const FxKYCSuccess = () => {
           <button
             onClick={handleGoToFx}
             disabled={loading}
-            className={`w-full h-[52px] flex items-center justify-center text-[16px] font-bold text-white transition-all active:scale-95 rounded-full shadow-xl shadow-[#5260FE]/20 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full h-[52px] flex items-center justify-center text-[16px] font-bold text-white transition-all active:scale-95 rounded-full shadow-xl shadow-brand-primary/20 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             style={{
               backgroundImage: isDarkMode ? `url(${ASSETS.DARKBG_CTA})` : 'none',
               backgroundColor: isDarkMode ? '#5260FE' : '#000000',

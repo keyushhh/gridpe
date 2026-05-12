@@ -94,11 +94,46 @@ const Settings = () => {
   const location = useLocation();
   const { showToaster } = useCustomToaster();
   const { resolvedTheme, setTheme } = useTheme();
-  const { profile, kycStatus, phoneNumber, email, name, profileImage, resetForDemo } = useUser();
+  const {
+    profile,
+    kycStatus,
+    phoneNumber,
+    email,
+    name,
+    profileImage,
+    resetForDemo,
+    isSecureStorageReady,
+  } = useUser();
 
   // Ensure we have a default boolean for the switch (true for dark)
   const isDarkMode = resolvedTheme !== 'light';
   const { containerOverflow } = useWebScroll();
+
+  // ... (keep previous lines)
+
+  if (!isSecureStorageReady) {
+    return (
+      <div
+        className={`min-h-[100dvh] w-full flex flex-col`}
+        style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}
+      >
+        <div className="px-5 safe-top pt-4 flex items-center justify-between">
+          <Skeleton width={100} height={32} />
+        </div>
+        <div className="px-5 mt-6 flex items-center gap-4">
+          <Skeleton circle width={56} height={56} />
+          <div className="flex flex-col gap-1">
+            <Skeleton width={120} height={20} />
+            <Skeleton width={150} height={14} />
+          </div>
+        </div>
+        <div className="px-5 mt-8 space-y-6">
+          <Skeleton height={100} />
+          <Skeleton height={200} />
+        </div>
+      </div>
+    );
+  }
   const userId = profile?.id;
   const originPath = (location.state as any)?.originPath || ROUTES.SETTINGS;
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -141,28 +176,27 @@ const Settings = () => {
       let bankCount = 0;
       let cardCount = 0;
 
-      // 1. Bank Accounts
       try {
-        const accounts = await fetchBankAccounts(userId || '');
+        const [accounts, localCards, dbCountResponse] = await Promise.all([
+          fetchBankAccounts(userId || ''),
+          getCards(),
+          supabase
+            .from('bank_cards')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+        ]);
+
         bankCount = accounts.length;
-      } catch (error) {
-        console.error('Error loading bank count:', error);
-      }
-
-      // 2. Cards (Local + DB)
-      try {
-        const localCards = getCards();
-        const { count, error } = await supabase
-          .from('bank_cards')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId);
-
-        if (error) throw error;
-        const dbCount = count || 0;
+        
+        const dbCount = dbCountResponse.count || 0;
         cardCount = localCards.length + dbCount;
       } catch (error) {
-        console.error('Error loading card count:', error);
-        cardCount = getCards().length;
+        console.error('Error loading settings counts:', error);
+        // Robust fallback: try getting at least local cards if everything failed
+        try {
+          const fallbackCards = await getCards();
+          cardCount = fallbackCards.length;
+        } catch (e) {}
       }
 
       return { bankCount, cardCount };
@@ -399,7 +433,7 @@ const Settings = () => {
         </div>
 
         {/* APP PREFERENCES & Footer Container */}
-        <div className="flex-1 w-full bg-[#F7F8FA] dark:bg-transparent mt-6 pt-4 flex flex-col">
+        <div className="flex-1 w-full bg-brand-bg-light dark:bg-transparent mt-6 pt-4 flex flex-col">
           <div className="px-5">
             <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
               APP PREFERENCES

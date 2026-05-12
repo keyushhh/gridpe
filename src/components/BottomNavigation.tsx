@@ -14,7 +14,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   if (isHidden) return null;
   return (
     <footer
-      className={`fixed bottom-0 left-0 right-0 w-full z-50 ${isDarkMode ? 'bg-[#0a0a12] border-t border-white/5' : 'bg-white border-t border-[#E9EAEB]'}`}
+      className={`fixed bottom-0 left-0 right-0 w-full z-50 ${isDarkMode ? 'bg-brand-bg-dark border-t border-white/5' : 'bg-white border-t border-brand-border-light'}`}
       style={{
         paddingBottom: 'env(safe-area-inset-bottom)',
         boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',

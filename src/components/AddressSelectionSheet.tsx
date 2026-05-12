@@ -312,7 +312,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           {/* Search Bar */}
           <div className="relative mb-[18px]">
             <div
-              className={`h-[48px] rounded-full flex items-center px-4 transition-colors ${!isDarkMode ? 'bg-[#F2F4F7] border border-[#E6E8EB]' : ''}`}
+              className={`h-[48px] rounded-full flex items-center px-4 transition-colors ${!isDarkMode ? 'bg-[#F2F4F7] border border-brand-border-light' : ''}`}
               style={{
                 backgroundImage: isDarkMode ? `url(${ASSETS.SEARCH_BG})` : 'none',
                 backgroundSize: '100% 100%',
@@ -331,7 +331,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             {/* Search Results Dropdown */}
             {searchResults.length > 0 && (
               <div
-                className={`absolute top-[52px] w-full rounded-xl z-20 overflow-hidden max-h-[200px] overflow-y-auto ${isDarkMode ? 'bg-[#1A1A1A] border-white/10' : 'bg-white border-[#E6E8EB] shadow-lg'} border`}
+                className={`absolute top-[52px] w-full rounded-xl z-20 overflow-hidden max-h-[200px] overflow-y-auto ${isDarkMode ? 'bg-[#1A1A1A] border-white/10' : 'bg-white border-brand-border-light shadow-lg'} border`}
               >
                 {searchResults.map((res, i) => (
                   <div
@@ -353,7 +353,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         >
           {/* Static Actions Container */}
           <div
-            className={`w-full rounded-[13px] mb-[32px] flex flex-col border ${isDarkMode ? 'bg-[#0D0D0D] border-white/5' : 'bg-white border-[#E6E8EB] shadow-sm'}`}
+            className={`w-full rounded-[13px] mb-[32px] flex flex-col border ${isDarkMode ? 'bg-[#0D0D0D] border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}
           >
             {/* 1. Add New Address */}
             <div
@@ -363,7 +363,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
               <div className="flex items-center gap-3">
                 <Plus size={20} color="#5260FE" strokeWidth={2.5} />
                 <p
-                  className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
+                  className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-primary'}`}
                 >
                   Add address
                 </p>
@@ -375,7 +375,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                 style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
               />
             </div>
-            <div className={`h-[1px] w-full px-2 ${isDarkMode ? 'bg-white/5' : 'bg-[#E6E8EB]'}`}>
+            <div className={`h-[1px] w-full px-2 ${isDarkMode ? 'bg-white/5' : 'bg-brand-border-light'}`}>
               <div className="h-full w-full" />
             </div>
             {/* 2. Use Current Location */}
@@ -387,7 +387,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                 <MapPin size={20} color="#5260FE" strokeWidth={2.5} />
                 <div>
                   <p
-                    className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
+                    className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-primary'}`}
                   >
                     Use my current location
                   </p>
@@ -405,7 +405,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                 style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
               />
             </div>
-            <div className={`h-[1px] w-full px-2 ${isDarkMode ? 'bg-white/5' : 'bg-[#E6E8EB]'}`}>
+            <div className={`h-[1px] w-full px-2 ${isDarkMode ? 'bg-white/5' : 'bg-brand-border-light'}`}>
               <div className="h-full w-full" />
             </div>
             {/* 3. Request Address */}
@@ -416,7 +416,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
               <div className="flex items-center gap-3">
                 <MessageSquareMore size={20} color="#5260FE" strokeWidth={2.5} />
                 <p
-                  className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
+                  className={`text-[14px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-primary'}`}
                 >
                   Request address from someone else
                 </p>
@@ -457,10 +457,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
               const cardBorder = showBorder
                 ? isDarkMode
                   ? 'border-white/20'
-                  : 'border-[#5260FE]'
+                  : 'border-brand-primary'
                 : isDarkMode
                   ? 'border-transparent'
-                  : 'border-[#E6E8EB]';
+                  : 'border-brand-border-light';
               return (
                 <div
                   key={addr.id || idx}
@@ -533,7 +533,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                     </div>
                   </div>
                   <div
-                    className={`h-[1px] w-full opacity-20 mb-[6px] ${isDarkMode ? 'bg-[#747474]' : 'bg-[#E6E8EB]'}`}
+                    className={`h-[1px] w-full opacity-20 mb-[6px] ${isDarkMode ? 'bg-[#747474]' : 'bg-brand-border-light'}`}
                   />
                   {/* Address Details */}
                   <div className="px-[1px]">

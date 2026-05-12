@@ -15,7 +15,7 @@ const HelpCategoryPage = () => {
   if (!category) {
     return (
       <div
-        className={`h-full w-full flex items-center justify-center ${isDarkMode ? 'bg-[#0a0a12] text-white' : 'bg-white text-black'}`}
+        className={`h-full w-full flex items-center justify-center ${isDarkMode ? 'bg-brand-bg-dark text-white' : 'bg-white text-black'}`}
       >
         Category not found
       </div>
@@ -26,7 +26,7 @@ const HelpCategoryPage = () => {
   };
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full flex flex-col ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
     >
       {/* Background Image */}
       {isDarkMode && (
@@ -42,7 +42,7 @@ const HelpCategoryPage = () => {
       )}
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Scrollable Content */}
       <div className="relative z-20 h-full w-full flex flex-col overflow-y-auto no-scrollbar safe-bottom pb-4">
@@ -64,7 +64,7 @@ const HelpCategoryPage = () => {
             {category.title}
           </h2>
           <div
-            className={`w-[363px] rounded-[13px] p-[10px] overflow-hidden flex flex-col transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-[#E9EAEB] shadow-sm'}`}
+            className={`w-[363px] rounded-[13px] p-[10px] overflow-hidden flex flex-col transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-brand-border-light shadow-sm'}`}
           >
             {category.faqs.map((faq, idx) => {
               const isExpanded = expandedId === faq.id;
@@ -72,7 +72,7 @@ const HelpCategoryPage = () => {
                 <div key={faq.id} className="flex flex-col">
                   <button
                     onClick={() => toggleAccordion(faq.id)}
-                    className={`w-full flex items-center justify-between py-[10px] pr-[5px] transition-colors text-left ${isDarkMode ? 'active:bg-white/5' : 'active:bg-[#F7F8FA]'}`}
+                    className={`w-full flex items-center justify-between py-[10px] pr-[5px] transition-colors text-left ${isDarkMode ? 'active:bg-white/5' : 'active:bg-brand-bg-light'}`}
                   >
                     <span
                       className={`text-[14px] font-normal font-satoshi pr-4 ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -81,18 +81,18 @@ const HelpCategoryPage = () => {
                     </span>
                     {isExpanded ? (
                       <ChevronDown
-                        className={`${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'} w-5 h-5 shrink-0`}
+                        className={`${isDarkMode ? 'text-white/40' : 'text-brand-text-muted'} w-5 h-5 shrink-0`}
                       />
                     ) : (
                       <ChevronRight
-                        className={`${isDarkMode ? 'text-white/40' : 'text-[#7E7E7E]'} w-5 h-5 shrink-0`}
+                        className={`${isDarkMode ? 'text-white/40' : 'text-brand-text-muted'} w-5 h-5 shrink-0`}
                       />
                     )}
                   </button>
                   {isExpanded && (
                     <div className="pb-4 animate-in fade-in slide-in-from-top-1 duration-200">
                       <div
-                        className={`w-[calc(100%+20px)] mx-[-10px] h-[1px] border-t border-dashed mb-4 ${isDarkMode ? 'border-white/20' : 'border-[#E6E8EB]'}`}
+                        className={`w-[calc(100%+20px)] mx-[-10px] h-[1px] border-t border-dashed mb-4 ${isDarkMode ? 'border-white/20' : 'border-brand-border-light'}`}
                       />
                       <p
                         className={`text-[12px] leading-relaxed font-satoshi font-light ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -103,7 +103,7 @@ const HelpCategoryPage = () => {
                   )}
                   {idx < category.faqs.length - 1 && (
                     <div
-                      className={`w-[calc(100%+20px)] mx-[-10px] h-[1px] ${isDarkMode ? 'bg-white/5' : 'bg-[#E9EAEB]'}`}
+                      className={`w-[calc(100%+20px)] mx-[-10px] h-[1px] ${isDarkMode ? 'bg-white/5' : 'bg-brand-border-light'}`}
                     />
                   )}
                 </div>

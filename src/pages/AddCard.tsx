@@ -224,7 +224,7 @@ const AddCard = () => {
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 mt-8 flex flex-col">
         {/* Interactive Card Preview */}
         <div
-          className={`relative w-full max-w-[400px] aspect-[1.875] mx-auto mb-[20px] rounded-[16px] overflow-hidden shrink-0 transition-colors duration-300 ${hasErrors ? 'border border-[#FF3B30]' : ''}`}
+          className={`relative w-full max-w-[400px] aspect-[1.875] mx-auto mb-[20px] rounded-[16px] overflow-hidden shrink-0 transition-colors duration-300 ${hasErrors ? 'border border-brand-error' : ''}`}
           style={{
             backgroundImage: `url(${ASSETS.CARD_PREVIEW_BG})`,
             backgroundSize: 'cover',
@@ -241,7 +241,7 @@ const AddCard = () => {
               {errors.cardHolder ? (
                 <p
                   onClick={() => handleErrorClick('cardHolder', nameInputRef)}
-                  className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-snug cursor-text"
+                  className="text-brand-error text-[13px] italic font-normal font-satoshi leading-snug cursor-text"
                 >
                   {errors.cardHolder}
                 </p>
@@ -266,7 +266,7 @@ const AddCard = () => {
                 {errors.cardNumber ? (
                   <p
                     onClick={() => handleErrorClick('cardNumber', numberInputRef)}
-                    className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-none cursor-text mt-1"
+                    className="text-brand-error text-[13px] italic font-normal font-satoshi leading-none cursor-text mt-1"
                   >
                     {errors.cardNumber}
                   </p>
@@ -334,7 +334,7 @@ const AddCard = () => {
                   {errors.cvv ? (
                     <p
                       onClick={() => handleErrorClick('cvv', cvvInputRef)}
-                      className="text-[#FF3B30] text-[13px] italic font-normal font-satoshi leading-tight cursor-text absolute top-0 left-0"
+                      className="text-brand-error text-[13px] italic font-normal font-satoshi leading-tight cursor-text absolute top-0 left-0"
                     >
                       {errors.cvv}
                     </p>
@@ -389,7 +389,7 @@ const AddCard = () => {
         </div>
         {errors.expiry && (
           <div className="px-1 mb-[14px]">
-            <p className="text-[#FF3B30] text-[14px] font-normal leading-relaxed">
+            <p className="text-brand-error text-[14px] font-normal leading-relaxed">
               {errors.expiry}
             </p>
           </div>
@@ -416,7 +416,7 @@ const AddCard = () => {
         </div>
         {/* Scan Card Section */}
         <div
-          className={`w-full h-[184px] rounded-2xl flex items-center justify-center border ${isDarkMode ? 'bg-black border-white/5' : 'bg-black border-[#E9EAEB]'}`}
+          className={`w-full h-[184px] rounded-2xl flex items-center justify-center border ${isDarkMode ? 'bg-black border-white/5' : 'bg-black border-brand-border-light'}`}
         >
           <button
             onClick={() => navigate(ROUTES.CAMERA_PAGE)}
@@ -443,7 +443,7 @@ const AddCard = () => {
           <Button
             onClick={handleSaveCard}
             disabled={!hasInput || hasErrors}
-            className="w-full h-[48px] rounded-full text-[16px] font-medium bg-[#5260FE] hover:bg-[#5260FE]/90 text-white disabled:opacity-50"
+            className="w-full h-[48px] rounded-full text-[16px] font-medium bg-brand-primary hover:bg-brand-primary/90 text-white disabled:opacity-50"
           >
             {hasInput ? 'Save Card' : 'Proceed'}
           </Button>

@@ -62,7 +62,7 @@ const AccountRetrieved = () => {
       </h2>
       {/* Container */}
       <div
-        className={`w-full relative px-[15px] py-[11px] flex flex-col rounded-2xl z-10 ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+        className={`w-full relative px-[15px] py-[11px] flex flex-col rounded-2xl z-10 ${!isDarkMode ? 'border border-brand-border-light' : ''}`}
         style={
           isDarkMode
             ? {

@@ -99,7 +99,7 @@ const SuccessScreen = () => {
             className="w-[62px] h-[62px] object-contain animate-bounce"
           />
         ) : (
-          <div className="w-[62px] h-[62px] border-4 border-[#5260FE] border-t-transparent rounded-full animate-spin" />
+          <div className="w-[62px] h-[62px] border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
         )}
       </div>
       {/* Sub-heading — 35px below check icon */}

@@ -152,7 +152,7 @@ const Rewards = () => {
   };
   return (
     <div
-      className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'} scrollbar-hide`}
+      className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} scrollbar-hide`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : `url(${ASSETS.BG_LIGHT})`,
         backgroundSize: 'cover',
@@ -162,7 +162,7 @@ const Rewards = () => {
     >
       {/* Light Mode Purple Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       <div className="flex-1 px-5 safe-top pt-4 pb-[calc(120px+env(safe-area-inset-bottom))]">
         {/* Header */}
@@ -198,14 +198,14 @@ const Rewards = () => {
             <p className="font-satoshi font-medium text-[12px] text-[#C4C4C4] leading-none">
               Next Expiry
             </p>
-            <p className="font-satoshi font-bold text-[12px] text-[#FFFFFF] leading-none mt-[5px]">
+            <p className="font-satoshi font-bold text-[12px] text-white leading-none mt-[5px]">
               {latestExpiry}
             </p>
           </div>
           {/* Points Section */}
           <div className="flex flex-col">
             <p className="font-satoshi text-[12px] text-[#C4C4C4] leading-none">Total Points</p>
-            <p className="font-satoshi font-bold text-[20px] text-[#FFFFFF] leading-none mt-[6px]">
+            <p className="font-satoshi font-bold text-[20px] text-white leading-none mt-[6px]">
               {totalPoints.toLocaleString()}
             </p>
           </div>
@@ -224,10 +224,10 @@ const Rewards = () => {
             </div>
           </div>
           <div className="mt-auto">
-            <p className="font-satoshi font-medium text-[14px] text-[#FFFFFF] leading-none">
+            <p className="font-satoshi font-medium text-[14px] text-white leading-none">
               Invite Friends
             </p>
-            <p className="font-satoshi text-[12px] text-[#FFFFFF] leading-none mt-[6px]">
+            <p className="font-satoshi text-[12px] text-white leading-none mt-[6px]">
               and get 10,000 points every referral (₹250)
             </p>
             <div className="flex items-center mt-[14px]">
@@ -241,7 +241,7 @@ const Rewards = () => {
         {/* How does this work? */}
         <button
           onClick={() => setShowHowItWorks(true)}
-          className="flex items-center gap-1 text-[#5260FE] text-[14px] font-medium mb-[50px] relative z-10"
+          className="flex items-center gap-1 text-brand-primary text-[14px] font-medium mb-[50px] relative z-10"
         >
           How does this work?
         </button>
@@ -253,13 +253,13 @@ const Rewards = () => {
             </h3>
             <button
               onClick={() => navigate('/order-history?rewards=true')}
-              className="text-[#5260FE] text-[14px]"
+              className="text-brand-primary text-[14px]"
             >
               View All
             </button>
           </div>
           <div
-            className={`w-full h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#E9EAEB]'} mb-[15px]`}
+            className={`w-full h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'} mb-[15px]`}
           />
           {isLoading ? (
             <div className="py-2">
@@ -270,13 +270,13 @@ const Rewards = () => {
               {/* Headers - Homepage Style */}
               <div className="grid grid-cols-[1fr_100px_80px] gap-x-6 mb-[12px] px-0">
                 <div>
-                  <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">Details</span>
+                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Details</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">Price</span>
+                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Price</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[#7E7E7E] text-[12px] font-normal font-sans">Status</span>
+                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Status</span>
                 </div>
               </div>
               <div className="flex flex-col space-y-[16px]">
@@ -308,7 +308,7 @@ const Rewards = () => {
                               : tx.description}
                           </span>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[#7E7E7E] text-[12px] font-normal font-sans leading-none">
+                            <span className="text-brand-text-muted text-[12px] font-normal font-sans leading-none">
                               {new Date(tx.created_at).toLocaleDateString('en-IN', {
                                 day: 'numeric',
                                 month: 'short',
@@ -344,7 +344,7 @@ const Rewards = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center text-center pt-8">
-              <p className="text-[#7E7E7E] text-[14px] font-medium w-[219px] leading-relaxed">
+              <p className="text-brand-text-muted text-[14px] font-medium w-[219px] leading-relaxed">
                 This screen’s more empty than your promises to go to the gym.
               </p>
             </div>
@@ -417,7 +417,7 @@ const Rewards = () => {
           {/* Close Button */}
           <button
             onClick={() => setShowHowItWorks(false)}
-            className={`relative z-10 mt-[19px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 rounded-full ${!isDarkMode ? 'bg-[#5260FE]' : ''}`}
+            className={`relative z-10 mt-[19px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 rounded-full ${!isDarkMode ? 'bg-brand-primary' : ''}`}
             style={
               isDarkMode
                 ? {

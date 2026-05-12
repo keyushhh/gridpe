@@ -8,6 +8,7 @@ import { useAsset } from '@/hooks/useAsset';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -26,7 +27,19 @@ const ProfileEdit = () => {
     setEmailVerified: setContextEmailVerified,
     setProfileImage: setContextProfileImage,
     profile,
+    isSecureStorageReady,
   } = useUser();
+
+  if (!isSecureStorageReady) {
+    return (
+      <div
+        className="h-full w-full flex flex-col items-center justify-center"
+        style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}
+      >
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
   const userId = profile?.id;
   const [name, setName] = useState(contextName || '');
   const [email, setEmail] = useState(contextEmail || '');
@@ -114,7 +127,7 @@ const ProfileEdit = () => {
         <div className="w-10" /> {/* Spacer */}
       </div>
       <div className="px-5 mt-8">
-        <div className="bg-white dark:bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-[#E9EAEB] dark:border-white/10 h-[101px]">
+        <div className="bg-white dark:bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-brand-border-light dark:border-white/10 h-[101px]">
           <img
             src={profileImage || ASSETS.AVATAR}
             alt="Profile"
@@ -158,12 +171,16 @@ const ProfileEdit = () => {
           <p className="mb-[10px] text-muted-foreground text-[14px] font-bold tracking-wider">
             PERSONAL INFORMATION
           </p>
+          <label htmlFor="profile-name" className="sr-only">
+            Full Name
+          </label>
           <Input
+            id="profile-name"
             placeholder="What should we call you?"
             value={name}
             onChange={e => setName(e.target.value)}
             disabled={!isEditing}
-            className="w-full h-[48px] rounded-full text-black dark:text-white placeholder:text-muted-foreground/60 px-6 border-[#E6E8EB] dark:border-none text-[14px] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full h-[48px] rounded-full text-black dark:text-white placeholder:text-muted-foreground/60 px-6 border-brand-border-light dark:border-none text-[14px] disabled:opacity-70 disabled:cursor-not-allowed"
             style={{
               backgroundImage: isDarkMode ? `url(${ASSETS.INPUT_FIELD_BG})` : 'none',
               backgroundSize: '100% 100%',
@@ -173,7 +190,7 @@ const ProfileEdit = () => {
           />
           <div className="space-y-2 mt-[21px]">
             <div
-              className="w-full h-[48px] rounded-full flex items-center px-6 justify-between border-[#E6E8EB] dark:border-none opacity-70 cursor-not-allowed"
+              className="w-full h-[48px] rounded-full flex items-center px-6 justify-between border-brand-border-light dark:border-none opacity-70 cursor-not-allowed"
               style={{
                 backgroundImage: isDarkMode ? `url(${ASSETS.INPUT_FIELD_BG})` : 'none',
                 backgroundSize: '100% 100%',
@@ -196,12 +213,16 @@ const ProfileEdit = () => {
           </div>
           <div className="mt-[32px]">
             <div className="relative">
+              <label htmlFor="profile-email" className="sr-only">
+                Email Address
+              </label>
               <Input
+                id="profile-email"
                 placeholder="Drop your email, the real one."
                 value={email}
                 onChange={e => setEmail(e.target.value.toLowerCase())}
                 disabled={!isEditing}
-                className="w-full h-[48px] rounded-full text-black dark:text-white placeholder:text-muted-foreground/60 px-6 border-[#E6E8EB] dark:border-none text-[14px] pr-[100px] disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full h-[48px] rounded-full text-black dark:text-white placeholder:text-muted-foreground/60 px-6 border-brand-border-light dark:border-none text-[14px] pr-[100px] disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{
                   backgroundImage: isDarkMode ? `url(${ASSETS.INPUT_FIELD_BG})` : 'none',
                   backgroundSize: '100% 100%',
@@ -241,7 +262,7 @@ const ProfileEdit = () => {
           </div>
           <Button
             onClick={handleSaveProfile}
-            className="w-full h-[48px] rounded-full text-[16px] font-medium bg-[#5260FE] hover:bg-[#5260FE]/90 text-white border-none mt-[65px]"
+            className="w-full h-[48px] rounded-full text-[16px] font-medium bg-brand-primary hover:bg-brand-primary/90 text-white border-none mt-[65px]"
           >
             {ctaLabel}
           </Button>

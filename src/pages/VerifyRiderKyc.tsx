@@ -15,7 +15,7 @@ const VerifyRiderKyc = () => {
   };
   return (
     <div
-      className="fixed inset-0 w-full h-full flex flex-col bg-[#0a0a12] safe-top safe-bottom overflow-hidden"
+      className="fixed inset-0 w-full h-full flex flex-col bg-brand-bg-dark safe-top safe-bottom overflow-hidden"
       style={{
         backgroundColor: '#0a0a12',
         backgroundImage: `url(${ASSETS.WARNING_BACKGROUND})`,
@@ -65,9 +65,9 @@ const VerifyRiderKyc = () => {
               onClick={() => setSelectedOption('yes')}
             >
               <div
-                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${selectedOption === 'yes' ? 'border-[#5260FE]' : 'border-white/30'}`}
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${selectedOption === 'yes' ? 'border-brand-primary' : 'border-white/30'}`}
               >
-                {selectedOption === 'yes' && <div className="w-2 h-2 rounded-full bg-[#5260FE]" />}
+                {selectedOption === 'yes' && <div className="w-2 h-2 rounded-full bg-brand-primary" />}
               </div>
               <span className="ml-[14px] text-white text-[14px] font-normal font-satoshi">
                 Yes, the rider is real and authentic.
@@ -79,9 +79,9 @@ const VerifyRiderKyc = () => {
               onClick={() => setSelectedOption('no')}
             >
               <div
-                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${selectedOption === 'no' ? 'border-[#5260FE]' : 'border-white/30'}`}
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${selectedOption === 'no' ? 'border-brand-primary' : 'border-white/30'}`}
               >
-                {selectedOption === 'no' && <div className="w-2 h-2 rounded-full bg-[#5260FE]" />}
+                {selectedOption === 'no' && <div className="w-2 h-2 rounded-full bg-brand-primary" />}
               </div>
               <span className="ml-[14px] text-white text-[14px] font-normal font-satoshi">
                 No, something seems fishy.
@@ -93,7 +93,7 @@ const VerifyRiderKyc = () => {
         <div className="w-full mt-[35px]">
           <button
             onClick={handleConfirm}
-            className="w-full h-[48px] rounded-full text-white text-[16px] font-medium bg-[#5260FE] active:scale-95 transition-all flex items-center justify-center"
+            className="w-full h-[48px] rounded-full text-white text-[16px] font-medium bg-brand-primary active:scale-95 transition-all flex items-center justify-center"
             style={{
               boxShadow: '0px 4px 10px rgba(82, 96, 254, 0.3)',
             }}

@@ -58,17 +58,21 @@ const PhoneInputImpl = React.forwardRef<HTMLInputElement, PhoneInputProps>(
       <div
         className={cn(
           'flex items-center h-[48px] rounded-full transition-all duration-200',
-          'bg-[#F7F8FA] dark:bg-input border border-[#E6E8EB] dark:border-transparent',
+          'bg-brand-bg-light dark:bg-input border border-brand-border-light dark:border-transparent',
           isFocused && !error && 'ring-2 ring-primary/50 border-primary/50',
           error && 'border-red-500 ring-1 ring-red-500',
           disabled && 'opacity-50 pointer-events-none',
           className
         )}
       >
+        <label htmlFor="phone-input" className="sr-only">
+          Phone Number
+        </label>
         <div className="flex items-center px-4 border-r border-border/50">
           <span className="text-muted-foreground font-normal text-sm">{countryCode}</span>
         </div>
         <input
+          id="phone-input"
           ref={ref}
           type="tel"
           inputMode="numeric"

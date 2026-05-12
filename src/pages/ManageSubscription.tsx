@@ -43,7 +43,7 @@ const ManageSubscription = () => {
     : subscriptionBgsLight[walletTier];
   return (
     <div
-      className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-top safe-bottom pb-4 ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-top safe-bottom pb-4 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         fontFamily: "'Satoshi', sans-serif",
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -183,10 +183,10 @@ const ManageSubscription = () => {
       {/* Note Container */}
       <div className="mt-auto mb-4 flex flex-col items-center">
         <div
-          className={`w-[326px] rounded-[12px] p-[10px] border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-[#E9EAEB]'}`}
+          className={`w-[326px] rounded-[12px] p-[10px] border ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-brand-border-light'}`}
         >
           <h3
-            className={`${isDarkMode ? 'text-[#8F8F8F]' : 'text-black'} text-[12px] font-bold font-satoshi`}
+            className={`${isDarkMode ? 'text-brand-text-dim' : 'text-black'} text-[12px] font-bold font-satoshi`}
           >
             Note:
           </h3>
@@ -201,7 +201,7 @@ const ManageSubscription = () => {
         <div className="mt-[48px] flex flex-col gap-[12px]">
           <button
             onClick={() => navigate(ROUTES.DOWNGRADE_PLAN)}
-            className="w-[362px] h-[48px] rounded-full bg-[#5260FE] text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-[#5260FE]/20"
+            className="w-[362px] h-[48px] rounded-full bg-brand-primary text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-brand-primary/20"
           >
             Downgrade Plan
           </button>

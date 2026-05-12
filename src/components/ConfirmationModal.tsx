@@ -139,7 +139,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 <div className="absolute inset-0 w-full h-full rounded-full pointer-events-none bg-[#F2F3F5]" />
               )}
               <span
-                className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-[#09090B]'} text-[16px] font-bold font-satoshi`}
+                className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'} text-[16px] font-bold font-satoshi`}
               >
                 {secondaryText}
               </span>

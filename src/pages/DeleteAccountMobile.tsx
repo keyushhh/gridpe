@@ -103,7 +103,7 @@ const DeleteAccountMobile = () => {
           </p>
           <div
             className={`w-full h-[48px] rounded-full flex items-center px-6 justify-between border transition-all duration-200 ${
-              error ? 'border-[#FF3B30] bg-[#FF3B30]/10' : 'border-transparent'
+              error ? 'border-brand-error bg-brand-error/10' : 'border-transparent'
             }`}
             style={
               isDarkMode
@@ -141,7 +141,7 @@ const DeleteAccountMobile = () => {
             </div>
           </div>
           {error && (
-            <p className="text-[#FF3B30] text-[12px] font-medium font-sans px-4">{error}</p>
+            <p className="text-brand-error text-[12px] font-medium font-sans px-4">{error}</p>
           )}
         </div>
       </div>
@@ -150,7 +150,7 @@ const DeleteAccountMobile = () => {
         <Button
           onClick={handleRequestOtp}
           disabled={!isValid}
-          className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans bg-[#5260FE] hover:bg-[#5260FE]/90 text-white border-none disabled:opacity-50"
+          className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans bg-brand-primary hover:bg-brand-primary/90 text-white border-none disabled:opacity-50"
         >
           Request OTP
         </Button>

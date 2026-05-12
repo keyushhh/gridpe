@@ -2,7 +2,7 @@ import { HashRouter as Router, Routes, Route, useLocation, useNavigate } from 'r
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { CapacitorSwipeBackPlugin } from '@notnotsamuel/capacitor-swipe-back';
-import { useEffect, useRef, useState, lazy, Suspense } from 'react';
+import { useEffect, useRef, useState, lazy, Suspense, useLayoutEffect } from 'react';
 import { supabase } from './lib/supabase';
 import { fetchActiveOrders } from './lib/orders';
 import { setBadge } from './utils/badge';
@@ -175,7 +175,16 @@ const BackNavigationHandler = ({
 const App = () => {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
   const isOnline = useOnlineStatus();
+
+  useLayoutEffect(() => {
+    const reloading = localStorage.getItem('gridpe_reloading') === '1';
+    if (reloading) {
+      setIsReloading(true);
+      localStorage.removeItem('gridpe_reloading');
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -278,7 +287,7 @@ const App = () => {
     };
   }, []);
 
-  if (!mounted || !resolvedTheme) {
+  if (!mounted || !resolvedTheme || isReloading) {
     const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
     const isDark =
       savedTheme === 'dark' ||
@@ -747,6 +756,14 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <OrderDelivered />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.ORDER_CANCELLED}
+                      element={
+                        <ProtectedRoute>
+                          <OrderCancelled />
                         </ProtectedRoute>
                       }
                     />

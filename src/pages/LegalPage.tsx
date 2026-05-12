@@ -146,7 +146,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
   const containerHeight = isTnc ? (showAcceptedUI ? '678px' : '573px') : 'auto';
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
         backgroundSize: 'cover',
@@ -156,7 +156,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
     >
       {/* Light Mode Purple Glow (Top Center) */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div className="px-4 safe-top pt-4 relative flex items-center justify-center min-h-[64px]">
@@ -181,7 +181,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
       {/* Content Container */}
       <div className="px-4 flex-1 overflow-hidden flex flex-col mb-4">
         <div
-          className={`flex-1 overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'border border-white/10 rounded-[22px]' : 'border border-[#E9EAEB] rounded-[22px]'}`}
+          className={`flex-1 overflow-hidden flex flex-col transition-all duration-300 ${isDarkMode ? 'border border-white/10 rounded-[22px]' : 'border border-brand-border-light rounded-[22px]'}`}
           style={{
             backgroundImage: isTnc && isDarkMode ? `url(${containerBg})` : 'none',
             backgroundColor: isDarkMode
@@ -200,7 +200,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
               Grid.Pe {type === 'terms' ? 'Terms & Conditions' : 'Privacy Policy'}
             </h2>
             <p
-              className="text-[#5260FE] text-[14px] mt-1 font-normal opacity-80"
+              className="text-brand-primary text-[14px] mt-1 font-normal opacity-80"
               style={{ fontWeight: 400 }}
             >
               Last Updated: {legalContent?.updatedAt || 'Loading...'}
@@ -236,14 +236,14 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
         <div className="px-4 safe-bottom pb-4 pt-2 flex gap-4 animate-fade-in justify-center">
           <Button
             variant="outline"
-            className={`w-[172px] h-[48px] rounded-full border text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-[#E9EAEB] text-black'}`}
+            className={`w-[172px] h-[48px] rounded-full border text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-brand-border-light text-black'}`}
             onClick={handleDecline}
           >
             Decline
           </Button>
           <Button
             variant={isDarkMode ? 'gradient' : 'default'}
-            className={`w-[172px] h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'btn-gradient' : 'bg-[#5260FE] hover:bg-[#5260FE]/90 border-none'}`}
+            className={`w-[172px] h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'btn-gradient' : 'bg-brand-primary hover:bg-brand-primary/90 border-none'}`}
             onClick={handleAccept}
           >
             Accept

@@ -246,10 +246,10 @@ const AddBank = () => {
               selection === 'auto'
                 ? isDarkMode
                   ? 'border-white/20 bg-white/5'
-                  : 'border-[#E9EAEB] bg-[#F7F8FA]'
+                  : 'border-brand-border-light bg-brand-bg-light'
                 : isDarkMode
                   ? 'border-white/10 bg-black/20'
-                  : 'border-[#E9EAEB] bg-white'
+                  : 'border-brand-border-light bg-white'
             }`}
             onClick={() => setSelection('auto')}
           >
@@ -323,10 +323,10 @@ const AddBank = () => {
               selection === 'manual'
                 ? isDarkMode
                   ? 'border-white/20 bg-white/5'
-                  : 'border-[#E9EAEB] bg-[#F7F8FA]'
+                  : 'border-brand-border-light bg-brand-bg-light'
                 : isDarkMode
                   ? 'border-white/10 bg-black/20'
-                  : 'border-[#E9EAEB] bg-white'
+                  : 'border-brand-border-light bg-white'
             }`}
             onClick={() => setSelection('manual')}
             style={{ height: '64px' }}
@@ -372,7 +372,7 @@ const AddBank = () => {
               countryCode="+91"
               placeholder="Enter your mobile number"
               disabled={showOtpInput}
-              className={!isDarkMode ? 'bg-[#F7F8FA] border-[#E6E8EB] text-black' : ''}
+              className={!isDarkMode ? 'bg-brand-bg-light border-brand-border-light text-black' : ''}
             />
             {/* OTP Section */}
             {showOtpInput && (
@@ -397,7 +397,7 @@ const AddBank = () => {
                       <InputOTPSlot
                         key={index}
                         index={index}
-                        className={`h-[52px] w-12 rounded-[7px] border-none text-xl font-semibold transition-all bg-cover bg-center ${isDarkMode ? 'text-white ring-white/10' : 'text-black ring-black/10 bg-[#F7F8FA]'}`}
+                        className={`h-[52px] w-12 rounded-[7px] border-none text-xl font-semibold transition-all bg-cover bg-center ${isDarkMode ? 'text-white ring-white/10' : 'text-black ring-black/10 bg-brand-bg-light'}`}
                         style={
                           isDarkMode
                             ? {
@@ -454,8 +454,8 @@ const AddBank = () => {
                 onChange={handleMaskedChange}
                 className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${
                   isDarkMode
-                    ? 'bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40'
-                    : 'bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20'
+                    ? 'bg-brand-card-dark/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40'
+                    : 'bg-brand-bg-light border border-brand-border-light text-black placeholder:text-black/40 focus:border-black/20'
                 } ${accountNumber.length > 0 ? 'tracking-widest' : ''}`}
               />
               <div className="flex flex-col gap-1">
@@ -470,14 +470,14 @@ const AddBank = () => {
                   onBlur={() => setTouchedConfirm(true)}
                   className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${
                     isDarkMode
-                      ? 'bg-[#191919]/30 border-[0.65px] text-white placeholder:text-white/40'
-                      : 'bg-[#F7F8FA] border text-black placeholder:text-black/40'
+                      ? 'bg-brand-card-dark/30 border-[0.65px] text-white placeholder:text-white/40'
+                      : 'bg-brand-bg-light border text-black placeholder:text-black/40'
                   } ${confirmAccountNumber.length > 0 ? 'tracking-widest' : ''} ${
                     showMatchError
                       ? 'border-red-500/50 focus:border-red-500'
                       : isDarkMode
                         ? 'border-white/20 focus:border-white/40'
-                        : 'border-[#E6E8EB] focus:border-black/20'
+                        : 'border-brand-border-light focus:border-black/20'
                   }`}
                 />
                 {showMatchError && (
@@ -492,8 +492,8 @@ const AddBank = () => {
                 onChange={e => setAccountHolderName(e.target.value)}
                 className={`w-full h-[48px] rounded-full px-5 text-[14px] font-normal font-sans outline-none transition-colors ${
                   isDarkMode
-                    ? 'bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40'
-                    : 'bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20'
+                    ? 'bg-brand-card-dark/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40'
+                    : 'bg-brand-bg-light border border-brand-border-light text-black placeholder:text-black/40 focus:border-black/20'
                 }`}
               />
               {/* Account Type Selection */}
@@ -513,7 +513,7 @@ const AddBank = () => {
                             : 'bg-black text-white'
                           : isDarkMode
                             ? 'bg-white/5 text-white/60 border border-white/10'
-                            : 'bg-[#F7F8FA] text-black/60 border border-[#E6E8EB]'
+                            : 'bg-brand-bg-light text-black/60 border border-brand-border-light'
                       }`}
                     >
                       {type}
@@ -531,12 +531,12 @@ const AddBank = () => {
                     maxLength={11}
                     className={`w-full h-[48px] rounded-full pl-5 pr-24 text-[14px] font-normal font-sans outline-none transition-colors uppercase ${
                       isDarkMode
-                        ? 'bg-[#191919]/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40'
-                        : 'bg-[#F7F8FA] border border-[#E6E8EB] text-black placeholder:text-black/40 focus:border-black/20'
+                        ? 'bg-brand-card-dark/30 border-[0.65px] border-white/20 text-white placeholder:text-white/40 focus:border-white/40'
+                        : 'bg-brand-bg-light border border-brand-border-light text-black placeholder:text-black/40 focus:border-black/20'
                     }`}
                   />
                   <button
-                    className="absolute right-5 top-1/2 -translate-y-1/2 text-[#5260FE] text-[13px] font-medium hover:text-[#5260FE]/80 transition-colors"
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-brand-primary text-[13px] font-medium hover:text-brand-primary/80 transition-colors"
                     onClick={() =>
                       window.open(
                         'https://www.ifsccodebank.com/search-by-IFSC-code.aspx',
@@ -566,7 +566,7 @@ const AddBank = () => {
       </div>
       {/* Footer */}
       <div
-        className={`sticky bottom-0 left-0 w-full px-5 py-4 flex justify-center z-20 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}
+        className={`sticky bottom-0 left-0 w-full px-5 py-4 flex justify-center z-20 ${isDarkMode ? 'bg-gradient-to-t from-brand-bg-dark via-brand-bg-dark/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}
       >
         <Button
           variant="gradient"

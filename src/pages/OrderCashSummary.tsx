@@ -36,6 +36,7 @@ const OrderCashSummary = () => {
   const currentUserId = profile?.id;
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isPayOpen, setIsPayOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
   // Address State
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
@@ -166,6 +167,7 @@ const OrderCashSummary = () => {
     }
   };
   const handlePay = async () => {
+    setIsLoading(true);
     try {
       if (!userId) {
         showToaster('You must be logged in to place an order.', 'error');
@@ -390,8 +392,9 @@ const OrderCashSummary = () => {
       }
     } catch (error: unknown) {
       console.error('Final catch in handlePay:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Please try again.';
-      showToaster(`Order Failed: ${errorMessage}`, 'error');
+      showToaster('Order failed. Please try again or contact support.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
   const handleRewardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -430,6 +433,7 @@ const OrderCashSummary = () => {
     !savedAddress ||
     totalAmount > walletBalance ||
     quoteLoading ||
+    isLoading ||
     (isScheduledFlow && !selectedSlot);
   // Normal flow (not isScheduledFlow) should always be interactive unless balance/address issues
   const isVisualDisabled = isConfirmDisabled;
@@ -445,7 +449,7 @@ const OrderCashSummary = () => {
       }}
     >
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       <div className="flex-none px-5 pt-4 flex items-center justify-between z-10 mb-6">
         <BackButton onClick={() => navigate(ROUTES.ORDER_CASH)} />
@@ -573,7 +577,7 @@ const OrderCashSummary = () => {
                 className={`w-[18px] h-[18px] ${!isDarkMode ? 'brightness-0' : ''}`}
               />
               <span
-                className={`text-[14px] font-medium font-sans underline underline-offset-2 ${isDarkMode ? 'text-white' : 'text-[#5260FE]'}`}
+                className={`text-[14px] font-medium font-sans underline underline-offset-2 ${isDarkMode ? 'text-white' : 'text-brand-primary'}`}
               >
                 {selectedSlot ? 'Change' : 'Want it later?'}
               </span>
@@ -612,7 +616,7 @@ const OrderCashSummary = () => {
             </li>
             <li>Please verify their ID before accepting the cash.</li>
           </ul>
-          <div className={`w-full h-[1px] my-3 ${isDarkMode ? 'bg-white/10' : 'bg-[#E6E8EB]'}`} />
+          <div className={`w-full h-[1px] my-3 ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'}`} />
           <p
             className={`text-[12px] font-normal font-sans ${isDarkMode ? 'text-white/40' : 'text-black'}`}
           >
@@ -650,7 +654,7 @@ const OrderCashSummary = () => {
                     value={rewardPoints}
                     onChange={handleRewardChange}
                     placeholder="Enter reward points"
-                    className={`w-full h-full rounded-full px-4 font-sans text-[12px] focus:outline-none border ${isDarkMode ? 'bg-white/5 text-white border-white/20' : 'bg-white text-black border-[#E6E8EB]'} ${rewardError ? 'border-[#FF3B30]' : ''}`}
+                    className={`w-full h-full rounded-full px-4 font-sans text-[12px] focus:outline-none border ${isDarkMode ? 'bg-white/5 text-white border-white/20' : 'bg-white text-black border-brand-border-light'} ${rewardError ? 'border-brand-error' : ''}`}
                   />
                   {rewardApplied && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -684,7 +688,7 @@ const OrderCashSummary = () => {
                 </button>
               </div>
               <p
-                className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/40' : 'text-black'}`}
+                className={`text-[12px] font-normal font-sans mt-2 ${rewardError ? 'text-brand-error' : isDarkMode ? 'text-white/40' : 'text-black'}`}
               >
                 {rewardError ||
                   (rewardApplied
@@ -745,7 +749,7 @@ const OrderCashSummary = () => {
         onAddressSelect={handleAddressSelect}
       />
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? 'bg-[#171717]/30 backdrop-blur-[24px]' : 'bg-white border-t border-x border-[#E9EAEB]'}`}
+        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? 'bg-[#171717]/30 backdrop-blur-[24px]' : 'bg-white border-t border-x border-brand-border-light'}`}
         style={{
           height: '255px',
           borderTopLeftRadius: '32px',
@@ -760,7 +764,7 @@ const OrderCashSummary = () => {
             : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} will be held from wallet`}
         </p>
         <p
-          className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white' : 'text-black'}`}
+          className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-brand-error' : isDarkMode ? 'text-white' : 'text-black'}`}
         >
           {quoteLoading
             ? 'Syncing pricing...'
@@ -784,7 +788,7 @@ const OrderCashSummary = () => {
           />
         </div>
         {isScheduledFlow && !selectedSlot && (
-          <p className="text-[#FF3B30] text-[12px] font-medium font-sans mt-2 text-center animate-pulse">
+          <p className="text-brand-error text-[12px] font-medium font-sans mt-2 text-center animate-pulse">
             Please select a delivery slot above to continue
           </p>
         )}

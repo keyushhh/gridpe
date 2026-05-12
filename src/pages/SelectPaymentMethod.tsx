@@ -46,10 +46,10 @@ const SelectPaymentMethod = () => {
   const RadioButton = ({ selected }: { selected: boolean }) => (
     <div
       className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-        selected ? 'border-[#6C72FF]' : 'border-[#6C72FF]/50'
+        selected ? 'border-brand-primary-light' : 'border-brand-primary-light/50'
       }`}
     >
-      {selected && <div className="w-[12px] h-[12px] rounded-full bg-[#6C72FF]" />}
+      {selected && <div className="w-[12px] h-[12px] rounded-full bg-brand-primary-light" />}
     </div>
   );
   const upiMethods: PaymentMethod[] = [
@@ -90,7 +90,7 @@ const SelectPaymentMethod = () => {
     >
       {/* Light Mode Purple Glow (Top Center) */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <div className="px-5 pt-4 flex items-center justify-between relative z-10 shrink-0">
@@ -186,7 +186,7 @@ const SelectPaymentMethod = () => {
                 </div>
                 {i < upiMethods.length - 1 && (
                   <div
-                    className={`w-full h-[1px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+                    className={`w-full h-[1px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
                   />
                 )}
               </React.Fragment>
@@ -202,7 +202,7 @@ const SelectPaymentMethod = () => {
             </h2>
           </div>
           {bankAccounts.length === 0 && !loading ? (
-            <div className="w-[364px] p-4 rounded-[22px] border border-[#E9EAEB] text-center">
+            <div className="w-[364px] p-4 rounded-[22px] border border-brand-border-light text-center">
               <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
                 No bank accounts linked.
               </p>
@@ -263,7 +263,7 @@ const SelectPaymentMethod = () => {
                   </div>
                   {i < cardMethods.length - 1 && (
                     <div
-                      className={`w-full h-[1px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+                      className={`w-full h-[1px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
                     />
                   )}
                 </React.Fragment>
@@ -335,7 +335,7 @@ const SelectPaymentMethod = () => {
                 </div>
                 {i < moreMethods.length - 1 && (
                   <div
-                    className={`w-full h-[1px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+                    className={`w-full h-[1px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
                   />
                 )}
               </React.Fragment>
@@ -368,13 +368,13 @@ const SelectPaymentMethod = () => {
             });
           }}
           disabled={selectedMethod === 'upi-id' && !upiId}
-          className={`w-full h-[48px] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center bg-[#6C72FF] ${selectedMethod === 'upi-id' && !upiId ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`w-full h-[48px] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center bg-brand-primary-light ${selectedMethod === 'upi-id' && !upiId ? 'opacity-50 pointer-events-none' : ''}`}
         >
           Proceed
         </button>
         <button
           onClick={() => navigate(-1)}
-          className={`w-full h-[48px] rounded-full text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center ${isDarkMode ? 'bg-transparent border border-white/10 text-white' : 'bg-[#F2F2F2] text-black border border-[#E9EAEB]'}`}
+          className={`w-full h-[48px] rounded-full text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center ${isDarkMode ? 'bg-transparent border border-white/10 text-white' : 'bg-[#F2F2F2] text-black border border-brand-border-light'}`}
         >
           Cancel
         </button>

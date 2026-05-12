@@ -10,11 +10,13 @@ import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
 import { formatINR } from '@/utils/format';
 import { useKeypad } from '@/hooks/useKeypad';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import Keypad from '@/components/Keypad';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const WalletAddMoney = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
+  const { showToaster } = useCustomToaster();
   const { resolvedTheme } = useTheme();
   const location = useLocation() as { state: { balance?: string; from?: string } };
   const isDarkMode = resolvedTheme !== 'light';
@@ -305,7 +307,7 @@ const WalletAddMoney = () => {
                               }
                             } catch (err) {
                               console.error('Verification error', err);
-                              alert('Something went wrong during verification.');
+                              showToaster('Something went wrong during verification.', 'error');
                             }
                           },
                           theme: {
@@ -346,13 +348,13 @@ const WalletAddMoney = () => {
                           );
                           throw openErr; // Propagate to the outer catch
                         }
-                      } catch (err) {
-                        console.error(
-                          'RAZORPAY_FAILURE:',
-                          JSON.stringify(err, Object.getOwnPropertyNames(err))
-                        );
-                        alert('Failed to initiate payment. Please check console for details.');
-                      } finally {
+                        } catch (err: any) {
+                          console.error(
+                            'RAZORPAY_FAILURE:',
+                            JSON.stringify(err, Object.getOwnPropertyNames(err))
+                          );
+                          showToaster(err.message || 'Failed to initiate payment.', 'error');
+                        } finally {
                         setIsLoading(false);
                       }
                     }

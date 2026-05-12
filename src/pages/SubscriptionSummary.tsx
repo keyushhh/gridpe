@@ -192,7 +192,7 @@ const SubscriptionSummary = () => {
     : subscriptionBannersLight[tier] || ASSETS.STARTER_SUBSCRIPTION_LIGHT;
   return (
     <div
-      className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         fontFamily: "'Satoshi', sans-serif",
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -216,7 +216,7 @@ const SubscriptionSummary = () => {
       <div className="flex-1 flex flex-col items-center pt-[36px] px-5">
         {/* Subscription Banner */}
         <div
-          className={`w-full max-w-[362px] h-[70px] rounded-[20px] relative overflow-hidden ${!isDarkMode ? 'border border-[#E9EAEB]' : ''}`}
+          className={`w-full max-w-[362px] h-[70px] rounded-[20px] relative overflow-hidden ${!isDarkMode ? 'border border-brand-border-light' : ''}`}
           style={{
             backgroundImage: `url(${bannerImage})`,
             backgroundSize: isDowngrade ? 'auto 100%' : 'cover',
@@ -263,7 +263,7 @@ const SubscriptionSummary = () => {
         </div>
         {/* To Pay Container */}
         <div
-          className={`w-full max-w-[362px] mt-[18px] rounded-[13px] flex flex-col gap-[10px] relative border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
+          className={`w-full max-w-[362px] mt-[18px] rounded-[13px] flex flex-col gap-[10px] relative border ${isDarkMode ? 'bg-brand-card-dark/31 backdrop-blur-25 border-white/12' : 'bg-white border-brand-border-light'}`}
           style={{
             padding: '14px 11px',
           }}
@@ -289,13 +289,13 @@ const SubscriptionSummary = () => {
           </h2>
           {/* Body */}
           <p
-            className={`${isDarkMode ? 'text-[#A4A4A4] font-light' : 'text-black/80 font-normal'} text-[14px] leading-[139%] font-satoshi`}
+            className={`${isDarkMode ? 'text-brand-text-placeholder font-light' : 'text-black/80 font-normal'} text-[14px] leading-[139%] font-satoshi`}
           >
             No additional taxes apply. Processing fee is inclusive of all charges.
           </p>
           {/* Divider */}
           <div
-            className={`w-[340px] h-[1px] mx-auto ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+            className={`w-[340px] h-[1px] mx-auto ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
           />
           {/* Monthly Subscription Fee Row */}
           <div className="flex justify-between items-center mt-[2px]">
@@ -312,7 +312,7 @@ const SubscriptionSummary = () => {
           </div>
           {/* First payment note */}
           <p
-            className={`${isDarkMode ? 'text-[#A4A4A4] font-normal' : 'text-black/80 font-normal'} text-[12px] leading-[139%] font-satoshi -mt-[2px]`}
+            className={`${isDarkMode ? 'text-brand-text-placeholder font-normal' : 'text-black/80 font-normal'} text-[12px] leading-[139%] font-satoshi -mt-[2px]`}
           >
             {isDowngrade
               ? `You will be charged ₹${selectedTierPrice} on ${effectiveDate}`
@@ -320,7 +320,7 @@ const SubscriptionSummary = () => {
           </p>
           {/* Divider */}
           <div
-            className={`w-[340px] h-[1px] mx-auto -mt-[2px] ${isDarkMode ? 'bg-[#202020]' : 'bg-[#E9EAEB]'}`}
+            className={`w-[340px] h-[1px] mx-auto -mt-[2px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
           />
           {/* Total Payable Row */}
           <div className="flex justify-between items-center -mt-[2px]">
@@ -338,7 +338,7 @@ const SubscriptionSummary = () => {
         </div>
         {/* Second Container */}
         <div
-          className={`w-full max-w-[362px] min-h-[65px] mt-[14px] rounded-[13px] relative flex items-center border ${isDarkMode ? 'bg-[#191919]/31 backdrop-blur-25 border-white/12' : 'bg-white border-[#E9EAEB]'}`}
+          className={`w-full max-w-[362px] min-h-[65px] mt-[14px] rounded-[13px] relative flex items-center border ${isDarkMode ? 'bg-brand-card-dark/31 backdrop-blur-25 border-white/12' : 'bg-white border-brand-border-light'}`}
           style={{
             padding: '12px 10px',
           }}
@@ -364,7 +364,7 @@ const SubscriptionSummary = () => {
         </div>
         {/* Next Payment Date Container */}
         <div
-          className={`w-full max-w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center border ${isDarkMode ? 'bg-[#5260FE]/21 backdrop-blur-25 border-white/12' : 'bg-[#E2E4FF] border-[#5260FE]'}`}
+          className={`w-full max-w-[362px] mt-[14px] rounded-[13px] relative flex justify-between items-center border ${isDarkMode ? 'bg-brand-primary/21 backdrop-blur-25 border-white/12' : 'bg-[#E2E4FF] border-brand-primary'}`}
           style={{
             padding: '14px 11px',
           }}

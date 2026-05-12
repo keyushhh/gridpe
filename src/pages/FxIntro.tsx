@@ -102,12 +102,12 @@ const FxIntro = () => {
       </div>
       {/* Sticky CTA */}
       <div
-        className={`sticky bottom-0 left-0 right-0 w-full px-5 pt-4 z-50 ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/90 to-transparent' : 'bg-gradient-to-t from-white via-white/90 to-transparent'}`}
+        className={`sticky bottom-0 left-0 right-0 w-full px-5 pt-4 z-50 ${isDarkMode ? 'bg-gradient-to-t from-brand-bg-dark via-brand-bg-dark/90 to-transparent' : 'bg-gradient-to-t from-white via-white/90 to-transparent'}`}
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 20px), 20px)' }}
       >
         <button
           onClick={() => navigate(ROUTES.WALLET_SETTINGS)}
-          className="w-full h-[52px] bg-[#5260FE] rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform shadow-xl shadow-[#5260FE]/20 flex items-center justify-center"
+          className="w-full h-[52px] bg-brand-primary rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform shadow-xl shadow-brand-primary/20 flex items-center justify-center"
         >
           Upgrade Wallet & Verify KYC
         </button>

@@ -163,7 +163,7 @@ const DeleteAccount = () => {
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
             />
           ) : (
-            <div className="absolute inset-0 w-full h-full rounded-full bg-[#FF3B30] pointer-events-none" />
+            <div className="absolute inset-0 w-full h-full rounded-full bg-brand-error pointer-events-none" />
           )}
           <span className="relative z-10 text-white text-[16px] font-semibold font-sans">
             Proceed

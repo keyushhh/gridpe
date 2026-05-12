@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
 import { calculateBalance, calculateHeldBalance } from '@/lib/wallet';
 import { WalletTier, WalletTransaction, Profile as UserProfile, Tables } from '@/types';
+import { SecureStorage } from '@aparajita/capacitor-secure-storage';
+import { Capacitor } from '@capacitor/core';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 
 export type { WalletTier };
 
@@ -18,6 +21,7 @@ interface UserState {
   profile: UserProfile | null;
   isWalletActivated: boolean;
   isInitializing: boolean;
+  isSecureStorageReady: boolean;
 
   /* Wallet Tier */
   walletTier: WalletTier;
@@ -71,6 +75,8 @@ interface UserContextType extends UserState {
   addMoney: (
     amount: number
   ) => Promise<{ success: boolean; error?: Error | PostgrestError | string }>;
+  isInitializing: boolean;
+  isSecureStorageReady: boolean;
 }
 
 /* -------------------- Constants -------------------- */
@@ -106,6 +112,7 @@ const defaultState: UserState = {
   isRenewalPending: false,
   rewardPoints: 0,
   isInitializing: true,
+  isSecureStorageReady: false,
 };
 
 /* -------------------- Context -------------------- */
@@ -113,23 +120,103 @@ const defaultState: UserState = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState<UserState>(() => {
-    try {
-      const stored = localStorage.getItem(USER_STORAGE_KEY);
-      return stored ? { ...defaultState, ...JSON.parse(stored) } : defaultState;
-    } catch (error) {
-      console.error('Failed to load user state from localStorage:', error);
-      return defaultState;
-    }
-  });
+  const [state, setState] = useState<UserState>(defaultState);
+  const { showToaster } = useCustomToaster();
 
-  /* Persist to localStorage */
+  // Load state on mount
   useEffect(() => {
+    const loadSavedState = async () => {
+      try {
+        // 1. Load non-sensitive state from localStorage (Synchronous-ish)
+        const stored = localStorage.getItem(USER_STORAGE_KEY);
+        const parsedLocalStorage = stored ? JSON.parse(stored) : {};
+
+        // Immediately unblock the UI with optimistic non-sensitive data
+        setState(prev => ({
+          ...prev,
+          ...parsedLocalStorage,
+          isInitializing: false,
+        }));
+
+        // 2. Load sensitive state from SecureStorage (Async)
+        if (Capacitor.isNativePlatform()) {
+          try {
+            // Promise.all to parallelize future multiple keys if needed
+            const [secureStored] = await Promise.all([
+              SecureStorage.get('gridpe_secure_user_state'),
+            ]);
+
+            if (secureStored) {
+              const secureData = JSON.parse(secureStored as string);
+              setState(prev => ({
+                ...prev,
+                ...secureData,
+                isSecureStorageReady: true,
+              }));
+            } else {
+              setState(prev => ({ ...prev, isSecureStorageReady: true }));
+            }
+          } catch (e) {
+            console.error('Failed to read from SecureStorage:', e);
+            setState(prev => ({ ...prev, isSecureStorageReady: true }));
+          }
+        } else {
+          // On web, SecureStorage isn't used, but we still trigger migration check
+          // and set ready flag for consistency
+          setState(prev => ({ ...prev, isSecureStorageReady: true }));
+        }
+
+        // 3. Migration: If we find profile in localStorage, move it and purge
+        // We do this in the background
+        if (parsedLocalStorage.profile || parsedLocalStorage.email) {
+          console.warn('Security Migration: Moving PII to SecureStorage...');
+          const pii = {
+            profile: parsedLocalStorage.profile,
+            phoneNumber: parsedLocalStorage.phoneNumber,
+            name: parsedLocalStorage.name,
+            email: parsedLocalStorage.email,
+          };
+
+          if (Capacitor.isNativePlatform()) {
+            await SecureStorage.set('gridpe_secure_user_state', JSON.stringify(pii));
+            // Immediately purge the legacy unencrypted copy after successful migration
+            localStorage.removeItem(USER_STORAGE_KEY);
+          }
+          
+          setState(prev => ({ ...prev, ...pii }));
+        }
+      } catch (error) {
+        console.error('Failed to initialize user state:', error);
+        setState(prev => ({ ...prev, isInitializing: false, isSecureStorageReady: true }));
+      }
+    };
+
+    loadSavedState();
+  }, []);
+
+  /* Persist to localStorage and SecureStorage */
+  useEffect(() => {
+    if (state.isInitializing) return;
+
     try {
-      // Persist the entire state to ensure tier and limit data are available immediately on reload
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(state));
+      // Split state into sensitive and non-sensitive
+      const { profile, phoneNumber, name, email, ...nonSensitive } = state;
+      
+      // Persist non-sensitive to localStorage
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nonSensitive));
+
+      // Persist sensitive to SecureStorage
+      if (Capacitor.isNativePlatform()) {
+        SecureStorage.set('gridpe_secure_user_state', JSON.stringify({
+          profile,
+          phoneNumber,
+          name,
+          email
+        })).catch(err => console.error('SecureStorage persist failed:', err));
+      }
     } catch (error) {
-      console.error('Failed to save user state to localStorage:', error);
+      console.error('Failed to save user state:', error);
+      showToaster("Couldn't save your settings. Please try again.", 'error');
     }
   }, [state]);
 
@@ -564,6 +651,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error('Failed to sync biometric preference:', error);
+        showToaster("Couldn't update your biometric settings. Please try again.", 'error');
       }
     },
     [supabase]
@@ -668,6 +756,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         await fetchProfileData();
       } catch (err) {
         console.error('Failed to set wallet tier:', err);
+        showToaster("Couldn't update your plan. Please try again.", 'error');
       }
     },
     [supabase, fetchProfileData]
@@ -711,6 +800,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         );
       } catch (err) {
         console.error('Failed to update passport verification in DB:', err);
+        showToaster("Couldn't update your verification status. Please try again.", 'error');
       }
     },
     [supabase, state.kycStatus]
@@ -742,6 +832,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         await fetchProfileData();
       } catch (error) {
         console.error('[scheduleDowngrade] Failed to schedule downgrade via RPC:', error);
+        showToaster("Couldn't schedule your plan change. Please try again.", 'error');
       }
     },
     [supabase, fetchProfileData]
@@ -760,6 +851,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setState(prev => ({ ...prev, scheduledDowngrade: null }));
     } catch (error) {
       console.error('Failed to cancel downgrade in Supabase:', error);
+      showToaster("Couldn't cancel your plan change. Please try again.", 'error');
     }
   }, [supabase]);
 
@@ -812,6 +904,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         await fetchProfileData();
       } catch (err) {
         console.error('Failed to complete downgrade:', err);
+        showToaster("Something went wrong while updating your plan. Please contact support.", 'error');
       }
     }
   }, [supabase, state.scheduledDowngrade, state.walletBalance, refreshBalance, fetchProfileData]);

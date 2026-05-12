@@ -139,7 +139,7 @@ const ForgotMpin = () => {
                       ? 'border border-red-500 ring-1 ring-red-500'
                       : isDarkMode
                         ? 'border-none ring-1 ring-white/10'
-                        : 'bg-[#F7F8FA] border border-[#E6E8EB]'
+                        : 'bg-brand-bg-light border border-brand-border-light'
                   }`}
                   style={{
                     backgroundImage: isDarkMode ? `url(${ASSETS.OTP_INPUT_FIELD})` : 'none',
@@ -157,7 +157,7 @@ const ForgotMpin = () => {
               <button
                 onClick={handleResend}
                 disabled={resendTimer > 0}
-                className={`text-[14px] font-normal ${resendTimer > 0 ? 'text-[#5260FE]' : isDarkMode ? 'text-white underline' : 'text-black underline'}`}
+                className={`text-[14px] font-normal ${resendTimer > 0 ? 'text-brand-primary' : isDarkMode ? 'text-white underline' : 'text-black underline'}`}
               >
                 {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
               </button>
@@ -170,7 +170,7 @@ const ForgotMpin = () => {
         <Button
           onClick={step === 'REQUEST' ? handleRequestOTP : handleSubmit}
           disabled={isLoading || (step === 'VERIFY' && otp.length < 6)}
-          className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans"
+          className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium font-sans"
         >
           {isLoading ? (
             <span className="flex items-center gap-2">

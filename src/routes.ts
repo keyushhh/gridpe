@@ -52,6 +52,7 @@ export const ROUTES = {
   KYC_REPORT_ERROR: '/kyc-report-error',
   REPORT_RIDER_CONFIRM: '/report-rider-confirm',
   ORDER_DELIVERED: '/order-delivered',
+  ORDER_CANCELLED: '/order-cancelled',
   HELP: '/help',
   HELP_REPORT: '/help/report',
   HELP_CATEGORY: '/help/category/:categoryId',

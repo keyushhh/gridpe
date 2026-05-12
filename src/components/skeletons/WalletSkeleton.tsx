@@ -8,7 +8,7 @@ const WalletSkeleton = () => {
 
   return (
     <div
-      className={`h-full w-full flex flex-col pt-4 px-5 safe-top ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`h-full w-full flex flex-col pt-4 px-5 safe-top ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
     >
       {/* Header with Back Button and Logo */}
       <div className="flex flex-col items-center mb-10">

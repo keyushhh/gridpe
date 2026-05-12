@@ -55,7 +55,7 @@ const OrderCash = () => {
   }) => (
     <button
       onClick={onClick}
-      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group bg-black text-white shadow-sm`}
+      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-brand-primary active:text-white transition-colors group bg-black text-white shadow-sm`}
     >
       {icon ? (
         <div className="group-active:brightness-200">
@@ -84,7 +84,7 @@ const OrderCash = () => {
       }}
     >
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#5260FE] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       <div className="px-5 pt-4 flex items-center justify-between z-10">
         <BackButton onClick={() => navigate(ROUTES.HOME)} />
@@ -112,10 +112,10 @@ const OrderCash = () => {
           </span>
         </div>
         <div
-          className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-[#E6E8EB]'}`}
+          className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-brand-border-light'}`}
         />
         <p
-          className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] text-center px-4 ${parseFloat(amount) > walletBalance ? 'text-[#FF3B30]' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}
+          className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] text-center px-4 ${parseFloat(amount) > walletBalance ? 'text-brand-error' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}
         >
           Total Available Balance ₹{' '}
           {walletBalance.toLocaleString('en-IN', {
@@ -124,7 +124,7 @@ const OrderCash = () => {
           })}
         </p>
         {parseFloat(amount) > 0 && parseFloat(amount) < 500 && (
-          <p className="text-[#FF3B30] text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
+          <p className="text-brand-error text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
             Amount needs to be ₹500 or more
           </p>
         )}
@@ -156,7 +156,7 @@ const OrderCash = () => {
       <div className="shrink-0 w-full flex flex-col justify-end mt-auto z-10">
         <div className="w-full px-5 pb-[12px]">
           <div
-            className={`w-full min-h-[61px] relative flex flex-col justify-center px-[18px] py-[10px] ${!isDarkMode ? 'bg-[#FFFFFF] rounded-[16px] border border-[#E9EAEB]' : ''}`}
+            className={`w-full min-h-[61px] relative flex flex-col justify-center px-[18px] py-[10px] ${!isDarkMode ? 'bg-white rounded-[16px] border border-brand-border-light' : ''}`}
             style={
               isDarkMode
                 ? {
@@ -180,7 +180,7 @@ const OrderCash = () => {
           </div>
         </div>
         <div
-          className={`w-full relative rounded-t-[32px] overflow-hidden shrink-0 ${!isDarkMode ? 'border-t border-[#E6E8EB]' : ''}`}
+          className={`w-full relative rounded-t-[32px] overflow-hidden shrink-0 ${!isDarkMode ? 'border-t border-brand-border-light' : ''}`}
         >
           {isDarkMode && (
             <div
@@ -243,7 +243,7 @@ const OrderCash = () => {
                     })
                   }
                   disabled={parseFloat(amount) < 500 || parseFloat(amount) > walletBalance}
-                  className="w-full h-[48px] bg-[#5260FE] hover:bg-[#5260FE]/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {parseFloat(amount) > walletBalance ? 'Insufficient Balance' : 'Place Order'}
                 </Button>

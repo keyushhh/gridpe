@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { Check, X } from 'lucide-react';
+import { Check, X, Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
@@ -21,7 +21,18 @@ const KYCForm = () => {
   const isUpgradeFlow = flow === 'fx_upgrade';
   const [selectedDoc, setSelectedDoc] = useState<string | null>(isFxFlow ? 'passport' : null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { fetchProfileData, kycStatus, isPassportVerified, profile } = useUser();
+  const { fetchProfileData, kycStatus, isPassportVerified, profile, isSecureStorageReady } = useUser();
+
+  if (!isSecureStorageReady) {
+    return (
+      <div
+        className="h-full w-full flex flex-col items-center justify-center"
+        style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}
+      >
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
   const userId = profile?.id;
   // DEBUG: Log status on mount to catch aggressive redirects
   useEffect(() => {}, [kycStatus, flow]);
@@ -131,7 +142,7 @@ const KYCForm = () => {
         <div className="min-h-full flex flex-col px-5 pt-4 pb-20">
           {/* Steps Indicator */}
           <div
-            className={`w-full h-[88px] rounded-[20px] p-5 mb-8 relative overflow-hidden ${!isDarkMode ? 'bg-white border border-[#E9EAEB]' : ''}`}
+            className={`w-full h-[88px] rounded-[20px] p-5 mb-8 relative overflow-hidden ${!isDarkMode ? 'bg-white border border-brand-border-light' : ''}`}
             style={
               isDarkMode
                 ? {
@@ -157,7 +168,7 @@ const KYCForm = () => {
             <div
               className={`w-full h-[6px] ${isDarkMode ? 'bg-white/20' : 'bg-[#F2F4F7]'} rounded-full overflow-hidden`}
             >
-              <div className="h-full w-[25%] bg-[#5260FE] rounded-full" />
+              <div className="h-full w-[25%] bg-brand-primary rounded-full" />
             </div>
           </div>
           {/* Title */}
@@ -168,7 +179,7 @@ const KYCForm = () => {
               {isFxFlow ? 'Passport Required' : 'Choose a document'}
             </h2>
             <p
-              className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-[#616161]'} text-[14px] font-sans font-normal`}
+              className={`${isDarkMode ? 'text-brand-text-muted' : 'text-[#616161]'} text-[14px] font-sans font-normal`}
             >
               {isFxFlow
                 ? 'Only a valid passport is accepted for FX Exchange KYC'
@@ -180,8 +191,17 @@ const KYCForm = () => {
             {filteredDocuments.map(doc => (
               <div
                 key={doc.id}
+                role="radio"
+                aria-checked={selectedDoc === doc.id}
+                tabIndex={0}
                 onClick={() => !isFxFlow && setSelectedDoc(doc.id)}
-                className="relative rounded-[16px] cursor-pointer transition-all duration-200"
+                onKeyDown={e => {
+                  if (!isFxFlow && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    setSelectedDoc(doc.id);
+                  }
+                }}
+                className="relative rounded-[16px] cursor-pointer transition-all duration-200 outline-none focus:ring-2 focus:ring-primary/50"
                 style={{
                   backgroundImage: isDarkMode
                     ? `url(${isFxFlow ? ASSETS.PASSPORT_KYC : ASSETS.KYC_DOCUMENT_BG})`
@@ -226,13 +246,13 @@ const KYCForm = () => {
               <div key={index} className="flex items-start gap-3">
                 <div className="mt-0.5">
                   {req.valid ? (
-                    <Check className="w-4 h-4 text-[#5260FE]" />
+                    <Check className="w-4 h-4 text-brand-primary" />
                   ) : (
-                    <X className="w-4 h-4 text-[#5260FE]" />
+                    <X className="w-4 h-4 text-brand-primary" />
                   )}
                 </div>
                 <p
-                  className={`${isDarkMode ? 'text-[#7E7E7E]' : 'text-[#616161]'} text-[13px] font-normal font-sans leading-snug`}
+                  className={`${isDarkMode ? 'text-brand-text-muted' : 'text-[#616161]'} text-[13px] font-normal font-sans leading-snug`}
                 >
                   {req.text}
                 </p>
@@ -243,10 +263,10 @@ const KYCForm = () => {
       </div>
       {/* Footer - Constrained container */}
       <div
-        className={`mt-auto safe-bottom pb-4 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-[#0a0a12] to-transparent' : 'bg-[#FFFFFF]/80 backdrop-blur-md'} z-20`}
+        className={`mt-auto safe-bottom pb-4 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-brand-bg-dark to-transparent' : 'bg-white/80 backdrop-blur-md'} z-20`}
       >
         <p
-          className={`${isDarkMode ? 'text-[#7E7E7E]/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}
+          className={`${isDarkMode ? 'text-brand-text-muted/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}
         >
           This information is used for identity verification only, and will be kept secure by Didit
         </p>

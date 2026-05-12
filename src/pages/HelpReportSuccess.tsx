@@ -25,7 +25,7 @@ const HelpReportSuccess = () => {
   }, [navigate]);
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col safe-top overflow-hidden ${isDarkMode ? 'bg-[#0a0a12]' : 'bg-[#FFFFFF]'}`}
+      className={`fixed inset-0 w-full flex flex-col safe-top overflow-hidden ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.SUCCESS_BG})` : 'none',
         backgroundSize: 'cover',
@@ -59,7 +59,7 @@ const HelpReportSuccess = () => {
         {/* Body Text 1: 39px below sub-heading */}
         <div className="mt-[39px] w-[341px] mx-auto">
           <p
-            className={`text-[16px] font-satoshi font-normal text-center leading-[1.4] ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}
+            className={`text-[16px] font-satoshi font-normal text-center leading-[1.4] ${isDarkMode ? 'text-white' : 'text-brand-text-muted'}`}
           >
             We’ve received your request and our team will review it soon. You’ll get a notification
             in the app as soon as there’s an update.
@@ -68,7 +68,7 @@ const HelpReportSuccess = () => {
         {/* Body Text 2: 20px below Body Text 1 */}
         <div className="mt-[20px] w-[277px] mx-auto text-center">
           <p
-            className={`text-[16px] font-satoshi font-normal leading-[1.4] ${isDarkMode ? 'text-white' : 'text-[#7E7E7E]'}`}
+            className={`text-[16px] font-satoshi font-normal leading-[1.4] ${isDarkMode ? 'text-white' : 'text-brand-text-muted'}`}
           >
             You can track your request anytime in
             <br />

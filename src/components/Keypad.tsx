@@ -20,7 +20,7 @@ const KeypadButton = ({
   <button
     onClick={disabled ? undefined : onClick}
     disabled={disabled}
-    className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-[#5260FE] active:text-white transition-colors group bg-black text-white shadow-sm ${
+    className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-brand-primary active:text-white transition-colors group bg-black text-white shadow-sm ${
       disabled ? 'opacity-20 cursor-not-allowed active:bg-black active:text-white' : ''
     }`}
   >

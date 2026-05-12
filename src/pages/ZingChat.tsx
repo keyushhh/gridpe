@@ -259,7 +259,7 @@ const ZingChat = () => {
                       </span>
                       <img
                         src={ASSETS.DELIVERED_CHAT}
-                        alt=""
+                        alt="Delivered"
                         className={`w-3.5 h-3.5 transition-all ${isDarkMode ? 'opacity-60' : 'opacity-100'}`}
                       />
                     </div>
@@ -327,7 +327,11 @@ const ZingChat = () => {
             isDarkMode ? 'bg-muted/30 border-border' : 'bg-background border-border shadow-sm'
           }`}
         >
+          <label htmlFor="chat-input" className="sr-only">
+            Type your message
+          </label>
           <input
+            id="chat-input"
             type="text"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
