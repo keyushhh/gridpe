@@ -1,5 +1,6 @@
 import { ASSETS } from '@/constants/assets';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import Skeleton from 'react-loading-skeleton';
 import { useNavigate } from 'react-router-dom';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
@@ -120,12 +121,74 @@ const Homepage = () => {
   }, [scheduledDowngrade, walletBalance]);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
-  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-  const [transactionHistory, setTransactionHistory] = useState<Order[]>([]);
+  
+  const queryClient = useQueryClient();
+
+  // Core Data Queries
+  const activeOrderQuery = useQuery({
+    queryKey: ['active-order', userId],
+    queryFn: async () => {
+      const orders = await fetchActiveOrders(userId);
+      const filtered = orders.filter(o => !['delivered', 'success'].includes(o.status.toLowerCase()));
+      return filtered.length > 0 ? filtered[0] : null;
+    },
+    enabled: !!userId,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
+  });
+
+  const recentOrdersQuery = useQuery({
+    queryKey: ['recent-orders', userId],
+    queryFn: () => fetchRecentOrders(userId),
+    enabled: !!userId,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
+  });
+
+  const addressesCountQuery = useQuery({
+    queryKey: ['addresses-count', userId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('addresses')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!userId,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
+  });
+
+  const walletBalanceQuery = useQuery({
+    queryKey: ['wallet-balance', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('wallets')
+        .select('available_balance')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return Math.floor(Number(data?.available_balance || 0));
+    },
+    enabled: !!userId,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
+  });
+
+  const activeOrder = activeOrderQuery.data ?? null;
+  const transactionHistory = recentOrdersQuery.data ?? [];
+  const hasSavedAddresses = (addressesCountQuery.data ?? 0) > 0;
+  const liveWalletBalance = walletBalanceQuery.data ?? walletBalance;
+  
+  const isLoading = 
+    activeOrderQuery.isLoading || 
+    recentOrdersQuery.isLoading || 
+    addressesCountQuery.isLoading || 
+    walletBalanceQuery.isLoading;
   const [isRiderAssigned, setIsRiderAssigned] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
-  const [hasSavedAddresses, setHasSavedAddresses] = useState<boolean>(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [forceNight, setForceNight] = useState(false);
@@ -141,12 +204,11 @@ const Homepage = () => {
   const [fxRate, setFxRate] = useState<number>(90.61);
   const [fxHistory, setFxHistory] = useState<unknown[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('16 Feb, 6:15 AM UTC');
-  const [isLoadingFx, setIsLoadingFx] = useState<boolean>(true);
+  const [isLoadingFx, setIsLoadingFx] = useState<boolean>(false);
   // Service Availability State
   const [isUnserviceable, setIsUnserviceable] = useState<boolean>(false);
   const [currentZoneId, setCurrentZoneId] = useState<string | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   // Fetch Live FX Data
   useEffect(() => {
     const fetchFxData = async (from = 'USD', to = 'INR', date?: string) => {
@@ -208,73 +270,55 @@ const Homepage = () => {
     longitude: 77.5946,
     zoom: 13,
   });
+  // Initial Load (LocalStorage)
   useEffect(() => {
-    const loadData = async () => {
-      const addressStr = localStorage.getItem('gridpe_user_address');
-      if (addressStr) {
-        try {
-          setSavedAddress(JSON.parse(addressStr));
-        } catch (e) {
-          console.error('Failed to parse saved address', e);
-        }
+    const addressStr = localStorage.getItem('gridpe_user_address');
+    if (addressStr) {
+      try {
+        setSavedAddress(JSON.parse(addressStr));
+      } catch (e) {
+        console.error('Failed to parse saved address', e);
       }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user) {
-        try {
-          const { count, error: addrError } = await supabase
-            .from('addresses')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', userId);
-          if (!addrError) {
-            setHasSavedAddresses((count || 0) > 0);
-          }
-          const activeOrders = await fetchActiveOrders(userId);
-          const filteredActive = activeOrders.filter(
-            o => !['delivered', 'success'].includes(o.status.toLowerCase())
-          );
-          setActiveOrder(filteredActive.length > 0 ? filteredActive[0] : null);
-          const recent = await fetchRecentOrders(userId);
-          setTransactionHistory(recent);
-        } catch (e) {
-          console.error('Failed to fetch data', e);
-        }
-      }
-    };
-    loadData().finally(() => {
-      setIsLoading(false);
-    });
-    let channel: RealtimeChannel | null = null;
-    const setupSubscription = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user) {
-        channel = supabase
-          .channel('homepage-order-sync')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'orders',
-              filter: `user_id=eq.${userId}`,
-            },
-            payload => {
-              loadData();
-            }
-          )
-          .subscribe();
-      }
-    };
-    setupSubscription();
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
+    }
   }, []);
+
+  // Real-time Subscriptions
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel('homepage-order-sync')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['active-order', userId] });
+          queryClient.invalidateQueries({ queryKey: ['recent-orders', userId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'wallets',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['wallet-balance', userId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, queryClient]);
   // Simulate Rider Assignment
   useEffect(() => {
     if (activeOrder && activeOrder.status === 'processing') {
@@ -346,10 +390,9 @@ const Homepage = () => {
       await cancelOrder(orderId, 'User Request', 'Cancelled from homepage');
       setIsSheetOpen(false);
       if (userId) {
-        const activeOrders = await fetchActiveOrders(userId);
-        setActiveOrder(activeOrders.length > 0 ? activeOrders[0] : null);
-        const recent = await fetchRecentOrders(userId);
-        setTransactionHistory(recent);
+        queryClient.invalidateQueries({ queryKey: ['active-order', userId] });
+        queryClient.invalidateQueries({ queryKey: ['recent-orders', userId] });
+        queryClient.invalidateQueries({ queryKey: ['wallet-balance', userId] });
       }
     } catch (e) {
       console.error('Failed to cancel order', e);
@@ -499,7 +542,7 @@ const Homepage = () => {
       'line-dasharray': [2, 1],
     },
   };
-  if (isLoading) {
+  if (isLoading && !activeOrder && transactionHistory.length === 0) {
     return <HomePageSkeleton />;
   }
   return (
@@ -680,7 +723,7 @@ const Homepage = () => {
                   className="text-foreground text-[32px] font-normal"
                   aria-live="polite"
                 >
-                  {showBalance ? formatINR(walletBalance) : '******'}
+                  {showBalance ? formatINR(liveWalletBalance) : '******'}
                 </p>
                 <Button
                   onClick={() => navigate(ROUTES.ORDER_CASH)}

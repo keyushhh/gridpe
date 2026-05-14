@@ -50,6 +50,16 @@ window.onunhandledrejection = event => {
   console.error('Unhandled Rejection:', event.reason);
 };
 
+// Immediately apply theme to prevent flash
+(function() {
+  const theme = localStorage.getItem('theme');
+  if (theme === 'dark' || (!theme && true)) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+})();
+
 try {
   createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>

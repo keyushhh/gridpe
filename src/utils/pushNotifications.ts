@@ -2,7 +2,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
 
-export const registerPushNotifications = async () => {
+export const registerPushNotifications = async (navigate?: (path: string) => void) => {
   if (!Capacitor.isNativePlatform()) {
     console.log('Skipping push notification registration on non-native platform');
     return;
@@ -37,7 +37,12 @@ export const registerPushNotifications = async () => {
       // User tapped the notification — navigate based on data payload
       const data = action.notification.data;
       if (data?.orderId) {
-        window.location.href = `/order-tracking/${data.orderId}`;
+        const path = `/order-tracking/${data.orderId}`;
+        if (Capacitor.isNativePlatform() && navigate) {
+          navigate(path);
+        } else {
+          window.location.href = path;
+        }
       }
     });
   } catch (e) {

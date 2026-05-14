@@ -182,7 +182,6 @@ const BackNavigationHandler = ({
 
 const App = () => {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
   const isOnline = useOnlineStatus();
 
@@ -198,9 +197,7 @@ const App = () => {
     }
   }, []);
 
-  useLayoutEffect(() => {
-    setMounted(true);
-  }, []);
+
 
   const currentPathRef = useRef(ROUTES.INDEX);
   const isWeb = Capacitor.getPlatform() === 'web';
@@ -290,22 +287,19 @@ const App = () => {
     };
   }, []);
 
-  if (!mounted || !resolvedTheme || isReloading) {
-    const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
-    const isDark =
-      savedTheme === 'dark' ||
-      (savedTheme === 'system' &&
-        typeof window !== 'undefined' &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches);
-    return (
-      <div className="fixed inset-0" style={{ backgroundColor: isDark ? '#0a0a12' : '#FFFFFF' }} />
-    );
-  }
 
-  const isDarkMode = resolvedTheme !== 'light';
+
+  const isDarkMode = resolvedTheme ? resolvedTheme !== 'light' : document.documentElement.classList.contains('dark');
 
   return (
-    <SkeletonTheme
+    <>
+      {isReloading && (
+        <div 
+          className="fixed inset-0 z-[99999]" 
+          style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }} 
+        />
+      )}
+      <SkeletonTheme
       baseColor={isDarkMode ? '#1A1C20' : '#F3F4F6'}
       highlightColor={isDarkMode ? '#2A2D35' : '#E5E7EB'}
     >
@@ -950,6 +944,7 @@ const App = () => {
         </div>
       </ErrorBoundary>
     </SkeletonTheme>
+    </>
   );
 };
 

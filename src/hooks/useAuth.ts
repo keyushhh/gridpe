@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import DiditSDK from '@didit-protocol/sdk-web';
@@ -6,6 +7,7 @@ import { ROUTES } from '@/routes';
 
 export const useAuth = () => {
   const { resetForDemo } = useUser();
+  const navigate = useNavigate();
 
   const logout = useCallback(async () => {
     try {
@@ -45,9 +47,9 @@ export const useAuth = () => {
     } catch (error) {
       console.error('Logout failed:', error);
       // Fallback reload if everything fails
-      window.location.href = ROUTES.HOME;
+      navigate(ROUTES.HOME);
     }
-  }, [resetForDemo]);
+  }, [resetForDemo, navigate]);
 
   return { logout };
 };
