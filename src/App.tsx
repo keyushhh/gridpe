@@ -133,13 +133,6 @@ const BackNavigationHandler = ({
     // Routes where the back button should exit the app instead of going back
     const ROOT_ROUTES = [ROUTES.INDEX, ROUTES.HOME, '/login', '/onboarding'];
 
-    const handlePopState = () => {
-      // Native swipe-back fired — sync React Router to match
-      navigate(-1);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
     const handler = CapacitorApp.addListener('backButton', async ({ canGoBack }) => {
       const currentPath = currentPathRef.current;
 
@@ -172,7 +165,6 @@ const BackNavigationHandler = ({
     });
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
       handler.then(h => h.remove());
     };
   }, [navigate, currentPathRef]);

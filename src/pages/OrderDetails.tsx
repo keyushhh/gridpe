@@ -48,7 +48,9 @@ const OrderDetails = () => {
   ];
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
+    if (loading || !orderId) return;
     const fetchOrder = async () => {
       if (location.state?.order && location.state.order.addresses) {
         setOrder(location.state.order);
@@ -103,17 +105,19 @@ const OrderDetails = () => {
       }
     };
   }, [orderId, location.state]);
+
   // Assigning partner countdown
   useEffect(() => {
-    if (order?.status === 'processing' && timer > 0) {
-      const interval = setInterval(() => {
-        setTimer(prev => prev - 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [timer, order?.status]);
+    if (loading || !order || order.status !== 'processing' || timer <= 0) return;
+    const interval = setInterval(() => {
+      setTimer(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer, order?.status, loading, order]);
+
   // Redirect Timer for Cancelled/Failed Orders
   useEffect(() => {
+    if (loading || !order) return;
     if ((order?.status === 'cancelled' || order?.status === 'failed') && redirectTimer > 0) {
       const interval = setInterval(() => {
         setRedirectTimer(prev => prev - 1);
@@ -125,8 +129,10 @@ const OrderDetails = () => {
     ) {
       navigate(ROUTES.HOME);
     }
-  }, [order?.status, redirectTimer, navigate]);
+  }, [order?.status, redirectTimer, navigate, loading, order]);
+
   useEffect(() => {
+    if (loading || !isMenuOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (
         menuRef.current &&
@@ -137,14 +143,14 @@ const OrderDetails = () => {
         setIsMenuOpen(false);
       }
     };
-    if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, loading]);
+
   useEffect(() => {
+    if (loading || !order) return;
     const addr = order?.addresses || location.state?.savedAddress;
     if (addr?.plus_code) {
       try {
@@ -165,7 +171,7 @@ const OrderDetails = () => {
         zoom: 14,
       });
     }
-  }, [order, location.state?.savedAddress]);
+  }, [order, location.state?.savedAddress, loading]);
   const handleCancelOrder = async () => {
     if (!order) return;
     try {

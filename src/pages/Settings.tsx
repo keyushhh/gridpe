@@ -111,29 +111,6 @@ const Settings = () => {
 
   // ... (keep previous lines)
 
-  if (!isSecureStorageReady) {
-    return (
-      <div
-        className={`min-h-[100dvh] w-full flex flex-col`}
-        style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}
-      >
-        <div className="px-5 safe-top pt-4 flex items-center justify-between">
-          <Skeleton width={100} height={32} />
-        </div>
-        <div className="px-5 mt-6 flex items-center gap-4">
-          <Skeleton circle width={56} height={56} />
-          <div className="flex flex-col gap-1">
-            <Skeleton width={120} height={20} />
-            <Skeleton width={150} height={14} />
-          </div>
-        </div>
-        <div className="px-5 mt-8 space-y-6">
-          <Skeleton height={100} />
-          <Skeleton height={200} />
-        </div>
-      </div>
-    );
-  }
   const userId = profile?.id;
   const originPath = (location.state as any)?.originPath || ROUTES.SETTINGS;
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -204,9 +181,6 @@ const Settings = () => {
     enabled: !!userId,
   });
 
-  const cardCount = settingsCounts?.cardCount ?? 0;
-  const bankAccountCount = settingsCounts?.bankCount ?? 0;
-
   const handleLogoPress = () => {
     longPressTimer.current = setTimeout(() => {
       resetForDemo();
@@ -222,6 +196,33 @@ const Settings = () => {
   };
 
   const { logout: handleLogout } = useAuth();
+
+  if (!isSecureStorageReady) {
+    return (
+      <div
+        className={`min-h-[100dvh] w-full flex flex-col`}
+        style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}
+      >
+        <div className="px-5 safe-top pt-4 flex items-center justify-between">
+          <Skeleton width={100} height={32} />
+        </div>
+        <div className="px-5 mt-6 flex items-center gap-4">
+          <Skeleton circle width={56} height={56} />
+          <div className="flex flex-col gap-1">
+            <Skeleton width={120} height={20} />
+            <Skeleton width={150} height={14} />
+          </div>
+        </div>
+        <div className="px-5 mt-8 space-y-6">
+          <Skeleton height={100} />
+          <Skeleton height={200} />
+        </div>
+      </div>
+    );
+  }
+
+  const cardCount = settingsCounts?.cardCount ?? 0;
+  const bankAccountCount = settingsCounts?.bankCount ?? 0;
 
   const securityConfig = getSecurityConfig(
     kycStatus as SecurityStatus,

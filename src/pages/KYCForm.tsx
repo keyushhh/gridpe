@@ -23,6 +23,26 @@ const KYCForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { fetchProfileData, kycStatus, isPassportVerified, profile, isSecureStorageReady } = useUser();
 
+  // DEBUG: Log status on mount to catch aggressive redirects
+  useEffect(() => {
+    if (!isSecureStorageReady) return;
+  }, [kycStatus, flow, isSecureStorageReady]);
+
+  // Cleanup SDK instance firmly on unmount so camera/socket drops
+  useEffect(() => {
+    if (!isSecureStorageReady) return;
+    return () => {
+      if (DiditSDK?.shared) {
+        try {
+          if (typeof DiditSDK.shared.close === 'function') DiditSDK.shared.close();
+          if (typeof DiditSDK.shared.destroy === 'function') DiditSDK.shared.destroy();
+        } catch (e) {
+          console.warn('Didit SDK cleanup warning:', e);
+        }
+      }
+    };
+  }, [isSecureStorageReady]);
+
   if (!isSecureStorageReady) {
     return (
       <div
@@ -34,21 +54,6 @@ const KYCForm = () => {
     );
   }
   const userId = profile?.id;
-  // DEBUG: Log status on mount to catch aggressive redirects
-  useEffect(() => {}, [kycStatus, flow]);
-  // Cleanup SDK instance firmly on unmount so camera/socket drops
-  useEffect(() => {
-    return () => {
-      if (DiditSDK?.shared) {
-        try {
-          if (typeof DiditSDK.shared.close === 'function') DiditSDK.shared.close();
-          if (typeof DiditSDK.shared.destroy === 'function') DiditSDK.shared.destroy();
-        } catch (e) {
-          console.warn('Didit SDK cleanup warning:', e);
-        }
-      }
-    };
-  }, []);
   const documents = [
     { id: 'aadhar', name: 'Aadhar Card', icon: ASSETS.ICON_AADHAR },
     { id: 'pan', name: 'PAN Card', icon: ASSETS.ICON_PAN },

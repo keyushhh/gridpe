@@ -110,6 +110,21 @@ const WalletCreated = () => {
       );
     },
   });
+
+  const walletBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
+
+  useEffect(() => {
+    if (!userId) return;
+    const handleRefresh = (e: any) => {
+      if (e.detail?.userId === userId) {
+        queryClient.invalidateQueries({ queryKey: ['wallet_transactions', userId] });
+        queryClient.invalidateQueries({ queryKey: ['wallet', userId] });
+      }
+    };
+    window.addEventListener('refresh_wallet_transactions', handleRefresh);
+    return () => window.removeEventListener('refresh_wallet_transactions', handleRefresh);
+  }, [queryClient, userId]);
+
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
@@ -145,16 +160,6 @@ const WalletCreated = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, userId]);
-  useEffect(() => {
-    const handleRefresh = (e: any) => {
-      if (e.detail?.userId === userId) {
-        queryClient.invalidateQueries({ queryKey: ['wallet_transactions', userId] });
-        queryClient.invalidateQueries({ queryKey: ['wallet', userId] });
-      }
-    };
-    window.addEventListener('refresh_wallet_transactions', handleRefresh);
-    return () => window.removeEventListener('refresh_wallet_transactions', handleRefresh);
   }, [queryClient, userId]);
   const dbTier = walletTier;
   const dbLimit = wallet_tiers?.max_wallet_balance || walletLimit;
@@ -240,7 +245,6 @@ const WalletCreated = () => {
     }
     return { title, subtitle };
   };
-  const walletBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   // Get the latest transaction for the card status display
   const latestTx = walletTransactions.length > 0 ? walletTransactions[0] : null;
   const renderStatusIndicator = () => {

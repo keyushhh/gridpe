@@ -5,6 +5,7 @@ import BackButton from '@/components/ui/BackButton';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from 'next-themes';
+import { useUser } from '@/contexts/UserContext';
 interface Message {
   id: string;
   sender: 'zing' | 'user';
@@ -19,6 +20,8 @@ const ZingChat = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
+  const { isSecureStorageReady } = useUser();
+
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -31,8 +34,10 @@ const ZingChat = () => {
       type: 'text',
     },
   ]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const formatTime = () => {
     const now = new Date();
     let hours = now.getHours();
@@ -42,12 +47,19 @@ const ZingChat = () => {
     hours = hours ? hours : 12;
     return `${hours}:${minutes} ${ampm}`;
   };
+
   const sessionTime = useRef(formatTime());
+
   useEffect(() => {
+    if (!isSecureStorageReady) return;
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isThinking]);
+  }, [messages, isThinking, isSecureStorageReady]);
+
+  if (!isSecureStorageReady) {
+    return null;
+  }
   const fetchZingReply = async (input: string) => {
     setIsThinking(true);
     try {

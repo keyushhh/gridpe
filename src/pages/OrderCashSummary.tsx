@@ -41,31 +41,7 @@ const OrderCashSummary = () => {
   // Address State
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
-  React.useEffect(() => {
-    const addressStr = localStorage.getItem('gridpe_user_address');
-    if (addressStr) {
-      try {
-        setSavedAddress(JSON.parse(addressStr));
-      } catch (e) {
-        console.error('Failed to parse saved address', e);
-      }
-    }
-  }, []);
-  const handleAddressSelect = (address: SavedAddress | null) => {
-    setSavedAddress(address);
-    if (address) {
-      setIsAddressSheetOpen(false);
-    }
-  };
-  const getAddressDisplay = () => {
-    if (!savedAddress) return 'Add Address';
-    const parts = [savedAddress.house, savedAddress.area, savedAddress.city];
-    const base = parts.filter(Boolean).join(', ');
-    if (savedAddress.postcode) {
-      return `${base} - ${savedAddress.postcode}`;
-    }
-    return base;
-  };
+
   // Rewards State
   const [rewardPoints, setRewardPoints] = useState('');
   const [rewardError, setRewardError] = useState('');
@@ -85,6 +61,32 @@ const OrderCashSummary = () => {
     gst_rate: number;
     total_payable: number;
   } | null>(null);
+
+  const getAddressDisplay = () => {
+    if (!savedAddress) return 'Add Address';
+    const parts = [savedAddress.house, savedAddress.area, savedAddress.city];
+    const base = parts.filter(Boolean).join(', ');
+    if (savedAddress.postcode) {
+      return `${base} - ${savedAddress.postcode}`;
+    }
+    return base;
+  };
+  React.useEffect(() => {
+    const addressStr = localStorage.getItem('gridpe_user_address');
+    if (addressStr) {
+      try {
+        setSavedAddress(JSON.parse(addressStr));
+      } catch (e) {
+        console.error('Failed to parse saved address', e);
+      }
+    }
+  }, []);
+  const handleAddressSelect = (address: SavedAddress | null) => {
+    setSavedAddress(address);
+    if (address) {
+      setIsAddressSheetOpen(false);
+    }
+  };
   // Calculations
   const parsedAmount = parseFloat((amount || '0').toString().replace(/,/g, '')) || 0;
   const rewardPointsValue = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;

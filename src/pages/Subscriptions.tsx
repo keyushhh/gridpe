@@ -95,6 +95,16 @@ const Subscriptions = () => {
       setIsSubscriptionActive(true);
     }
   }, [walletTier, paymentStatus, isRenewalPending, profile?.subscription_status]);
+  // Toast for loss if it just happened
+  useEffect(() => {
+    if (lastDowngradeLoss && lastDowngradeLoss > 0) {
+      showToaster(
+        `You have lost ${formatINR(lastDowngradeLoss)} due to the wallet downgrade.`,
+        'error'
+      );
+    }
+  }, [lastDowngradeLoss, showToaster]);
+
   const currentTierConfig = tiers.find(t => t.name === walletTier);
 
   if (!currentTierConfig || Object.keys(tierPrices).length === 0) {
@@ -263,15 +273,6 @@ const Subscriptions = () => {
       setIsLoadingPay(false);
     }
   };
-  // Toast for loss if it just happened
-  useEffect(() => {
-    if (lastDowngradeLoss && lastDowngradeLoss > 0) {
-      showToaster(
-        `You have lost ${formatINR(lastDowngradeLoss)} due to the wallet downgrade.`,
-        'error'
-      );
-    }
-  }, [lastDowngradeLoss, showToaster]);
   return (
     <div
       className={`h-full w-full overflow-y-auto overscroll-y-contain flex flex-col safe-bottom pb-4 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}

@@ -30,6 +30,14 @@ const ProfileEdit = () => {
     isSecureStorageReady,
   } = useUser();
 
+  const userId = profile?.id;
+  const [name, setName] = useState(contextName || '');
+  const [email, setEmail] = useState(contextEmail || '');
+  const [emailVerified, setEmailVerified] = useState(contextEmailVerified || false);
+  const [profileImage, setProfileImage] = useState<string | null>(contextImage);
+  const [isEditing, setIsEditing] = useState(false); // Default to read-only
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (!isSecureStorageReady) {
     return (
       <div
@@ -40,13 +48,6 @@ const ProfileEdit = () => {
       </div>
     );
   }
-  const userId = profile?.id;
-  const [name, setName] = useState(contextName || '');
-  const [email, setEmail] = useState(contextEmail || '');
-  const [emailVerified, setEmailVerified] = useState(contextEmailVerified || false);
-  const [profileImage, setProfileImage] = useState<string | null>(contextImage);
-  const [isEditing, setIsEditing] = useState(false); // Default to read-only
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const helperText = contextImage
     ? 'Add or update your profile photo.'
     : 'Tap to add your beautiful mugshot. Or cat. We’re not picky.';
