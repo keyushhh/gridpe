@@ -1,7 +1,7 @@
 import { HashRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { CapacitorSwipeBackPlugin } from '@notnotsamuel/capacitor-swipe-back';
+
 import { useEffect, useRef, useState, lazy, Suspense, useLayoutEffect } from 'react';
 import { supabase } from './lib/supabase';
 import { fetchActiveOrders } from './lib/orders';
@@ -133,6 +133,13 @@ const BackNavigationHandler = ({
     // Routes where the back button should exit the app instead of going back
     const ROOT_ROUTES = [ROUTES.INDEX, ROUTES.HOME, '/login', '/onboarding'];
 
+    const handlePopState = () => {
+      // Native swipe-back fired — sync React Router to match
+      navigate(-1);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
     const handler = CapacitorApp.addListener('backButton', async ({ canGoBack }) => {
       const currentPath = currentPathRef.current;
 
@@ -165,6 +172,7 @@ const BackNavigationHandler = ({
     });
 
     return () => {
+      window.removeEventListener('popstate', handlePopState);
       handler.then(h => h.remove());
     };
   }, [navigate, currentPathRef]);
@@ -233,16 +241,7 @@ const App = () => {
       }
     });
 
-    try {
-      if (
-        Capacitor.getPlatform() === 'ios' &&
-        Capacitor.isPluginAvailable('CapacitorSwipeBackPlugin')
-      ) {
-        CapacitorSwipeBackPlugin.enable();
-      }
-    } catch (e) {
-      console.warn('Swipe back plugin failed to load', e);
-    }
+
 
     CapacitorApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {

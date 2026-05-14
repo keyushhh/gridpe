@@ -24,7 +24,7 @@
     "@capacitor/core": "^8.3.0",
     "@capacitor/geolocation": "^8.0.0",
     "@capacitor/haptics": "^8.0.2",
-    "@capacitor/ios": "^8.0.0",
+    "@capacitor/ios": "^8.3.0",
     "@capacitor/keyboard": "^8.0.3",
     "@capacitor/network": "^8.0.1",
     "@capacitor/push-notifications": "^8.0.3",
@@ -34,7 +34,6 @@
     "@emotion/is-prop-valid": "^1.4.0",
     "@hookform/resolvers": "^3.10.0",
     "@lottiefiles/dotlottie-react": "^0.17.15",
-    "@notnotsamuel/capacitor-swipe-back": "^3.0.2",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
@@ -98,7 +97,7 @@
     "prettier": "^3.8.3",
     "supabase": "^2.76.14",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.3",
+    "typescript": "5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19"
   }

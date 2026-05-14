@@ -44,7 +44,6 @@
 		"CAPNetworkPlugin",
 		"PushNotificationsPlugin",
 		"SharePlugin",
-		"BadgePlugin",
-		"CapacitorSwipeBackPlugin"
+		"BadgePlugin"
 	]
 }
