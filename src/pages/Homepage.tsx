@@ -128,52 +128,88 @@ const Homepage = () => {
   const activeOrderQuery = useQuery({
     queryKey: ['active-order', userId],
     queryFn: async () => {
-      const orders = await fetchActiveOrders(userId);
-      const filtered = orders.filter(o => !['delivered', 'success'].includes(o.status.toLowerCase()));
-      return filtered.length > 0 ? filtered[0] : null;
+      try {
+        const orders = await fetchActiveOrders(userId);
+        const filtered = orders.filter(o => !['delivered', 'success'].includes(o.status.toLowerCase()));
+        return filtered.length > 0 ? filtered[0] : null;
+      } catch (e) {
+        console.error('activeOrderQuery unexpected error:', e);
+        return null;
+      }
     },
     enabled: !!userId,
     staleTime: 30000,
     placeholderData: keepPreviousData,
+    retry: false,
+    throwOnError: false,
   });
 
   const recentOrdersQuery = useQuery({
     queryKey: ['recent-orders', userId],
-    queryFn: () => fetchRecentOrders(userId),
+    queryFn: async () => {
+      try {
+        return await fetchRecentOrders(userId);
+      } catch (e) {
+        console.error('recentOrdersQuery unexpected error:', e);
+        return [];
+      }
+    },
     enabled: !!userId,
     staleTime: 30000,
     placeholderData: keepPreviousData,
+    retry: false,
+    throwOnError: false,
   });
 
   const addressesCountQuery = useQuery({
     queryKey: ['addresses-count', userId],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('addresses')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
-      if (error) throw error;
-      return count || 0;
+      try {
+        const { count, error } = await supabase
+          .from('addresses')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        if (error) {
+          console.error('addressesCountQuery Supabase error:', error);
+          return 0;
+        }
+        return count || 0;
+      } catch (e) {
+        console.error('addressesCountQuery unexpected error:', e);
+        return 0;
+      }
     },
     enabled: !!userId,
     staleTime: 30000,
     placeholderData: keepPreviousData,
+    retry: false,
+    throwOnError: false,
   });
 
   const walletBalanceQuery = useQuery({
     queryKey: ['wallet-balance', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('wallets')
-        .select('available_balance')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (error) throw error;
-      return Math.floor(Number(data?.available_balance || 0));
+      try {
+        const { data, error } = await supabase
+          .from('wallets')
+          .select('available_balance')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (error) {
+          console.error('walletBalanceQuery Supabase error:', error);
+          return 0;
+        }
+        return Math.floor(Number(data?.available_balance || 0));
+      } catch (e) {
+        console.error('walletBalanceQuery unexpected error:', e);
+        return 0;
+      }
     },
     enabled: !!userId,
     staleTime: 30000,
     placeholderData: keepPreviousData,
+    retry: false,
+    throwOnError: false,
   });
 
   const activeOrder = activeOrderQuery.data ?? null;
