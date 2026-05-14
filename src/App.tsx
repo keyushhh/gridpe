@@ -198,7 +198,7 @@ const App = () => {
     }
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setMounted(true);
   }, []);
 

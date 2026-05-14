@@ -243,8 +243,7 @@ const Homepage = () => {
       }
     };
     loadData().finally(() => {
-      // Give it a tiny buffer for a smooth transition
-      setTimeout(() => setIsLoading(false), 800);
+      setIsLoading(false);
     });
     let channel: RealtimeChannel | null = null;
     const setupSubscription = async () => {

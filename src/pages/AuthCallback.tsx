@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import CardSkeleton from '@/components/skeletons/CardSkeleton';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/routes';
 
 const AuthCallback = () => {
+  const navigate = useNavigate();
   useEffect(() => {
     const handleAuth = async () => {
       // Robust Token Extraction for HashRouter
@@ -53,13 +56,10 @@ const AuthCallback = () => {
         data: { session },
       } = await supabase.auth.getSession();
       if (session || tokensFound) {
-        // We use window.location.href to break out of any stale router state
-        localStorage.setItem('gridpe_reloading', '1');
-        window.location.href = `${window.location.origin}/#/`;
+        navigate(ROUTES.INDEX, { replace: true });
       } else {
         setTimeout(() => {
-          localStorage.setItem('gridpe_reloading', '1');
-          window.location.href = `${window.location.origin}/#/`;
+          navigate(ROUTES.INDEX, { replace: true });
         }, 3000);
       }
     };

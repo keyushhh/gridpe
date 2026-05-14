@@ -53,7 +53,12 @@ window.onunhandledrejection = event => {
 try {
   createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider 
+        attribute="class" 
+        defaultTheme="dark" 
+        enableSystem={false}
+        disableTransitionOnChange
+      >
         <TooltipProvider>
           <CustomToasterProvider>
             <UserProvider>
