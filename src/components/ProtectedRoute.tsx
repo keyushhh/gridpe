@@ -24,8 +24,14 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [location.pathname]); // Re-check on navigation
 
   if (isAuthenticated === null) {
-    // Show nothing or a loader while checking auth
-    return null;
+    const savedTheme = localStorage.getItem('theme');
+    const isDark = savedTheme !== 'light';
+    return (
+      <div 
+        className="fixed inset-0" 
+        style={{ backgroundColor: isDark ? '#0a0a12' : '#FFFFFF' }} 
+      />
+    );
   }
 
   if (!isAuthenticated) {

@@ -513,8 +513,7 @@ const OnboardingScreen = () => {
         localStorage.setItem('biometrics_enabled', 'true');
       }
       saveBiometricEnabled(biometricState.isEnabled);
-      localStorage.setItem('gridpe_reloading', '1');
-      window.location.href = `${window.location.origin}/#/home`;
+      navigate(ROUTES.HOME, { replace: true });
     } catch (err: unknown) {
       console.error('Unexpected error in MPIN setup:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
@@ -528,8 +527,7 @@ const OnboardingScreen = () => {
     setErrorState(prev => ({ ...prev, general: '' }));
     // Developer Bypass for Live Mode debugging
     if (pinToVerify === '8787' || pinToVerify === '9999') {
-      localStorage.setItem('gridpe_reloading', '1');
-      window.location.href = `${window.location.origin}/#/home`;
+      navigate(ROUTES.HOME, { replace: true });
       return;
     }
     setUiState(prev => ({ ...prev, isLoading: true }));
@@ -561,8 +559,7 @@ const OnboardingScreen = () => {
       if (hashedInput === targetHash) {
         setMpinState(prev => ({ ...prev, isSuccess: true }));
         setTimeout(() => {
-          localStorage.setItem('gridpe_reloading', '1');
-          window.location.href = `${window.location.origin}/#/home`;
+          navigate(ROUTES.HOME, { replace: true });
         }, 500);
       } else {
         setErrorState(prev => ({ ...prev, mpin: 'Wrong MPIN. Try again?' }));

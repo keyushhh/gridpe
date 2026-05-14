@@ -191,6 +191,10 @@ const App = () => {
     if (reloading) {
       setIsReloading(true);
       localStorage.removeItem('gridpe_reloading');
+      // Clear after one frame — just long enough to prevent flash
+      requestAnimationFrame(() => {
+        setIsReloading(false);
+      });
     }
   }, []);
 
