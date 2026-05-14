@@ -29,7 +29,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
   const [isAccepted, setIsAccepted] = useState(false);
 
   const { logout } = useAuth();
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['legal-content', type, userId],
     queryFn: async (): Promise<{
       content: LegalContent | null;
@@ -218,7 +218,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
             ) : legalError ? (
               <div className="text-center py-10 pt-4">
                 <p className="text-red-400 mb-4">{legalError}</p>
-                <button onClick={() => window.location.reload()} className="text-link underline">
+                <button onClick={() => refetch()} className="text-link underline">
                   Retry
                 </button>
               </div>

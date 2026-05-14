@@ -11,6 +11,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { supabase } from '@/lib/supabase';
 import { verifyVPA } from '@/lib/banking';
+import ButtonSpinner from '@/components/ui/ButtonSpinner';
 const WithdrawOTP = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -393,7 +394,14 @@ const WithdrawOTP = () => {
             backgroundColor: 'hsl(var(--primary))',
           }}
         >
-          {loading ? 'Processing...' : 'Withdraw'}
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <ButtonSpinner />
+              Processing...
+            </span>
+          ) : (
+            'Withdraw'
+          )}
         </button>
         <button
           onClick={() => navigate(-1)}

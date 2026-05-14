@@ -281,7 +281,7 @@ const App = () => {
 
 
 
-  const isDarkMode = resolvedTheme ? resolvedTheme !== 'light' : document.documentElement.classList.contains('dark');
+  const isDarkMode = resolvedTheme !== 'light';
 
   return (
     <>

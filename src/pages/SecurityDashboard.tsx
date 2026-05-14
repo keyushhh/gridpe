@@ -164,7 +164,9 @@ const SecurityDashboard = () => {
       localStorage.setItem('biometrics_enabled', 'true');
       setIsDeviceEnabled(true);
       await setBiometricEnabled(true);
-      await SecureStorage.set('mpin', mpin);
+      if (Capacitor.isNativePlatform()) {
+        await SecureStorage.set('mpin', mpin);
+      }
       toast.success('Biometric unlock enabled!');
     } catch (error: any) {
       console.error('Biometric authentication failed:', JSON.stringify(error, null, 2));

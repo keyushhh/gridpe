@@ -508,7 +508,7 @@ const OnboardingScreen = () => {
       }
       setProfile(updatedProfile);
       // Save biometric preference and secure MPIN if enabled
-      if (biometricState.isEnabled) {
+      if (biometricState.isEnabled && Capacitor.isNativePlatform()) {
         await SecureStorage.set('mpin', mpinState.value);
         localStorage.setItem('biometrics_enabled', 'true');
       }
@@ -584,7 +584,10 @@ const OnboardingScreen = () => {
         reason: 'Log in to Grid.Pe',
         cancelTitle: 'Cancel',
       });
-      const storedMpin = (await SecureStorage.get('mpin')) as string;
+      let storedMpin = '';
+      if (Capacitor.isNativePlatform()) {
+        storedMpin = (await SecureStorage.get('mpin')) as string;
+      }
       if (storedMpin) {
         // Silent verification - if success, navigate home
         await handleLoginMpinVerification(storedMpin);

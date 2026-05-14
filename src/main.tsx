@@ -66,6 +66,7 @@ try {
       <ThemeProvider 
         attribute="class" 
         defaultTheme="dark" 
+        storageKey="theme"
         enableSystem={false}
         disableTransitionOnChange
       >

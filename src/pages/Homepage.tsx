@@ -217,11 +217,12 @@ const Homepage = () => {
   const hasSavedAddresses = (addressesCountQuery.data ?? 0) > 0;
   const liveWalletBalance = walletBalanceQuery.data ?? walletBalance;
   
-  const isLoading = 
-    activeOrderQuery.isLoading || 
-    recentOrdersQuery.isLoading || 
-    addressesCountQuery.isLoading || 
-    walletBalanceQuery.isLoading;
+  // Only show skeleton on INITIAL load (no data at all)
+  const isInitialLoading = 
+    (activeOrderQuery.isPending && !activeOrderQuery.data) || 
+    (recentOrdersQuery.isPending && !recentOrdersQuery.data) || 
+    (addressesCountQuery.isPending && !addressesCountQuery.data) || 
+    (walletBalanceQuery.isPending && !walletBalanceQuery.data);
   const [isRiderAssigned, setIsRiderAssigned] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
@@ -578,7 +579,7 @@ const Homepage = () => {
       'line-dasharray': [2, 1],
     },
   };
-  if (isLoading && !activeOrder && transactionHistory.length === 0) {
+  if (isInitialLoading && !activeOrder && transactionHistory.length === 0) {
     return <HomePageSkeleton />;
   }
   return (
