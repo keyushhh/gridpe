@@ -191,10 +191,12 @@ const App = () => {
 
     // Hide splash screen after first paint
     if (Capacitor.isNativePlatform()) {
-      const timer = setTimeout(() => {
-        SplashScreen.hide().catch(err => {
+      const timer = setTimeout(async () => {
+        try {
+          await SplashScreen.hide();
+        } catch (err) {
           console.warn('Failed to hide splash screen:', err);
-        });
+        }
       }, 500); // Give React enough time to mount the shell
       return () => clearTimeout(timer);
     }

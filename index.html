@@ -32,11 +32,17 @@
 
   <script>
     (function() {
-      var theme = localStorage.getItem('theme');
-      var isDark = theme !== 'light';
-      document.documentElement.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
-      // Apply to body only if it exists
-      if (document.body) document.body.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
+      try {
+        var theme = window.localStorage.getItem('theme');
+        var isDark = theme !== 'light';
+        document.documentElement.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
+        if (document.body) {
+          document.body.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
+        }
+      } catch (e) {
+        // Fail silently to allow app boot
+        console.warn('Theme script error:', e);
+      }
     })();
   </script>
   <script>

@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
@@ -42,11 +42,11 @@ const ForgotMpin = () => {
   }, [resendTimer]);
 
   // Delayed focus for OTP input
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (step === 'VERIFY') {
       const timer = setTimeout(() => {
         otpFocusRef.current?.querySelector('input')?.focus();
-      }, 150);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [step]);

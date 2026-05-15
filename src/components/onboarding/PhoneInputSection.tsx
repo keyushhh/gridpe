@@ -23,10 +23,10 @@ const PhoneInputSection: React.FC<PhoneInputSectionProps> = ({
   const [localError, setLocalError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       inputRef.current?.focus();
-    }, 150);
+    }, 300);
     return () => clearTimeout(timer);
   }, []);
 

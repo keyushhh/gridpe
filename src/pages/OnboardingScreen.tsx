@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import { useState, useEffect, useCallback, useRef, memo, useLayoutEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/PhoneInput';
@@ -646,11 +646,11 @@ const OnboardingScreen = () => {
   }, []);
   const mpinFocusRef = useRef<HTMLDivElement>(null);
   // Delayed focus for MPIN input (both login and setup)
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (uiState.step === 'mpin-setup' || uiState.step === 'mpin-login') {
       const timer = setTimeout(() => {
         mpinFocusRef.current?.querySelector('input')?.focus();
-      }, 150);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [uiState.step]);

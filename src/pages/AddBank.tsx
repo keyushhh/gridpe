@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from 'next-themes';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -65,11 +65,11 @@ const AddBank = () => {
   const otpFocusRef = useRef<HTMLDivElement>(null);
 
   // Delayed focus for OTP input
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (showOtpInput) {
       const timer = setTimeout(() => {
         otpFocusRef.current?.querySelector('input')?.focus();
-      }, 150);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [showOtpInput]);
