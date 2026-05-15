@@ -17,6 +17,7 @@ import {
   GeocodeResult,
   reverseGeocode,
   forwardGeocode,
+  AddressComponents,
 } from '@/utils/geoUtils';
 import { Geolocation } from '@capacitor/geolocation';
 // Assets
@@ -38,8 +39,7 @@ const AddAddress = () => {
   });
   const [addressTitle, setAddressTitle] = useState<string>('Loading...');
   const [addressLine, setAddressLine] = useState<string>('');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [currentAddressComponents, setCurrentAddressComponents] = useState<any>(null); // Store full address details
+  const [currentAddressComponents, setCurrentAddressComponents] = useState<AddressComponents | null>(null); // Store full address details
   const [plusCode, setPlusCode] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,14 +70,12 @@ const AddAddress = () => {
     if (match) {
       const potentialCode = match[0].toUpperCase();
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const olc = new OpenLocationCode() as any;
         // Attempt to recover nearest (handles short codes using context)
         const refLat = userLocation ? userLocation.lat : viewState.latitude;
         const refLng = userLocation ? userLocation.lng : viewState.longitude;
-        const recoveredCode = olc.recoverNearest(potentialCode, refLat, refLng);
-        if (olc.isValid(recoveredCode)) {
-          const codeArea = olc.decode(recoveredCode);
+        const recoveredCode = OpenLocationCode.recoverNearest(potentialCode, refLat, refLng);
+        if (OpenLocationCode.isValid(recoveredCode)) {
+          const codeArea = OpenLocationCode.decode(recoveredCode);
           const lat = codeArea.latitudeCenter;
           const lng = codeArea.longitudeCenter;
           // IMMEDIATELY Call reverseGeocode(lat, lng) to get the building name
@@ -118,9 +116,7 @@ const AddAddress = () => {
   ) => {
     setIsLoading(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const olc = new OpenLocationCode() as any;
-      const fullCode = olc.encode(lat, lng);
+      const fullCode = OpenLocationCode.encode(lat, lng);
       setPlusCode(fullCode);
       // Use Nominatim Reverse Geocode
       const geocodeResult = await reverseGeocode(lat, lng);
@@ -222,10 +218,8 @@ const AddAddress = () => {
   }, []);
   const handleSnapToGrid = () => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const olc = new OpenLocationCode() as any;
-      const code = olc.encode(viewState.latitude, viewState.longitude);
-      const decoded = olc.decode(code);
+      const code = OpenLocationCode.encode(viewState.latitude, viewState.longitude);
+      const decoded = OpenLocationCode.decode(code);
       const centerLat = decoded.latitudeCenter;
       const centerLng = decoded.longitudeCenter;
       setViewState(prev => ({

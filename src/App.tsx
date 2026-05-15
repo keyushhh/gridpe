@@ -1,6 +1,7 @@
 import { HashRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 import { useEffect, useRef, useState, lazy, Suspense, useLayoutEffect } from 'react';
 import { supabase } from './lib/supabase';
@@ -187,6 +188,16 @@ const App = () => {
         setIsReloading(false);
       });
     }
+
+    // Hide splash screen after first paint
+    if (Capacitor.isNativePlatform()) {
+      const timer = setTimeout(() => {
+        SplashScreen.hide().catch(err => {
+          console.warn('Failed to hide splash screen:', err);
+        });
+      }, 500); // Give React enough time to mount the shell
+      return () => clearTimeout(timer);
+    }
   }, []);
 
 
@@ -236,47 +247,53 @@ const App = () => {
 
 
 
-    CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) {
-        registerPushNotifications();
-      }
-    });
-
     return () => {
       listener.then(handle => handle.remove());
     };
   }, []);
 
+  // Secondary Initialization (Heavy / Non-critical)
   useEffect(() => {
-    const checkActiveOrders = async () => {
+    const timer = setTimeout(() => {
+      if (Capacitor.isNativePlatform()) {
+        registerPushNotifications();
+      }
+
+      const checkActiveOrders = async () => {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const activeOrders = await fetchActiveOrders(session.user.id);
+          setBadge(activeOrders.length > 0 ? 1 : 0);
+        }
+      };
+
+      checkActiveOrders();
+
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        const activeOrders = await fetchActiveOrders(session.user.id);
-        if (activeOrders.length > 0) {
-          setBadge(1);
-        } else {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(event => {
+        if (event === 'SIGNED_IN') {
+          checkActiveOrders();
+        } else if (event === 'SIGNED_OUT') {
           setBadge(0);
         }
-      }
-    };
+      });
 
-    checkActiveOrders();
+      const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) {
+          registerPushNotifications();
+        }
+      });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN') {
-        checkActiveOrders();
-      } else if (event === 'SIGNED_OUT') {
-        setBadge(0);
-      }
-    });
+      return () => {
+        subscription.unsubscribe();
+        appStateListener.then(h => h.remove());
+      };
+    }, 1000); // 1s delay to let the app settle
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => clearTimeout(timer);
   }, []);
 
 
@@ -327,7 +344,7 @@ const App = () => {
                   </div>
                 }
               >
-                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <Router>
                   <LocationTracker currentPathRef={currentPathRef} />
                   <BackNavigationHandler currentPathRef={currentPathRef} />
                   <Routes>

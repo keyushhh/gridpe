@@ -8,6 +8,7 @@ import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { OpenLocationCode } from 'open-location-code';
 import { supabase } from '@/lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 // Fallback if ASSETS.FAILED_LIGHT doesn't exist
 import { getOrderById, cancelOrder } from '@/lib/orders';
 import { Order } from '@/types';
@@ -102,7 +103,7 @@ const FxSuccess = () => {
     };
     fetchOrder();
     hapticSuccess();
-    let channel: any;
+    let channel: RealtimeChannel;
     const setupSubscription = async () => {
       if (orderId) {
         channel = supabase
@@ -144,9 +145,7 @@ const FxSuccess = () => {
     const addr = order?.addresses || location.state?.savedAddress;
     if (addr?.plus_code) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const olc = new OpenLocationCode() as any;
-        const decoded = olc.decode(addr.plus_code);
+        const decoded = OpenLocationCode.decode(addr.plus_code);
         setViewState({
           latitude: decoded.latitudeCenter,
           longitude: decoded.longitudeCenter,
@@ -186,20 +185,20 @@ const FxSuccess = () => {
     const fullString = parts.filter(Boolean).join(', ');
     return fullString.length > 20 ? fullString.substring(0, 20) + '...' : fullString;
   };
-  const routeGeoJson: any = {
-    type: 'Feature',
+  const routeGeoJson = {
+    type: 'Feature' as const,
     properties: {},
     geometry: {
-      type: 'LineString',
+      type: 'LineString' as const,
       coordinates: [
         [viewState.longitude, viewState.latitude],
         [viewState.longitude + 0.002, viewState.latitude + 0.002],
       ],
     },
   };
-  const routeLayer: any = {
+  const routeLayer = {
     id: 'route-line',
-    type: 'line',
+    type: 'line' as const,
     paint: {
       'line-color': 'hsl(var(--primary))',
       'line-width': 2,

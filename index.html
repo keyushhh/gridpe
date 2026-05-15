@@ -31,6 +31,14 @@
   <meta name="twitter:description" content="grid.pe" />
 
   <script>
+    (function() {
+      var theme = localStorage.getItem('theme');
+      var isDark = theme !== 'light';
+      document.documentElement.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
+      document.body.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
+    })();
+  </script>
+  <script>
     window.onerror = function(msg, url, line, col, error) {
       document.body.innerHTML += '<div style="color:red; background:white; padding:20px; position:absolute; top:0; left:0; right:0; z-index:9999; font-size:12px; word-wrap:break-word; max-height: 50vh; overflow-y: auto;"><b>JS Error:</b> ' + msg + '<br><b>URL:</b> ' + url + '<br><b>Line:</b> ' + line + '</div>';
     };

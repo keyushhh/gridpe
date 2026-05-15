@@ -729,7 +729,6 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                       value={customTipValue}
                       onChange={handleCustomTipChange}
                       className={`bg-transparent font-satoshi text-[14px] focus:outline-none flex-1 ${isDarkMode ? 'text-white placeholder:text-white/30' : 'text-black placeholder:text-black/30'}`}
-                      autoFocus
                     />
                     <button
                       onClick={tipAmount > 0 ? handleClearCustomTip : handleApplyCustomTip}

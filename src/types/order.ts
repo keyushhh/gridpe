@@ -36,6 +36,8 @@ export interface CashOrderMetadata {
   cancel_reason_text?: string;
   cancelled_at?: string;
   isFx?: boolean;
+  receive_amount?: number;
+  receiveAmount?: number;
 }
 
 export interface FxExchangeMetadata {
@@ -47,6 +49,8 @@ export interface FxExchangeMetadata {
   isFx?: boolean;
   toCurrency?: string;
   receiveAmount?: number;
+  receive_amount?: number;
+  cancel_reason_type?: string;
 }
 
 export interface RiderKycMetadata {

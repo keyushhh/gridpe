@@ -646,11 +646,11 @@ const OnboardingScreen = () => {
   }, []);
   const mpinFocusRef = useRef<HTMLDivElement>(null);
   // Delayed focus for MPIN input (both login and setup)
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (uiState.step === 'mpin-setup' || uiState.step === 'mpin-login') {
       const timer = setTimeout(() => {
         mpinFocusRef.current?.querySelector('input')?.focus();
-      }, 100);
+      }, 150);
       return () => clearTimeout(timer);
     }
   }, [uiState.step]);

@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
@@ -29,6 +29,8 @@ const ForgotMpin = () => {
   };
   // Extract last 4 digits or use default if empty
   const last4 = phoneNumber && phoneNumber.length >= 4 ? phoneNumber.slice(-4) : '1234';
+  const otpFocusRef = useRef<HTMLDivElement>(null);
+
   // Resend timer countdown
   useEffect(() => {
     if (resendTimer > 0) {
@@ -38,6 +40,16 @@ const ForgotMpin = () => {
       return () => clearInterval(interval);
     }
   }, [resendTimer]);
+
+  // Delayed focus for OTP input
+  useLayoutEffect(() => {
+    if (step === 'VERIFY') {
+      const timer = setTimeout(() => {
+        otpFocusRef.current?.querySelector('input')?.focus();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
   const handleRequestOTP = async () => {
     setIsLoading(true);
     // Simulate API call
@@ -123,7 +135,7 @@ const ForgotMpin = () => {
                 dismissKeyboard();
               }
             }}
-            autoFocus={step === 'VERIFY'}
+            ref={otpFocusRef as any}
             disabled={isDisabled}
             className={isDisabled ? 'opacity-50' : 'opacity-100'}
           >

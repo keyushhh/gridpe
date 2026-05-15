@@ -30,10 +30,10 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
   const [localError, setLocalError] = useState('');
   const otpFocusRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const timer = setTimeout(() => {
       otpFocusRef.current?.querySelector('input')?.focus();
-    }, 100);
+    }, 150);
     return () => clearTimeout(timer);
   }, []);
 

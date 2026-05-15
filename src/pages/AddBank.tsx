@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTheme } from 'next-themes';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -62,6 +62,17 @@ const AddBank = () => {
   const [bankName, setBankName] = useState('');
   const [accountType, setAccountType] = useState('Savings Account');
   const [bankDetails, setBankDetails] = useState<RazorpayBankDetails | null>(null); // To store fetched details
+  const otpFocusRef = useRef<HTMLDivElement>(null);
+
+  // Delayed focus for OTP input
+  useLayoutEffect(() => {
+    if (showOtpInput) {
+      const timer = setTimeout(() => {
+        otpFocusRef.current?.querySelector('input')?.focus();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [showOtpInput]);
   // Timer logic for OTP
   useEffect(() => {
     if (resendTimer > 0) {
@@ -390,7 +401,7 @@ const AddBank = () => {
                       dismissKeyboard();
                     }
                   }}
-                  autoFocus
+                  ref={otpFocusRef as any}
                 >
                   <InputOTPGroup className="gap-2 w-full justify-between">
                     {[0, 1, 2, 3, 4, 5].map(index => (
