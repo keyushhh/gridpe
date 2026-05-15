@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/PhoneInput';

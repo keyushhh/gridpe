@@ -35,7 +35,8 @@
       var theme = localStorage.getItem('theme');
       var isDark = theme !== 'light';
       document.documentElement.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
-      document.body.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
+      // Apply to body only if it exists
+      if (document.body) document.body.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
     })();
   </script>
   <script>
