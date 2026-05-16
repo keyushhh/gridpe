@@ -8,9 +8,10 @@ import { ROUTES } from '@/routes';
 interface DevModeOverlayProps {
   orderId?: string;
   isFx?: boolean;
+  onTestRating?: () => void;
 }
 
-const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }) => {
+const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, onTestRating }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { profile, refreshBalance } = useUser();
   const { showToaster } = useCustomToaster();
@@ -260,6 +261,23 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false }
             >
               Release Hold (Emergency)
             </button>
+            {onTestRating && (
+              <button
+                onClick={onTestRating}
+                style={{
+                  padding: '12px',
+                  backgroundColor: '#5260FE',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  marginTop: '8px',
+                }}
+              >
+                Test Rating Sheet
+              </button>
+            )}
           </div>
         </div>
       )}

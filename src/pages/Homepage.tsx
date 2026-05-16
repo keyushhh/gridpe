@@ -17,6 +17,8 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import BottomNavigation from '@/components/BottomNavigation';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
+import RatingSheet from '@/components/RatingSheet';
+import DevModeOverlay from '@/components/DevModeOverlay';
 import { useUser } from '@/contexts/UserContext';
 import { formatINR } from '@/utils/format';
 import { cancelOrder } from '@/lib/orders';
@@ -230,6 +232,12 @@ const Homepage = () => {
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [forceNight, setForceNight] = useState(false);
   const [isNight, setIsNight] = useState(isNightTime());
+  const [completedOrder, setCompletedOrder] = useState<{
+    id: string;
+    rider_id: string;
+    rider_name: string;
+    rider_photo: string | null;
+  } | null>(null);
   useEffect(() => {
     const timer = setInterval(() => {
       setIsNight(isNightTime());
@@ -333,9 +341,38 @@ const Homepage = () => {
           table: 'orders',
           filter: `user_id=eq.${userId}`,
         },
-        () => {
+        async (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ['active-order', userId] });
           queryClient.invalidateQueries({ queryKey: ['recent-orders', userId] });
+
+          // Detect order completion to show RatingSheet
+          const newOrder = payload.new;
+          if (
+            newOrder &&
+            (newOrder.status === 'success' || newOrder.status === 'delivered') &&
+            newOrder.rider_id
+          ) {
+            // Check if status changed to completed
+            const oldStatus = payload.old?.status;
+            if (oldStatus !== 'success' && oldStatus !== 'delivered') {
+              try {
+                const { data: rider } = await supabase
+                  .from('riders')
+                  .select('full_name, kyc_photo')
+                  .eq('id', newOrder.rider_id)
+                  .single();
+
+                setCompletedOrder({
+                  id: newOrder.id,
+                  rider_id: newOrder.rider_id,
+                  rider_name: rider?.full_name || 'Rider',
+                  rider_photo: rider?.kyc_photo || null,
+                });
+              } catch (err) {
+                console.error('Error fetching rider for rating:', err);
+              }
+            }
+          }
         }
       )
       .on(
@@ -1204,6 +1241,21 @@ const Homepage = () => {
         onClose={() => setIsSheetOpen(false)}
         order={selectedOrderForSheet}
         onCancel={handleCancelOrder}
+      />
+      <RatingSheet
+        isOpen={completedOrder !== null}
+        onClose={() => setCompletedOrder(null)}
+        order={completedOrder}
+      />
+      <DevModeOverlay
+        onTestRating={() =>
+          setCompletedOrder({
+            id: 'dev-test-order-id',
+            rider_id: 'dev-test-rider-id',
+            rider_name: 'Rohit Khandelwal',
+            rider_photo: null,
+          })
+        }
       />
     </div>
   );
