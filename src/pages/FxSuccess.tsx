@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 // Fallback if ASSETS.FAILED_LIGHT doesn't exist
 import { getOrderById, cancelOrder } from '@/lib/orders';
-import { Order } from '@/types';
+import { Order, OrderMetadata } from '@/types';
 import { useUser } from '@/contexts/UserContext';
 import DevModeOverlay from '@/components/DevModeOverlay';
 const currencySymbols: Record<string, string> = {
@@ -225,8 +225,10 @@ const FxSuccess = () => {
       statusTitle: 'We’ll notify you once your FX cash is ready for delivery.',
       statusAmount: isFx
         ? location.state?.receiveAmount ||
-          (currentOrder.meta_data as any)?.receive_amount ||
-          (currentOrder.meta_data as any)?.receiveAmount ||
+          (currentOrder.meta_data as OrderMetadata & { receive_amount?: number; receiveAmount?: number })
+            ?.receive_amount ||
+          (currentOrder.meta_data as OrderMetadata & { receive_amount?: number; receiveAmount?: number })
+            ?.receiveAmount ||
           currentOrder.amount
         : currentOrder.amount,
       showMap: true,
@@ -257,7 +259,7 @@ const FxSuccess = () => {
         statusTitle: 'Order could not be processed',
         showMap: false,
         deliveryText: 'Payment Failed',
-        // @ts-ignore
+        // @ts-expect-error metadata property exists on some order types
         deliverySubText: currentOrder.metadata?.failure_reason || 'Something went wrong.',
         transactionNote: 'If any amount was deducted, it will be refunded instantly.',
         canCancel: false,
@@ -271,9 +273,9 @@ const FxSuccess = () => {
         statusTitle: 'Order Cancelled',
         showMap: false,
         deliveryText: 'Order Cancelled',
-        // @ts-ignore
         deliverySubText:
-          (currentOrder.meta_data as any)?.cancel_reason_type || 'Order cancelled by user.',
+          (currentOrder.meta_data as OrderMetadata)?.cancel_reason_type ||
+          'Order cancelled by user.',
         transactionNote: 'Refund has been initiated to your wallet.',
         canCancel: false,
       };
@@ -437,7 +439,7 @@ const FxSuccess = () => {
                   attributionControl={false}
                   interactive={false}
                 >
-                  <Source id="route" type="geojson" data={routeGeoJson as any}>
+                  <Source id="route" type="geojson" data={routeGeoJson}>
                     <Layer {...routeLayer} />
                   </Source>
                   <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
@@ -537,8 +539,10 @@ const FxSuccess = () => {
               >
                 {currencySymbol}
                 {(
-                  (order.meta_data as any)?.receive_amount ||
-                  (order.meta_data as any)?.receiveAmount ||
+                  (order.meta_data as OrderMetadata & { receive_amount?: number; receiveAmount?: number })
+                    ?.receive_amount ||
+                  (order.meta_data as OrderMetadata & { receive_amount?: number; receiveAmount?: number })
+                    ?.receiveAmount ||
                   0
                 ).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>

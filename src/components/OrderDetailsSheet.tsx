@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState } from 'react';
-import { X, Info, Star } from 'lucide-react';
+import { X, Info, Star, Check, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useTheme } from 'next-themes';
@@ -9,6 +9,10 @@ import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Order } from '@/types';
 import { cn } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import ButtonSpinner from '@/components/ui/ButtonSpinner';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -57,7 +61,14 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
   const [rating, setRating] = useState<number>(0);
+  const [recommendSolo, setRecommendSolo] = useState<boolean | null>(null);
   const [feedback, setFeedback] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const { showToaster } = useCustomToaster();
+
+  const existingRating = order?.order_ratings?.[0] ?? null;
+  const isAlreadyRated = existingRating !== null;
   // Tip State from OrderCashSummary
   const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
   const [selectedTipOption, setSelectedTipOption] = useState<string | null>(null);
@@ -83,16 +94,47 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
       setCustomTipValue(val);
     }
   };
+  const handleClearCustomTip = () => {
+    setCustomTipValue('');
+    setTipAmount(0);
+    setSelectedTipOption(null);
+  };
   const handleApplyCustomTip = () => {
     const val = parseInt(customTipValue, 10);
     if (!isNaN(val) && val > 0) {
       setTipAmount(val);
     }
   };
-  const handleClearCustomTip = () => {
-    setCustomTipValue('');
-    setTipAmount(0);
-    setSelectedTipOption(null);
+
+  const handleSubmitRating = async () => {
+    if (!order || isAlreadyRated || rating === 0) return;
+
+    setIsSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('save-order-rating', {
+        body: {
+          order_id: order.id,
+          rider_id: order.rider?.id,
+          stars: rating,
+          recommend_solo: recommendSolo,
+          feedback: feedback || null,
+          tip_amount: tipAmount * 100, // UI uses INR, API uses paise
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      showToaster('Rating submitted successfully!', 'success');
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
+      onClose();
+    } catch (err: any) {
+      console.error('Error submitting rating:', err);
+      showToaster(err.message || 'Failed to submit rating', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   if (!isOpen || !order) return null;
   const formatOrderDate = (dateString: string) => {
@@ -452,29 +494,74 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                           >
                             Your order was successfully delivered by Rohit Khandelwal.
                           </p>
-                          <div className="flex gap-2">
-                            {[1, 2, 3, 4, 5].map(s => (
-                              <Star
-                                key={s}
-                                size={20}
-                                fill={rating >= s ? '#FACC15' : 'none'}
-                                stroke="#FACC15"
-                                className="cursor-pointer outline-none focus:scale-110 transition-transform"
-                                role="button"
-                                tabIndex={0}
-                                aria-label={`Rate ${s} star${s > 1 ? 's' : ''}`}
-                                onClick={() => setRating(s)}
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    setRating(s);
-                                  }
-                                }}
-                              />
-                            ))}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              {[1, 2, 3, 4, 5].map(s => (
+                                <Star
+                                  key={s}
+                                  size={20}
+                                  fill={(isAlreadyRated ? existingRating.stars : rating) >= s ? '#FACC15' : 'none'}
+                                  stroke="#FACC15"
+                                  className={cn(
+                                    "transition-transform",
+                                    !isAlreadyRated && "cursor-pointer outline-none focus:scale-110"
+                                  )}
+                                  role={!isAlreadyRated ? "button" : undefined}
+                                  tabIndex={!isAlreadyRated ? 0 : undefined}
+                                  aria-label={!isAlreadyRated ? `Rate ${s} star${s > 1 ? 's' : ''}` : undefined}
+                                  onClick={() => !isAlreadyRated && setRating(s)}
+                                  onKeyDown={!isAlreadyRated ? e => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      setRating(s);
+                                    }
+                                  } : undefined}
+                                />
+                              ))}
+                            </div>
+                            {isAlreadyRated && (
+                              <span className="text-[12px] font-medium text-brand-success">
+                                You rated this order
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
+                      {(isAlreadyRated || (rating > 0 && !isAlreadyRated)) && (
+                        <div className="mt-4 px-[14px] pb-[14px] border-t border-brand-border-light pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <p className={cn("text-[14px] font-medium font-satoshi mb-3", isDarkMode ? "text-white/80" : "text-black/80")}>
+                            Would you feel safe ordering from this rider again?
+                          </p>
+                          <div className="flex gap-3">
+                            <button
+                              disabled={isAlreadyRated}
+                              onClick={() => setRecommendSolo(true)}
+                              className={cn(
+                                "flex-1 h-[38px] rounded-full flex items-center justify-center gap-2 border transition-all text-[13px]",
+                                (isAlreadyRated ? existingRating.recommend_solo === true : recommendSolo === true)
+                                  ? "bg-brand-success/10 border-brand-success text-brand-success"
+                                  : isDarkMode ? "border-white/10 text-white/40" : "border-brand-border-light text-black/40"
+                              )}
+                            >
+                              <Check size={16} />
+                              <span className="font-bold">Yes</span>
+                            </button>
+                            <button
+                              disabled={isAlreadyRated}
+                              onClick={() => setRecommendSolo(false)}
+                              className={cn(
+                                "flex-1 h-[38px] rounded-full flex items-center justify-center gap-2 border transition-all text-[13px]",
+                                (isAlreadyRated ? existingRating.recommend_solo === false : recommendSolo === false)
+                                  ? "bg-brand-error/10 border-brand-error text-brand-error"
+                                  : isDarkMode ? "border-white/10 text-white/40" : "border-brand-border-light text-black/40"
+                              )}
+                            >
+                              <AlertTriangle size={16} />
+                              <span className="font-bold">No</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -566,8 +653,8 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               </div>
             </div>
           )}
-          {/* Tip & Feedback Container - Only for Success state */}
-          {isSuccess && (
+          {/* Tip Selector - Hide if already rated */}
+          {isSuccess && !isAlreadyRated && (
             <div
               className="mx-auto rounded-[13px] mb-[13px] overflow-y-auto custom-scrollbar relative"
               style={{
@@ -742,7 +829,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               {/* Feedback Section */}
               <div
                 className={`rounded-[12px] border overflow-hidden mb-[22px] ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
-                style={{ width: '332px', height: '111px' }}
+                style={{ width: '332px', height: isAlreadyRated ? 'auto' : '111px' }}
               >
                 <div
                   className={`px-4 py-2 border-b ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
@@ -750,31 +837,80 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                   <span
                     className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
                   >
-                    Feedback (Optional)
+                    {isAlreadyRated ? 'Your Feedback' : 'Feedback (Optional)'}
                   </span>
                 </div>
-                <textarea
-                  className={`w-full h-[70px] bg-transparent p-4 text-[14px] font-satoshi outline-none resize-none ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/30'}`}
-                  placeholder="Driver was... (e.g. punctual, polite, helpful)"
-                  value={feedback}
-                  onChange={e => setFeedback(e.target.value)}
-                />
+                {isAlreadyRated ? (
+                  <div className="p-4">
+                    <p className={cn("text-[14px] font-satoshi", isDarkMode ? "text-white/80" : "text-black/80")}>
+                      {existingRating.feedback || 'No feedback provided.'}
+                    </p>
+                  </div>
+                ) : (
+                  <textarea
+                    className={`w-full h-[70px] bg-transparent p-4 text-[14px] font-satoshi outline-none resize-none ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/30'}`}
+                    placeholder="Driver was... (e.g. punctual, polite, helpful)"
+                    value={feedback}
+                    onChange={e => setFeedback(e.target.value)}
+                  />
+                )}
               </div>
               {/* Submit Button */}
-              <button
-                className={`rounded-full flex items-center justify-center text-[16px] font-bold active:scale-[0.98] transition-all border-none ${isDarkMode ? 'text-white' : 'text-white bg-black'}`}
-                style={{
-                  width: '332px',
-                  height: '48px',
-                  backgroundImage: isDarkMode ? `url(${ASSETS.DARKBG_CTA})` : 'none',
-                  backgroundSize: '100% 100%',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                }}
-                onClick={onClose}
+              {!isAlreadyRated && (
+                <button
+                  disabled={rating === 0 || isSubmitting}
+                  className={cn(
+                    "rounded-full flex items-center justify-center text-[16px] font-bold active:scale-[0.98] transition-all border-none",
+                    isDarkMode ? "text-white" : "text-white bg-black",
+                    (rating === 0 || isSubmitting) && "opacity-50 grayscale cursor-not-allowed"
+                  )}
+                  style={{
+                    width: '332px',
+                    height: '48px',
+                    backgroundImage: isDarkMode ? `url(${ASSETS.DARKBG_CTA})` : 'none',
+                    backgroundSize: '100% 100%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                  onClick={handleSubmitRating}
+                >
+                  {isSubmitting ? <ButtonSpinner /> : 'Submit'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Read-only Feedback for already rated orders */}
+          {isSuccess && isAlreadyRated && (
+            <div
+              className="mx-auto rounded-[13px] mb-[13px] relative"
+              style={{
+                width: '362px',
+                background: isDarkMode ? 'rgba(25, 25, 25, 0.30)' : '#FFFFFF',
+                border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
+                padding: '14px 15px 14px 15px',
+                backdropFilter: isDarkMode ? 'blur(24px)' : 'none',
+                WebkitBackdropFilter: isDarkMode ? 'blur(24px)' : 'none',
+              }}
+            >
+              <div
+                className={`rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
               >
-                Submit
-              </button>
+                <div
+                  className={`px-4 py-2 border-b ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
+                >
+                  <span
+                    className={`text-[12px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
+                  >
+                    Your Feedback
+                  </span>
+                </div>
+                <div className="p-4">
+                  <p className={cn("text-[14px] font-satoshi", isDarkMode ? "text-white/80" : "text-black/80")}>
+                    {existingRating.feedback || 'No feedback provided.'}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
           {/* Repeat Order Button */}

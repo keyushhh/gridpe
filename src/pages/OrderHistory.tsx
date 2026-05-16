@@ -8,6 +8,7 @@ import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { fetchActiveOrders, fetchPastOrders, cancelOrder, dev_seedMockOrders } from '@/lib/orders';
 import { Order } from '@/types';
+import { ROUTES } from '@/routes';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
 import { toast } from '@/components/ui/use-toast';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
@@ -188,13 +189,13 @@ const OrderCard = React.memo(
                   className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
                   {(order.meta_data as any)?.isFx
-                    ? `Exchange: ${formatDate(order.created_at)}`
-                    : `Withdrawal: ${formatDate(order.created_at)}`}
+                    ? 'FX Exchange'
+                    : 'Cash Order'}
                 </span>
                 <span
                   className={`text-[12px] font-regular font-satoshi mt-1 ${isDarkMode ? 'text-brand-text-muted' : 'text-black/50'}`}
                 >
-                  ID: {order.id.slice(0, 8).toUpperCase()}
+                  {formatDate(order.created_at)} | ID: {order.id.slice(0, 8).toUpperCase()}
                 </span>
               </div>
             </div>
@@ -202,7 +203,7 @@ const OrderCard = React.memo(
               <span
                 className={`text-[16px] font-bold font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
-                ₹{(order.amount / 100).toLocaleString('en-IN')}
+                ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -526,7 +527,7 @@ const OrderHistory = () => {
             className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
           >
             <img
-              src={ASSETS.ORDER_HISTORY}
+              src={ASSETS.ORDER_CASH}
               alt="No orders"
               className="w-12 h-12 opacity-40"
               style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -540,7 +541,7 @@ const OrderHistory = () => {
           <p
             className={`text-[14px] leading-relaxed mb-10 ${isDarkMode ? 'text-white/60' : 'text-black/40'}`}
           >
-            Place your first cash withdrawal and it'll show up here.
+            Place your first cash order and it'll show up here.
           </p>
           <button
             onClick={() => navigate(ROUTES.ORDER_CASH)}

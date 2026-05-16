@@ -58,6 +58,7 @@ export interface RiderKycMetadata {
   report_reason: string;
   report_details?: string;
   reported_at: string;
+  cancel_reason_type?: string;
 }
 
 export type OrderMetadata = CashOrderMetadata | FxExchangeMetadata | RiderKycMetadata;
@@ -91,4 +92,11 @@ export interface Order {
   addresses?: Address;
   address?: Address; // Fallback for legacy components
   rider?: Rider;
+  order_ratings?: Array<{
+    id: string;
+    stars: number;
+    recommend_solo: boolean | null;
+    feedback: string | null;
+    tip_amount: number;
+  }>;
 }

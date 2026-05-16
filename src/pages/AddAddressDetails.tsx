@@ -40,6 +40,8 @@ interface AddressState {
   tag?: string;
   label?: string;
   plus_code?: string;
+  lat?: number;
+  lng?: number;
 }
 const AddAddressDetails = () => {
   const navigate = useNavigate();
@@ -151,7 +153,7 @@ const AddAddressDetails = () => {
       // I need to ensure `location.state` has lat/lng.
       // I'll check `location.state` for any extra props.
       // Use type assertion or unsafe access for now since `AddressState` might be incomplete in this file definition
-      const locState = location.state as any;
+      const locState = location.state as AddressState | null;
       // Ensure strictly numeric (fallback to 0 if missing, though schema might reject 0 if logic dictates range, but type-wise it's fine)
       const lat = Number(locState?.lat) || 0;
       const lng = Number(locState?.lng) || 0;
@@ -207,9 +209,10 @@ const AddAddressDetails = () => {
       }
       showToaster(isEditMode ? 'Address updated!' : 'Address saved successfully!', 'success');
       navigate(ROUTES.HOME);
-    } catch (err: any) {
-      console.error('Failed to save address', err);
-      showToaster(`Failed to save address: ${err.message || 'Unknown error'}`, 'error');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('Failed to save address', error);
+      showToaster(`Failed to save address: ${error.message || 'Unknown error'}`, 'error');
     }
   };
   const handleTagClick = (tagLabel: string) => {

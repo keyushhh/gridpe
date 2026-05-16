@@ -38,7 +38,7 @@ export const fetchRecentOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
     .select(
-      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)'
+      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url), order_ratings(id, stars, recommend_solo, feedback, tip_amount)'
     )
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
@@ -54,7 +54,7 @@ export const getOrderById = async (orderId: string) => {
   const { data: orderData, error } = await supabase
     .from('orders')
     .select(
-      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)'
+      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url), order_ratings(id, stars, recommend_solo, feedback, tip_amount)'
     )
     .eq('id', orderId)
     .maybeSingle();
@@ -77,7 +77,7 @@ export const fetchActiveOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
     .select(
-      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url)'
+      '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url), order_ratings(id, stars, recommend_solo, feedback, tip_amount)'
     )
     .eq('user_id', userId)
     .in('status', ['processing', 'out_for_delivery', 'arrived', 'pending', 'accepted', 'picked_up'])
@@ -92,7 +92,7 @@ export const fetchActiveOrders = async (userId: string) => {
 export const fetchPastOrders = async (userId: string) => {
   const { data, error } = await supabase
     .from('orders')
-    .select('*')
+    .select('*, order_ratings(id, stars, recommend_solo, feedback, tip_amount)')
     .eq('user_id', userId)
     .in('status', ['delivered', 'success', 'failed', 'cancelled'])
     .order('updated_at', { ascending: false });

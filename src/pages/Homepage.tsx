@@ -406,8 +406,7 @@ const Homepage = () => {
   useEffect(() => {
     if (activeOrder?.addresses?.plus_code) {
       try {
-        const olc = new OpenLocationCode() as any;
-        const decoded = olc.decode(activeOrder.addresses.plus_code);
+        const decoded = OpenLocationCode.decode(activeOrder.addresses.plus_code);
         setViewState({
           latitude: decoded.latitudeCenter,
           longitude: decoded.longitudeCenter,

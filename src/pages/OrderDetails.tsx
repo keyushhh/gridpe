@@ -154,8 +154,7 @@ const OrderDetails = () => {
     const addr = order?.addresses || location.state?.savedAddress;
     if (addr?.plus_code) {
       try {
-        const olc = new OpenLocationCode() as any;
-        const decoded = olc.decode(addr.plus_code);
+        const decoded = OpenLocationCode.decode(addr.plus_code);
         setViewState({
           latitude: decoded.latitudeCenter,
           longitude: decoded.longitudeCenter,
@@ -231,7 +230,7 @@ const OrderDetails = () => {
     // Default / Processing
     let config = {
       bgImage: ASSETS.SUCCESS_BG,
-      mainIcon: isDarkMode ? ASSETS.CHECK_ICON_PNG : ASSETS.CHECK_ICON_LIGHT,
+      mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
       headerTitle: 'Order Successful',
       statusTitle: 'Your order is being processed!',
       statusAmount: currentOrder.total_amount || currentOrder.amount,
@@ -245,7 +244,7 @@ const OrderDetails = () => {
     if (currentOrder.status === 'success' || currentOrder.status === 'delivered') {
       config = {
         bgImage: ASSETS.SUCCESS_BG,
-        mainIcon: isDarkMode ? ASSETS.CHECK_ICON_PNG : ASSETS.CHECK_ICON_LIGHT,
+        mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
         headerTitle: 'Order Delivered',
         statusTitle: 'Order delivered successfully!',
         statusAmount: currentOrder.total_amount || currentOrder.amount,
