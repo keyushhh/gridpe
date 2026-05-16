@@ -386,7 +386,7 @@ const AddBank = () => {
             />
             {/* OTP Section */}
             {showOtpInput && (
-              <div className="mt-8 animate-fade-in space-y-4">
+              <div className="mt-8 animate-fade-in space-y-4" ref={otpFocusRef}>
                 <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
                   An OTP has been sent to your registered mobile number.
                 </p>
@@ -400,7 +400,6 @@ const AddBank = () => {
                       dismissKeyboard();
                     }
                   }}
-                  ref={otpFocusRef as any}
                 >
                   <InputOTPGroup className="gap-2 w-full justify-between">
                     {[0, 1, 2, 3, 4, 5].map(index => (

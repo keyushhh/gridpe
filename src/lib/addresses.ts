@@ -15,15 +15,11 @@ export const ensureGlobalPlusCode = (
   if (!plusCode) return null;
 
   try {
-    const olc = new OpenLocationCode();
-    // Casting to any to avoid TSType error if the definitions are mismatched with the runtime
-    const olcAny = olc as any;
-
-    if (olcAny.isFull(plusCode)) return plusCode.toUpperCase();
+    if (OpenLocationCode.isFull(plusCode)) return plusCode.toUpperCase();
 
     // If it's a short code, expand it
-    if (olcAny.isShort(plusCode)) {
-      return olcAny.recoverNearest(plusCode, lat, lng).toUpperCase();
+    if (OpenLocationCode.isShort(plusCode)) {
+      return OpenLocationCode.recoverNearest(plusCode, lat, lng).toUpperCase();
     }
   } catch (err) {
     console.error('Plus Code validation/expansion failed:', err);

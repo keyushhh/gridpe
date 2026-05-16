@@ -56,7 +56,7 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-2 py-4">
+      <div className="flex flex-col items-center gap-2 py-4" ref={otpFocusRef}>
         <InputOTP
           maxLength={6}
           value={otp}
@@ -64,7 +64,6 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
           inputMode="numeric"
           pattern="[0-9]*"
           type="tel"
-          ref={otpFocusRef as any}
         >
           <InputOTPGroup className="gap-[8px]">
             {[0, 1, 2, 3, 4, 5].map(index => (

@@ -1,21 +1,22 @@
 import { supabase } from './supabase';
-import { Order } from '@/types';
+import { Order, Address } from '@/types';
 
 // Internal helper to fetch addresses for a list of orders
 const fetchAddressesForOrders = async <T extends { address_id: string | null }>(
   orders: T[]
-): Promise<(T & { addresses?: any })[]> => {
+): Promise<(T & { addresses?: Address | null })[]> => {
   const addressIds = Array.from(
     new Set(orders.map(o => o.address_id).filter((id): id is string => !!id))
   );
   if (addressIds.length === 0) return orders;
 
-  const { data: addresses, error } = await supabase
+  const { data, error } = await supabase
     .from('addresses')
     .select('*')
     .in('id', addressIds);
 
-  if (error || !addresses) return orders;
+  if (error || !data) return orders;
+  const addresses = data as Address[];
 
   const addressMap = new Map(addresses.map(a => [a.id, a]));
   return orders.map(o => ({

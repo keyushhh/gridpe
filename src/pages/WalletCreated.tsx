@@ -12,6 +12,7 @@ import { useAsset } from '@/hooks/useAsset';
 import { supabase } from '@/lib/supabase';
 import BalanceAlert from '@/components/BalanceAlert';
 import { Tables } from '@/types/database';
+import { WithdrawalMetadata } from '@/types/wallet';
 
 type BaseWalletTransaction = Tables['wallet_transactions'];
 type Payout = Tables['payouts'];
@@ -364,10 +365,10 @@ const WalletCreated = () => {
         shadowClass = 'shadow-[0_0_0_5px_rgba(211,51,19,0.17)]';
         if (isWithdrawal) {
           const isPayout = 'transaction_type' in latestTx;
-          const method = isPayout ? latestTx.payout_method : (latestTx as any).metadata?.payout_method;
+          const method = isPayout ? latestTx.payout_method : (latestTx.metadata as WithdrawalMetadata)?.payout_method;
           let mode = 'Bank Account';
           if (method === 'upi') {
-            mode = isPayout ? latestTx.vpa : (latestTx as any).metadata?.vpa || 'UPI';
+            mode = isPayout ? latestTx.vpa : (latestTx.metadata as WithdrawalMetadata)?.vpa || 'UPI';
           } else if (method === 'card') {
             mode = 'Card';
           } else if (method === 'bank_transfer') {

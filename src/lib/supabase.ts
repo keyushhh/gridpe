@@ -3,7 +3,8 @@ import { Tables } from '@/types/database';
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type Database = any;
+import { Database } from '@/types/database';
+export type { Database };
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;

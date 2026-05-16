@@ -32,7 +32,7 @@ const KeypadButton = ({
               {
                 style: { filter: disabled ? 'none' : 'brightness(0) saturate(100%) invert(1)' },
                 className: `${(icon as React.ReactElement).props.className || ''} ${disabled ? '' : 'group-active:filter-none'}`,
-              } as any
+              } as React.HTMLAttributes<HTMLElement>
             )
           : icon}
       </div>

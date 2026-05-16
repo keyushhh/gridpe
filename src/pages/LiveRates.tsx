@@ -229,7 +229,7 @@ const LiveRates = () => {
         const data = await response.json();
         if (data.rates) {
           const formattedHistory = Object.entries(data.rates).map(
-            ([date, rates]: [string, any]) => ({
+            ([date, rates]) => ({
               date,
               rate: (rates as Record<string, number>)[to],
             })

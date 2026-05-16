@@ -56,7 +56,7 @@ export interface Tables {
     status: string;
     description: string;
     reference_id: string | null;
-    metadata: any;
+    metadata: Record<string, unknown> | null;
     created_at: string;
   };
   addresses: {
@@ -115,5 +115,20 @@ export interface Tables {
     daily_withdraw_limit: number;
     subscription_price: number;
     created_at: string;
+  };
+}
+
+export interface Database {
+  public: {
+    Tables: {
+      [K in keyof Tables]: {
+        Row: Tables[K];
+        Insert: Tables[K];
+        Update: Partial<Tables[K]>;
+      };
+    };
+    Views: { [key: string]: never };
+    Functions: { [key: string]: never };
+    Enums: { [key: string]: never };
   };
 }

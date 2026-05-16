@@ -122,22 +122,21 @@ const ForgotMpin = () => {
             : `OTP sent! If it doesn't show up in 30 seconds, don't stare at the screen–just tap resend.`}
         </p>
         {/* OTP Input - Single Instance */}
-        <div className="mt-10 flex flex-col items-center w-full">
-          <InputOTP
-            maxLength={6}
-            value={otp}
-            onChange={val => {
-              const numericOnly = val.replace(/\D/g, '').slice(0, 6);
-              setOtp(numericOnly);
-              setError('');
-              if (numericOnly.length === 6) {
-                dismissKeyboard();
-              }
-            }}
-            ref={otpFocusRef as any}
-            disabled={isDisabled}
-            className={isDisabled ? 'opacity-50' : 'opacity-100'}
-          >
+          <div className="mt-10 flex flex-col items-center w-full" ref={otpFocusRef}>
+            <InputOTP
+              maxLength={6}
+              value={otp}
+              onChange={val => {
+                const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+                setOtp(numericOnly);
+                setError('');
+                if (numericOnly.length === 6) {
+                  dismissKeyboard();
+                }
+              }}
+              disabled={isDisabled}
+              className={isDisabled ? 'opacity-50' : 'opacity-100'}
+            >
             <InputOTPGroup className="gap-[10px]">
               {[0, 1, 2, 3, 4, 5].map(index => (
                 <InputOTPSlot

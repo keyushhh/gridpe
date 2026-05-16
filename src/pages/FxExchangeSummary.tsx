@@ -9,6 +9,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
+import { PostgrestError } from '@supabase/supabase-js';
 import { createAddress, getAuthUserId } from '@/lib/addresses';
 import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
@@ -451,7 +452,7 @@ const FxExchangeSummary = () => {
         const isAddressError =
           errorMessage.toLowerCase().includes('foreign key') ||
           errorMessage.toLowerCase().includes('address_id') ||
-          (orderError as any).code === '23503';
+          (orderError as PostgrestError).code === '23503';
         if (isAddressError && savedAddress) {
           try {
             const newAddress = await createAddress({

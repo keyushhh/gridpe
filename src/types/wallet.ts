@@ -22,6 +22,7 @@ export interface WithdrawalMetadata {
   payout_method: 'bank_account' | 'upi' | 'wallet';
   bank_account_id?: string;
   upi_id?: string;
+  vpa?: string;
   wallet_name?: string;
   [key: string]: unknown;
 }

@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticMedium } from '@/utils/haptics';
 import { ChevronRight } from 'lucide-react';
@@ -17,6 +17,7 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
+  const dragXRef = useRef(0);
   const [completed, setCompleted] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
@@ -26,40 +27,48 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
     if (completed || disabled) return;
     setIsDragging(true);
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    startX.current = clientX - dragX;
+    startX.current = clientX - dragXRef.current;
   };
-  const handleMove = (e: MouseEvent | TouchEvent) => {
-    if (!isDragging || completed || disabled || !trackRef.current || !thumbRef.current) return;
-    const clientX =
-      'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
-    const newX = clientX - startX.current;
-    const trackWidth = trackRef.current.clientWidth;
-    const thumbWidth = thumbRef.current.clientWidth;
-    const maxDrag = trackWidth - thumbWidth - trackWidth * 0.05;
-    if (newX >= 0 && newX <= maxDrag) {
-      setDragX(newX);
-    } else if (newX > maxDrag) {
-      setDragX(maxDrag);
-    }
-  };
-  const handleEnd = () => {
+  const handleMove = useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      if (!isDragging || completed || disabled || !trackRef.current || !thumbRef.current) return;
+      const clientX =
+        'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+      const newX = clientX - startX.current;
+      const trackWidth = trackRef.current.clientWidth;
+      const thumbWidth = thumbRef.current.clientWidth;
+      const maxDrag = trackWidth - thumbWidth - trackWidth * 0.05;
+      if (newX >= 0 && newX <= maxDrag) {
+        setDragX(newX);
+        dragXRef.current = newX;
+      } else if (newX > maxDrag) {
+        setDragX(maxDrag);
+        dragXRef.current = maxDrag;
+      }
+    },
+    [isDragging, completed, disabled]
+  );
+
+  const handleEnd = useCallback(() => {
     if (!isDragging || completed) return;
     setIsDragging(false);
     if (!trackRef.current || !thumbRef.current) return;
     const trackWidth = trackRef.current.clientWidth;
     const thumbWidth = thumbRef.current.clientWidth;
     const maxDrag = trackWidth - thumbWidth - trackWidth * 0.05;
-    if (dragX > maxDrag * 0.85) {
+    if (dragXRef.current > maxDrag * 0.85) {
       hapticMedium();
       setCompleted(true);
       setDragX(maxDrag);
+      dragXRef.current = maxDrag;
       setTimeout(() => {
         onComplete();
       }, 2000);
     } else {
       setDragX(0);
+      dragXRef.current = 0;
     }
-  };
+  }, [isDragging, completed, onComplete]);
   useEffect(() => {
     // touchmove must be `passive: true` on Android, or the WebView treats every
     // event as cancelable and serialises it on the main thread → drag jank.
@@ -81,7 +90,7 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
       window.removeEventListener('touchmove', handleMove);
       window.removeEventListener('touchend', handleEnd);
     };
-  }, [isDragging, dragX, completed]);
+  }, [isDragging, handleMove, handleEnd]);
   return (
     <div
       ref={trackRef}
