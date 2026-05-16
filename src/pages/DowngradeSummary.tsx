@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { SlideToPay } from '@/components/SlideToPay';
 import { useUser, WalletTier } from '@/contexts/UserContext';
@@ -30,8 +30,7 @@ import { supabase } from '@/lib/supabase';
 const DowngradeSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { walletTier, scheduleDowngrade, walletBalance } = useUser();
   const { tier } = location.state || { tier: '' };
   const bannerImage = isDarkMode

@@ -11,7 +11,7 @@ import {
   startOfDay,
   isBefore,
 } from 'date-fns';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 interface GlassCalendarProps {
@@ -51,8 +51,7 @@ function GlassCalendar({
   const [currentDate, setCurrentDate] = useState(selected || new Date());
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const today = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

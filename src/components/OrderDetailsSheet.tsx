@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { X, Info, Star, Check, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticWarning } from '@/utils/haptics';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -58,8 +58,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
   onCancel,
 }) => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [rating, setRating] = useState<number>(0);
   const [recommendSolo, setRecommendSolo] = useState<boolean | null>(null);
   const [feedback, setFeedback] = useState('');

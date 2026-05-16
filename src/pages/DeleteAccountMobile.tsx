@@ -3,14 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
 const DeleteAccountMobile = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { phoneNumber } = useUser();
   const [mobile, setMobile] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +28,7 @@ const DeleteAccountMobile = () => {
   }, [mobile, normalizedUserPhone]);
   const isValid = mobile.length === 10 && !error;
   const handleRequestOtp = () => {
-    navigate(ROUTES.DELETE_ACCOUNT_OTP, {
+    navigate(ROUTES.DELETE_ACCOUNT, {
       state: {
         ...location.state,
         mobile,

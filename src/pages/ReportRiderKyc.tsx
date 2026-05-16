@@ -4,11 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 const ReportRiderKyc = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [comment, setComment] = useState('');
   const [isAttachmentsOpen, setIsAttachmentsOpen] = useState(false);

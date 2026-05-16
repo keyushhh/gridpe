@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { fetchBankAccounts, BankAccount } from '@/lib/banking';
 import { getBankLogo } from '@/utils/bankUtils';
 import { useUser } from '@/contexts/UserContext';
@@ -66,9 +66,8 @@ const staticMoreMethods: StaticMethod[] = [
 ];
 const AddPaymentMethod = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
   const location = useLocation();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile } = useUser();
   const userId = profile?.id;
   const { amount, flow, tier } = location.state || { amount: '0.00', flow: 'add-money', tier: '' };
@@ -89,7 +88,7 @@ const AddPaymentMethod = () => {
       }
     };
     loadBanks();
-  }, []);
+  }, [userId]);
   const cardMethods = bankAccounts.map(acc => ({
     ...acc,
     id: acc.id,

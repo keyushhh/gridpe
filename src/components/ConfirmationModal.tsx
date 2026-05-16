@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTheme } from 'next-themes';
 import { hapticMedium, hapticWarning } from '@/utils/haptics';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import popupBg from '../assets/popup-bg-remove.png';
 
 interface ConfirmationModalProps {
@@ -26,8 +26,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   secondaryButtonSrc,
   secondaryText,
 }) => {
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
 
   if (!isOpen) return null;
 

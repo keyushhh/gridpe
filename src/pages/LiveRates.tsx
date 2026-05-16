@@ -15,7 +15,8 @@ import {
   AreaChart,
   CartesianGrid,
 } from 'recharts';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
+import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 const currencyToCountry: Record<string, string> = {
   USD: 'us',
   INR: 'in',
@@ -58,8 +59,7 @@ const CurrencyModal = ({
   type: 'from' | 'to';
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   if (!isOpen) return null;
   const filteredCurrencies = Object.entries(currencies).filter(
     ([code, name]) =>
@@ -149,8 +149,7 @@ const CurrencyModal = ({
 const LiveRates = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const initialFrom = location.state?.from || 'USD';
   const initialTo = location.state?.to || 'INR';
   const [fromCurrency, setFromCurrency] = useState(initialFrom);
@@ -193,7 +192,7 @@ const LiveRates = () => {
     try {
       setIsLoadingHistory(true);
       const endDate = new Date().toISOString().split('T')[0];
-      let startDate = new Date();
+      const startDate = new Date();
       switch (range) {
         case '1D':
           startDate.setDate(startDate.getDate() - 2);

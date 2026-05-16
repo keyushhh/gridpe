@@ -1,4 +1,4 @@
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from './useIsDarkMode';
 
 /**
  * Hook to get the correct asset URL based on the current theme.
@@ -7,7 +7,7 @@ import { useTheme } from 'next-themes';
  * @returns The URL of the correct asset.
  */
 export const useAsset = (darkAsset: string, lightAsset: string): string => {
-  const { resolvedTheme } = useTheme();
-  // Default to darkAsset when resolvedTheme is not 'light'
-  return resolvedTheme === 'light' ? lightAsset : darkAsset;
+  const isDarkMode = useIsDarkMode();
+  // Default to darkAsset when in dark mode
+  return isDarkMode ? darkAsset : lightAsset;
 };

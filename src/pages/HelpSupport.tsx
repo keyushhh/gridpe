@@ -6,14 +6,13 @@ import { ChevronRight } from 'lucide-react';
 import { fetchRecentOrders } from '@/lib/orders';
 import { Order } from '@/types';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const HelpSupport = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [recentOrder, setRecentOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {

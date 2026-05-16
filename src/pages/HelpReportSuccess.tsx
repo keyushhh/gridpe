@@ -1,12 +1,11 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
 const HelpReportSuccess = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [countdown, setCountdown] = useState(30);
   // Reference ID
   const referenceId = '1420250537';

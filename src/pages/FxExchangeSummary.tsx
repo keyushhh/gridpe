@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { X, ChevronRight } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
@@ -24,8 +24,7 @@ const FxExchangeSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToaster } = useCustomToaster();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile, walletBalance, rewardPoints: availableRewardPoints, refreshBalance } = useUser();
   const currentUserId = profile?.id;
   // Accept full FX state

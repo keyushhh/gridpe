@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { formatINR } from '@/utils/format';
 import { useKeypad } from '@/hooks/useKeypad';
@@ -32,8 +32,7 @@ const WalletWithdraw = () => {
   const navigate = useNavigate();
   const { walletTier, walletBalance, isRenewalPending, profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { amount, handleKeyPress, handleBackspace, setPillAmount, amountVal, isZero, setAmount } =
     useKeypad();
   const [showKeypad, setShowKeypad] = useState<boolean>(false);

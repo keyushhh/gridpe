@@ -2,13 +2,12 @@ import { ASSETS } from '@/constants/assets';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 const FxKYCSuccess = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { setPassportVerifiedInDb } = useUser();
   const [loading, setLoading] = useState(false);
   const handleGoToFx = async () => {

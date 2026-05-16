@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser, WalletTier } from '@/contexts/UserContext';
 import { tierIconMap, tierCardMap, tierCardMapLight } from '@/lib/walletTiers';
@@ -13,8 +13,7 @@ import { supabase } from '@/lib/supabase';
 import BalanceAlert from '@/components/BalanceAlert';
 const WalletCreated = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const queryClient = useQueryClient();
   const {
     profile,

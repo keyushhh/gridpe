@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useRef, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticMedium } from '@/utils/haptics';
 import { ChevronRight } from 'lucide-react';
 interface SlideToPayProps {
@@ -21,8 +21,7 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (completed || disabled) return;
     setIsDragging(true);

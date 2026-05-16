@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useUser } from '@/contexts/UserContext';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useAsset } from '@/hooks/useAsset';
 import CardSkeleton from '@/components/skeletons/CardSkeleton';
 // Assets
@@ -13,8 +13,7 @@ import CardSkeleton from '@/components/skeletons/CardSkeleton';
 const FxPassportGate = () => {
   const navigate = useNavigate();
   const { walletTier, isPassportVerified, fetchProfileData } = useUser();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const [isLoading, setIsLoading] = useState(true);
   // Mapping for assets and tier names

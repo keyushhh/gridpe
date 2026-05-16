@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { X } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import { supabase } from '@/lib/supabase';
@@ -29,8 +29,7 @@ const OrderCashSummary = () => {
   // Diagnostic Log for Audit Check #1
   console.log('[AUDIT] OrderCashSummary arrived. Params:', { isScheduledFlow, initialSlot });
   const [selectedSlot, setSelectedSlot] = useState<string | null>(initialSlot || null);
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile, walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
   const userId = profile?.id;
   const currentUserId = profile?.id;

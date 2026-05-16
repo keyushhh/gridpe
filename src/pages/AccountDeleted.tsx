@@ -2,13 +2,12 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const AccountDeleted = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [timeLeft, setTimeLeft] = useState(30);
   useEffect(() => {
     if (timeLeft > 0) {

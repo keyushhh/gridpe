@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 import BottomNavigation from '@/components/BottomNavigation';
 import { useAsset } from '@/hooks/useAsset';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
 // Assets
 interface MoreItemProps {
@@ -45,8 +45,7 @@ const MoreItem = ({ icon, label, onClick, isDarkMode }: MoreItemProps) => (
 );
 const MorePage = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const { logout } = useAuth();
   const categories = [

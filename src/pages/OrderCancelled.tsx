@@ -2,13 +2,12 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatINR } from '@/utils/format';
 const OrderCancelled = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [seconds, setSeconds] = useState(28);
   const orderAmount = location.state?.order?.amount || 2000;
   useEffect(() => {

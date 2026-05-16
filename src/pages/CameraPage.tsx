@@ -30,7 +30,7 @@ const CameraPage = () => {
       // Simple regex for expiry date (MM/YY or MM/YYYY)
       const expiryMatch = text.match(/(0[1-9]|1[0-2])\/?([2-9][0-9])/);
       if (cardNumberMatch) {
-        navigate(ROUTES.ADD_CARD, {
+        navigate(ROUTES.CARDS_ADD, {
           state: {
             scanned: true,
             cardNumber: cardNumberMatch[0],
@@ -40,7 +40,7 @@ const CameraPage = () => {
         });
       } else {
         // Fallback for demo/manual trigger if no number found but shutter clicked
-        navigate(ROUTES.ADD_CARD, {
+        navigate(ROUTES.CARDS_ADD, {
           state: {
             scanned: true,
             cardNumber: '4242424242424242', // Default for demo as requested
@@ -59,6 +59,7 @@ const CameraPage = () => {
     if (imageSrc) {
       processImage(imageSrc);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webcamRef]);
   // Auto-scan trial (optional, every 3s if not processing)
   useEffect(() => {

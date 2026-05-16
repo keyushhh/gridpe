@@ -5,12 +5,11 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
 import { useAsset } from '@/hooks/useAsset';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 const FxIntro = () => {
   const navigate = useNavigate();
   const { walletTier } = useUser();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   // Redirect if already upgraded
   React.useEffect(() => {

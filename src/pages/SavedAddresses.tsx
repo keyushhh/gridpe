@@ -6,7 +6,7 @@ import BackButton from '@/components/ui/BackButton';
 import { Search, X } from 'lucide-react';
 import { fetchAddresses, deleteAddress, Address } from '@/lib/addresses';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
@@ -28,8 +28,7 @@ import { hapticWarning } from '@/utils/haptics';
 // Assets
 const SavedAddresses = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile } = useUser();
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
@@ -38,6 +37,7 @@ const SavedAddresses = () => {
   const [searchQuery, setSearchQuery] = useState('');
   useEffect(() => {
     loadAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const loadAddresses = async () => {
     if (!userId) return;
@@ -164,7 +164,7 @@ const SavedAddresses = () => {
               className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
             >
               <img
-                src={ASSETS.SAVED_ADDRESSES}
+                src={ASSETS.ADDRESS}
                 alt="No addresses"
                 className="w-12 h-12 opacity-40"
                 style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}

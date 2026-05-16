@@ -1,14 +1,13 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 interface CardSkeletonProps {
   height?: number | string;
 }
 
 const CardSkeleton: React.FC<CardSkeletonProps> = ({ height = 160 }) => {
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
 
   return (
     <div

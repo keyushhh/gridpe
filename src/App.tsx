@@ -10,12 +10,12 @@ import { setBadge } from './utils/badge';
 import { registerPushNotifications } from './utils/pushNotifications';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { useTheme } from 'next-themes';
 import GlobalCustomToaster from './components/GlobalCustomToaster';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ROUTES } from './routes';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 // Lazy-load page components
 const Index = lazy(() => import('./pages/Index'));
@@ -117,7 +117,7 @@ const LocationTracker = ({
   const location = useLocation();
   useEffect(() => {
     currentPathRef.current = location.pathname;
-  }, [location]);
+  }, [location, currentPathRef]);
   return null;
 };
 
@@ -174,7 +174,7 @@ const BackNavigationHandler = ({
 };
 
 const App = () => {
-  const { resolvedTheme } = useTheme();
+  const isDarkMode = useIsDarkMode();
   const [isReloading, setIsReloading] = useState(false);
   const isOnline = useOnlineStatus();
 
@@ -300,7 +300,7 @@ const App = () => {
 
 
 
-  const isDarkMode = resolvedTheme !== 'light';
+
 
   return (
     <>

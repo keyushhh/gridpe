@@ -3,15 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cancelOrder, deliverOrder } from '@/lib/orders';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 const DeliveryCaution = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { order } = location.state || {};
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
   const [step, setStep] = useState<
     | 'caution'

@@ -1,14 +1,13 @@
 import { ASSETS } from '@/constants/assets';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { ROUTES } from '@/routes';
 import confetti from 'canvas-confetti';
 const SuccessScreen = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const state = location.state || {};

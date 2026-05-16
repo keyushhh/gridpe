@@ -5,12 +5,11 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import GlassCalendar from '@/components/GlassCalendar';
 import { SlideToPay } from '@/components/SlideToPay';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const ScheduleDelivery = () => {
   const { containerOverflow } = useWebScroll();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
   const location = useLocation();
   const { amount, isScheduledFlow } = location.state || {};

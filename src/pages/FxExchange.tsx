@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatINR } from '@/utils/format';
 import { supabase } from '@/lib/supabase';
 const currencyToCountry: Record<string, string> = {
@@ -89,8 +89,7 @@ const CurrencyModal = ({
   type,
 }: CurrencyModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   if (!isOpen) return null;
   const filteredCurrencies = Object.entries(currencies).filter(
     ([code, name]) =>
@@ -209,8 +208,7 @@ const CurrencyModal = ({
 };
 const PassportUpgradeModal = ({ isOpen }: { isOpen: boolean }) => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center px-6 transition-all duration-500 animate-in fade-in">
@@ -268,8 +266,7 @@ const FxExchange = () => {
   const [isSelectingFrom, setIsSelectingFrom] = useState(false);
   const [isSelectingTo, setIsSelectingTo] = useState(false);
   const [timer, setTimer] = useState(600); // 10 minutes in seconds
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   // Fetch Currencies and Live Rate
   useEffect(() => {
     const init = async () => {

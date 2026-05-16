@@ -1,7 +1,7 @@
 import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
 
 interface NotAvailableProps {
@@ -10,8 +10,7 @@ interface NotAvailableProps {
 
 const NotAvailable: React.FC<NotAvailableProps> = ({ onOpenAddressSheet }) => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center -mt-32 px-5 z-10 transition-colors duration-300 pointer-events-none">

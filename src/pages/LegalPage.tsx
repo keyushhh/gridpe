@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,8 +23,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
   const location = useLocation();
   const { profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const isFromMore = location.state?.fromMore === true;
   const [isAccepted, setIsAccepted] = useState(false);
 

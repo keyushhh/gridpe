@@ -2,13 +2,12 @@ import { ASSETS } from '@/constants/assets';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const AccountRetrieved = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const handleBackHome = () => {
     navigate(ROUTES.HOME);
   };

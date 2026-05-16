@@ -1,7 +1,7 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState } from 'react';
 import { X, Star, Check, AlertTriangle } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
@@ -19,8 +19,7 @@ interface RatingSheetProps {
 }
 
 const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => {
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
 
   const [stars, setStars] = useState<number>(0);
@@ -183,7 +182,7 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
             {stars > 0 && (
               <div className="mt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                 <p className={cn("text-[14px] font-medium font-satoshi mb-3", isDarkMode ? "text-white/80" : "text-black/80")}>
-                  Would you feel safe ordering from this rider again?
+                  Would you feel safe if this rider delivered to you again?
                 </p>
                 <div className="flex gap-3">
                   <button

@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
@@ -17,9 +17,8 @@ const WalletAddMoney = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
-  const { resolvedTheme } = useTheme();
+  const isDarkMode = useIsDarkMode();
   const location = useLocation() as { state: { balance?: string; from?: string } };
-  const isDarkMode = resolvedTheme !== 'light';
   const {
     walletLimit,
     walletBalance,

@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatINR } from '@/utils/format';
 import { hapticSuccess } from '@/utils/haptics';
 import { useUser } from '@/contexts/UserContext';
@@ -13,8 +13,7 @@ const OrderDelivered = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile } = useUser();
   const { showToaster } = useCustomToaster();
   const [seconds, setSeconds] = useState(30);

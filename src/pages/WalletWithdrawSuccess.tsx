@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 const WalletWithdrawSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { amount: rawAmount, selectedMethod } = location.state || {};
   const amount = typeof rawAmount === 'number' ? rawAmount : parseFloat(rawAmount || '0');
   const [timeLeft, setTimeLeft] = useState(30);

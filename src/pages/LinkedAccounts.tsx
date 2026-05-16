@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import { useState } from 'react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
@@ -13,8 +13,7 @@ const LinkedAccounts = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
   const mobile = location.state?.mobile || '9876543210';
   const maskMobile = (num: string) => {

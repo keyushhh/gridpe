@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/ui/BackButton';
 import React, { useState, useRef, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useAsset } from '@/hooks/useAsset';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,7 @@ import { supabase } from '@/lib/supabase';
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const {
     phoneNumber,

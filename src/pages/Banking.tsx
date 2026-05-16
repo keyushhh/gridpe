@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -34,8 +34,7 @@ const Banking = () => {
   const location = useLocation();
   const { profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [isFabExpanded, setIsFabExpanded] = useState(false);
@@ -66,7 +65,7 @@ const Banking = () => {
     if (!hasSeenTutorial && accounts.length > 1) {
       setTutorialStep(1);
     }
-  }, [location.state]);
+  }, [location.state, userId]);
   const handleTutorialClick = () => {
     if (tutorialStep === 1) {
       setTutorialStep(2);
@@ -199,7 +198,7 @@ const Banking = () => {
                   className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
                 >
                   <img
-                    src={ASSETS.BANKING}
+                    src={ASSETS.ICON_BANK_ACC}
                     alt="No banks"
                     className="w-12 h-12 opacity-40"
                     style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}

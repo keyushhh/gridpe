@@ -2,8 +2,8 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
-import { useTheme } from 'next-themes';
 import { X, Search, Plus, MapPin, MessageSquareMore } from 'lucide-react';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { reverseGeocode, forwardGeocode } from '@/utils/geoUtils';
 import { Geolocation } from '@capacitor/geolocation';
 import { OpenLocationCode } from 'open-location-code';
@@ -27,8 +27,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
 }) => {
   const { profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
   const [searchQuery, setSearchQuery] = useState('');

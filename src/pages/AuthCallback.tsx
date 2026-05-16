@@ -65,7 +65,7 @@ const AuthCallback = () => {
     };
 
     handleAuth();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-brand-bg-dark text-white px-5">

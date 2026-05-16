@@ -1,7 +1,7 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Map, { ViewState, ViewStateChangeEvent, MapRef } from 'react-map-gl/maplibre';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { Search } from 'lucide-react';
@@ -25,8 +25,7 @@ import { useWebScroll } from '@/hooks/useWebScroll';
 const AddAddress = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState<ViewState>({
@@ -215,6 +214,7 @@ const AddAddress = () => {
     } catch (error) {
       console.error('Error getting location via Capacitor:', error);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const handleSnapToGrid = () => {
     try {

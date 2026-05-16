@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { X } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import MpinSheet from '@/components/MpinSheet';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,8 +13,7 @@ import { cn } from '@/lib/utils';
 const MpinSettings = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [sheetMode, setSheetMode] = useState<'change' | 'reset'>('change');

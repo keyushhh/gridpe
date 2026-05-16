@@ -4,7 +4,7 @@ import { formatINR } from '@/utils/format';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUser, WalletTier } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
@@ -14,8 +14,7 @@ const WalletUpgradeSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { tier, flow, message } = location.state || { tier: '', flow: 'upgrade', message: '' };
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const queryClient = useQueryClient();
   const { setWalletTier, fetchProfileData } = useUser();
   const [tierDetails, setTierDetails] = useState<{

@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes';
 import { hapticMedium } from '@/utils/haptics';
 import { Eye, EyeOff } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { useSensitiveInput } from '@/hooks/useSensitiveInput';
 import { addCard } from '@/utils/cardUtils';
@@ -20,8 +20,7 @@ const AddCard = () => {
   const location = useLocation();
   const { profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   // Form State
   const [expiry, setExpiry] = useState('');
   const [cardHolder, setCardHolder] = useState('');

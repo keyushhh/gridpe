@@ -1,7 +1,7 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUser, WalletTier } from '@/contexts/UserContext';
@@ -33,8 +33,7 @@ const nextTierMap: Record<WalletTier, WalletTier | null> = {
 };
 const Subscriptions = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const {
     walletTier,
     walletLimit,
@@ -94,7 +93,7 @@ const Subscriptions = () => {
     } else {
       setIsSubscriptionActive(true);
     }
-  }, [walletTier, paymentStatus, isRenewalPending, profile?.subscription_status]);
+  }, [walletTier, paymentStatus, isRenewalPending, profile?.subscription_status, userId]);
   // Toast for loss if it just happened
   useEffect(() => {
     if (lastDowngradeLoss && lastDowngradeLoss > 0) {

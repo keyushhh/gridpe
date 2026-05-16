@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { Loader2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useAsset } from '@/hooks/useAsset';
 import BackButton from '@/components/ui/BackButton';
@@ -12,8 +12,7 @@ import WalletSkeleton from '@/components/skeletons/WalletSkeleton';
 const Wallet = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { isWalletActivated, activateWallet, isInitializing } = useUser();
   const [activeTab, setActiveTab] = useState<'how-it-works' | 'refund-policy'>('how-it-works');
   const walletBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);

@@ -4,14 +4,13 @@ import { ROUTES } from '@/routes';
 import { useState } from 'react';
 import BackButton from '@/components/ui/BackButton';
 import { X } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { cn } from '@/lib/utils';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const KYCIntro = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [showWhyModal, setShowWhyModal] = useState(false);
   const benefits = [
     {

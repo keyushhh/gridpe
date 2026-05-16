@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { Circle, CheckCircle2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Order } from '@/types';
 const ISSUE_CATEGORIES = [
   'I did not receive this order',
@@ -19,8 +19,7 @@ const NeedHelp = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const order = location.state?.order as Order | null;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [description, setDescription] = useState('');
   if (!order) {
@@ -334,7 +333,7 @@ const NeedHelp = () => {
           }}
           onClick={() => {
             // Handle Submit logic
-            navigate(ROUTES.HELP_REPORT_SUCCESS);
+            navigate(ROUTES.HELP_SUCCESS);
           }}
         >
           Submit

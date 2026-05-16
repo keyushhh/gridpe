@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { useUser, WalletTier } from '@/contexts/UserContext';
 import { tiers } from '@/lib/walletTiers';
@@ -23,8 +23,7 @@ const subscriptionBgsLight: Record<WalletTier, string> = {
 };
 const ManageSubscription = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { walletTier, walletLimit, scheduleDowngrade } = useUser();
   const currentTierConfig = tiers.find(t => t.name === walletTier);
   if (!currentTierConfig) return null;

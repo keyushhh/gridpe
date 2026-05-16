@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { Check, X, Loader2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -12,8 +12,7 @@ import { useUser } from '@/contexts/UserContext';
 import DiditSDK from '@didit-protocol/sdk-web';
 const KYCForm = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
   const [searchParams] = useSearchParams();
   const flow = searchParams.get('flow');

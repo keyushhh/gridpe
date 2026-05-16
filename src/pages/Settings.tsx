@@ -10,6 +10,7 @@ import { ChevronRight, Pencil, Lock } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useAsset } from '@/hooks/useAsset';
 import { useUser } from '@/contexts/UserContext';
 import { getCards } from '@/utils/cardUtils';
@@ -93,7 +94,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToaster } = useCustomToaster();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const {
     profile,
     kycStatus,
@@ -106,7 +107,7 @@ const Settings = () => {
   } = useUser();
 
   // Ensure we have a default boolean for the switch (true for dark)
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { containerOverflow } = useWebScroll();
 
   // ... (keep previous lines)
@@ -173,7 +174,9 @@ const Settings = () => {
         try {
           const fallbackCards = await getCards();
           cardCount = fallbackCards.length;
-        } catch (e) {}
+        } catch (e) {
+          // ignore error
+        }
       }
 
       return { bankCount, cardCount };

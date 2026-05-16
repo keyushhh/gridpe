@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Keyboard } from '@capacitor/keyboard';
@@ -11,8 +11,7 @@ import { Capacitor } from '@capacitor/core';
 const DeleteAccountOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
   const [otp, setOtp] = useState('');
   const [timeLeft, setTimeLeft] = useState(20);

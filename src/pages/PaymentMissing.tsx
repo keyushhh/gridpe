@@ -2,15 +2,14 @@ import { ASSETS } from '@/constants/assets';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 // Assets
 import { Button } from '@/components/ui/button';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const PaymentMissing = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const location = useLocation();
   const { amount } = location.state || {};
   return (

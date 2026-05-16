@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useRef } from 'react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { hapticMedium } from '@/utils/haptics';
@@ -27,11 +27,10 @@ interface RazorpayBankDetails {
 const AddBank = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
   const { showToaster } = useCustomToaster();
   const { profile } = useUser();
   const userId = profile?.id;
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [selection, setSelection] = useState<Selection>('auto');
   // Auto Flow State
   const [mobile, setMobile] = useState('');

@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { fetchBankAccounts, BankAccount } from '@/lib/banking';
 import { getBankLogo } from '@/utils/bankUtils';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { useUser } from '@/contexts/UserContext';
 interface PaymentMethod {
   id: string;
   name: string;
@@ -19,8 +20,8 @@ const SelectPaymentMethod = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const { profile } = useUser();
+  const isDarkMode = useIsDarkMode();
   const { amount, forceManual } = location.state || {};
   const [selectedMethod, setSelectedMethod] = useState<string>(forceManual ? 'upi-id' : '');
   const [upiId, setUpiId] = useState<string>('');
@@ -29,7 +30,7 @@ const SelectPaymentMethod = () => {
   useEffect(() => {
     const loadBanks = async () => {
       try {
-        const accounts = await fetchBankAccounts();
+        const accounts = await fetchBankAccounts(profile?.id || '');
         setBankAccounts(accounts);
         if (accounts.length > 0) {
           const defaultAcc = accounts.find(a => a.is_default) || accounts[0];
@@ -42,7 +43,7 @@ const SelectPaymentMethod = () => {
       }
     };
     loadBanks();
-  }, []);
+  }, [profile?.id]);
   const RadioButton = ({ selected }: { selected: boolean }) => (
     <div
       className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${

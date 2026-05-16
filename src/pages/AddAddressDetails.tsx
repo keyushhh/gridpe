@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticMedium } from '@/utils/haptics';
 import BackButton from '@/components/ui/BackButton';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -46,8 +46,7 @@ interface AddressState {
 const AddAddressDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
   const { profile } = useUser();
   const currentUserId = profile?.id;

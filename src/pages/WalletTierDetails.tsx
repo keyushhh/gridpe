@@ -3,14 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { tiers, tierChipColorMap, tierExpandCardMapLight } from '@/lib/walletTiers';
 const WalletTierDetails = () => {
   const { tierId } = useParams<{ tierId: string }>();
   const navigate = useNavigate();
   const { walletTier, setWalletTier, scheduledDowngrade } = useUser();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const currentTier = tiers.find(t => t.name.toLowerCase() === tierId?.toLowerCase());
   if (!currentTier) return null;
   const expandImage = isDarkMode

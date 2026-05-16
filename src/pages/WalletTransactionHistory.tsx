@@ -5,7 +5,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { WalletTransaction } from '@/types';
 import { supabase } from '@/lib/supabase';
@@ -135,7 +135,7 @@ const WalletTransactionHistory = () => {
       window.removeEventListener('refresh_wallet_transactions' as any, handleCustomRefresh);
       if (channel) supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userId]);
   const toggleDropdown = (id: string) => {
     setActiveDropdown(activeDropdown === id ? null : id);
   };
@@ -257,7 +257,7 @@ const WalletTransactionHistory = () => {
         const rect = triggerRef.current.getBoundingClientRect();
         setCoords({ top: rect.bottom, left: rect.left });
       }
-    }, [activeDropdown, id]);
+    }, [id]);
     return (
       <div className="relative" ref={triggerRef}>
         <div
@@ -381,19 +381,22 @@ const WalletTransactionHistory = () => {
         amazon: 'Amazon Pay Wallet',
         netbanking: 'HDFC Netbanking',
       };
-      const methodLabel = methodId ? methodNames[methodId as string] || 'Bank' : 'Netbanking';
-      subtitle = `Withdrawn to ${methodLabel}`;
-    } else if (desc.includes('withdrawal')) {
+      
+      const methodId = tx.metadata?.paymentMethodId as string | undefined;
       const method = tx.payout_method || tx.metadata?.payout_method;
       const vpa = tx.vpa || tx.metadata?.vpa;
-      title = 'Withdrawal';
-      if (method === 'upi') {
-        subtitle = `Withdrawn to ${vpa || 'UPI'}`;
-      } else if (method === 'card') {
-        subtitle = `Withdrawn to Card`;
-      } else {
-        subtitle = `Withdrawn to Bank`;
+      
+      let methodLabel = methodId ? methodNames[methodId] || 'Bank' : null;
+      if (!methodLabel) {
+        if (method === 'upi') {
+          methodLabel = vpa || 'UPI';
+        } else if (method === 'card') {
+          methodLabel = 'Card';
+        } else {
+          methodLabel = 'Bank';
+        }
       }
+      subtitle = `Withdrawn to ${methodLabel}`;
     } else if (
       desc.includes('cred') ||
       desc.includes('google pay') ||
@@ -592,8 +595,7 @@ const WalletTransactionHistory = () => {
       </div>
     );
   };
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   return (
     <div
       className={`h-screen w-full overflow-hidden flex flex-col pt-4 safe-top relative ${isDarkMode ? 'bg-background' : 'bg-background'}`}

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { supabase } from '@/lib/supabase';
 import { fetchActiveOrders, fetchPastOrders, cancelOrder, dev_seedMockOrders } from '@/lib/orders';
 import { Order } from '@/types';
@@ -249,8 +249,7 @@ const OrderHistory = () => {
   const location = useLocation();
   const { profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const showOnlyPast = location.state?.showOnlyPast || false;
   const searchParams = new URLSearchParams(location.search);
   const showOnlyRewards = location.state?.showOnlyRewards || searchParams.get('rewards') === 'true';

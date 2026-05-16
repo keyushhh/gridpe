@@ -4,11 +4,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import BackButton from '@/components/ui/BackButton';
 import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import { helpCategories } from '@/lib/helpData';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 const HelpCategoryPage = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { categoryId } = useParams<{ categoryId: string }>();
   const category = categoryId ? helpCategories[categoryId] : null;
   const [expandedId, setExpandedId] = useState<string | null>(null);

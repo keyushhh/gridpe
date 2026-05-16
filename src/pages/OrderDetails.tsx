@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { getOrderById, cancelOrder as lib_cancelOrder } from '@/lib/orders';
 import { Order } from '@/types';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
@@ -20,9 +20,7 @@ const OrderDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { orderId } = useParams<{ orderId: string }>();
-  const { resolvedTheme } = useTheme();
-  const { refreshBalance } = useUser();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,7 +102,7 @@ const OrderDetails = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [orderId, location.state]);
+  }, [orderId, location.state, loading]);
 
   // Assigning partner countdown
   useEffect(() => {

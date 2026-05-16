@@ -3,7 +3,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { SlideToPay } from '@/components/SlideToPay';
 const OrderSummary = () => {
   const navigate = useNavigate();
@@ -13,8 +13,7 @@ const OrderSummary = () => {
     retry: false,
     paymentMethod: null,
   };
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const parsedAmount = parseFloat(amount) || 0;
   const processingFee = 5.0;
   const platformFee = 0.0;

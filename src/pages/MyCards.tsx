@@ -4,7 +4,7 @@ import { ROUTES } from '@/routes';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BottomNavigation from '@/components/BottomNavigation';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { getCards, Card, removeCard, setDefaultCard } from '@/utils/cardUtils';
@@ -37,8 +37,7 @@ const MyCards = () => {
   const location = useLocation();
   const { profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [cards, setCards] = useState<Card[]>([]);
   const [isFabExpanded, setIsFabExpanded] = useState(false);
@@ -242,7 +241,7 @@ const MyCards = () => {
                   className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
                 >
                   <img
-                    src={ASSETS.MY_CARDS}
+                    src={ASSETS.CARD_ICON}
                     alt="No cards"
                     className="w-12 h-12 opacity-40"
                     style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}

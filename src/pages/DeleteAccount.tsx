@@ -4,13 +4,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { hapticWarning } from '@/utils/haptics';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 type OptionType = 'deactivate' | 'delete';
 const DeleteAccount = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [selectedOption, setSelectedOption] = useState<OptionType>('deactivate');
   const originPath = (location.state as any)?.originPath || ROUTES.SECURITY_DASHBOARD;
   const handleGoBack = () => {

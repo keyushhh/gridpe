@@ -23,6 +23,7 @@ import { useUser } from '@/contexts/UserContext';
 import { formatINR } from '@/utils/format';
 import { cancelOrder } from '@/lib/orders';
 import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import NotAvailable from './NotAvailable';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -77,8 +78,8 @@ const Homepage = () => {
   const orderCashBg = useAsset(ASSETS.ORDER_CASH_BUTTON_BG, '');
   const circleButtonBg = useAsset(ASSETS.CIRCLE_BUTTON, '');
   const bannerBg = useAsset(ASSETS.BANNER_BG_NEW, '');
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const { setTheme } = useTheme();
+  const isDarkMode = useIsDarkMode();
   const [showBalance, setShowBalance] = useState(false);
   const {
     walletBalance,
@@ -510,12 +511,13 @@ const Homepage = () => {
           ),
           sub: 'Assigning a delivery partner in the next 2 minutes.',
         };
-      case 'accepted':
+      case 'accepted': {
         const riderName = activeOrder.rider?.full_name || 'Rider';
         return {
           title: <>Rider is on the way to pickup!</>,
           sub: `${riderName} is heading to the store.`,
         };
+      }
       case 'processing':
         return isRiderAssigned
           ? {

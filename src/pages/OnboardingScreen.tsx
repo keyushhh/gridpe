@@ -20,7 +20,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import { Provider, User } from '@supabase/supabase-js';
 import PhoneInputSection from '@/components/onboarding/PhoneInputSection';
 import OTPInputSection from '@/components/onboarding/OTPInputSection';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 // --- Memoized Static Sub-components ---
@@ -84,8 +84,7 @@ const LegalFooter = memo(({ onNavigate }: LegalFooterProps) => (
 ));
 // --- Main Component ---
 const OnboardingScreen = () => {
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
   const {
     setPhoneNumber: savePhoneNumber,
@@ -220,6 +219,7 @@ const OnboardingScreen = () => {
       }
     };
     checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Supabase Auth Listener (Separate from initial check)
   useEffect(() => {

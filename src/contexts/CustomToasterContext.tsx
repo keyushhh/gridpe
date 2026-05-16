@@ -35,6 +35,7 @@ export const CustomToasterProvider: React.FC<{ children: ReactNode }> = ({ child
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCustomToaster = () => {
   const context = useContext(CustomToasterContext);
   if (!context) {

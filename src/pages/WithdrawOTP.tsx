@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
 import { useUser } from '@/contexts/UserContext';
@@ -19,8 +19,7 @@ const WithdrawOTP = () => {
   const location = useLocation();
   const { phoneNumber, refreshBalance, profile } = useUser();
   const userId = profile?.id;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [otp, setOtp] = useState('');
   const { showToaster } = useCustomToaster();
   const [isVerified, setIsVerified] = useState(false);
@@ -95,7 +94,7 @@ const WithdrawOTP = () => {
     ) {
       runVerification();
     }
-  }, [stateMethod, phoneNumber]);
+  }, [stateMethod, phoneNumber, actualUpiId]);
   // Priority: 1. stateMethod (passed from prev screen), 2. fallback
   const method = { ...(stateMethod || { id: 'unknown', name: 'Transfer' }) };
   // UI Sync: Show ID string instead of generic name for manual mode or fallback

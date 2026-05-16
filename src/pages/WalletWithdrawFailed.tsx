@@ -2,12 +2,11 @@ import { ASSETS } from '@/constants/assets';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 const WalletWithdrawFailed = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const rawAmount = location.state?.amount;
   const amount = typeof rawAmount === 'number' ? rawAmount : parseFloat(rawAmount || '0');
   const formattedAmount = (amount || 0).toLocaleString('en-IN', {

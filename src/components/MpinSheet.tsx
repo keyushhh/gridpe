@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { X } from 'lucide-react';
 import { isWeakMpin } from '@/utils/validationUtils';
 import { hashMpin } from '@/utils/cryptoUtils';
@@ -19,8 +19,7 @@ interface MpinSheetProps {
 }
 const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile, resetForDemo } = useUser();
   // State for steps
   type Step = 'VERIFY_OLD' | 'CREATE_NEW' | 'SUCCESS';

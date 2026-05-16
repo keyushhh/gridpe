@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/button';
 import { useWebScroll } from '@/hooks/useWebScroll';
@@ -15,8 +15,7 @@ const OrderCash = () => {
   const { walletLimit, walletBalance } = useUser();
   const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>('0.00');
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const handleKeyPress = (key: string) => {
     setAmount(prev => {
       if (prev === '0.00') {

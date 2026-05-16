@@ -13,13 +13,12 @@ import { OpenLocationCode } from 'open-location-code';
 import { Order } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { setBadge } from '@/utils/badge';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import DevModeOverlay from '@/components/DevModeOverlay';
 const OrderTracking = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [order, setOrder] = useState<Order | null>(location.state?.order || null);
   const [isLoading, setIsLoading] = useState(!location.state?.order);
   // Map State

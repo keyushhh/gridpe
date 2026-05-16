@@ -2,15 +2,14 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useAuth } from '@/hooks/useAuth';
 const AccountDeactivated = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { logout } = useAuth();
   const [countdown, setCountdown] = useState(30);
   useEffect(() => {
@@ -22,7 +21,7 @@ const AccountDeactivated = () => {
       setCountdown(prev => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, [countdown, navigate]);
+  }, [countdown, navigate, logout]);
   const handlePanicked = () => {
     navigate(ROUTES.SECURITY_DASHBOARD);
   };

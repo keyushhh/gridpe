@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/ui/BackButton';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 interface Message {
   id: string;
@@ -18,8 +18,7 @@ interface Message {
 }
 const ZingChat = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { isSecureStorageReady } = useUser();
 
   const [inputValue, setInputValue] = useState('');

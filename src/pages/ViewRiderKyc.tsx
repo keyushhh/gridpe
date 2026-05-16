@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { supabase } from '@/lib/supabase';
@@ -17,8 +17,7 @@ const ViewRiderKyc = () => {
   const [rider, setRider] = useState<any>(order?.rider);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const [isRevealed, setIsRevealed] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [rotation, setRotation] = useState(0);

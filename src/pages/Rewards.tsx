@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Copy, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '@/components/BottomNavigation';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
@@ -30,8 +30,7 @@ interface RewardTransaction {
 const POINTS_PER_RUPEE = 40;
 const Rewards = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile, fetchProfileData, rewardPoints } = useUser();
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
@@ -95,6 +94,7 @@ const Rewards = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
   const totalPoints = rewardPoints;
   const latestExpiry = useMemo(() => {

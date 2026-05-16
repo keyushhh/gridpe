@@ -6,7 +6,7 @@ import BackButton from '@/components/ui/BackButton';
 import { ChevronRight } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import Lottie from 'lottie-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useAsset } from '@/hooks/useAsset';
 import MpinSheet from '@/components/MpinSheet';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
@@ -21,8 +21,7 @@ const SecurityDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const originPath = (location.state as any)?.originPath || '/settings';
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile, kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showMpinForBiometric, setShowMpinForBiometric] = useState(false);

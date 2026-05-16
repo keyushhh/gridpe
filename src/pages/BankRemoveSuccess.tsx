@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const BankRemoveSuccess = () => {
   const { containerOverflow } = useWebScroll();
@@ -11,8 +11,7 @@ const BankRemoveSuccess = () => {
   const [countdown, setCountdown] = useState(30);
   // Get last4 from state, fallback if missing
   const last4 = location.state?.last4 || 'XXXX';
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown(prev => {

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { InputOTP } from '@/components/ui/input-otp';
 import { hashMpin } from '@/utils/cryptoUtils';
@@ -83,8 +83,7 @@ const ConfirmDeactivation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const originPath = (location.state as any)?.originPath || ROUTES.SETTINGS;
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { profile } = useUser();
   const [mpin, setMpinState] = useState('');
   const [isValid, setIsValid] = useState(false);

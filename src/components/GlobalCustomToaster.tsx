@@ -3,12 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { hapticError, hapticSuccess } from '@/utils/haptics';
 import { X } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useSafeArea } from '@/hooks/useSafeArea';
 const GlobalCustomToaster: React.FC = () => {
   const { isVisible, message, type, hideToaster } = useCustomToaster();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { bottom: bottomInset } = useSafeArea();
   const [progress, setProgress] = useState(0);
   const duration = 4000; // 4 seconds to match loader animation spec

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useUser, WalletTier } from '@/contexts/UserContext';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { tiers, tierIconMap } from '@/lib/walletTiers';
 // Import Assets
 // Light Mode Assets
@@ -34,8 +34,7 @@ const downgradeBgsLight: Record<WalletTier, string> = {
 };
 const DowngradePlan = () => {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   const { walletTier, setWalletTier } = useUser();
   const [selectedTier, setSelectedTier] = useState<WalletTier | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);

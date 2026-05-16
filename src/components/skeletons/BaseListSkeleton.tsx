@@ -1,14 +1,13 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 interface BaseListSkeletonProps {
   rows?: number;
 }
 
 const BaseListSkeleton: React.FC<BaseListSkeletonProps> = ({ rows = 5 }) => {
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
 
   return (
     <div className="w-full flex flex-col gap-4" data-testid="base-list-skeleton">
