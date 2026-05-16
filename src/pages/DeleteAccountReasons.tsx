@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { LocationState } from '@/types/navigation';
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -23,7 +24,7 @@ const DeleteAccountReasons = () => {
     navigate(-1);
   };
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || ROUTES.HOME, { replace: true });
+    navigate((location.state as LocationState)?.originPath || ROUTES.HOME, { replace: true });
   };
   const handleDelete = () => {
     navigate(ROUTES.DELETE_ACCOUNT_MOBILE, {

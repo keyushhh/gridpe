@@ -16,11 +16,13 @@ import { Switch } from '@/components/ui/switch';
 import { hapticLight } from '@/utils/haptics';
 import { Capacitor } from '@capacitor/core';
 import { useWebScroll } from '@/hooks/useWebScroll';
+interface LocationState { originPath?: string }
+
 const SecurityDashboard = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const originPath = (location.state as any)?.originPath || '/settings';
+  const originPath = (location.state as LocationState)?.originPath || '/settings';
   const isDarkMode = useIsDarkMode();
   const { profile, kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
@@ -140,9 +142,10 @@ const SecurityDashboard = () => {
         }
         // Collect MPIN first
         setShowMpinForBiometric(true);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
-        toast.error(error?.message || 'Failed to check biometric availability');
+        const errorMessage = error instanceof Error ? error.message : 'Failed to check biometric availability';
+        toast.error(errorMessage);
       }
     }
   };
@@ -167,9 +170,10 @@ const SecurityDashboard = () => {
         await SecureStorage.set('mpin', mpin);
       }
       toast.success('Biometric unlock enabled!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Biometric authentication failed:', JSON.stringify(error, null, 2));
-      toast.error(error?.message || 'Authentication failed or cancelled');
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed or cancelled';
+      toast.error(errorMessage);
     } finally {
       setShowMpinForBiometric(false);
     }

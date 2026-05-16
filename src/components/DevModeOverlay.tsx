@@ -63,8 +63,8 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
       setTimeout(() => {
         navigate(ROUTES.ORDER_DELIVERED, { state: { orderId } });
       }, 1000);
-    } catch (err: any) {
-      showToaster(err.message, 'error');
+    } catch (err: unknown) {
+      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
     }
   };
 
@@ -86,8 +86,8 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
       await refreshBalance();
       await fetchBalances();
       setTimeout(() => window.location.reload(), 1000);
-    } catch (err: any) {
-      showToaster(err.message, 'error');
+    } catch (err: unknown) {
+      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
     }
   };
 
@@ -104,8 +104,8 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
       showToaster('Hold released (emergency)!', 'success');
       await refreshBalance();
       await fetchBalances();
-    } catch (err: any) {
-      showToaster(err.message, 'error');
+    } catch (err: unknown) {
+      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
     }
   };
 

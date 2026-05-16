@@ -77,5 +77,13 @@ export const ROUTES = {
   AUTH_CALLBACK: '/auth/v1/callback',
   LEGAL_TERMS: '/legal/terms',
   LEGAL_PRIVACY: '/legal/privacy',
+  ACCOUNT_RETRIEVED: '/account-retrieved',
+  CAMERA_PAGE: '/camera-page',
+  ACCOUNT_DEACTIVATED: '/account-deactivated',
+  CONFIRM_DEACTIVATION: '/confirm-deactivation',
+  DELETE_ACCOUNT_REASONS: '/delete-account-reasons',
+  ACCOUNT_DELETED: '/account-deleted',
+  DELETE_ACCOUNT_MOBILE: '/delete-account-mobile',
+  DELETE_ACCOUNT_OTP: '/delete-account-otp',
   NOT_FOUND: '*',
 } as const;

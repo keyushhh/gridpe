@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticWarning } from '@/utils/haptics';
-import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
+import Map, { Marker, Source, Layer, LayerProps } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Order } from '@/types';
 import { cn } from '@/lib/utils';
@@ -128,9 +128,10 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error submitting rating:', err);
-      showToaster(err.message || 'Failed to submit rating', 'error');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit rating';
+      showToaster(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -228,7 +229,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
       ],
     },
   };
-  const routeLayer: any = {
+  const routeLayer: LayerProps = {
     id: 'route-line',
     type: 'line',
     paint: {
@@ -334,7 +335,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 <span
                   className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
-                  {(order.meta_data as any)?.isFx
+                  {order.meta_data?.type === 'FX_EXCHANGE'
                     ? 'FX Exchange'
                     : order.addresses?.label
                       ? `Order to ${order.addresses.label}`
@@ -349,8 +350,8 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               <span
                 className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
-                {(order.meta_data as any)?.isFx
-                  ? `${currencySymbols[(order.meta_data as any).toCurrency as string] || ''}${Number((order.meta_data as any).receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                {order.meta_data?.type === 'FX_EXCHANGE'
+                  ? `${currencySymbols[order.meta_data.to_currency || order.meta_data.toCurrency || ''] || ''}${Number(order.meta_data.receive_amount || order.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                   : `₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
               </span>
               <div
@@ -471,7 +472,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                           <img
                             src={(() => {
                               const rider = order?.rider;
-                              const photo = rider?.kyc_photo || (rider as any)?.profile_photo;
+                              const photo = rider?.kyc_photo || rider?.profile_photo;
                               if (!photo) return ASSETS.AVATAR;
                               if (photo.startsWith('http')) return photo;
                               return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;
@@ -954,8 +955,9 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 <p
                   className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
-                  {(order.meta_data as any)?.cancellation_reason ||
-                    (order.meta_data as any)?.cancel_reason_text ||
+                  {(order.meta_data?.type === 'CASH_ORDER' || order.meta_data?.type === 'FX_EXCHANGE'
+                    ? order.meta_data.cancel_reason_text
+                    : '') ||
                     (order.status === 'cancelled'
                       ? 'Order was cancelled by the user.'
                       : 'Payment was declined by your bank.')}
@@ -1100,7 +1102,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               style={
                 {
                   '--glass-specular-intensity': '0.2',
-                } as any
+                } as React.CSSProperties
               }
             >
               {isDarkMode && (

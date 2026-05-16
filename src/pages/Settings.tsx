@@ -23,6 +23,8 @@ import { useWebScroll } from '@/hooks/useWebScroll';
 
 type SecurityStatus = 'verified' | 'in_review' | 'pending' | 'incomplete';
 
+interface LocationState { originPath?: string }
+
 const getSecurityConfig = (
   status: SecurityStatus,
   assets: { complete: string; pending: string; incomplete: string },
@@ -113,7 +115,7 @@ const Settings = () => {
   // ... (keep previous lines)
 
   const userId = profile?.id;
-  const originPath = (location.state as any)?.originPath || ROUTES.SETTINGS;
+  const originPath = (location.state as LocationState)?.originPath || ROUTES.SETTINGS;
   const [pushNotifications, setPushNotifications] = useState(true);
   const [transactionAlerts, setTransactionAlerts] = useState(false);
 
@@ -281,7 +283,7 @@ const Settings = () => {
               {
                 ...(!isDarkMode ? { backgroundColor: '#000000' } : {}),
                 '--glass-specular-intensity': '0.2',
-              } as any
+              } as React.CSSProperties
             }
           >
             {isDarkMode && (

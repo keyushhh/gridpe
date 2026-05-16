@@ -206,7 +206,11 @@ const Subscriptions = () => {
         order_id: order.id,
         name: 'Grid.pe',
         description: `${selectedTierName.toUpperCase()} Renewal`,
-        handler: async function (response) {
+        handler: async function (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
           try {
             setIsLoadingPay(true);
             const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-subscription`;
@@ -256,7 +260,8 @@ const Subscriptions = () => {
         },
         theme: { color: '#5260FE' },
       };
-      const rzp = new window.Razorpay(options);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rzp = new (window as any).Razorpay(options);
       rzp.on(
         'payment.failed',
         function (paymentError: { error: { code: string; description: string } }) {
@@ -265,7 +270,7 @@ const Subscriptions = () => {
         }
       );
       rzp.open();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('RAZORPAY_FAILURE:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       alert('Error: ' + errorMessage);

@@ -10,7 +10,7 @@ import { OpenLocationCode } from 'open-location-code';
 import { fetchRecentOrders, fetchActiveOrders } from '@/lib/orders';
 import { Order, SavedAddress, Rider } from '@/types';
 import { supabase } from '@/lib/supabase';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useAsset } from '@/hooks/useAsset';
 import useEmblaCarousel from 'embla-carousel-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
@@ -342,19 +342,19 @@ const Homepage = () => {
           table: 'orders',
           filter: `user_id=eq.${userId}`,
         },
-        async (payload: any) => {
+        async (payload: RealtimePostgresChangesPayload<Order>) => {
           queryClient.invalidateQueries({ queryKey: ['active-order', userId] });
           queryClient.invalidateQueries({ queryKey: ['recent-orders', userId] });
 
           // Detect order completion to show RatingSheet
-          const newOrder = payload.new;
+          const newOrder = (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') ? payload.new : null;
           if (
             newOrder &&
             (newOrder.status === 'success' || newOrder.status === 'delivered') &&
             newOrder.rider_id
           ) {
             // Check if status changed to completed
-            const oldStatus = payload.old?.status;
+            const oldStatus = payload.eventType === 'UPDATE' ? (payload.old as Order)?.status : null;
             if (oldStatus !== 'success' && oldStatus !== 'delivered') {
               try {
                 const { data: rider } = await supabase
@@ -807,7 +807,7 @@ const Homepage = () => {
                     'w-[160px] h-[44px] shadow-xl transition-all',
                     !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full'
                   )}
-                  style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as any) : {}}
+                  style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
                 >
                   <img src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
                   <span
@@ -1186,10 +1186,10 @@ const Homepage = () => {
                                   <span
                                     className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}
                                   >
-                                    {(tx.meta_data as any)?.isFx
+                                    {tx.meta_data?.type === 'FX_EXCHANGE'
                                       ? 'FX Exchange'
-                                      : (tx.meta_data as any)?.item_value
-                                        ? `Ordered ₹${(tx.meta_data as any).item_value} Cash`
+                                      : tx.meta_data?.type === 'CASH_ORDER' && tx.meta_data.item_value
+                                        ? `Ordered ₹${tx.meta_data.item_value} Cash`
                                         : tx.addresses?.label
                                           ? `Order to ${tx.addresses.label}`
                                           : 'Cash Order'}
@@ -1208,8 +1208,8 @@ const Homepage = () => {
                                 <span
                                   className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}
                                 >
-                                  {(tx.meta_data as any)?.isFx
-                                    ? `${currencySymbols[(tx.meta_data as any).toCurrency as string] || ''}${Number((tx.meta_data as any).receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                  {tx.meta_data?.type === 'FX_EXCHANGE'
+                                    ? `${currencySymbols[tx.meta_data.to_currency || tx.meta_data.toCurrency || ''] || ''}${Number(tx.meta_data.receive_amount || tx.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                     : `₹${(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                                 </span>
                               </div>

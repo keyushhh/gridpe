@@ -9,6 +9,7 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
+import { OrderMetadata } from '@/types';
 interface RewardTransaction {
   id: string;
   user_id: string;
@@ -24,7 +25,7 @@ interface RewardTransaction {
     amount: number;
     status: string;
     order_type: string;
-    meta_data: any;
+    meta_data: OrderMetadata | null;
   };
 }
 const POINTS_PER_RUPEE = 40;
@@ -300,9 +301,9 @@ const Rewards = () => {
                             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}
                           >
                             {order
-                              ? order.meta_data?.isFx
+                              ? order.meta_data?.type === 'FX_EXCHANGE'
                                 ? 'FX Exchange'
-                                : order.meta_data?.item_value
+                                : order.meta_data?.type === 'CASH_ORDER' && order.meta_data.item_value
                                   ? `Ordered ₹${order.meta_data.item_value} Cash`
                                   : 'Cash Order'
                               : tx.description}
@@ -323,8 +324,8 @@ const Rewards = () => {
                           className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}
                         >
                           {order
-                            ? order.meta_data?.isFx
-                              ? `${currencySymbols[order.meta_data.toCurrency as string] || ''}${Number(order.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                            ? order.meta_data?.type === 'FX_EXCHANGE'
+                              ? `${currencySymbols[order.meta_data.to_currency || order.meta_data.toCurrency || ''] || ''}${Number(order.meta_data.receive_amount || order.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                               : `₹${(order.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                             : '-'}
                         </span>

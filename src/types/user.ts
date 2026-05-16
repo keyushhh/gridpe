@@ -18,4 +18,6 @@ export interface SavedAddress extends Address {
   phone?: string;
   postcode?: string;
   plusCode?: string;
+  address_line?: string;
+  full_address?: string;
 }

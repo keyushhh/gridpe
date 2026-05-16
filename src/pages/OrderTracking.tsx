@@ -15,6 +15,12 @@ import { supabase } from '@/lib/supabase';
 import { setBadge } from '@/utils/badge';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import DevModeOverlay from '@/components/DevModeOverlay';
+import type { LayerProps } from 'react-map-gl/maplibre';
+import type { 
+  RealtimePostgresChangesPayload, 
+  RealtimePostgresUpdatePayload 
+} from '@supabase/supabase-js';
+
 const OrderTracking = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,8 +116,8 @@ const OrderTracking = () => {
             table: 'assigned_rider_location',
             filter: `order_id=eq.${order.id}`,
           },
-          (payload: any) => {
-            if (payload.new && payload.new.current_lat && payload.new.current_lng) {
+          (payload: RealtimePostgresChangesPayload<{ current_lat: number; current_lng: number }>) => {
+            if (payload.eventType !== 'DELETE' && payload.new.current_lat && payload.new.current_lng) {
               setRiderLocation({
                 lat: payload.new.current_lat,
                 lng: payload.new.current_lng,
@@ -131,7 +137,7 @@ const OrderTracking = () => {
             table: 'orders',
             filter: `id=eq.${order.id}`,
           },
-          (payload: any) => {
+          (payload: RealtimePostgresUpdatePayload<Order>) => {
             if (payload.new) {
               const newStatus = payload.new.status;
               setOrder(prev => (prev ? { ...prev, ...payload.new } : payload.new));
@@ -171,7 +177,7 @@ const OrderTracking = () => {
       const timer = setTimeout(() => setIsLoading(false), 1500);
       return () => clearTimeout(timer);
     }
-  }, [order?.rider_id, order?.id]);
+  }, [order?.id, order?.rider_id, navigate]);
   useEffect(() => {
     // Simulate rider entering the OTP after 60 seconds
     const timer = setTimeout(async () => {
@@ -198,7 +204,7 @@ const OrderTracking = () => {
       ],
     },
   };
-  const routeLayer: any = {
+  const routeLayer: LayerProps = {
     id: 'route-line',
     type: 'line',
     paint: {
@@ -414,7 +420,7 @@ const OrderTracking = () => {
                 <img
                   src={(() => {
                     const rider = order?.rider;
-                    const photo = rider?.kyc_photo || (rider as any)?.profile_photo;
+                    const photo = rider?.kyc_photo || rider?.profile_photo;
                     if (!photo) return ASSETS.AVATAR;
                     if (photo.startsWith('http')) return photo;
                     return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;

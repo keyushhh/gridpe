@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
@@ -11,8 +11,37 @@ import { tierIconMap, tierCardMap, tierCardMapLight } from '@/lib/walletTiers';
 import { useAsset } from '@/hooks/useAsset';
 import { supabase } from '@/lib/supabase';
 import BalanceAlert from '@/components/BalanceAlert';
+import { Tables } from '@/types/database';
+
+type BaseWalletTransaction = Tables['wallet_transactions'];
+type Payout = Tables['payouts'];
+
+interface WalletTransactionMerged extends BaseWalletTransaction {
+  date: string;
+}
+
+interface PayoutMerged extends Omit<Payout, 'status' | 'payout_method'> {
+  transaction_type: 'debit';
+  status: string;
+  date: string;
+  description: string;
+  payout_method?: string | null;
+  vpa?: string | null;
+  metadata?: never;
+}
+
+type CombinedTransaction = WalletTransactionMerged | PayoutMerged;
+
+interface LocationState {
+  transitionSuccess?: {
+    type: string;
+    tier: string;
+  };
+}
+
 const WalletCreated = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const queryClient = useQueryClient();
   const {
@@ -67,55 +96,59 @@ const WalletCreated = () => {
       return data;
     },
   });
-  const { data: walletTransactions = [], isLoading: isTxLoading } = useQuery({
-    queryKey: ['wallet_transactions', userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const [txRes, payoutRes] = await Promise.all([
-        supabase.from('wallet_transactions').select('*').eq('user_id', userId),
-        supabase.from('payouts').select('*').eq('user_id', userId),
-      ]);
-      let merged: any[] = [];
-      if (txRes.data) {
-        merged = txRes.data.map(tx => ({ ...tx, date: tx.created_at }));
-      }
-      if (payoutRes.data) {
-        payoutRes.data.forEach(p => {
-          // Avoid double counting if already bridged in wallet_transactions
-          const exists = merged.some(
-            m =>
-              m.description?.toLowerCase().includes('withdrawal') &&
-              Math.abs(m.amount) === Math.abs(p.amount) &&
-              new Date(m.created_at).getTime() === new Date(p.created_at).getTime()
+  const { data: walletTransactions = [] as CombinedTransaction[], isLoading: isTxLoading } =
+    useQuery<CombinedTransaction[]>({
+      queryKey: ['wallet_transactions', userId],
+      enabled: !!userId,
+      queryFn: async () => {
+        const [txRes, payoutRes] = await Promise.all([
+          supabase.from('wallet_transactions').select('*').eq('user_id', userId),
+          supabase.from('payouts').select('*').eq('user_id', userId),
+        ]);
+        let merged: CombinedTransaction[] = [];
+        if (txRes.data) {
+          merged = txRes.data.map(
+            tx => ({ ...tx, date: tx.created_at }) as WalletTransactionMerged
           );
-          if (!exists) {
-            merged.push({
-              id: p.id,
-              user_id: p.user_id,
-              amount: p.amount,
-              transaction_type: 'debit',
-              status: p.status,
-              created_at: p.created_at,
-              date: p.created_at,
-              description: 'Wallet Withdrawal',
-              payout_method: p.payout_method,
-              vpa: p.vpa,
-            });
-          }
-        });
-      }
-      return merged.sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-    },
-  });
+        }
+        if (payoutRes.data) {
+          payoutRes.data.forEach(p => {
+            // Avoid double counting if already bridged in wallet_transactions
+            const exists = merged.some(
+              m =>
+                m.description?.toLowerCase().includes('withdrawal') &&
+                Math.abs(m.amount) === Math.abs(p.amount) &&
+                new Date(m.created_at).getTime() === new Date(p.created_at).getTime()
+            );
+            if (!exists) {
+              merged.push({
+                id: p.id,
+                user_id: p.user_id,
+                amount: p.amount,
+                transaction_type: 'debit',
+                status: p.status || 'pending',
+                created_at: p.created_at,
+                date: p.created_at,
+                description: 'Wallet Withdrawal',
+                payout_method: p.payout_method,
+                vpa: p.vpa,
+              } as PayoutMerged);
+            }
+          });
+        }
+        return merged.sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      },
+    });
 
   const walletBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
 
   useEffect(() => {
     if (!userId) return;
-    const handleRefresh = (e: any) => {
-      if (e.detail?.userId === userId) {
+    const handleRefresh = (e: Event) => {
+      const customEvent = e as CustomEvent<{ userId: string }>;
+      if (customEvent.detail?.userId === userId) {
         queryClient.invalidateQueries({ queryKey: ['wallet_transactions', userId] });
         queryClient.invalidateQueries({ queryKey: ['wallet', userId] });
       }
@@ -163,8 +196,9 @@ const WalletCreated = () => {
   const dbTier = walletTier;
   const dbLimit = wallet_tiers?.max_wallet_balance || walletLimit;
   const dbDailyLimit = wallet_tiers?.daily_withdraw_limit ?? dailyLimit;
-  const getTransactionDisplay = (tx: any) => {
-    const txType = tx.transaction_type || tx.type;
+  const getTransactionDisplay = (tx: CombinedTransaction) => {
+    const isPayout = 'transaction_type' in tx;
+    const txType = isPayout ? tx.transaction_type : tx.type;
     const status = tx.status?.toLowerCase();
     let title =
       status === 'held'
@@ -173,7 +207,8 @@ const WalletCreated = () => {
           ? 'Amount Credited'
           : 'Amount Debited';
     let subtitle = tx.description;
-    const methodId = tx.metadata?.paymentMethodId as string | undefined;
+    const metadata = !isPayout ? (tx as WalletTransactionMerged).metadata : undefined;
+    const methodId = metadata?.paymentMethodId as string | undefined;
     // Try mapping from metadata first
     if (methodId && txType === 'credit') {
       if (['cred', 'gpay', 'phonepe', 'upi-id'].includes(methodId)) {
@@ -191,8 +226,8 @@ const WalletCreated = () => {
     }
     // Specific subtitle for withdrawals
     if (tx.description?.toLowerCase().includes('withdrawal')) {
-      const method = tx.payout_method || tx.metadata?.payout_method;
-      const vpa = tx.vpa || tx.metadata?.vpa;
+      const method = isPayout ? tx.payout_method : metadata?.payout_method;
+      const vpa = isPayout ? tx.vpa : metadata?.vpa;
       if (method === 'upi') {
         return { title: 'Withdrawn', subtitle: `Withdrawn to ${vpa || 'UPI'}` };
       } else if (method === 'bank_transfer') {
@@ -204,7 +239,7 @@ const WalletCreated = () => {
     }
     // Fallback to pattern matching
     const desc = tx.description.toLowerCase();
-    if (tx.metadata?.isFx || desc.includes('fx exchange')) {
+    if (metadata?.isFx || desc.includes('fx exchange')) {
       title =
         status === 'held'
           ? 'Amount Held'
@@ -214,7 +249,7 @@ const WalletCreated = () => {
       subtitle = 'FX Exchange';
     } else if (desc.includes('cash order') || desc.includes('cash delivery')) {
       title = status === 'held' ? 'Amount Held' : 'Amount Debited';
-      subtitle = tx.metadata?.item_value ? `Ordered ₹${tx.metadata.item_value} Cash` : 'Cash Order';
+      subtitle = metadata?.item_value ? `Ordered ₹${metadata.item_value} Cash` : 'Cash Order';
     } else if (desc.includes('withdrawal')) {
       title = 'Withdrawal';
       const methodNames: Record<string, string> = {
@@ -233,7 +268,7 @@ const WalletCreated = () => {
       if (desc.includes('upi')) subtitle = 'Added via UPI';
       else if (desc.includes('card')) subtitle = 'Added via Cards';
       else if (desc.includes('netbanking')) subtitle = 'Added via Netbanking';
-    } else if (txType === 'tier_adjustment') {
+    } else if (txType === ('tier_adjustment' as string)) {
       title = 'Tier Adjustment';
       subtitle = 'Balance adjusted for tier limit';
     }
@@ -256,11 +291,10 @@ const WalletCreated = () => {
         Supreme: '100',
       };
       const price = priceMap[dbTier] || '0';
-      const isDowngradePending =
-        isRenewalPending || (profile as any)?.subscription_status === 'pending';
+      const isDowngradePending = isRenewalPending || profile?.subscription_status === 'pending';
       const showWarning = isDowngradePending;
       const hasScheduledDowngrade = !!scheduledDowngrade;
-      const transitionSuccess = (location as any).state?.transitionSuccess;
+      const transitionSuccess = (location.state as LocationState)?.transitionSuccess;
       return (
         <div className="mt-[16px]">
           <div className="flex items-center">
@@ -300,7 +334,8 @@ const WalletCreated = () => {
       let shadowClass = '';
       let title = '';
       let description = '';
-      const type = latestTx.transaction_type?.toLowerCase();
+      const isPayout = 'transaction_type' in latestTx;
+      const type = (isPayout ? latestTx.transaction_type : latestTx.type).toLowerCase();
       const txDescription = latestTx.description?.toLowerCase() || '';
       const status = latestTx.status?.toLowerCase();
       const isTopUp = type === 'credit' || txDescription.includes('top-up');
@@ -328,10 +363,11 @@ const WalletCreated = () => {
         statusClass = 'bg-destructive';
         shadowClass = 'shadow-[0_0_0_5px_rgba(211,51,19,0.17)]';
         if (isWithdrawal) {
-          const method = latestTx.payout_method || latestTx.metadata?.payout_method;
+          const isPayout = 'transaction_type' in latestTx;
+          const method = isPayout ? latestTx.payout_method : (latestTx as any).metadata?.payout_method;
           let mode = 'Bank Account';
           if (method === 'upi') {
-            mode = latestTx.vpa || latestTx.metadata?.vpa || 'UPI';
+            mode = isPayout ? latestTx.vpa : (latestTx as any).metadata?.vpa || 'UPI';
           } else if (method === 'card') {
             mode = 'Card';
           } else if (method === 'bank_transfer') {
@@ -573,7 +609,8 @@ const WalletCreated = () => {
               <div className="flex flex-col gap-[16px]">
                 {walletTransactions.slice(0, 10).map(tx => {
                   const status = tx.status?.toLowerCase();
-                  const type = tx.transaction_type?.toLowerCase();
+                  const isPayout = 'transaction_type' in tx;
+                  const type = (isPayout ? tx.transaction_type : tx.type).toLowerCase();
                   const desc = tx.description?.toLowerCase() || '';
                   const isMoneyIn =
                     type === 'credit' || type === 'deposit' || desc.includes('top-up');
@@ -640,23 +677,23 @@ const WalletCreated = () => {
       {/* Footer CTA */}
       <div className="shrink-0 px-5 mt-auto safe-bottom pb-4 pt-4 w-full bg-transparent flex flex-col gap-[12px]">
         <button
-          disabled={isRenewalPending || (profile as any)?.subscription_status === 'pending'}
+          disabled={isRenewalPending || profile?.subscription_status === 'pending'}
           onClick={() =>
             !isRenewalPending &&
-            (profile as any)?.subscription_status !== 'pending' &&
+            profile?.subscription_status !== 'pending' &&
             navigate(ROUTES.WALLET_ADD_MONEY)
           }
-          className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${isRenewalPending || (profile as any)?.subscription_status === 'pending' ? 'bg-muted cursor-not-allowed opacity-50' : 'bg-primary'}`}
+          className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${isRenewalPending || profile?.subscription_status === 'pending' ? 'bg-muted cursor-not-allowed opacity-50' : 'bg-primary'}`}
         >
           Add Money
         </button>
         {walletBalance > 0 && (
           <button
             onClick={() => navigate(ROUTES.WALLET_WITHDRAW)}
-            disabled={isRenewalPending || (profile as any)?.subscription_status === 'pending'}
-            className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${isRenewalPending || (profile as any)?.subscription_status === 'pending' ? 'bg-muted cursor-not-allowed opacity-50' : isDarkMode ? '' : 'bg-black'}`}
+            disabled={isRenewalPending || profile?.subscription_status === 'pending'}
+            className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans rounded-full active:scale-95 transition-transform ${isRenewalPending || profile?.subscription_status === 'pending' ? 'bg-muted cursor-not-allowed opacity-50' : isDarkMode ? '' : 'bg-black'}`}
             style={
-              isRenewalPending || (profile as any)?.subscription_status === 'pending'
+              isRenewalPending || profile?.subscription_status === 'pending'
                 ? {}
                 : {
                     backgroundImage: isDarkMode ? `url(${ASSETS.ADD_PAYMENT_CTA})` : 'none',

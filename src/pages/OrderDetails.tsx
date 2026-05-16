@@ -8,7 +8,7 @@ import { OpenLocationCode } from 'open-location-code';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { getOrderById, cancelOrder as lib_cancelOrder } from '@/lib/orders';
-import { Order } from '@/types';
+import { Order, OrderMetadata } from '@/types';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -184,12 +184,13 @@ const OrderDetails = () => {
           cancel_reason_type: reasonType,
           cancel_reason_text: reasonText,
           cancelled_at: new Date().toISOString(),
-        } as any,
+        } as OrderMetadata,
       });
       setShowCancelPopup(false);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Failed to cancel order', e);
-      showToaster(`Failed to cancel order: ${e.message || 'Please contact support.'}`, 'error');
+      const errorMessage = e instanceof Error ? e.message : 'Please contact support.';
+      showToaster(`Failed to cancel order: ${errorMessage}`, 'error');
     }
   };
   const getAddressDisplay = () => {
@@ -262,7 +263,7 @@ const OrderDetails = () => {
         showMap: false,
         deliveryText: 'Payment Failed',
         deliverySubText:
-          (currentOrder.meta_data?.type === 'CASH_ORDER'
+          (currentOrder.meta_data?.type === 'CASH_ORDER' || currentOrder.meta_data?.type === 'FX_EXCHANGE'
             ? currentOrder.meta_data.cancel_reason_text
             : '') || 'Something went wrong.',
         transactionNote: 'If any amount was deducted, it will be refunded instantly.',
@@ -278,7 +279,7 @@ const OrderDetails = () => {
         showMap: false,
         deliveryText: 'Order Cancelled',
         deliverySubText:
-          (currentOrder.meta_data?.type === 'CASH_ORDER'
+          (currentOrder.meta_data?.type === 'CASH_ORDER' || currentOrder.meta_data?.type === 'FX_EXCHANGE'
             ? currentOrder.meta_data.cancel_reason_type
             : '') || 'Order cancelled by user.',
         transactionNote: 'Refund has been initiated to your wallet.',

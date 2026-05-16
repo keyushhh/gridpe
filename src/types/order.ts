@@ -25,32 +25,50 @@ export interface Rider {
   kyc_type?: string;
   kyc_number?: string;
   kyc_id_url?: string;
+  profile_photo?: string | null;
 }
 
-export interface CashOrderMetadata {
-  type: 'CASH_ORDER';
-  item_value: number;
+export interface BaseOrderMetadata {
+  client_source?: string;
+  quote_id?: string;
+  delivery_address?: string;
   delivery_text?: string;
-  cancelled_by?: string;
+  delivery_fee?: number;
+  service_fee?: number;
+  gst?: number;
+  delivery_tip?: number;
+  reward_points?: number;
+  cancelled_by?: 'user' | 'system' | 'partner';
+  cancelled_at?: string;
   cancel_reason_type?: string;
   cancel_reason_text?: string;
-  cancelled_at?: string;
+}
+
+export interface CashOrderMetadata extends BaseOrderMetadata {
+  type: 'CASH_ORDER';
+  item_value: number;
+  // Legacy support for UI reads
   isFx?: boolean;
   receive_amount?: number;
   receiveAmount?: number;
 }
 
-export interface FxExchangeMetadata {
+export interface FxOrderMetadata extends BaseOrderMetadata {
   type: 'FX_EXCHANGE';
-  source_currency: string;
-  target_currency: string;
-  exchange_rate: number;
-  source_amount: number;
-  isFx?: boolean;
+  is_fx: true;
+  isFx?: true;
+  from_currency: string;
+  to_currency: string;
   toCurrency?: string;
+  fx_rate: number;
+  source_amount: number;
+  receive_amount: number;
   receiveAmount?: number;
-  receive_amount?: number;
-  cancel_reason_type?: string;
+  hold_amount: number;
+  markup_amount: number;
+  flat_fee: number;
+  base_rate?: number;
+  markup?: number;
 }
 
 export interface RiderKycMetadata {
@@ -61,7 +79,7 @@ export interface RiderKycMetadata {
   cancel_reason_type?: string;
 }
 
-export type OrderMetadata = CashOrderMetadata | FxExchangeMetadata | RiderKycMetadata;
+export type OrderMetadata = CashOrderMetadata | FxOrderMetadata | RiderKycMetadata;
 
 export interface Order {
   id: string;

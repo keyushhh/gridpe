@@ -153,11 +153,12 @@ const WithdrawOTP = () => {
         await new Promise(resolve => setTimeout(resolve, 2000));
         await refreshBalance();
         navigate(ROUTES.WALLET_WITHDRAW_SUCCESS, { state: { ...location.state, amount } });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Withdrawal error:', err);
-        showToaster(err.message || 'Withdrawal failed. Please try again.', 'error');
+        const errorMessage = err instanceof Error ? err.message : 'Withdrawal failed. Please try again.';
+        showToaster(errorMessage, 'error');
         navigate(ROUTES.WALLET_WITHDRAW_FAILED, {
-          state: { ...location.state, amount, error: err.message },
+          state: { ...location.state, amount, error: errorMessage },
         });
       } finally {
         setLoading(false);

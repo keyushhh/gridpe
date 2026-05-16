@@ -329,7 +329,7 @@ const DowngradeSummary = () => {
                 await scheduleDowngrade(tier as WalletTier, isoDate.toISOString().split('T')[0]);
               }
               navigate(ROUTES.SUBSCRIPTIONS);
-            } catch (error: any) {
+            } catch (error: unknown) {
               console.error('Payment or scheduling failed:', error);
               // Optionally handle dismiss or error here
             }

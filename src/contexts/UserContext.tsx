@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
 import { calculateBalance, calculateHeldBalance } from '@/lib/wallet';
@@ -123,6 +123,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<UserState>(defaultState);
   const { showToaster } = useCustomToaster();
 
+  // Ref to track activation status without triggering re-renders or stale closures in callbacks
+  const isWalletActivatedRef = useRef(state.isWalletActivated);
+  useEffect(() => {
+    isWalletActivatedRef.current = state.isWalletActivated;
+  }, [state.isWalletActivated]);
+
   // Load state on mount
   useEffect(() => {
     const loadSavedState = async () => {
@@ -218,7 +224,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       console.error('Failed to save user state:', error);
       showToaster("Couldn't save your settings. Please try again.", 'error');
     }
-  }, [state]);
+  }, [state, showToaster]);
 
   /* Removed mock KYC auto-transition as per requirements to use real database status */
 
@@ -279,7 +285,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }));
 
         // If still not activated, check for ANY transaction history
-        if (!state.isWalletActivated && !shouldBeActivated) {
+        if (!isWalletActivatedRef.current && !shouldBeActivated) {
           const { count, error: txError } = await supabase
             .from('wallet_transactions')
             .select('*', { count: 'exact', head: true })
@@ -297,7 +303,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setState(prev => ({ ...prev, isInitializing: false }));
       }
     },
-    [supabase]
+    [supabase, isWalletActivatedRef]
   );
 
   /* Refetch Profile Data from Supabase */
@@ -471,7 +477,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchProfileData]);
+  }, [fetchProfileData, supabase]);
 
   /* Real-time KYC Status Subscription */
   useEffect(() => {
@@ -509,7 +515,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         supabase.removeChannel(channel);
       }
     };
-  }, [state.profile?.id]);
+  }, [state.profile?.id, fetchProfileData, supabase]);
 
   const refreshTransactions = useCallback(async (overrideUserId?: string) => {
     let id = overrideUserId;
@@ -539,7 +545,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [fetchAndCalculateBalance]);
 
   // 2. Dynamic Realtime Sync (Dependent on userId)
   useEffect(() => {
@@ -601,7 +607,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         supabase.removeChannel(channel);
       }
     };
-  }, [state.profile?.id]); // Re-subscribe when profile ID changes
+  }, [state.profile?.id, fetchAndCalculateBalance, supabase]); // Re-subscribe when profile ID changes
 
   const refreshBalance = useCallback(
     async (userId?: string) => {

@@ -1,4 +1,6 @@
 import { ASSETS } from '@/constants/assets';
+import { useUser } from '@/contexts/UserContext';
+import { LocationState } from '@/types/navigation';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -39,7 +41,7 @@ const DeleteAccountOTP = () => {
     showToaster('OTP sent successfully', 'success');
   };
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || ROUTES.SETTINGS);
+    navigate((location.state as LocationState)?.originPath || ROUTES.SETTINGS);
   };
   const handleDelete = () => {
     if (otp.length === 6) {

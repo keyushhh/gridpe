@@ -157,7 +157,7 @@ const NeedHelp = () => {
                 height: '112px',
                 '--glass-radius': '12px',
                 '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)',
-              } as any
+              } as React.CSSProperties
             }
           >
             {isDarkMode && (
@@ -181,8 +181,8 @@ const NeedHelp = () => {
                 <span
                   className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
-                  {(order.meta_data as any)?.item_value
-                    ? `Ordered ₹${(order.meta_data as any).item_value} Cash`
+                  {order.meta_data?.type === 'CASH_ORDER' && order.meta_data.item_value
+                    ? `Ordered ₹${order.meta_data.item_value} Cash`
                     : order.addresses?.label
                       ? `Order to ${order.addresses.label}`
                       : 'Cash Order'}
@@ -228,7 +228,7 @@ const NeedHelp = () => {
               minHeight: '309px',
               '--glass-radius': '12px',
               '--glass-specular-intensity': '0.2',
-            } as any
+            } as React.CSSProperties
           }
         >
           {isDarkMode && (
@@ -284,7 +284,7 @@ const NeedHelp = () => {
               minHeight: '166px',
               '--glass-radius': '12px',
               '--glass-specular-intensity': '0.2',
-            } as any
+            } as React.CSSProperties
           }
         >
           {isDarkMode && (

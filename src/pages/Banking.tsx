@@ -706,7 +706,7 @@ const Banking = () => {
             style={
               {
                 '--glass-specular-intensity': '0.2',
-              } as any
+              } as React.CSSProperties
             }
           >
             {isDarkMode && (

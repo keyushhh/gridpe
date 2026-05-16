@@ -6,6 +6,7 @@ import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
+import { LocationState } from '@/types/navigation';
 const DeleteAccountMobile = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,7 +29,7 @@ const DeleteAccountMobile = () => {
   }, [mobile, normalizedUserPhone]);
   const isValid = mobile.length === 10 && !error;
   const handleRequestOtp = () => {
-    navigate(ROUTES.DELETE_ACCOUNT, {
+    navigate(ROUTES.DELETE_ACCOUNT_OTP, {
       state: {
         ...location.state,
         mobile,
@@ -36,7 +37,7 @@ const DeleteAccountMobile = () => {
     });
   };
   const handleCancel = () => {
-    navigate((location.state as any)?.originPath || ROUTES.SETTINGS, { replace: true });
+    navigate((location.state as LocationState)?.originPath || ROUTES.SETTINGS, { replace: true });
   };
   const handleGoBack = () => {
     navigate(-1);

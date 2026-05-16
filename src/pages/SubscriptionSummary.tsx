@@ -29,6 +29,18 @@ const chipContent: Record<string, string> = {
   Supreme: '₹100/month',
 };
 import { useUser, WalletTier } from '@/contexts/UserContext';
+
+declare global {
+  interface Window {
+    Razorpay: new (options: object) => { open: () => void };
+  }
+}
+
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_subscription_id?: string;
+  razorpay_signature?: string;
+}
 const SubscriptionSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -133,7 +145,7 @@ const SubscriptionSummary = () => {
         order_id: order.id,
         name: 'Grid.pe',
         description: `${selectedTierName.toUpperCase()} Upgrade`,
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayResponse) {
           try {
             setIsLoading(true);
             const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-subscription`;
@@ -166,22 +178,21 @@ const SubscriptionSummary = () => {
                 },
               });
             }
-          } catch (err: any) {
-            console.error('Verification error:', err.message || err);
-            alert(
-              `Payment successful, but verification failed: ${err.message || 'Please contact support.'}`
-            );
+          } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            console.error('Verification error:', errorMessage);
+            alert(`Payment successful, but verification failed: ${errorMessage}`);
           } finally {
             setIsLoading(false);
           }
         },
         theme: { color: '#5260FE' },
       };
-      const rzp = new (window as any).Razorpay(options);
+      const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('RAZORPAY_FAILURE:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-      alert('Error: ' + (error.message || 'An unknown error occurred'));
+      alert('Error: ' + (error instanceof Error ? error.message : 'An unknown error occurred'));
     } finally {
       setIsLoading(false);
     }
@@ -439,7 +450,7 @@ const SubscriptionSummary = () => {
               walletTier !== 'Starter' &&
               (!!scheduledDowngrade ||
                 paymentStatus === 'pending' ||
-                (profile as any)?.subscription_status === 'pending'))
+                profile?.subscription_status === 'pending'))
           }
         />
       </div>

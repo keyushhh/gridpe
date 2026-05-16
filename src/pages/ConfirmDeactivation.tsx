@@ -5,6 +5,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
+import { LocationState } from '@/types/navigation';
 import { InputOTP } from '@/components/ui/input-otp';
 import { hashMpin } from '@/utils/cryptoUtils';
 import { Keyboard } from '@capacitor/keyboard';
@@ -82,7 +83,7 @@ const MaskedSlot = ({
 const ConfirmDeactivation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const originPath = (location.state as any)?.originPath || ROUTES.SETTINGS;
+  const originPath = (location.state as LocationState)?.originPath || ROUTES.SETTINGS;
   const isDarkMode = useIsDarkMode();
   const { profile } = useUser();
   const [mpin, setMpinState] = useState('');

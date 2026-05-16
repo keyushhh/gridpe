@@ -9,12 +9,12 @@
 		"allowsLinkPreview": true,
 		"handleApplicationNotifications": true,
 		"allowsBackForwardNavigationGestures": true,
-		"backgroundColor": "#ffffff",
+		"backgroundColor": "#0A0A12",
 		"scrollEnabled": false,
 		"contentInset": "never"
 	},
 	"android": {
-		"backgroundColor": "#ffffff",
+		"backgroundColor": "#0A0A12",
 		"allowMixedContent": false,
 		"captureInput": true,
 		"webContentsDebuggingEnabled": true
@@ -29,7 +29,7 @@
 		},
 		"SplashScreen": {
 			"backgroundColor": "#0A0A12",
-			"launchAutoHide": true,
+			"launchAutoHide": false,
 			"androidScaleType": "CENTER_CROP"
 		}
 	},
@@ -44,6 +44,7 @@
 		"CAPNetworkPlugin",
 		"PushNotificationsPlugin",
 		"SharePlugin",
+		"SplashScreenPlugin",
 		"BadgePlugin"
 	]
 }

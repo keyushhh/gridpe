@@ -44,7 +44,7 @@ const SavedAddresses = () => {
     try {
       const data = await fetchAddresses(userId);
       setAddresses(data);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Failed to load addresses', e);
       showToaster('Failed to load saved addresses. Please try again.', 'error');
     } finally {
@@ -64,9 +64,9 @@ const SavedAddresses = () => {
         text: `Address Details:\n${addr.label}\n${addressText}`,
         dialogTitle: `Share ${addr.label}`,
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Failed to share address', e);
-      if (e.message !== 'Share canceled') {
+      if (e instanceof Error && e.message !== 'Share canceled') {
         showToaster('Failed to share address. Feature might be unsupported.', 'error');
       }
     }
@@ -300,9 +300,10 @@ const SavedAddresses = () => {
                                     localStorage.removeItem('gridpe_user_address');
                                   }
                                 }
-                              } catch (e: any) {
+                              } catch (e: unknown) {
                                 console.error('Failed to delete address', e);
-                                showToaster(e.message || 'Failed to delete address. Please try again.', 'error');
+                                const errorMessage = e instanceof Error ? e.message : 'Failed to delete address. Please try again.';
+                                showToaster(errorMessage, 'error');
                               }
                             }}
                             className="bg-red-500 hover:bg-red-600 text-white border-none"

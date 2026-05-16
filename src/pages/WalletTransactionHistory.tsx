@@ -9,8 +9,16 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { WalletTransaction } from '@/types';
 import { supabase } from '@/lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { fetchUnifiedTransactionHistory } from '@/lib/wallet';
 import { formatDate, formatINR } from '@/utils/format';
+
+declare global {
+  interface WindowEventMap {
+    refresh_wallet_transactions: CustomEvent<{ userId: string }>;
+  }
+}
+
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -74,7 +82,7 @@ const WalletTransactionHistory = () => {
   }, []);
   // Fetch transactions
   useEffect(() => {
-    let channel: any;
+    let channel: RealtimeChannel | null = null;
     const loadTransactions = async () => {
       if (!userId) return;
       try {
@@ -129,10 +137,10 @@ const WalletTransactionHistory = () => {
         loadTransactions();
       }
     };
-    window.addEventListener('refresh_wallet_transactions' as any, handleCustomRefresh);
+    window.addEventListener('refresh_wallet_transactions', handleCustomRefresh);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('refresh_wallet_transactions' as any, handleCustomRefresh);
+      window.removeEventListener('refresh_wallet_transactions', handleCustomRefresh);
       if (channel) supabase.removeChannel(channel);
     };
   }, [userId]);

@@ -113,7 +113,7 @@ export const fetchUnifiedTransactionHistory = async (
           amount: p.amount,
           type: 'debit',
           transaction_type: 'debit',
-          status: p.status as any,
+          status: p.status as WalletTransaction['status'],
           created_at: p.created_at,
           date: p.created_at,
           description: 'Wallet Withdrawal',

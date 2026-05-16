@@ -4,15 +4,16 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { X, Search, Plus, MapPin, MessageSquareMore } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { reverseGeocode, forwardGeocode } from '@/utils/geoUtils';
 import { Geolocation } from '@capacitor/geolocation';
 import { OpenLocationCode } from 'open-location-code';
 import { fetchAddresses, deleteAddress } from '@/lib/addresses';
 import { Address, SavedAddress } from '@/types';
+import { GeocodeResult, reverseGeocode, forwardGeocode } from '@/utils/geoUtils';
 import { supabase } from '@/lib/supabase';
 // Assets
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { ROUTES } from '@/routes';
 interface AddressSelectionSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,7 +32,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<GeocodeResult[]>([]);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<SavedAddress | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState<string>('Fetching...');
@@ -97,7 +98,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             longitude: d.longitude,
           }));
           setSavedAddresses(mapped);
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('Failed to load addresses', e);
           showToaster('Failed to load your saved addresses.', 'error');
         }
@@ -133,7 +134,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       setSearchResults([]);
     }
   };
-  const handleSearchResultClick = (result: any) => {
+  const handleSearchResultClick = (result: GeocodeResult) => {
     // Navigate to Map with coordinates
     navigate(ROUTES.ADD_ADDRESS, {
       state: {
@@ -152,7 +153,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       const position = await Geolocation.getCurrentPosition();
       const { latitude, longitude } = position.coords;
       // Generate full Plus Code
-      const olc = new OpenLocationCode() as any;
+      const olc = new OpenLocationCode();
       const fullCode = olc.encode(latitude, longitude);
       // Reverse Geocode to get area name
       const result = await reverseGeocode(latitude, longitude);
@@ -234,9 +235,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         setSelectedAddress(null);
         onAddressSelect(null);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to delete address', err);
-      showToaster(err.message || 'Failed to delete address. Please try again.', 'error');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete address. Please try again.';
+      showToaster(errorMessage, 'error');
     }
   };
   const handleEdit = (e: React.MouseEvent, addr: SavedAddress) => {

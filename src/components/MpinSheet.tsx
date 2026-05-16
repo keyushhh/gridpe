@@ -21,6 +21,12 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
   const { profile, resetForDemo } = useUser();
+
+  // Stabilize onClose via ref to avoid re-triggering the verification effect
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
   // State for steps
   type Step = 'VERIFY_OLD' | 'CREATE_NEW' | 'SUCCESS';
   const [step, setStep] = useState<Step>(() => {
@@ -99,7 +105,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
             setVerifyStatus('idle');
           } else {
             if (onSuccess) onSuccess(verifyMpin);
-            onClose();
+            onCloseRef.current();
           }
           return;
         }
@@ -120,7 +126,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                 setVerifyStatus('idle');
               } else {
                 if (onSuccess) onSuccess(verifyMpin);
-                onClose();
+                onCloseRef.current();
               }
             }, 300);
           } else {
@@ -140,7 +146,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
     };
     verifyOriginalMpin();
     return () => clearTimeout(timeoutId);
-  }, [verifyMpin, profile?.mpin_hash, onSuccess, mode, step]);
+  }, [verifyMpin, profile?.mpin_hash, onSuccess, mode, step, onCloseRef]);
   // --- Step 2: Create Logic ---
   useEffect(() => {
     if (step !== 'CREATE_NEW') return;

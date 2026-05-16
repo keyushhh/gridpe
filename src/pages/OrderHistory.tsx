@@ -162,7 +162,7 @@ const OrderCard = React.memo(
               height: '75px',
               '--glass-radius': '0 0 12px 12px',
               '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)',
-            } as any
+            } as React.CSSProperties
           }
         >
           {isDarkMode && (
@@ -188,7 +188,7 @@ const OrderCard = React.memo(
                 <span
                   className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
-                  {(order.meta_data as any)?.isFx
+                  {order.meta_data?.type === 'FX_EXCHANGE'
                     ? 'FX Exchange'
                     : 'Cash Order'}
                 </span>
@@ -324,10 +324,10 @@ const OrderHistory = () => {
         .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
         .toLowerCase();
       const monthStr = date.toLocaleDateString('en-GB', { month: 'long' }).toLowerCase();
-      const meta = order.meta_data as any;
-      const typeStr = meta?.isFx ? 'fx exchange' : 'cash order'.toLowerCase();
-      const currencyStr = ((meta?.toCurrency as string) || '').toLowerCase();
-      const receiveAmountStr = meta?.receiveAmount?.toString() || '';
+      const meta = order.meta_data;
+      const typeStr = meta?.type === 'FX_EXCHANGE' ? 'fx exchange' : 'cash order'.toLowerCase();
+      const currencyStr = (meta?.type === 'FX_EXCHANGE' ? (meta.to_currency || meta.toCurrency || '') : '').toLowerCase();
+      const receiveAmountStr = meta?.type === 'FX_EXCHANGE' ? (meta.receive_amount || meta.receiveAmount || '').toString() : '';
       return (
         amountStr.includes(query) ||
         dateStr.includes(query) ||
@@ -350,12 +350,13 @@ const OrderHistory = () => {
       setIsSheetOpen(false);
       // Refresh cache
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Failed to cancel order', e);
+      const errorMessage = e instanceof Error ? e.message : 'Please try again later.';
       toast({
         variant: 'destructive',
         title: 'Cancellation Failed',
-        description: e.message || 'Please try again later.',
+        description: errorMessage,
       });
     }
   };
@@ -447,12 +448,13 @@ const OrderHistory = () => {
                     description: 'No active session found.',
                   });
                 }
-              } catch (error: any) {
+              } catch (error: unknown) {
                 console.error('Seeding error:', error);
+                const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
                 toast({
                   variant: 'destructive',
                   title: 'Seeding Failed',
-                  description: error.message || 'An unknown error occurred',
+                  description: errorMessage,
                 });
               }
             }}

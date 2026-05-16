@@ -90,9 +90,10 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
 
       showToaster('Rating submitted successfully!', 'success');
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error submitting rating:', err);
-      showToaster(err.message || 'Failed to submit rating', 'error');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit rating';
+      showToaster(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }

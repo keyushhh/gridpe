@@ -5,13 +5,14 @@ import { hapticWarning } from '@/utils/haptics';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
+import { LocationState } from '@/types/navigation';
 type OptionType = 'deactivate' | 'delete';
 const DeleteAccount = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const [selectedOption, setSelectedOption] = useState<OptionType>('deactivate');
-  const originPath = (location.state as any)?.originPath || ROUTES.SECURITY_DASHBOARD;
+  const originPath = (location.state as LocationState)?.originPath || ROUTES.SECURITY_DASHBOARD;
   const handleGoBack = () => {
     navigate(-1);
   };

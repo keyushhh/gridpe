@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { supabase } from '@/lib/supabase';
 import { getOrderById } from '@/lib/orders';
+import { Order, Rider } from '@/types';
 import BackButton from '@/components/ui/BackButton';
 import { QRCodeSVG } from 'qrcode.react';
 import CardSkeleton from '@/components/skeletons/CardSkeleton';
@@ -13,8 +14,8 @@ const ViewRiderKyc = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { orderId } = useParams<{ orderId: string }>();
-  const [order, setOrder] = useState<any>(location.state?.order);
-  const [rider, setRider] = useState<any>(order?.rider);
+  const [order, setOrder] = useState<Order | null>(location.state?.order);
+  const [rider, setRider] = useState<Rider | null>(order?.rider || null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isDarkMode = useIsDarkMode();
@@ -57,7 +58,7 @@ const ViewRiderKyc = () => {
         } else if (!rider && !currentOrder?.rider_id) {
           setError('No rider assigned to this order yet');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Data loading error:', err);
         setError('Failed to load identity data');
       } finally {
@@ -194,7 +195,7 @@ const ViewRiderKyc = () => {
                 <div className="w-[72px] h-[80px] rounded-[4px] overflow-hidden border border-black/5 shrink-0 shadow-sm">
                   <img
                     src={(() => {
-                      const photo = rider?.kyc_photo || (rider as any)?.profile_photo || rider?.kyc_id_url;
+                      const photo = rider?.kyc_photo || rider?.profile_photo || rider?.kyc_id_url;
                       if (!photo) return ASSETS.AVATAR;
                       if (photo.startsWith('http')) return photo;
                       return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;

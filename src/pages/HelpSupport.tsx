@@ -155,7 +155,7 @@ const HelpSupport = () => {
                     height: '75px',
                     '--glass-radius': '0 0 12px 12px',
                     '--glass-rim-mask': 'linear-gradient(to bottom, transparent 1px, #fff 1px)',
-                  } as any
+                  } as React.CSSProperties
                 }
               >
                 {isDarkMode && (
@@ -176,8 +176,8 @@ const HelpSupport = () => {
                     <span
                       className={`text-[14px] font-satoshi font-normal leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}
                     >
-                      {(recentOrder.meta_data as any)?.item_value
-                        ? `Ordered ₹${(recentOrder.meta_data as any).item_value} Cash`
+                      {recentOrder.meta_data?.type === 'CASH_ORDER' && recentOrder.meta_data.item_value
+                        ? `Ordered ₹${recentOrder.meta_data.item_value} Cash`
                         : recentOrder.addresses?.label
                           ? `Order to ${recentOrder.addresses.label}`
                           : 'Cash Order'}
@@ -201,7 +201,10 @@ const HelpSupport = () => {
               className={`w-full h-[42px] rounded-[12px] flex items-center justify-between px-4 transition-all overflow-hidden relative ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-brand-border-light'}`}
               style={
                 isDarkMode
-                  ? ({ '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any)
+                  ? ({
+                      '--glass-specular-intensity': '0.2',
+                      '--glass-radius': '12px',
+                    } as React.CSSProperties)
                   : {}
               }
             >
@@ -237,7 +240,10 @@ const HelpSupport = () => {
             className={`w-full rounded-[12px] overflow-hidden relative flex flex-col gap-0 transition-colors ${isDarkMode ? 'glass-container glass-physics-clear' : 'bg-white border border-brand-border-light'}`}
             style={
               isDarkMode
-                ? ({ '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any)
+                ? ({
+                    '--glass-specular-intensity': '0.2',
+                    '--glass-radius': '12px',
+                  } as React.CSSProperties)
                 : {}
             }
           >
@@ -313,7 +319,10 @@ const HelpSupport = () => {
             className={`w-full h-[72px] rounded-[12px] flex items-center px-[14px] relative transition-colors overflow-hidden ${isDarkMode ? 'glass-container glass-physics-clear active:bg-white/5' : 'bg-white border border-brand-border-light active:bg-brand-bg-light'}`}
             style={
               isDarkMode
-                ? ({ '--glass-specular-intensity': '0.2', '--glass-radius': '12px' } as any)
+                ? ({
+                    '--glass-specular-intensity': '0.2',
+                    '--glass-radius': '12px',
+                  } as React.CSSProperties)
                 : {}
             }
           >

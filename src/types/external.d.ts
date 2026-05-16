@@ -1,4 +1,4 @@
-interface RazorpayOptions {
+export interface RazorpayOptions {
   key: string;
   amount: number;
   currency: string;
@@ -24,7 +24,7 @@ interface RazorpayOptions {
   };
 }
 
-interface RazorpayInstance {
+export interface RazorpayInstance {
   open: () => void;
   on: (event: string, handler: (response: any) => void) => void;
 }

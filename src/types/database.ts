@@ -1,7 +1,4 @@
-/**
- * Database Table schema types mirroring the Supabase structure.
- * These act as the foundation for domain types.
- */
+import type { OrderMetadata } from './order';
 
 export interface Tables {
   profiles: {
@@ -47,7 +44,7 @@ export interface Tables {
     delivery_address_text: string | null;
     customer_phone_number: string | null;
     order_type: string;
-    meta_data: any;
+    meta_data: OrderMetadata | null;
     created_at: string;
     updated_at: string;
   };

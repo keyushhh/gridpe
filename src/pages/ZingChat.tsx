@@ -79,14 +79,15 @@ const ZingChat = () => {
         type: 'text',
       };
       setMessages(prev => [...prev, zingReply]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Zing Brain Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const errorMsg: Message = {
         id: Date.now().toString(),
         sender: 'zing',
         text: [
           "Whoops! My battery's a bit low or I'm having a brain freeze. 🧊",
-          `Debug Info: ${error.message || 'Unknown error'}`,
+          `Debug Info: ${errorMessage}`,
         ],
         timestamp: formatTime(),
         type: 'text',

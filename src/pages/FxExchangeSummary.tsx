@@ -300,8 +300,8 @@ const FxExchangeSummary = () => {
         }
         const customerPhoneNumber = userProfile.phone;
         const deliveryAddressText =
-          (savedAddress as any).address_line ||
-          (savedAddress as any).full_address ||
+          savedAddress.address_line ||
+          savedAddress.full_address ||
           savedAddress?.tag ||
           getAddressDisplay();
         const { data: earnings, error: earningsError } = await supabase.rpc(
@@ -400,8 +400,8 @@ const FxExchangeSummary = () => {
         }
         const customerPhoneNumber = userProfile.phone;
         const dAddressText =
-          (savedAddress as any).address_line ||
-          (savedAddress as any).full_address ||
+          savedAddress.address_line ||
+          savedAddress.full_address ||
           savedAddress?.tag ||
           getAddressDisplay();
         const orderData = await createOrderDirectly(
@@ -444,13 +444,14 @@ const FxExchangeSummary = () => {
             isFx: true,
           },
         });
-      } catch (orderError: any) {
+      } catch (orderError: unknown) {
         console.error('First FX order attempt failed:', orderError);
         // Handle Stale Address ID (Foreign Key Violation)
+        const errorMessage = orderError instanceof Error ? orderError.message : '';
         const isAddressError =
-          orderError.message?.toLowerCase().includes('foreign key') ||
-          orderError.message?.toLowerCase().includes('address_id') ||
-          orderError.code === '23503';
+          errorMessage.toLowerCase().includes('foreign key') ||
+          errorMessage.toLowerCase().includes('address_id') ||
+          (orderError as any).code === '23503';
         if (isAddressError && savedAddress) {
           try {
             const newAddress = await createAddress({
@@ -481,8 +482,8 @@ const FxExchangeSummary = () => {
             }
             const retryPhone = retryProfile.phone;
             const retryDAddressText =
-              (updatedAddr as any).address_line ||
-              (updatedAddr as any).full_address ||
+              updatedAddr.address_line ||
+              updatedAddr.full_address ||
               updatedAddr?.tag ||
               getAddressDisplay();
             const retryData = await createOrderDirectly(
@@ -507,16 +508,16 @@ const FxExchangeSummary = () => {
               });
               return; // Success after retry
             }
-          } catch (retryErr: any) {
+          } catch (retryErr: unknown) {
             console.error('Retry failed', retryErr);
-            throw new Error(`Retry failed: ${retryErr.message}`);
+            throw new Error(`Retry failed: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`);
           }
         }
         throw orderError;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Final catch in handlePay (FX):', error);
-      showToaster(`Failed to place order: ${error.message || 'Please try again.'}`, 'error');
+      showToaster(`Failed to place order: ${error instanceof Error ? error.message : 'Please try again.'}`, 'error');
     }
   };
   const handleRewardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1216,7 +1217,7 @@ const FxExchangeSummary = () => {
             style={
               {
                 '--glass-specular-intensity': '0.2',
-              } as any
+              } as React.CSSProperties
             }
           >
             {isDarkMode && (

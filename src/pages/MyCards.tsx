@@ -67,7 +67,7 @@ const MyCards = () => {
           number: `**** **** **** ${db.last_four}`,
           holder: db.card_holder_name,
           expiry: `${db.expiry_month}/${db.expiry_year.toString().slice(-2)}`,
-          type: db.card_type.toLowerCase() as any,
+          type: db.card_type.toLowerCase() as Card['type'],
           isDefault: localCards.length === 0 && index === 0, // Fallback logic
           backgroundIndex: localCards.length + (index % 6) + 1,
         }));
@@ -762,7 +762,7 @@ const MyCards = () => {
             style={
               {
                 '--glass-specular-intensity': '0.2',
-              } as any
+              } as React.CSSProperties
             }
           >
             {isDarkMode && (

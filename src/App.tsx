@@ -480,6 +480,70 @@ const App = () => {
                       }
                     />
                     <Route
+                      path={ROUTES.CONFIRM_DEACTIVATION}
+                      element={
+                        <ProtectedRoute>
+                          <ConfirmDeactivation />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.ACCOUNT_DEACTIVATED}
+                      element={
+                        <ProtectedRoute>
+                          <AccountDeactivated />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.DELETE_ACCOUNT_REASONS}
+                      element={
+                        <ProtectedRoute>
+                          <DeleteAccountReasons />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.DELETE_ACCOUNT_MOBILE}
+                      element={
+                        <ProtectedRoute>
+                          <DeleteAccountMobile />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.DELETE_ACCOUNT_OTP}
+                      element={
+                        <ProtectedRoute>
+                          <DeleteAccountOTP />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.ACCOUNT_DELETED}
+                      element={
+                        <ProtectedRoute>
+                          <AccountDeleted />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.ACCOUNT_RETRIEVED}
+                      element={
+                        <ProtectedRoute>
+                          <AccountRetrieved />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.CAMERA_PAGE}
+                      element={
+                        <ProtectedRoute>
+                          <CameraPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
                       path={ROUTES.MPIN_SETTINGS}
                       element={
                         <ProtectedRoute>

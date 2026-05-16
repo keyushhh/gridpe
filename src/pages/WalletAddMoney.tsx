@@ -321,7 +321,8 @@ const WalletAddMoney = () => {
                             },
                           },
                         };
-                        const rzp = new window.Razorpay(options);
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const rzp = new (window as any).Razorpay(options);
                         rzp.on(
                           'payment.failed',
                           function (paymentError: {
@@ -347,12 +348,13 @@ const WalletAddMoney = () => {
                           );
                           throw openErr; // Propagate to the outer catch
                         }
-                        } catch (err: any) {
+                        } catch (err: unknown) {
                           console.error(
                             'RAZORPAY_FAILURE:',
                             JSON.stringify(err, Object.getOwnPropertyNames(err))
                           );
-                          showToaster(err.message || 'Failed to initiate payment.', 'error');
+                          const errorMessage = err instanceof Error ? err.message : 'Failed to initiate payment.';
+                          showToaster(errorMessage, 'error');
                         } finally {
                         setIsLoading(false);
                       }

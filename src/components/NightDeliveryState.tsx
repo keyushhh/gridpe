@@ -4,9 +4,10 @@ import { ChevronDown, Home, Briefcase, Users, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { SavedAddress } from '@/types/user';
 interface NightDeliveryStateProps {
   isDarkMode: boolean;
-  savedAddress: any;
+  savedAddress: SavedAddress | null;
   profileImage: string | null;
   name: string | null;
   onAddressClick: () => void;
@@ -111,7 +112,7 @@ const NightDeliveryState: React.FC<NightDeliveryStateProps> = ({
               'w-[188px] h-[44px] mt-[26px] shadow-xl transition-all rounded-full',
               !isDarkMode && 'bg-black hover:bg-black/90 text-white'
             )}
-            style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as any) : {}}
+            style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
           >
             <span className="text-[16px] font-normal font-satoshi text-white dark:text-foreground">
               Schedule a Delivery?

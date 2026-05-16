@@ -7,7 +7,7 @@ const NetworkBanner: React.FC = () => {
   const [showBackOnline, setShowBackOnline] = useState(false);
 
   useEffect(() => {
-    let handlerPromise: any;
+    let handlerPromise: { remove: () => void } | null = null;
 
     // Initial status check
     Network.getStatus().then(s => {

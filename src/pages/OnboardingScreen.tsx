@@ -17,7 +17,7 @@ import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
-import { Provider, User } from '@supabase/supabase-js';
+import { Provider, User, AuthError } from '@supabase/supabase-js';
 import PhoneInputSection from '@/components/onboarding/PhoneInputSection';
 import OTPInputSection from '@/components/onboarding/OTPInputSection';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
@@ -303,7 +303,7 @@ const OnboardingScreen = () => {
     async (user: User, isExplicitLogin: boolean) => {
       // 1. Fetch Profile Status
       let profileData: Profile | null = null;
-      let profileError: any = null;
+      let profileError: AuthError | Error | null = null;
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -748,7 +748,7 @@ const OnboardingScreen = () => {
                 </p>
               </div>
               {/* Enter MPIN */}
-              <div className="space-y-3">
+              <div className="space-y-3" ref={mpinFocusRef}>
                 <InputOTP
                   maxLength={4}
                   value={mpinState.value}
@@ -756,7 +756,6 @@ const OnboardingScreen = () => {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   type="tel"
-                  ref={mpinFocusRef as any}
                 >
                   <InputOTPGroup className="w-[364px] justify-between">
                     {[0, 1, 2, 3].map(index => (
@@ -839,7 +838,7 @@ const OnboardingScreen = () => {
                 </p>
               </div>
               {/* Create MPIN */}
-              <div className="space-y-3">
+              <div className="space-y-3" ref={mpinFocusRef}>
                 <p className="text-black dark:text-foreground text-[14px] font-normal">
                   Create a secure 4 digit MPIN
                 </p>
@@ -850,7 +849,6 @@ const OnboardingScreen = () => {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   type="tel"
-                  ref={mpinFocusRef as any}
                 >
                   <InputOTPGroup className="w-[364px] justify-between">
                     {[0, 1, 2, 3].map(index => (

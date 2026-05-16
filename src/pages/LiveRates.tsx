@@ -146,6 +146,12 @@ const CurrencyModal = ({
     </div>
   );
 };
+
+interface HistoryPoint {
+  date: string;
+  rate: number;
+}
+
 const LiveRates = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -157,7 +163,7 @@ const LiveRates = () => {
   const [currencies, setCurrencies] = useState<Record<string, string>>({});
   const [amount, setAmount] = useState<string>('1');
   const [fxRate, setFxRate] = useState<number>(0);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [activeRange, setActiveRange] = useState('1M');
   const [timestamp, setTimestamp] = useState('');
   const [isSwapped, setIsSwapped] = useState(false);
@@ -225,7 +231,7 @@ const LiveRates = () => {
           const formattedHistory = Object.entries(data.rates).map(
             ([date, rates]: [string, any]) => ({
               date,
-              rate: rates[to],
+              rate: (rates as Record<string, number>)[to],
             })
           );
           setHistory(formattedHistory);
@@ -254,7 +260,7 @@ const LiveRates = () => {
           if (data.rates && data.rates[currentTo]) {
             setFxRate(data.rates[currentTo]);
             const now = new Date();
-            const options: any = {
+            const options: Intl.DateTimeFormatOptions = {
               day: '2-digit',
               month: 'short',
               hour: '2-digit',
