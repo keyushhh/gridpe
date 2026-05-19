@@ -20,6 +20,17 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
 
   const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';
 
+  const isMobileAppWrapper = typeof window !== 'undefined' && (
+    // Capacitor present in native webviews
+    (window as any).Capacitor ||
+    // Generic mobile UA hint
+    (typeof navigator !== 'undefined' && (navigator.userAgent || '').includes('Mobile')) ||
+    // Explicit platform detection
+    (typeof navigator !== 'undefined' && /Android|iPhone|iPad/i.test(navigator.userAgent))
+  );
+
+  const shouldShowDevTools = isDevMode && !isMobileAppWrapper;
+
   useEffect(() => {
     if (isDevMode && isOpen && profile?.id) {
       fetchBalances();
@@ -146,7 +157,7 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
     showToaster('Local terms state cleared. Gate forced open!', 'success');
   };
 
-  if (!isDevMode) return null;
+  if (!shouldShowDevTools) return null;
 
   return (
     <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
