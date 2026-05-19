@@ -235,7 +235,7 @@ const OrderTracking = () => {
   const isDelivered = order?.status === 'success' || order?.status === 'delivered';
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col safe-top overflow-y-auto no-scrollbar scroll-smooth ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`fixed inset-0 w-full h-full flex flex-col overflow-hidden no-scrollbar ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
@@ -251,31 +251,31 @@ const OrderTracking = () => {
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header Overlay */}
-      <div className="fixed top-0 left-0 right-0 z-10 pointer-events-none">
-        <div
-          className="overflow-hidden pointer-events-auto"
-          style={{
-            backgroundColor: 'transparent',
-            paddingBottom: '24px',
-          }}
-        >
-          <div className="safe-top pt-4 px-5 flex items-center justify-between">
-            <BackButton onClick={() => navigate(ROUTES.HOME)} />
-            <h1
-              className={`text-[18px] font-medium font-sans flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-black'}`}
-            >
-              Order Tracking
-            </h1>
-          </div>
+      <div 
+        className="fixed top-0 left-0 right-0 z-10"
+        style={{
+          backgroundColor: isDarkMode ? 'rgba(10, 10, 18, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          borderBottom: isDarkMode ? '0.5px solid rgba(255, 255, 255, 0.08)' : '0.5px solid rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <div className="safe-top pt-4 pb-4 px-5 flex items-center justify-between">
+          <BackButton onClick={() => navigate(ROUTES.HOME)} />
+          <h1
+            className={`text-[18px] font-bold font-satoshi flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+          >
+            Order Tracking
+          </h1>
         </div>
       </div>
       {/* Map Container */}
       <div
         className="w-full relative overflow-hidden shrink-0 rounded-b-[32px] z-0"
-        style={{ height: '305px' }}
+        style={{ height: '240px' }}
       >
         {isLoading ? (
-          <Skeleton height={305} borderRadius={0} />
+          <Skeleton height={240} borderRadius={0} />
         ) : (
           <Map
             {...viewState}
@@ -316,7 +316,7 @@ const OrderTracking = () => {
           </Map>
         )}
       </div>
-      <div className="px-5 mt-[20px] relative z-0">
+      <div className="px-5 mt-4 shrink-0 relative z-0">
         <div
           className={`w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
           style={{
@@ -404,11 +404,11 @@ const OrderTracking = () => {
         </div>
       </div>
       {/* Rider Details Container */}
-      <div className="px-[15px] mt-[16px] relative z-0">
+      <div className="px-[15px] mt-2.5 shrink-0 relative z-0">
         <div
           className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px] overflow-hidden"
           style={{
-            height: order?.rider_id ? '340px' : 'auto',
+            height: order?.rider_id ? '290px' : 'auto',
             maxWidth: '362px',
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
             backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
@@ -416,7 +416,7 @@ const OrderTracking = () => {
           }}
         >
           {order?.rider_id ? (
-            <div className="flex items-start gap-[12px] mb-6">
+            <div className="flex items-start gap-[12px] mb-4">
               {/* Photo Frame */}
               <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
                 <img
@@ -462,7 +462,7 @@ const OrderTracking = () => {
                       state: { order },
                     })
                   }
-                  className="mt-[15px] rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
+                  className="mt-2 rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
                   style={{
                     width: '248px',
                     height: '36px',
@@ -474,7 +474,7 @@ const OrderTracking = () => {
               </div>
             </div>
           ) : (
-            <div className="mb-6">
+            <div className="mb-4">
               <p
                 className={`text-[16px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
@@ -483,28 +483,28 @@ const OrderTracking = () => {
             </div>
           )}
           <p
-            className={`text-[14px] font-normal font-satoshi leading-snug mb-[8px] ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
+            className={`text-[14px] font-normal font-satoshi leading-snug mb-1 ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
           >
             {order?.rider_id
               ? 'Your delivery partner is KYC Verified. Please check the KYC details while accepting the order.'
               : 'Average assignment time: < 2 mins'}
           </p>
           <div
-            className={`h-[1px] w-full mb-[12px] ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
+            className={`h-[1px] w-full mb-2.5 ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
           />
           {/* OTP Section */}
           <div>
             <p
-              className={`text-[15px] font-bold font-satoshi mb-[12px] ${isDarkMode ? 'text-white' : 'text-black'}`}
+              className={`text-[15px] font-bold font-satoshi mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
             >
               Please provide this OTP to confirm the delivery
             </p>
             {order?.status === 'picked_up' && (
-              <p className="text-brand-primary text-[12px] font-medium mb-3">
+              <p className="text-brand-primary text-[12px] font-medium mb-2">
                 Share this OTP with your rider only at the time of delivery
               </p>
             )}
-            <div className="w-full flex justify-center mb-6">
+            <div className="w-full flex justify-center mb-3">
               <div className="flex gap-2">
                 {(order?.otp_code || '000000').split('').map((digit, index) => (
                   <div
@@ -555,8 +555,11 @@ const OrderTracking = () => {
           </div>
         </div>
       </div>
+      {/* Spacer to absorb extra vertical viewport space & guarantee a minimum 16px gap */}
+      <div className="flex-1 min-h-[16px]" />
+
       {/* Need Help CTA */}
-      <div className="px-5 mt-auto mt-[16px] safe-bottom pb-4 relative z-0">
+      <div className="px-5 pb-4 safe-bottom shrink-0 relative z-0">
         <Button
           onClick={() => navigate(ROUTES.HELP_REPORT, { state: { order } })}
           variant={isDarkMode ? 'glass' : 'default'}

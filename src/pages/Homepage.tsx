@@ -958,12 +958,36 @@ const Homepage = () => {
                       >
                         <Marker latitude={mapCenterLat} longitude={mapCenterLng}>
                           <div className="animate-pulse">
-                            <img src={ASSETS.CURRENT_LOCATION} alt="User" className="w-4 h-4" />
+                            <img
+                              src={ASSETS.CURRENT_LOCATION}
+                              alt="User"
+                              className="w-4 h-4"
+                              style={
+                                !isDarkMode
+                                  ? {
+                                      filter:
+                                        'brightness(0) invert(38%) sepia(87%) saturate(3505%) hue-rotate(224deg) brightness(97%) contrast(99%)',
+                                    }
+                                  : undefined
+                              }
+                            />
                           </div>
                         </Marker>
                         {activeOrder?.status?.toLowerCase() === 'processing' && isRiderAssigned && (
                           <Marker latitude={mapCenterLat + 0.002} longitude={mapCenterLng + 0.002}>
-                            <img src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-5 h-5" />
+                            <img
+                              src={ASSETS.DELIVERY_RIDER}
+                              alt="Rider"
+                              className="w-5 h-5"
+                              style={
+                                !isDarkMode
+                                  ? {
+                                      filter:
+                                        'brightness(0) invert(38%) sepia(87%) saturate(3505%) hue-rotate(224deg) brightness(97%) contrast(99%)',
+                                    }
+                                  : undefined
+                              }
+                            />
                           </Marker>
                         )}
                       </Map>

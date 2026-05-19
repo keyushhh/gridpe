@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { SavedAddress } from '@/types';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +26,22 @@ import {
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { hapticWarning } from '@/utils/haptics';
+
+const mapToSavedAddress = (addr: Address): SavedAddress => {
+  return {
+    ...addr,
+    tag: addr.label || 'Home',
+    displayAddress: `${addr.apartment || ''}, ${addr.area || ''}`,
+    house: addr.apartment || '',
+    area: addr.area || '',
+    landmark: addr.landmark || undefined,
+    name: addr.contact_name || undefined,
+    phone: addr.contact_phone || undefined,
+    postcode: '560078',
+    plusCode: addr.plus_code || undefined,
+  };
+};
+
 // Assets
 const SavedAddresses = () => {
   const navigate = useNavigate();
@@ -36,6 +53,9 @@ const SavedAddresses = () => {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [showActionSheet, setShowActionSheet] = useState(false);
+  const [selectedAddr, setSelectedAddr] = useState<Address | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const lastId = localStorage.getItem('gridpe_last_selected_address_id');
@@ -213,7 +233,12 @@ const SavedAddresses = () => {
             {filteredAddresses.map((addr, idx) => (
               <div
                 key={addr.id}
-                className={`${isDarkMode ? 'bg-[#0D0D0D]/60 active:bg-white/5' : 'bg-white active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-all duration-300 ${
+                onClick={() => {
+                  setSelectedAddr(addr);
+                  setShowActionSheet(true);
+                  setShowDeleteConfirm(false);
+                }}
+                className={`cursor-pointer ${isDarkMode ? 'bg-[#0D0D0D]/60 active:bg-white/5' : 'bg-white active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-all duration-300 ${
                   selectedAddressId === addr.id
                     ? 'border-brand-primary shadow-md shadow-brand-primary/10'
                     : isDarkMode
@@ -241,105 +266,6 @@ const SavedAddresses = () => {
                         Default
                       </span>
                     )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() =>
-                        navigate(ROUTES.ADD_ADDRESS_DETAILS, {
-                          state: {
-                            ...addr,
-                            addressTitle: addr.label,
-                            addressLine: `${addr.apartment}, ${addr.area}`,
-                          },
-                        })
-                      }
-                      className="opacity-70 active:opacity-100"
-                    >
-                      <img
-                        src={ASSETS.EDIT}
-                        alt="Edit"
-                        className="w-5 h-5"
-                        style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
-                      />
-                    </button>
-                    <button
-                      onClick={() => handleShare(addr)}
-                      className="opacity-70 active:opacity-100"
-                    >
-                      <img
-                        src={ASSETS.SHARE}
-                        alt="Share"
-                        className="w-5 h-5"
-                        style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
-                      />
-                    </button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            hapticWarning();
-                          }}
-                          className="opacity-70 active:opacity-100"
-                        >
-                          <img
-                            src={ASSETS.DELETE}
-                            alt="Delete"
-                            className="w-5 h-5"
-                            style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
-                          />
-                        </button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className={`${isDarkMode ? 'bg-[#12121a] border-white/10 text-white' : 'bg-white'}`}>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Remove Address?</AlertDialogTitle>
-                          <AlertDialogDescription className={`${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
-                            This address will be removed from your account. You can always add it back later.
-                            <br />
-                            <span className="mt-2 block font-medium">
-                              {addr.label} | {addr.apartment}, {addr.area}
-                            </span>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className={`${isDarkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : ''}`}>Keep it</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={async () => {
-                              const idToDelete = addr.id;
-                              const nameToDelete = addr.contact_name || 'Address';
-                              showToaster('Processing deletion...', 'success');
-                              try {
-                                if (userId) {
-                                  await deleteAddress(idToDelete, userId);
-                                  showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
-                                  setAddresses(prev => prev.filter(a => a.id !== idToDelete));
-                                }
-                                // Clear from localStorage if this was the selected address
-                                const currentSelected = localStorage.getItem('gridpe_user_address');
-                                if (currentSelected) {
-                                  try {
-                                    const parsed = JSON.parse(currentSelected);
-                                    if (parsed.id === idToDelete) {
-                                      localStorage.removeItem('gridpe_user_address');
-                                    }
-                                  } catch (err) {
-                                    console.warn('Corrupted selection data found during delete.');
-                                    localStorage.removeItem('gridpe_user_address');
-                                  }
-                                }
-                              } catch (e: unknown) {
-                                console.error('Failed to delete address', e);
-                                const errorMessage = e instanceof Error ? e.message : 'Failed to delete address. Please try again.';
-                                showToaster(errorMessage, 'error');
-                              }
-                            }}
-                            className="bg-red-500 hover:bg-red-600 text-white border-none"
-                          >
-                            Remove
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
                 </div>
                 <div
@@ -376,6 +302,192 @@ const SavedAddresses = () => {
           Add New Address
         </button>
       </div>
+
+      {/* Address Action Bottom Sheet */}
+      {showActionSheet && selectedAddr && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center pointer-events-none">
+          <style>{`
+            @keyframes slideUp {
+              from { transform: translateY(100%); }
+              to { transform: translateY(0); }
+            }
+          `}</style>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-10 bg-black/50 backdrop-blur-[4px] pointer-events-auto"
+            onClick={() => setShowActionSheet(false)}
+          />
+          {/* Sheet */}
+          <div
+            className="fixed bottom-0 left-0 right-0 rounded-t-[36px] flex flex-col px-6 pb-[calc(24px+env(safe-area-inset-bottom))] pt-3 pointer-events-auto z-20"
+            style={{
+              backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : 'rgba(255, 255, 255, 0.95)',
+              borderTop: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
+              borderLeft: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
+              borderRight: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+              boxShadow: isDarkMode ? '0px -10px 40px rgba(0, 0, 0, 0.4)' : 'none',
+              animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              willChange: 'transform',
+            }}
+          >
+            {/* Drag Handle */}
+            <div
+              className={`w-10 h-1.5 rounded-full mx-auto mb-6 ${
+                isDarkMode ? 'bg-white/25' : 'bg-black/20'
+              }`}
+            />
+
+            {!showDeleteConfirm ? (
+              <>
+                {/* Header */}
+                <div className="flex flex-col text-center mb-6">
+                  <h2 className={`text-[20px] font-black font-satoshi leading-tight tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {selectedAddr.label}
+                  </h2>
+                  <p className={`text-[13.5px] font-normal leading-relaxed font-satoshi mt-1.5 px-6 line-clamp-2 ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                    {selectedAddr.apartment}, {selectedAddr.area}
+                  </p>
+                </div>
+
+                {/* Subtle Divider */}
+                <div className={`h-[1px] w-full mb-6 ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+
+                {/* Buttons stacked vertically */}
+                <div className="flex flex-col gap-3">
+                  {/* 1. Set as Delivery Address */}
+                  <button
+                    onClick={() => {
+                      const mapped = mapToSavedAddress(selectedAddr);
+                      localStorage.setItem('gridpe_last_selected_address_id', selectedAddr.id);
+                      localStorage.setItem('gridpe_user_address', JSON.stringify(mapped));
+                      setSelectedAddressId(selectedAddr.id);
+                      showToaster('Delivery address updated', 'success');
+                      setShowActionSheet(false);
+                    }}
+                    className="w-full h-[52px] rounded-full bg-[#5260FE] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi shadow-lg shadow-indigo-950/20"
+                  >
+                    Set as Delivery Address
+                  </button>
+
+                  {/* 2. Edit */}
+                  <button
+                    onClick={() => {
+                      setShowActionSheet(false);
+                      navigate(ROUTES.ADD_ADDRESS_DETAILS, {
+                        state: {
+                          ...selectedAddr,
+                          addressTitle: selectedAddr.label,
+                          addressLine: `${selectedAddr.apartment}, ${selectedAddr.area}`,
+                        },
+                      });
+                    }}
+                    className={`w-full h-[52px] rounded-full active:scale-95 transition-all flex items-center justify-center font-semibold text-[16px] font-satoshi border ${
+                      isDarkMode 
+                        ? 'bg-white/5 border-white/12 text-white hover:bg-white/10' 
+                        : 'bg-slate-50 border-slate-300 text-slate-800 hover:bg-slate-100'
+                    }`}
+                  >
+                    Edit
+                  </button>
+
+                  {/* 3. Delete */}
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(true);
+                    }}
+                    className="w-full h-[52px] rounded-full bg-[#EF4444] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi"
+                  >
+                    Delete
+                  </button>
+
+                  {/* 4. Cancel */}
+                  <button
+                    onClick={() => setShowActionSheet(false)}
+                    className={`w-full h-[52px] rounded-full active:scale-95 transition-all flex items-center justify-center font-semibold text-[16px] font-satoshi ${
+                      isDarkMode 
+                        ? 'text-white/50 hover:text-white' 
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Delete Confirmation Header */}
+                <div className="flex flex-col text-center mb-6">
+                  <h2 className={`text-[20px] font-black font-satoshi leading-tight tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    Delete this address?
+                  </h2>
+                  <p className={`text-[13.5px] font-normal leading-relaxed font-satoshi mt-1.5 px-6 line-clamp-2 ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                    This address will be removed from your account. You can always add it back later.
+                  </p>
+                </div>
+
+                {/* Subtle Divider */}
+                <div className={`h-[1px] w-full mb-6 ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+
+                {/* Confirmation Buttons */}
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={async () => {
+                      const idToDelete = selectedAddr.id;
+                      const nameToDelete = selectedAddr.contact_name || 'Address';
+                      showToaster('Processing deletion...', 'success');
+                      try {
+                        if (userId) {
+                          await deleteAddress(idToDelete, userId);
+                          showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
+                          setAddresses(prev => prev.filter(a => a.id !== idToDelete));
+                        }
+                        // Clear from localStorage if this was the selected address
+                        const currentSelected = localStorage.getItem('gridpe_user_address');
+                        if (currentSelected) {
+                          try {
+                            const parsed = JSON.parse(currentSelected);
+                            if (parsed.id === idToDelete) {
+                              localStorage.removeItem('gridpe_user_address');
+                              localStorage.removeItem('gridpe_last_selected_address_id');
+                              setSelectedAddressId(null);
+                            }
+                          } catch (err) {
+                            localStorage.removeItem('gridpe_user_address');
+                            localStorage.removeItem('gridpe_last_selected_address_id');
+                            setSelectedAddressId(null);
+                          }
+                        }
+                      } catch (e: unknown) {
+                        console.error('Failed to delete address', e);
+                        const errorMessage = e instanceof Error ? e.message : 'Failed to delete address. Please try again.';
+                        showToaster(errorMessage, 'error');
+                      } finally {
+                        setShowActionSheet(false);
+                      }
+                    }}
+                    className="w-full h-[52px] rounded-full bg-[#EF4444] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi"
+                  >
+                    Delete
+                  </button>
+
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className={`w-full h-[52px] rounded-full active:scale-95 transition-all flex items-center justify-center font-semibold text-[16px] font-satoshi border ${
+                      isDarkMode 
+                        ? 'bg-white/5 border-white/12 text-white hover:bg-white/10' 
+                        : 'bg-slate-50 border-slate-300 text-slate-800 hover:bg-slate-100'
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
