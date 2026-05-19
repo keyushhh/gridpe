@@ -47,7 +47,7 @@ const mapToSavedAddress = (addr: Address): SavedAddress => {
 const SavedAddresses = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const { profile } = useUser();
+  const { profile, activeAddressId, setActiveAddress } = useUser();
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
   const [loading, setLoading] = useState(true);
@@ -62,23 +62,31 @@ const SavedAddresses = () => {
   useBackButtonHandler(showActionSheet, () => setShowActionSheet(false));
 
   useEffect(() => {
-    const lastId = localStorage.getItem('gridpe_last_selected_address_id');
-    if (lastId) {
-      setSelectedAddressId(lastId);
-    } else {
+    // Prefer active address from global context
+    if (activeAddressId) {
+      setSelectedAddressId(activeAddressId);
+      return;
+    }
+    // Fallback to namespaced storage for older sessions
+    try {
+      const lastId = localStorage.getItem('gridpe_last_selected_address_id');
+      if (lastId) {
+        setSelectedAddressId(lastId);
+        return;
+      }
       const addressStr = localStorage.getItem('gridpe_user_address');
       if (addressStr) {
         try {
           const parsed = JSON.parse(addressStr);
-          if (parsed?.id) {
-            setSelectedAddressId(parsed.id);
-          }
+          if (parsed?.id) setSelectedAddressId(parsed.id);
         } catch (e) {
           console.error('Failed to parse active address', e);
         }
       }
+    } catch (e) {
+      console.warn('Error reading legacy address keys', e);
     }
-  }, []);
+  }, [activeAddressId]);
 
   useEffect(() => {
     loadAddresses();
@@ -366,8 +374,7 @@ const SavedAddresses = () => {
                   <button
                     onClick={() => {
                       const mapped = mapToSavedAddress(selectedAddr);
-                      try { writeStorage('last_selected_address_id', selectedAddr.id, profile?.id); } catch {}
-                      try { writeStorage('user_address', mapped, profile?.id); } catch {}
+                      try { setActiveAddress?.(mapped); } catch {}
                       setSelectedAddressId(selectedAddr.id);
                       showToaster('Delivery address updated', 'success');
                       setShowActionSheet(false);
@@ -449,21 +456,10 @@ const SavedAddresses = () => {
                           showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
                           setAddresses(prev => prev.filter(a => a.id !== idToDelete));
                         }
-                        // Clear from localStorage if this was the selected address
-                        const currentSelected = localStorage.getItem('gridpe_user_address');
-                        if (currentSelected) {
-                          try {
-                            const parsed = JSON.parse(currentSelected);
-                            if (parsed.id === idToDelete) {
-                              localStorage.removeItem('gridpe_user_address');
-                              localStorage.removeItem('gridpe_last_selected_address_id');
-                              setSelectedAddressId(null);
-                            }
-                          } catch (err) {
-                            localStorage.removeItem('gridpe_user_address');
-                            localStorage.removeItem('gridpe_last_selected_address_id');
-                            setSelectedAddressId(null);
-                          }
+                        // If the deleted address was the global active address, clear it
+                        if (activeAddressId === idToDelete) {
+                          try { setActiveAddress?.(null); } catch {}
+                          setSelectedAddressId(null);
                         }
                       } catch (e: unknown) {
                         console.error('Failed to delete address', e);

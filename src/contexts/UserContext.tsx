@@ -6,7 +6,8 @@ import { WalletTier, WalletTransaction, Profile as UserProfile, Tables } from '@
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import { purgeOtherUsersStorage } from '@/utils/storage';
+import { purgeOtherUsersStorage, readStorage, writeStorage, removeStorage } from '@/utils/storage';
+import { SavedAddress } from '@/types';
 
 export type { WalletTier };
 
@@ -48,6 +49,8 @@ interface UserState {
   paymentStatus: 'pending' | 'completed' | null;
   isRenewalPending: boolean;
   rewardPoints: number;
+  activeAddressId?: string | null;
+  activeAddress?: SavedAddress | null;
 }
 
 interface UserContextType extends UserState {
@@ -74,6 +77,9 @@ interface UserContextType extends UserState {
   refreshBalance: (userId?: string) => Promise<void>;
   refreshTransactions: (userId?: string) => Promise<void>;
   fetchProfileData: (userId?: string) => Promise<void>;
+  activeAddressId?: string | null;
+  activeAddress?: SavedAddress | null;
+  setActiveAddress: (addr: SavedAddress | null) => void;
   addMoney: (
     amount: number
   ) => Promise<{ success: boolean; error?: Error | PostgrestError | string }>;
@@ -117,6 +123,8 @@ const defaultState: UserState = {
   isInitializing: true,
   isSecureStorageReady: false,
   isResetting: false,
+  activeAddressId: null,
+  activeAddress: null,
 };
 
 /* -------------------- Context -------------------- */
@@ -512,6 +520,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [fetchProfileData, supabase]);
 
+  // Load active address from namespaced storage when profile becomes available
+  useEffect(() => {
+    const loadActiveAddress = async () => {
+      const userId = state.profile?.id;
+      if (!userId) return;
+      try {
+        const addr = readStorage<SavedAddress>('user_address', userId);
+        const lastId = readStorage<string>('last_selected_address_id', userId);
+        if (addr) {
+          setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? lastId ?? null }));
+        } else if (lastId) {
+          setState(prev => ({ ...prev, activeAddressId: lastId }));
+        }
+      } catch (e) {
+        console.warn('Failed to load active address from storage', e);
+      }
+    };
+    loadActiveAddress();
+  }, [state.profile?.id]);
+
   /* Real-time KYC Status Subscription */
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
@@ -699,6 +727,40 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const setProfile = useCallback((profile: UserProfile | null) => {
     setState(prev => ({ ...prev, profile }));
   }, []);
+
+  const setActiveAddress = useCallback(async (addr: SavedAddress | null) => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const userId = session?.user?.id || state.profile?.id;
+
+      if (!userId) {
+        // Fallback: update in-memory only
+        setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
+        return;
+      }
+
+      if (!addr) {
+        // Clear stored values
+        try { removeStorage('user_address', userId); } catch (e) {}
+        try { removeStorage('last_selected_address_id', userId); } catch (e) {}
+        setState(prev => ({ ...prev, activeAddress: null, activeAddressId: null }));
+        return;
+      }
+
+      // Persist into namespaced storage
+      try { writeStorage('user_address', addr, userId); } catch (e) {}
+      if (addr.id) {
+        try { writeStorage('last_selected_address_id', addr.id, userId); } catch (e) {}
+      }
+
+      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? null }));
+    } catch (err) {
+      console.error('Failed to set active address:', err);
+      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
+    }
+  }, [supabase, state.profile?.id]);
 
   const submitKyc = useCallback((isPassport?: boolean) => {
     setState(prev => ({
@@ -1009,6 +1071,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     refreshBalance,
     refreshTransactions,
     fetchProfileData,
+    activeAddressId: state.activeAddressId,
+    activeAddress: state.activeAddress,
+    setActiveAddress,
     setPassportVerifiedInDb,
     addMoney,
   };

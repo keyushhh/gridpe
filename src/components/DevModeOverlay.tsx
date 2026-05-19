@@ -18,18 +18,17 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
   const navigate = useNavigate();
   const [balances, setBalances] = useState({ available: 0, held: 0 });
 
-  const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';
-
-  const isMobileAppWrapper = typeof window !== 'undefined' && (
-    // Capacitor present in native webviews
-    (window as any).Capacitor ||
-    // Generic mobile UA hint
-    (typeof navigator !== 'undefined' && (navigator.userAgent || '').includes('Mobile')) ||
-    // Explicit platform detection
-    (typeof navigator !== 'undefined' && /Android|iPhone|iPad/i.test(navigator.userAgent))
+  // Strict dev-environment check and aggressive mobile/webview detection
+  const isMobileDevice = typeof window !== 'undefined' && (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      (typeof navigator !== 'undefined' && navigator.userAgent) || ''
+    ) ||
+    (window as any).screen?.width <= 768 ||
+    (window as any).hasOwnProperty && ((window as any).hasOwnProperty('Capacitor') || (window as any).hasOwnProperty('cordova'))
   );
 
-  const shouldShowDevTools = isDevMode && !isMobileAppWrapper;
+  // Strict enforcement: only show dev tools in development builds and never on mobile wrappers
+  const shouldShowDevTools = process.env.NODE_ENV === 'development' && !isMobileDevice;
 
   useEffect(() => {
     if (isDevMode && isOpen && profile?.id) {

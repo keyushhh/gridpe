@@ -89,6 +89,8 @@ const Homepage = () => {
     name,
     scheduledDowngrade,
     profile,
+    activeAddress,
+    setActiveAddress,
   } = useUser();
   const userId = profile?.id;
   const [balanceAlert, setBalanceAlert] = useState<{
@@ -244,7 +246,7 @@ const Homepage = () => {
       setIsNight(isNightTime());
     }, 60000);
     return () => clearInterval(timer);
-  }, []);
+  }, [activeAddress]);
   // FX Live Data states
   const [fxRate, setFxRate] = useState<number>(90.61);
   const [fxHistory, setFxHistory] = useState<unknown[]>([]);
@@ -331,6 +333,10 @@ const Homepage = () => {
   });
   // Initial Load (LocalStorage)
   useEffect(() => {
+    if (activeAddress) {
+      setSavedAddress(activeAddress);
+      return;
+    }
     const addressStr = localStorage.getItem('gridpe_user_address');
     if (addressStr) {
       try {
@@ -471,6 +477,7 @@ const Homepage = () => {
   }, [savedAddress]);
   const handleAddressSelect = (address: SavedAddress | null) => {
     setSavedAddress(address);
+    try { setActiveAddress?.(address); } catch {}
     if (address) {
       setIsAddressSheetOpen(false);
     }

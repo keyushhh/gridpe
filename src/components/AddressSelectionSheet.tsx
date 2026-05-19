@@ -30,7 +30,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   onAddressSelect,
   onModalStateChange,
 }) => {
-  const { profile } = useUser();
+  const { profile, activeAddress, setActiveAddress } = useUser();
   const userId = profile?.id;
   const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
@@ -124,11 +124,16 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           showToaster('Failed to load your saved addresses.', 'error');
         }
         // Load Selected Address from namespaced storage first, then migrate legacy keys
-        const current = readStorage<SavedAddress>('user_address', userId);
-        if (current) {
-          setSelectedAddress(current);
-          if (current.id) setLastSelectedAddressId(current.id);
+        // Prefer global active address from context (keeps UI in sync across screens)
+        if (activeAddress) {
+          setSelectedAddress(activeAddress);
+          if (activeAddress.id) setLastSelectedAddressId(activeAddress.id);
         } else {
+          const current = readStorage<SavedAddress>('user_address', userId);
+          if (current) {
+            setSelectedAddress(current);
+            if (current.id) setLastSelectedAddressId(current.id);
+          } else {
           // Check legacy key and migrate if it matches current user
           const legacy = localStorage.getItem('gridpe_user_address');
           if (legacy) {
@@ -223,6 +228,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           plusCode: fullCode,
         };
         writeStorage('user_address', addressToSave, userId);
+        try { setActiveAddress?.(addressToSave); } catch {}
         removeStorage('last_selected_address_id', userId);
         setLastSelectedAddressId(null);
         onAddressSelect(addressToSave);
@@ -236,11 +242,11 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     setSelectedAddress(addr);
     if (addr.id) {
       setLastSelectedAddressId(addr.id);
-      writeStorage('last_selected_address_id', addr.id, userId);
+      try { writeStorage('last_selected_address_id', addr.id, userId); } catch {}
     }
-    writeStorage('user_address', addr, userId);
-    // Notify parent immediately (optional, or wait for close)
-    // "user taps ... automatically become selected"
+    try { writeStorage('user_address', addr, userId); } catch {}
+    try { setActiveAddress?.(addr); } catch {}
+    // Notify parent immediately
     onAddressSelect(addr);
   };
   const handleDelete = (e: React.MouseEvent, index: number) => {
