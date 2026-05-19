@@ -13,7 +13,7 @@ interface DevModeOverlayProps {
 
 const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, onTestRating }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { profile, refreshBalance } = useUser();
+  const { profile, setProfile, refreshBalance } = useUser();
   const { showToaster } = useCustomToaster();
   const navigate = useNavigate();
   const [balances, setBalances] = useState({ available: 0, held: 0 });
@@ -107,6 +107,43 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
     } catch (err: unknown) {
       showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
     }
+  };
+
+  const handleResetTerms = async () => {
+    if (!profile?.id) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          terms_accepted_at: null,
+          terms_version: null,
+        } as any)
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      setProfile({
+        ...profile,
+        terms_accepted_at: null,
+        terms_version: null,
+      });
+
+      showToaster('Terms reset in DB and context! Gate should appear.', 'success');
+    } catch (err: unknown) {
+      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
+    }
+  };
+
+  const handleForceTermsGate = () => {
+    if (!profile) return;
+    
+    setProfile({
+      ...profile,
+      terms_accepted_at: null,
+      terms_version: null,
+    });
+    
+    showToaster('Local terms state cleared. Gate forced open!', 'success');
   };
 
   if (!isDevMode) return null;
@@ -278,6 +315,39 @@ const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, 
                 Test Rating Sheet
               </button>
             )}
+            
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '12px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                onClick={handleResetTerms}
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#7c3aed',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                }}
+              >
+                Reset Terms (DB + Context)
+              </button>
+              <button
+                onClick={handleForceTermsGate}
+                style={{
+                  padding: '10px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #7c3aed',
+                  borderRadius: '8px',
+                  color: '#a78bfa',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                }}
+              >
+                Force Terms Gate (Local Only)
+              </button>
+            </div>
           </div>
         </div>
       )}

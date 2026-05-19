@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ASSETS } from '@/constants/assets';
 // MorePage Component
 import { useNavigate } from 'react-router-dom';
@@ -48,6 +49,7 @@ const MorePage = () => {
   const isDarkMode = useIsDarkMode();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const { logout } = useAuth();
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const categories = [
     {
       title: 'ACCOUNT',
@@ -89,7 +91,7 @@ const MorePage = () => {
     {
       title: 'APP PREFERENCES',
       items: [
-        { icon: ASSETS.LOGOUT, label: 'Logout', onClick: logout },
+        { icon: ASSETS.LOGOUT, label: 'Logout', onClick: () => setShowLogoutConfirmation(true) },
         {
           icon: ASSETS.DELETE_ACC,
           label: 'Delete Account',
@@ -142,6 +144,110 @@ const MorePage = () => {
       </div>
       {/* Bottom Navigation */}
       <BottomNavigation activeTab="more" />
+
+      {/* Logout Confirmation Bottom Sheet */}
+      {showLogoutConfirmation && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center pointer-events-none">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-10 bg-black/50 backdrop-blur-[4px] pointer-events-auto"
+            onClick={() => setShowLogoutConfirmation(false)}
+          />
+          {/* Sheet */}
+          <div
+            className="fixed bottom-0 left-0 right-0 rounded-t-[36px] flex flex-col px-6 pb-[calc(24px+env(safe-area-inset-bottom))] pt-3 pointer-events-auto z-20 transition-all duration-300 animate-slide-up"
+            style={{
+              backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : 'rgba(255, 255, 255, 0.95)',
+              borderTop: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
+              borderLeft: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
+              borderRight: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+              boxShadow: isDarkMode ? '0px -10px 40px rgba(0, 0, 0, 0.4)' : 'none',
+              willChange: 'transform',
+              transform: 'translateZ(0)',
+            }}
+          >
+            {/* Drag Handle */}
+            <div
+              className={`w-10 h-1.5 rounded-full mx-auto mb-6 ${
+                isDarkMode ? 'bg-white/20' : 'bg-black/20'
+              }`}
+            />
+
+            {/* Premium Animated Icon */}
+            <svg
+              width="56"
+              height="56"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="mx-auto mb-4 text-[#EF4444] animate-pulse"
+            >
+              <path
+                d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H14"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 12H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M17 9L20 12L17 15"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+
+            {/* Content */}
+            <div className="flex flex-col text-center">
+              <h2 className={`text-[22px] font-black font-satoshi leading-tight tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Log out?
+              </h2>
+              <p className={`text-[13.5px] font-normal leading-relaxed font-satoshi mt-1.5 px-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                No worries, we’ll be here when you need cash again.
+              </p>
+            </div>
+
+            {/* Subtle Divider */}
+            <div className={`h-[1px] w-full my-6 ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+
+            {/* Buttons stacked vertically */}
+            <div className="flex flex-col gap-3.5">
+              <button
+                onClick={() => {
+                  setShowLogoutConfirmation(false);
+                  logout();
+                }}
+                className={`w-full h-[52px] rounded-full bg-gradient-to-r from-[#EF4444] to-[#DC2626] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi ${
+                  isDarkMode ? 'shadow-lg shadow-red-950/20' : 'shadow-none'
+                }`}
+              >
+                Log Out
+              </button>
+
+              <button
+                onClick={() => setShowLogoutConfirmation(false)}
+                className={`w-full h-[52px] rounded-full active:scale-95 transition-all flex items-center justify-center font-semibold text-[16px] font-satoshi border ${
+                  isDarkMode 
+                    ? 'bg-transparent text-white border-white/12 hover:bg-white/5' 
+                    : 'bg-transparent text-slate-800 border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

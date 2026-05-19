@@ -24,6 +24,8 @@ export interface Tables {
     push_token?: string | null;
     is_fx_enabled?: boolean | null;
     is_onboarded?: boolean | null;
+    terms_accepted_at?: string | null;
+    terms_version?: string | null;
     created_at: string;
     updated_at: string;
   };

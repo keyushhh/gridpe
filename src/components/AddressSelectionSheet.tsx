@@ -38,6 +38,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const [selectedAddress, setSelectedAddress] = useState<SavedAddress | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState<string>('Fetching...');
   const [addressToDelete, setAddressToDelete] = useState<SavedAddress | null>(null);
+  const [lastSelectedAddressId, setLastSelectedAddressId] = useState<string | null>(null);
   // Fetch Current Location Name on Mount/Open
   useEffect(() => {
     const fetchCurrentLocationName = async () => {
@@ -111,11 +112,19 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         const current = localStorage.getItem('gridpe_user_address');
         if (current) {
           try {
-            setSelectedAddress(JSON.parse(current));
+            const parsed = JSON.parse(current);
+            setSelectedAddress(parsed);
+            if (parsed && parsed.id) {
+              setLastSelectedAddressId(parsed.id);
+            }
           } catch (e) {
             localStorage.removeItem('gridpe_user_address');
             console.warn('Corrupted local address data cleared.');
           }
+        }
+        const lastId = localStorage.getItem('gridpe_last_selected_address_id');
+        if (lastId) {
+          setLastSelectedAddressId(lastId);
         }
       }
     };
@@ -189,6 +198,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           plusCode: fullCode,
         };
         localStorage.setItem('gridpe_user_address', JSON.stringify(addressToSave));
+        localStorage.removeItem('gridpe_last_selected_address_id');
+        setLastSelectedAddressId(null);
         onAddressSelect(addressToSave);
         onClose();
       }
@@ -198,6 +209,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   };
   const handleSelectAddress = (addr: SavedAddress) => {
     setSelectedAddress(addr);
+    if (addr.id) {
+      setLastSelectedAddressId(addr.id);
+      localStorage.setItem('gridpe_last_selected_address_id', addr.id);
+    }
     localStorage.setItem('gridpe_user_address', JSON.stringify(addr));
     // Notify parent immediately (optional, or wait for close)
     // "user taps ... automatically become selected"
@@ -228,13 +243,17 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       setSavedAddresses(newList);
       if (newList.length === 0) {
         localStorage.removeItem('gridpe_user_address');
+        localStorage.removeItem('gridpe_last_selected_address_id');
         setSelectedAddress(null);
+        setLastSelectedAddressId(null);
         onAddressSelect(null);
         navigate(ROUTES.HOME);
         onClose();
       } else if (selectedAddress && selectedAddress.id === idToDelete) {
         localStorage.removeItem('gridpe_user_address');
+        localStorage.removeItem('gridpe_last_selected_address_id');
         setSelectedAddress(null);
+        setLastSelectedAddressId(null);
         onAddressSelect(null);
       }
     } catch (err: unknown) {
@@ -284,7 +303,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       <div className="fixed inset-0 z-10 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={onClose} />
       {/* Sheet */}
       <div
-        className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} pointer-events-auto`}
+        className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} pointer-events-auto z-20`}
         style={{
           boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.5)',
           paddingBottom: 'env(safe-area-inset-bottom)',
@@ -440,27 +459,25 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           </h3>
           <div className="space-y-3 pb-20">
             {savedAddresses.map((addr, idx) => {
-              const isSingleAddress = savedAddresses.length === 1;
               const isActive =
-                selectedAddress &&
-                ((selectedAddress.id && addr.id && selectedAddress.id === addr.id) ||
-                  (!selectedAddress.id &&
-                    addr.displayAddress === selectedAddress.displayAddress &&
-                    addr.tag === selectedAddress.tag));
-              // Show border only if multiple addresses and this one is active
-              const showBorder = !isSingleAddress && isActive;
+                (lastSelectedAddressId && addr.id && lastSelectedAddressId === addr.id) ||
+                (selectedAddress &&
+                  ((selectedAddress.id && addr.id && selectedAddress.id === addr.id) ||
+                    (!selectedAddress.id &&
+                      addr.displayAddress === selectedAddress.displayAddress &&
+                      addr.tag === selectedAddress.tag)));
+              // Show border if this one is active
+              const showBorder = !!isActive;
               // Show "Default" chip ONLY for the first added address (last in the sorted list)
               const showChip = idx === savedAddresses.length - 1;
               // Card Styling
               const cardBg = isDarkMode
                 ? 'bg-[#0D0D0D]'
-                : isSingleAddress
+                : savedAddresses.length === 1
                   ? 'bg-white'
                   : 'bg-white shadow-[0px_4px_12px_rgba(0,0,0,0.05)]';
               const cardBorder = showBorder
-                ? isDarkMode
-                  ? 'border-white/20'
-                  : 'border-brand-primary'
+                ? 'border-brand-primary'
                 : isDarkMode
                   ? 'border-transparent'
                   : 'border-brand-border-light';

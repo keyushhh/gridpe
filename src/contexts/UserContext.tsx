@@ -318,13 +318,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const userId = overrideUserId || session?.user?.id;
 
         // Optimized Consolidated Join Query
-        const { data: profileData, error: profileError } = await supabase
+        let queryResult = await supabase
           .from('profiles')
           .select(
             `
           id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
           current_tier_id, scheduled_tier_id, tier_change_date,
           payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
+          terms_accepted_at, terms_version,
           wallet_tiers!current_tier_id(*, subscription_price),
           scheduled_tier:wallet_tiers!scheduled_tier_id(name)
         `
@@ -332,6 +333,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           .eq('id', userId)
           .maybeSingle();
 
+        // Defensive fallback: If database columns do not exist yet (code 42703), fallback to query without terms columns
+        if (queryResult.error && (queryResult.error.code === '42703' || queryResult.error.message?.includes('terms_accepted_at'))) {
+          console.warn('UserContext: terms columns do not exist in profiles table yet, falling back to defensive schema query.');
+          queryResult = await supabase
+            .from('profiles')
+            .select(
+              `
+            id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
+            current_tier_id, scheduled_tier_id, tier_change_date,
+            payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
+            wallet_tiers!current_tier_id(*, subscription_price),
+            scheduled_tier:wallet_tiers!scheduled_tier_id(name)
+          `
+            )
+            .eq('id', userId)
+            .maybeSingle();
+        }
+
+        const { data: profileData, error: profileError } = queryResult;
         if (profileError) throw profileError;
 
         if (profileData) {
@@ -408,6 +428,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               kyc_status: profileData.kyc_status,
               mpin_hash: profileData.mpin_hash,
               biometric_on: !!profileData.biometric_on,
+              terms_accepted_at: profileData.terms_accepted_at,
+              terms_version: profileData.terms_version,
             } as UserProfile,
             rewardPoints: Number(profileData.reward_points || 0),
             isPassportVerified: !!profileData.is_passport_verified,

@@ -108,6 +108,7 @@ import { Button } from '@/components/ui/button';
 
 import { LiquidGlassFilters } from './components/ui/LiquidGlassFilters';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { TermsAcceptanceGate } from './components/TermsAcceptanceGate';
 
 const LocationTracker = ({
   currentPathRef,
@@ -339,6 +340,7 @@ const App = () => {
               )}
               <GlobalCustomToaster />
               <LiquidGlassFilters />
+              <TermsAcceptanceGate />
               <Suspense
                 fallback={
                   <div className="flex items-center justify-center h-screen bg-background">

@@ -245,7 +245,6 @@ const Homepage = () => {
     }, 60000);
     return () => clearInterval(timer);
   }, []);
-  const displayNightMode = forceNight || isNight;
   // FX Live Data states
   const [fxRate, setFxRate] = useState<number>(90.61);
   const [fxHistory, setFxHistory] = useState<unknown[]>([]);
@@ -255,6 +254,8 @@ const Homepage = () => {
   const [isUnserviceable, setIsUnserviceable] = useState<boolean>(false);
   const [currentZoneId, setCurrentZoneId] = useState<string | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+
+  const displayNightMode = !isUnserviceable && (forceNight || isNight);
   // Fetch Live FX Data
   useEffect(() => {
     const fetchFxData = async (from = 'USD', to = 'INR', date?: string) => {
