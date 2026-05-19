@@ -258,6 +258,9 @@ const Homepage = () => {
   const displayNightMode = !isUnserviceable && (forceNight || isNight);
   // Fetch Live FX Data
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
     const fetchFxData = async (from = 'USD', to = 'INR', date?: string) => {
       try {
         setIsLoadingFx(true);
@@ -269,9 +272,12 @@ const Homepage = () => {
           headers: {
             apikey: supabaseAnonKey,
           },
+          signal: controller.signal,
         });
+        if (!active) return;
         if (!res.ok) throw new Error(`FX fetch failed: ${res.status}`);
         const data = await res.json();
+        if (!active) return;
         if (data.rates && data.rates.INR) {
           setFxRate(data.rates.INR);
           const now = new Date();
@@ -286,15 +292,21 @@ const Homepage = () => {
           setLastUpdated(now.toLocaleString('en-GB', options).replace(',', ''));
         }
       } catch (error) {
+        if (!active || controller.signal.aborted) return;
         console.error('Failed to fetch FX data from Edge Function, using fallback:', error);
         // Fallback to hardcoded rate of 83.45 as requested so the UI never breaks
         setFxRate(83.45);
         setLastUpdated('Fallback Live Rate');
       } finally {
-        setIsLoadingFx(false);
+        if (active) setIsLoadingFx(false);
       }
     };
     fetchFxData();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, []);
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,

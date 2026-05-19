@@ -17,6 +17,7 @@ import {
 } from '@/lib/addresses';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
+import { writeStorage } from '@/utils/storage';
 // Assets
 interface AddressState {
   id?: string; // Unique ID for editing
@@ -204,7 +205,11 @@ const AddAddressDetails = () => {
           postcode: initialState?.postcode || '',
           plusCode: newAddr.plus_code || '',
         };
-        localStorage.setItem('gridpe_user_address', JSON.stringify(uiAddr));
+        try {
+          writeStorage('user_address', uiAddr, userId);
+        } catch (e) {
+          console.warn('Failed to persist address to namespaced storage', e);
+        }
       }
       showToaster(isEditMode ? 'Address updated!' : 'Address saved successfully!', 'success');
       navigate(ROUTES.HOME);

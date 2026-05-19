@@ -92,12 +92,20 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
     if (!isDragging) return;
     setIsDragging(false);
     if (dragY > 80) {
-      onClose();
+      if (!isSubmitting) handleCloseSafe();
     }
     setDragY(0);
   };
 
   useBodyScrollLock(isOpen && order !== null);
+
+  const handleCloseSafe = (e?: any) => {
+    if (e) {
+      try { e.stopPropagation(); e.preventDefault(); } catch {}
+    }
+    if (isSubmitting) return;
+    onClose();
+  };
 
   const existingRating = order?.order_ratings?.[0] ?? null;
   const isAlreadyRated = existingRating !== null;
@@ -140,6 +148,11 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
 
   const handleSubmitRating = async () => {
     if (!order || isAlreadyRated || rating === 0) return;
+
+    if (!order.rider?.id) {
+      showToaster('Cannot rate: rider information missing', 'error');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -277,7 +290,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-10 bg-black/60 backdrop-blur-md transition-opacity pointer-events-auto"
-        onClick={onClose}
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCloseSafe(e); }}
       />
       {/* Sheet — `transition-all` was animating min-height swings as the
                 sheet content loaded, which forces layout reflow each frame.
@@ -448,10 +461,10 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               {/* Address Info Header */}
               <div className="px-[16px] flex justify-between items-start mb-2">
                 <span className="text-white text-[12px] font-medium font-satoshi">
-                  Delivered to - {order.addresses?.label || 'Home'}
+                  Delivered to - {order.addresses?.label ?? 'Home'}
                 </span>
                 <span className="text-white text-[12px] font-satoshi max-w-[150px] truncate text-right">
-                  {order.addresses?.apartment}, {order.addresses?.area}
+                  {([order.addresses?.apartment, order.addresses?.area].filter(Boolean).join(', ') || 'Delivery Location')}
                 </span>
               </div>
               {isProcessing && (
@@ -515,12 +528,20 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                           <img
                             src={(() => {
                               const rider = order?.rider;
-                              const photo = rider?.kyc_photo || rider?.profile_photo;
+                              const photo = (rider?.kyc_photo || rider?.profile_photo || '').trim();
                               if (!photo) return ASSETS.AVATAR;
-                              if (photo.startsWith('http')) return photo;
-                              return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;
+                              if (photo.startsWith('http')) {
+                                try {
+                                  new URL(photo);
+                                  return photo;
+                                } catch {
+                                  return ASSETS.AVATAR;
+                                }
+                              }
+                              return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${encodeURIComponent(photo)}`;
                             })()}
-                            alt={`${order?.rider?.full_name || 'Rider'}'s photo`}
+                            onError={(e) => { (e.target as HTMLImageElement).src = ASSETS.AVATAR; }}
+                            alt={`${order?.rider?.full_name ?? 'Rider'}'s photo`}
                             className="w-full h-full object-cover"
                           />
                           {/* Verified Tag Bar */}

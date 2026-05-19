@@ -87,6 +87,10 @@ const OrderTracking = () => {
   }, [order]);
   useEffect(() => {
     if (!order?.id) return;
+
+    const controller = new AbortController();
+    let active = true;
+
     // Fetch rider details if assigned
     if (order.rider_id) {
       // Check if we already have the rider info from the joined order
@@ -94,16 +98,22 @@ const OrderTracking = () => {
         setRiderName(order.rider.full_name);
       }
       const fetchRider = async () => {
-        const { data, error } = await supabase
-          .from('riders')
-          .select(
-            'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, kyc_status, profile_photo'
-          )
-          .eq('id', order.rider_id)
-          .single();
-        if (data && !error) {
-          setRiderName(data.full_name);
-          setOrder(prev => (prev ? { ...prev, rider: data } : null));
+        try {
+          const { data, error } = await supabase
+            .from('riders')
+            .select(
+              'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, kyc_status, profile_photo'
+            )
+            .eq('id', order.rider_id)
+            .single();
+          if (controller.signal.aborted || !active) return;
+          if (data && !error) {
+            setRiderName(data.full_name);
+            setOrder(prev => (prev ? { ...prev, rider: data } : null));
+          }
+        } catch (err) {
+          if (!active) return;
+          console.error('Failed to fetch rider', err);
         }
       };
       fetchRider();
@@ -119,6 +129,7 @@ const OrderTracking = () => {
             filter: `order_id=eq.${order.id}`,
           },
           (payload: RealtimePostgresChangesPayload<{ current_lat: number; current_lng: number }>) => {
+            if (!active) return;
             if (payload.eventType !== 'DELETE' && payload.new.current_lat && payload.new.current_lng) {
               setRiderLocation({
                 lat: payload.new.current_lat,
@@ -140,6 +151,7 @@ const OrderTracking = () => {
             filter: `id=eq.${order.id}`,
           },
           (payload: RealtimePostgresUpdatePayload<Order>) => {
+            if (!active) return;
             if (payload.new) {
               const newStatus = payload.new.status;
               setOrder(prev => (prev ? { ...prev, ...payload.new } : payload.new));
@@ -170,14 +182,22 @@ const OrderTracking = () => {
         setBadge(1);
       }
       return () => {
+        active = false;
+        controller.abort();
         supabase.removeChannel(channel);
         supabase.removeChannel(orderChannel);
       };
     } else {
       // If no order ID, we might be loading from a deep link or direct URL
       // Simulate/Wait for data
-      const timer = setTimeout(() => setIsLoading(false), 1500);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        if (active) setIsLoading(false);
+      }, 1500);
+      return () => {
+        active = false;
+        controller.abort();
+        clearTimeout(timer);
+      };
     }
   }, [order?.id, order?.rider_id, navigate]);
   useEffect(() => {

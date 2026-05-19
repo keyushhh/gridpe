@@ -1,5 +1,7 @@
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
+import { storageKey, readStorage, writeStorage } from '@/utils/storage';
+import { supabase } from '@/lib/supabase';
 
 export interface Card {
   id: string;
@@ -11,32 +13,44 @@ export interface Card {
   backgroundIndex: number;
 }
 
-const STORAGE_KEY = 'gridpe_user_cards';
+const LEGACY_KEY = 'gridpe_user_cards';
 
 export const getCards = async (): Promise<Card[]> => {
   try {
-    // 1. Try SecureStorage first
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || 'anon';
+    const namespaced = storageKey('user_cards', userId);
+
+    // 1. Try SecureStorage (native) with namespaced key
     if (Capacitor.isNativePlatform()) {
-      const secureStored = await SecureStorage.get(STORAGE_KEY);
-      if (secureStored) {
-        return JSON.parse(secureStored as string);
+      const secureStored = await SecureStorage.get(namespaced);
+      if (secureStored) return JSON.parse(secureStored as string);
+
+      // Fallback to legacy key and migrate
+      const legacy = await SecureStorage.get(LEGACY_KEY);
+      if (legacy) {
+        const cards: Card[] = JSON.parse(legacy as string);
+        const cleanedCards = cards.map(({ cvv, ...rest }: any) => rest);
+        await SecureStorage.set(namespaced, JSON.stringify(cleanedCards));
+        await SecureStorage.remove(LEGACY_KEY).catch(() => {});
+        return cleanedCards;
       }
     }
 
-    // 2. Fallback to localStorage and migrate if found
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const cards: Card[] = JSON.parse(stored);
-      // Strip CVVs if they accidentally exist in legacy data
+    // 2. Web: try namespaced localStorage
+    const webStored = readStorage<Card[]>('user_cards', userId);
+    if (webStored) return webStored;
+
+    // 3. Legacy web key migrate
+    const legacyWeb = localStorage.getItem(LEGACY_KEY);
+    if (legacyWeb) {
+      const cards: Card[] = JSON.parse(legacyWeb);
       const cleanedCards = cards.map(({ cvv, ...rest }: any) => rest);
-      
-      if (Capacitor.isNativePlatform()) {
-        console.warn('Migrating cards to SecureStorage...');
-        await SecureStorage.set(STORAGE_KEY, JSON.stringify(cleanedCards));
-        localStorage.removeItem(STORAGE_KEY);
-      }
+      writeStorage('user_cards', cleanedCards, userId);
+      localStorage.removeItem(LEGACY_KEY);
       return cleanedCards;
     }
+
     return [];
   } catch (e) {
     console.error('Failed to load cards', e);
@@ -61,15 +75,14 @@ export const addCard = async (card: Omit<Card, 'id' | 'isDefault' | 'backgroundI
 
   const updatedCards = [...currentCards, newCard];
   
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || 'anon';
+  const ns = storageKey('user_cards', userId);
   if (Capacitor.isNativePlatform()) {
-    await SecureStorage.set(STORAGE_KEY, JSON.stringify(updatedCards));
+    await SecureStorage.set(ns, JSON.stringify(updatedCards));
   } else {
-    // On web, store masked version for UI persistence only
-    const maskedCards = updatedCards.map(c => ({
-      ...c,
-      number: maskPan(c.number)
-    }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(maskedCards));
+    const maskedCards = updatedCards.map(c => ({ ...c, number: maskPan(c.number) }));
+    writeStorage('user_cards', maskedCards, userId);
   }
   return newCard;
 };
@@ -85,14 +98,17 @@ export const removeCard = async (id: string): Promise<void> => {
     remainingCards[0].isDefault = true;
   }
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || 'anon';
+  const ns = storageKey('user_cards', userId);
   if (Capacitor.isNativePlatform()) {
-    await SecureStorage.set(STORAGE_KEY, JSON.stringify(remainingCards));
+    await SecureStorage.set(ns, JSON.stringify(remainingCards));
   } else {
     const maskedCards = remainingCards.map(c => ({
       ...c,
-      number: c.number.startsWith('XXXX') ? c.number : maskPan(c.number)
+      number: c.number.startsWith('XXXX') ? c.number : maskPan(c.number),
     }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(maskedCards));
+    writeStorage('user_cards', maskedCards, userId);
   }
 };
 
@@ -103,13 +119,16 @@ export const setDefaultCard = async (id: string): Promise<void> => {
     isDefault: card.id === id,
   }));
   
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || 'anon';
+  const ns = storageKey('user_cards', userId);
   if (Capacitor.isNativePlatform()) {
-    await SecureStorage.set(STORAGE_KEY, JSON.stringify(updatedCards));
+    await SecureStorage.set(ns, JSON.stringify(updatedCards));
   } else {
     const maskedCards = updatedCards.map(c => ({
       ...c,
-      number: c.number.startsWith('XXXX') ? c.number : maskPan(c.number)
+      number: c.number.startsWith('XXXX') ? c.number : maskPan(c.number),
     }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(maskedCards));
+    writeStorage('user_cards', maskedCards, userId);
   }
 };

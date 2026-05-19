@@ -16,6 +16,7 @@ import { ROUTES } from './routes';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
+import { handleBackButtonGesture } from '@/hooks/useBackButtonHandler';
 
 // Lazy-load page components
 const Index = lazy(() => import('./pages/Index'));
@@ -137,6 +138,11 @@ const BackNavigationHandler = ({
 
     const handler = CapacitorApp.addListener('backButton', async ({ canGoBack }) => {
       const currentPath = currentPathRef.current;
+
+      // 0. ACTIVE OVERLAY/MODAL CHECK: If there is an active bottom sheet or modal, dismiss it first!
+      if (handleBackButtonGesture()) {
+        return;
+      }
 
       // 1. HARD SECURITY CHECK: If no session, any back gesture on entry screens should EXIT.
       // This prevents "swiping back" into the history of a previous user session.

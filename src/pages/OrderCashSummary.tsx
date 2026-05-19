@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { createAddress, getAuthUserId } from '@/lib/addresses';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
+import { writeStorage } from '@/utils/storage';
 import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
 import { SavedAddress } from '@/types';
@@ -203,7 +204,7 @@ const OrderCashSummary = () => {
           addressId = newAddress.id;
           const updatedAddr = { ...savedAddress, id: addressId };
           setSavedAddress(updatedAddr);
-          localStorage.setItem('gridpe_user_address', JSON.stringify(updatedAddr));
+          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { console.warn('Failed to persist address', e); }
         } catch (addrErr: unknown) {
           console.error('Failed to save address before order', addrErr);
           const errorMessage = addrErr instanceof Error ? addrErr.message : 'Please try again.';

@@ -2,8 +2,11 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
+import { purgeOtherUsersStorage } from '@/utils/storage';
 import DiditSDK from '@didit-protocol/sdk-web';
 import { ROUTES } from '@/routes';
+import { SecureStorage } from '@aparajita/capacitor-secure-storage';
+import { Capacitor } from '@capacitor/core';
 
 export const useAuth = () => {
   const { resetForDemo } = useUser();
@@ -11,39 +14,45 @@ export const useAuth = () => {
 
   const logout = useCallback(async () => {
     try {
-      // 1. Clear Supabase session
+      // 1. Determine current user (so we can clean user-scoped keys)
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentUserId = user?.id;
+
+      // 2. Clear Supabase session
       await supabase.auth.signOut();
 
-      // 2. Clear Context state
-      resetForDemo();
+      // 3. Purge any namespaced gridpe keys (this removes user-scoped cache)
+      try {
+        // Save theme preference
+        const savedTheme = localStorage.getItem('theme');
+        purgeOtherUsersStorage(undefined); // remove all gridpe keys
+        if (savedTheme) localStorage.setItem('theme', savedTheme);
+        sessionStorage.clear();
+      } catch (e) {
+        console.warn('Failed to purge local storage during logout:', e);
+      }
 
-      // 3. Purge Didit Cache & Destroy Instances securely
+      // 4. Purge SecureStorage keys explicitly on native
+      try {
+        if (Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+          // Best-effort removals (some keys may not exist)
+          await SecureStorage.remove('gridpe_secure_user_state').catch(() => {});
+          await SecureStorage.remove('supabase.auth.token').catch(() => {});
+        }
+      } catch (e) {
+        // ignore failures
+      }
+
+      // 5. Destroy any third-party SDK instances safely
       if (DiditSDK?.shared?.destroy) {
         DiditSDK.shared.destroy();
       }
 
-      // 4. Clear sensitive storage while preserving theme preferences
-      const savedTheme = localStorage.getItem('theme');
-      
-      // Remove specific auth and app keys
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('USER_STORAGE_KEY');
-      localStorage.removeItem('gridpe_reloading');
-      localStorage.removeItem('sb-keyushhh-gridpe-auth-token'); // Supabase default key pattern
-      
-      // Clear all other keys if needed, but preserve 'theme'
-      // Or just clear and restore as requested
-      localStorage.clear();
-      if (savedTheme) {
-        localStorage.setItem('theme', savedTheme);
-      }
-      
-      sessionStorage.clear();
+      // 6. Clear Context state (non-destructive reset flow)
+      resetForDemo();
 
-      // 5. HARD RESET: Force a full WebView reload to the base origin.
-      // This strips the HashRouter history (#/home) and resets the JS environment.
-      // After reload, the app starts at / with NO session, ensuring total isolation.
-      window.location.href = window.location.origin + window.location.pathname;
+      // 7. Navigate to home (avoid full clear unless necessary)
+      navigate(ROUTES.HOME);
     } catch (error) {
       console.error('Logout failed:', error);
       // Fallback reload if everything fails

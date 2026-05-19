@@ -202,6 +202,7 @@ const Settings = () => {
   };
 
   const { logout: handleLogout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (!isSecureStorageReady) {
     return (
@@ -555,7 +556,7 @@ const Settings = () => {
           {/* Backdrop */}
           <div
             className="fixed inset-0 z-10 bg-black/50 backdrop-blur-[4px] pointer-events-auto"
-            onClick={() => setShowLogoutConfirmation(false)}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowLogoutConfirmation(false); }}
           />
           {/* Sheet */}
           <div
@@ -628,18 +629,23 @@ const Settings = () => {
             <div className="flex flex-col gap-3.5">
               <button
                 onClick={() => {
+                  setIsLoggingOut(true);
                   setShowLogoutConfirmation(false);
-                  handleLogout();
+                  // Defer the actual logout so the UI can update and avoid mid-flight state wipes
+                  requestAnimationFrame(() => {
+                    handleLogout();
+                  });
                 }}
+                disabled={isLoggingOut}
                 className={`w-full h-[52px] rounded-full bg-gradient-to-r from-[#EF4444] to-[#DC2626] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi ${
                   isDarkMode ? 'shadow-lg shadow-red-950/20' : 'shadow-none'
                 }`}
               >
-                Log Out
+                {isLoggingOut ? 'Logging out...' : 'Log Out'}
               </button>
 
               <button
-                onClick={() => setShowLogoutConfirmation(false)}
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowLogoutConfirmation(false); }}
                 className={`w-full h-[52px] rounded-full active:scale-95 transition-all flex items-center justify-center font-semibold text-[16px] font-satoshi border ${
                   isDarkMode 
                     ? 'bg-transparent text-white border-white/12 hover:bg-white/5' 

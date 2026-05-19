@@ -26,6 +26,7 @@ import {
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { hapticWarning } from '@/utils/haptics';
+import { useBackButtonHandler } from '@/hooks/useBackButtonHandler';
 
 const mapToSavedAddress = (addr: Address): SavedAddress => {
   return {
@@ -56,6 +57,9 @@ const SavedAddresses = () => {
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [selectedAddr, setSelectedAddr] = useState<Address | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isAndroid = Capacitor.getPlatform() === 'android';
+
+  useBackButtonHandler(showActionSheet, () => setShowActionSheet(false));
 
   useEffect(() => {
     const lastId = localStorage.getItem('gridpe_last_selected_address_id');
@@ -314,19 +318,21 @@ const SavedAddresses = () => {
           `}</style>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-10 bg-black/50 backdrop-blur-[4px] pointer-events-auto"
+            className={`fixed inset-0 z-10 ${isAndroid ? 'bg-black/70 pointer-events-auto' : 'bg-black/50 backdrop-blur-[4px] pointer-events-auto'}`}
             onClick={() => setShowActionSheet(false)}
           />
           {/* Sheet */}
           <div
             className="fixed bottom-0 left-0 right-0 rounded-t-[36px] flex flex-col px-6 pb-[calc(24px+env(safe-area-inset-bottom))] pt-3 pointer-events-auto z-20"
             style={{
-              backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : 'rgba(255, 255, 255, 0.95)',
+              backgroundColor: isAndroid
+                ? (isDarkMode ? 'rgba(25, 25, 25, 0.85)' : 'rgba(255, 255, 255, 0.98)')
+                : (isDarkMode ? 'rgba(25, 25, 25, 0.31)' : 'rgba(255, 255, 255, 0.95)'),
               borderTop: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
               borderLeft: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
               borderRight: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.1)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
+              backdropFilter: isAndroid ? 'none' : 'blur(30px)',
+              WebkitBackdropFilter: isAndroid ? 'none' : 'blur(30px)',
               boxShadow: isDarkMode ? '0px -10px 40px rgba(0, 0, 0, 0.4)' : 'none',
               animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
               willChange: 'transform',
@@ -360,8 +366,8 @@ const SavedAddresses = () => {
                   <button
                     onClick={() => {
                       const mapped = mapToSavedAddress(selectedAddr);
-                      localStorage.setItem('gridpe_last_selected_address_id', selectedAddr.id);
-                      localStorage.setItem('gridpe_user_address', JSON.stringify(mapped));
+                      try { writeStorage('last_selected_address_id', selectedAddr.id, profile?.id); } catch {}
+                      try { writeStorage('user_address', mapped, profile?.id); } catch {}
                       setSelectedAddressId(selectedAddr.id);
                       showToaster('Delivery address updated', 'success');
                       setShowActionSheet(false);

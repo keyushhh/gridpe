@@ -6,6 +6,7 @@ import { WalletTier, WalletTransaction, Profile as UserProfile, Tables } from '@
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { purgeOtherUsersStorage } from '@/utils/storage';
 
 export type { WalletTier };
 
@@ -22,6 +23,7 @@ interface UserState {
   isWalletActivated: boolean;
   isInitializing: boolean;
   isSecureStorageReady: boolean;
+  isResetting: boolean;
 
   /* Wallet Tier */
   walletTier: WalletTier;
@@ -77,6 +79,7 @@ interface UserContextType extends UserState {
   ) => Promise<{ success: boolean; error?: Error | PostgrestError | string }>;
   isInitializing: boolean;
   isSecureStorageReady: boolean;
+  isResetting: boolean;
 }
 
 /* -------------------- Constants -------------------- */
@@ -113,6 +116,7 @@ const defaultState: UserState = {
   rewardPoints: 0,
   isInitializing: true,
   isSecureStorageReady: false,
+  isResetting: false,
 };
 
 /* -------------------- Context -------------------- */
@@ -310,6 +314,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const fetchProfileData = useCallback(
     async (overrideUserId?: string) => {
       try {
+        if (state.isResetting) return;
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -480,7 +485,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     },
-    [supabase, fetchAndCalculateBalance]
+    [supabase, fetchAndCalculateBalance, state.isResetting]
   );
 
   /* Initial Load */
@@ -494,6 +499,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Purge any localStorage keys that belong to other users to avoid cross-account pollution
+        try {
+          purgeOtherUsersStorage(session?.user?.id);
+        } catch (e) {
+          console.warn('Failed to purge other user storage on sign-in:', e);
+        }
         fetchProfileData();
       }
     });
@@ -699,8 +710,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const resetForDemo = useCallback(() => {
-    setState(defaultState);
-    localStorage.removeItem(USER_STORAGE_KEY);
+    // Mark resetting to prevent in-flight requests from mutating shared state
+    setState(prev => ({ ...prev, isResetting: true }));
+
+    // Small delay to allow pending requests to observe isResetting and abort
+    setTimeout(() => {
+      try {
+        localStorage.removeItem(USER_STORAGE_KEY);
+      } catch (e) {}
+      setState(defaultState);
+    }, 50);
   }, []);
 
   const activateWallet = useCallback(async () => {

@@ -48,7 +48,11 @@ const OrderDetails = () => {
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (loading || !orderId) return;
+    if (!orderId) return;
+
+    const controller = new AbortController();
+    let active = true;
+
     const fetchOrder = async () => {
       if (location.state?.order && location.state.order.addresses) {
         setOrder(location.state.order);
@@ -58,64 +62,80 @@ const OrderDetails = () => {
       if (orderId && orderId !== 'undefined') {
         try {
           const data = await getOrderById(orderId);
+          if (controller.signal.aborted || !active) return;
           if (data) {
             setOrder(data);
           } else {
             console.error('Order not found');
           }
         } catch (e) {
+          if (controller.signal.aborted || !active) return;
           console.error('Failed to fetch order', e);
         } finally {
-          setLoading(false);
+          if (!controller.signal.aborted && active) {
+            setLoading(false);
+          }
         }
+      } else {
+        if (active) setLoading(false);
       }
     };
     fetchOrder();
+
     // Real-time subscription
     let channel: RealtimeChannel | null = null;
     const setupSubscription = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user && orderId) {
-        channel = supabase
-          .channel(`order-details-${orderId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'orders',
-              filter: `id=eq.${orderId}`,
-            },
-            payload => {
-              const updatedOrder = payload.new as unknown as Order;
-              setOrder(prev => (prev ? { ...prev, ...updatedOrder } : null));
-            }
-          )
-          .subscribe();
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (controller.signal.aborted || !active) return;
+        if (session?.user && orderId) {
+          channel = supabase
+            .channel(`order-details-${orderId}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'orders',
+                filter: `id=eq.${orderId}`,
+              },
+              payload => {
+                if (controller.signal.aborted || !active) return;
+                const updatedOrder = payload.new as unknown as Order;
+                setOrder(prev => (prev ? { ...prev, ...updatedOrder } : null));
+              }
+            )
+            .subscribe();
+        }
+      } catch (err) {
+        console.error('Failed to setup order subscription', err);
       }
     };
     setupSubscription();
+
     return () => {
+      active = false;
+      controller.abort();
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, [orderId, location.state, loading]);
+  }, [orderId, location.state]);
 
   // Assigning partner countdown
   useEffect(() => {
-    if (loading || !order || order.status !== 'processing' || timer <= 0) return;
+    if (!order || order.status !== 'processing' || timer <= 0) return;
     const interval = setInterval(() => {
       setTimer(prev => prev - 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [timer, order?.status, loading, order]);
+  }, [timer, order?.status, order]);
 
   // Redirect Timer for Cancelled/Failed Orders
   useEffect(() => {
-    if (loading || !order) return;
+    if (!order) return;
     if ((order?.status === 'cancelled' || order?.status === 'failed') && redirectTimer > 0) {
       const interval = setInterval(() => {
         setRedirectTimer(prev => prev - 1);
@@ -127,10 +147,10 @@ const OrderDetails = () => {
     ) {
       navigate(ROUTES.HOME);
     }
-  }, [order?.status, redirectTimer, navigate, loading, order]);
+  }, [order?.status, redirectTimer, navigate, order]);
 
   useEffect(() => {
-    if (loading || !isMenuOpen) return;
+    if (!isMenuOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (
         menuRef.current &&
@@ -145,10 +165,10 @@ const OrderDetails = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuOpen, loading]);
+  }, [isMenuOpen]);
 
   useEffect(() => {
-    if (loading || !order) return;
+    if (!order) return;
     const addr = order?.addresses || location.state?.savedAddress;
     if (addr?.plus_code) {
       try {
@@ -168,7 +188,7 @@ const OrderDetails = () => {
         zoom: 14,
       });
     }
-  }, [order, location.state?.savedAddress, loading]);
+  }, [order, location.state?.savedAddress]);
   const handleCancelOrder = async () => {
     if (!order) return;
     try {

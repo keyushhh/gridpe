@@ -8,6 +8,7 @@ import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
+import { writeStorage } from '@/utils/storage';
 import { supabase } from '@/lib/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
 import { createAddress, getAuthUserId } from '@/lib/addresses';
@@ -218,7 +219,7 @@ const FxExchangeSummary = () => {
           addressId = newAddress.id;
           const updatedAddr = { ...savedAddress, id: addressId };
           setSavedAddress(updatedAddr);
-          localStorage.setItem('gridpe_user_address', JSON.stringify(updatedAddr));
+          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { console.warn('Failed to write namespaced address', e); }
         } catch (err) {
           console.error('Failed to save address before order', err);
           showToaster('Failed to save address details. Please try again.', 'error');
@@ -472,7 +473,7 @@ const FxExchangeSummary = () => {
             const newAddressId = newAddress.id;
             const updatedAddr = { ...savedAddress, id: newAddressId };
             setSavedAddress(updatedAddr);
-            localStorage.setItem('gridpe_user_address', JSON.stringify(updatedAddr));
+            try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { console.warn('Failed to write namespaced address', e); }
             const { data: retryProfile, error: retryError } = await supabase
               .from('profiles')
               .select('phone')

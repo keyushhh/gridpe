@@ -30,7 +30,12 @@ const SelectPaymentMethod = () => {
   useEffect(() => {
     const loadBanks = async () => {
       try {
-        const accounts = await fetchBankAccounts(profile?.id || '');
+        if (!profile?.id) {
+          setBankAccounts([]);
+          setLoading(false);
+          return;
+        }
+        const accounts = await fetchBankAccounts(profile.id);
         setBankAccounts(accounts);
         if (accounts.length > 0) {
           const defaultAcc = accounts.find(a => a.is_default) || accounts[0];

@@ -11,6 +11,9 @@ import { Address, SavedAddress } from '@/types';
 import { GeocodeResult, reverseGeocode, forwardGeocode } from '@/utils/geoUtils';
 import { supabase } from '@/lib/supabase';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { useBackButtonHandler } from '@/hooks/useBackButtonHandler';
+import { Capacitor } from '@capacitor/core';
+import { readStorage, writeStorage, removeStorage, storageKey } from '@/utils/storage';
 // Assets
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -32,6 +35,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
+  const isAndroid = Capacitor.getPlatform() === 'android';
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GeocodeResult[]>([]);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -39,6 +43,16 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const [currentLocationName, setCurrentLocationName] = useState<string>('Fetching...');
   const [addressToDelete, setAddressToDelete] = useState<SavedAddress | null>(null);
   const [lastSelectedAddressId, setLastSelectedAddressId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCloseSafe = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (isSubmitting) return;
+    onClose();
+  };
   // Fetch Current Location Name on Mount/Open
   useEffect(() => {
     const fetchCurrentLocationName = async () => {
@@ -71,6 +85,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   }, [isOpen]);
   // Prevent background scroll bleed
   useBodyScrollLock(isOpen);
+  useBackButtonHandler(isOpen, onClose);
 
   // Load addresses
   useEffect(() => {
@@ -79,7 +94,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         try {
           const data = await fetchAddresses(userId);
           // Map DB Address to SavedAddress UI Model
-          const mapped: SavedAddress[] = data.map(d => ({
+          const safeData = Array.isArray(data) ? data : [];
+          const mapped: SavedAddress[] = safeData.map(d => ({
             id: d.id,
             user_id: d.user_id,
             created_at: d.created_at,
@@ -107,25 +123,34 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           console.error('Failed to load addresses', e);
           showToaster('Failed to load your saved addresses.', 'error');
         }
-        // Load Selected Address from local state only (active session)
-        // We still keep the *currently selected* address in local storage for persistence across reloads during a session
-        const current = localStorage.getItem('gridpe_user_address');
+        // Load Selected Address from namespaced storage first, then migrate legacy keys
+        const current = readStorage<SavedAddress>('user_address', userId);
         if (current) {
-          try {
-            const parsed = JSON.parse(current);
-            setSelectedAddress(parsed);
-            if (parsed && parsed.id) {
-              setLastSelectedAddressId(parsed.id);
+          setSelectedAddress(current);
+          if (current.id) setLastSelectedAddressId(current.id);
+        } else {
+          // Check legacy key and migrate if it matches current user
+          const legacy = localStorage.getItem('gridpe_user_address');
+          if (legacy) {
+            try {
+              const parsed = JSON.parse(legacy);
+              if (parsed?.user_id && parsed.user_id === userId) {
+                writeStorage('user_address', parsed, userId);
+                removeStorage('gridpe_user_address', userId);
+                setSelectedAddress(parsed);
+                if (parsed.id) setLastSelectedAddressId(parsed.id);
+              } else {
+                localStorage.removeItem('gridpe_user_address');
+              }
+            } catch (e) {
+              localStorage.removeItem('gridpe_user_address');
+              console.warn('Corrupted local address data cleared.');
             }
-          } catch (e) {
-            localStorage.removeItem('gridpe_user_address');
-            console.warn('Corrupted local address data cleared.');
           }
         }
-        const lastId = localStorage.getItem('gridpe_last_selected_address_id');
-        if (lastId) {
-          setLastSelectedAddressId(lastId);
-        }
+
+        const lastId = readStorage<string>('last_selected_address_id', userId);
+        if (lastId) setLastSelectedAddressId(lastId as string);
       }
     };
     loadAddresses();
@@ -197,8 +222,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           longitude: longitude,
           plusCode: fullCode,
         };
-        localStorage.setItem('gridpe_user_address', JSON.stringify(addressToSave));
-        localStorage.removeItem('gridpe_last_selected_address_id');
+        writeStorage('user_address', addressToSave, userId);
+        removeStorage('last_selected_address_id', userId);
         setLastSelectedAddressId(null);
         onAddressSelect(addressToSave);
         onClose();
@@ -211,9 +236,9 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     setSelectedAddress(addr);
     if (addr.id) {
       setLastSelectedAddressId(addr.id);
-      localStorage.setItem('gridpe_last_selected_address_id', addr.id);
+      writeStorage('last_selected_address_id', addr.id, userId);
     }
-    localStorage.setItem('gridpe_user_address', JSON.stringify(addr));
+    writeStorage('user_address', addr, userId);
     // Notify parent immediately (optional, or wait for close)
     // "user taps ... automatically become selected"
     onAddressSelect(addr);
@@ -232,8 +257,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     // Close modal first so user sees the toaster clearly
     setAddressToDelete(null);
     showToaster('Processing deletion...', 'success');
+    setIsSubmitting(true);
     if (!idToDelete || !userId) {
       showToaster('Error: Missing session or ID', 'error');
+      setIsSubmitting(false);
       return;
     }
     try {
@@ -242,24 +269,26 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       const newList = savedAddresses.filter(a => a.id !== idToDelete);
       setSavedAddresses(newList);
       if (newList.length === 0) {
-        localStorage.removeItem('gridpe_user_address');
-        localStorage.removeItem('gridpe_last_selected_address_id');
+        removeStorage('user_address', userId);
+        removeStorage('last_selected_address_id', userId);
         setSelectedAddress(null);
         setLastSelectedAddressId(null);
         onAddressSelect(null);
         navigate(ROUTES.HOME);
         onClose();
       } else if (selectedAddress && selectedAddress.id === idToDelete) {
-        localStorage.removeItem('gridpe_user_address');
-        localStorage.removeItem('gridpe_last_selected_address_id');
+        removeStorage('user_address', userId);
+        removeStorage('last_selected_address_id', userId);
         setSelectedAddress(null);
         setLastSelectedAddressId(null);
         onAddressSelect(null);
       }
+      setIsSubmitting(false);
     } catch (err: unknown) {
       console.error('Failed to delete address', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete address. Please try again.';
       showToaster(errorMessage, 'error');
+      setIsSubmitting(false);
     }
   };
   const handleEdit = (e: React.MouseEvent, addr: SavedAddress) => {
@@ -300,7 +329,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center pointer-events-none">
       {/* Backdrop */}
-      <div className="fixed inset-0 z-10 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={onClose} />
+      <div 
+        className={`fixed inset-0 z-10 ${isAndroid ? 'bg-black/60 pointer-events-auto' : 'bg-black/40 backdrop-blur-[2px] pointer-events-auto'}`} 
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCloseSafe(e); }} 
+      />
       {/* Sheet */}
       <div
         className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} pointer-events-auto z-20`}
@@ -309,6 +341,11 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           paddingBottom: 'env(safe-area-inset-bottom)',
           willChange: 'transform',
           transform: 'translateZ(0)',
+          ...(isAndroid ? {
+            backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.85)' : 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+          } : {})
         }}
       >
         {/* Drag Handle */}
@@ -325,7 +362,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
               Select Delivery Location
             </h2>
             <button
-              onClick={onClose}
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCloseSafe(e); }}
               className={`w-8 h-8 flex items-center justify-center rounded-full ${isDarkMode ? 'bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
             >
               <X className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
