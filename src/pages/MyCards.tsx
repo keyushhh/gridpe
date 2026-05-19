@@ -389,14 +389,16 @@ const MyCards = () => {
                                 <button
                                   type="button"
                                   onClick={e => toggleCardVisibility(card.id, e)}
-                                  className="text-white/60 hover:text-white shrink-0 z-20 transition-colors"
+                                  onMouseDown={e => e.stopPropagation()}
+                                  onTouchStart={e => e.stopPropagation()}
+                                  className="text-white/60 hover:text-white shrink-0 relative z-30 pointer-events-auto transition-colors"
                                   aria-label={isVisible ? 'Hide CVV' : 'Show CVV'}
                                 >
                                   {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
                                 </button>
                               </div>
                               <p className="text-white text-[14px] font-bold font-satoshi leading-none">
-                                ***
+                                {isVisible ? (card as any).cvv || '123' : '***'}
                               </p>
                             </div>
                           </div>

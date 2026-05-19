@@ -252,18 +252,17 @@ const OrderTracking = () => {
       )}
       {/* Header Overlay */}
       <div 
-        className="fixed top-0 left-0 right-0 z-10"
+        className="absolute top-0 left-0 right-0 z-20 w-full bg-black/30"
         style={{
-          backgroundColor: isDarkMode ? 'rgba(10, 10, 18, 0.4)' : 'rgba(255, 255, 255, 0.4)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
-          borderBottom: isDarkMode ? '0.5px solid rgba(255, 255, 255, 0.08)' : '0.5px solid rgba(0, 0, 0, 0.05)',
+          borderBottom: '0.5px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         <div className="safe-top pt-4 pb-4 px-5 flex items-center justify-between">
-          <BackButton onClick={() => navigate(ROUTES.HOME)} />
+          <BackButton onClick={() => navigate(ROUTES.HOME)} className="text-white [&_svg]:text-white" />
           <h1
-            className={`text-[18px] font-bold font-satoshi flex-1 text-center pr-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+            className="text-[18px] font-bold font-satoshi flex-1 text-center pr-10 text-white"
           >
             Order Tracking
           </h1>
@@ -272,10 +271,12 @@ const OrderTracking = () => {
       {/* Map Container */}
       <div
         className="w-full relative overflow-hidden shrink-0 rounded-b-[32px] z-0"
-        style={{ height: '240px' }}
+        style={{ height: '38vh' }}
       >
         {isLoading ? (
-          <Skeleton height={240} borderRadius={0} />
+          <div style={{ width: '100%', height: '100%' }}>
+            <Skeleton height="100%" borderRadius={0} style={{ height: '100%' }} />
+          </div>
         ) : (
           <Map
             {...viewState}
@@ -555,11 +556,8 @@ const OrderTracking = () => {
           </div>
         </div>
       </div>
-      {/* Spacer to absorb extra vertical viewport space & guarantee a minimum 16px gap */}
-      <div className="flex-1 min-h-[16px]" />
-
-      {/* Need Help CTA */}
-      <div className="px-5 pb-4 safe-bottom shrink-0 relative z-0">
+      {/* Need Help CTA - Positioned exactly 15px below the 3rd card in a natural flex column flow */}
+      <div className="px-5 mt-[15px] pb-4 safe-bottom shrink-0 relative z-0">
         <Button
           onClick={() => navigate(ROUTES.HELP_REPORT, { state: { order } })}
           variant={isDarkMode ? 'glass' : 'default'}
