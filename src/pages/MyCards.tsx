@@ -45,7 +45,7 @@ const MyCards = () => {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [confirmAction, setConfirmAction] = useState<'remove' | 'default' | null>(null);
-  const [visibleCardIds, setVisibleCardIds] = useState<Record<string, boolean>>({});
+  const [revealedCardId, setRevealedCardId] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
   const fetchAllCards = async () => {
@@ -129,10 +129,7 @@ const MyCards = () => {
   }, [isFabExpanded, selectedCardId]);
   const toggleCardVisibility = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setVisibleCardIds(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setRevealedCardId(prev => prev === id ? null : id);
   };
   const handleRemoveClick = () => {
     setConfirmAction('remove');
@@ -271,7 +268,7 @@ const MyCards = () => {
                 {sortedCards.map((card, index) => {
                   const bgSrc = cardBackgrounds[(card.backgroundIndex - 1) % 6];
                   const isDefault = card.isDefault;
-                  const isVisible = visibleCardIds[card.id] || false;
+                  const isVisible = revealedCardId === card.id;
                   const isSelected = selectedCardId === card.id;
                   const chipTop = isDefault ? 34 : 21;
                   const nameTop = isDefault ? 42 : 26;
