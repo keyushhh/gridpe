@@ -35,6 +35,27 @@ const SavedAddresses = () => {
   const [loading, setLoading] = useState(true);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const lastId = localStorage.getItem('gridpe_last_selected_address_id');
+    if (lastId) {
+      setSelectedAddressId(lastId);
+    } else {
+      const addressStr = localStorage.getItem('gridpe_user_address');
+      if (addressStr) {
+        try {
+          const parsed = JSON.parse(addressStr);
+          if (parsed?.id) {
+            setSelectedAddressId(parsed.id);
+          }
+        } catch (e) {
+          console.error('Failed to parse active address', e);
+        }
+      }
+    }
+  }, []);
+
   useEffect(() => {
     loadAddresses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,7 +213,13 @@ const SavedAddresses = () => {
             {filteredAddresses.map((addr, idx) => (
               <div
                 key={addr.id}
-                className={`${isDarkMode ? 'bg-[#0D0D0D]/60 border-white/10 active:bg-white/5' : 'bg-white border-brand-border-light active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-colors`}
+                className={`${isDarkMode ? 'bg-[#0D0D0D]/60 active:bg-white/5' : 'bg-white active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-all duration-300 ${
+                  selectedAddressId === addr.id
+                    ? 'border-brand-primary shadow-md shadow-brand-primary/10'
+                    : isDarkMode
+                      ? 'border-white/10'
+                      : 'border-brand-border-light'
+                }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
