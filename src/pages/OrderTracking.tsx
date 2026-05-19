@@ -15,6 +15,8 @@ import { supabase } from '@/lib/supabase';
 import { setBadge } from '@/utils/badge';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import DevModeOverlay from '@/components/DevModeOverlay';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { LayerProps } from 'react-map-gl/maplibre';
 import type { 
   RealtimePostgresChangesPayload, 
@@ -555,18 +557,24 @@ const OrderTracking = () => {
       </div>
       {/* Need Help CTA */}
       <div className="px-5 mt-auto mt-[16px] safe-bottom pb-4 relative z-0">
-        <button
+        <Button
           onClick={() => navigate(ROUTES.HELP_REPORT, { state: { order } })}
-          className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium active:scale-95 transition-transform flex items-center justify-center ${!isDarkMode ? 'bg-black' : ''}`}
-          style={{
-            backgroundImage: isDarkMode ? `url(${ASSETS.DARKBG_CTA})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
+          variant={isDarkMode ? 'glass' : 'default'}
+          className={cn(
+            'w-full h-[48px] shadow-xl transition-all',
+            !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full'
+          )}
+          style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
         >
-          Need Help?
-        </button>
+          <span
+            className={cn(
+              'font-medium text-[16px]',
+              isDarkMode ? 'text-white dark:text-foreground' : 'text-white'
+            )}
+          >
+            Need Help?
+          </span>
+        </Button>
       </div>
       <DevModeOverlay orderId={order?.id} />
     </div>
