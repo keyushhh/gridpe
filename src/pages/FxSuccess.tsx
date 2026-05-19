@@ -13,7 +13,6 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { getOrderById, cancelOrder } from '@/lib/orders';
 import { Order, OrderMetadata } from '@/types';
 import { useUser } from '@/contexts/UserContext';
-import DevModeOverlay from '@/components/DevModeOverlay';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -624,7 +623,6 @@ const FxSuccess = () => {
           </div>
         </div>
       )}
-      <DevModeOverlay orderId={orderId} isFx={isFx} />
     </div>
   );
 };

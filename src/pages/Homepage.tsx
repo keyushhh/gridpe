@@ -18,7 +18,6 @@ import BottomNavigation from '@/components/BottomNavigation';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
 import RatingSheet from '@/components/RatingSheet';
-import DevModeOverlay from '@/components/DevModeOverlay';
 import { useUser } from '@/contexts/UserContext';
 import { formatINR } from '@/utils/format';
 import { cancelOrder } from '@/lib/orders';
@@ -34,6 +33,9 @@ import { isNightTime } from '@/utils/time';
 import NightDeliveryState from '@/components/NightDeliveryState';
 import { motion, AnimatePresence } from 'framer-motion';
 import HomePageSkeleton from '@/components/skeletons/HomePageSkeleton';
+import { Geolocation } from '@capacitor/geolocation';
+import { reverseGeocode } from '@/utils/geoUtils';
+import { Capacitor } from '@capacitor/core';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -233,7 +235,7 @@ const Homepage = () => {
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-  const [forceNight, setForceNight] = useState(false);
+  const [forceNight, setForceNight] = useState(() => localStorage.getItem('dev_force_night_hours') === 'true');
   const [isNight, setIsNight] = useState(isNightTime());
   const [completedOrder, setCompletedOrder] = useState<{
     id: string;
@@ -241,6 +243,29 @@ const Homepage = () => {
     rider_name: string;
     rider_photo: string | null;
   } | null>(null);
+
+  useEffect(() => {
+    const handleTestRating = () => {
+      setCompletedOrder({
+        id: 'dev-test-order-id',
+        rider_id: 'dev-test-rider-id',
+        rider_name: 'Rohit Khandelwal',
+        rider_photo: null,
+      });
+    };
+    const handleNightToggle = () => {
+      const forced = localStorage.getItem('dev_force_night_hours') === 'true';
+      setForceNight(forced);
+      setIsNight(isNightTime());
+    };
+    window.addEventListener('dev-mode-test-rating', handleTestRating);
+    window.addEventListener('dev-force-night-toggle', handleNightToggle);
+    return () => {
+      window.removeEventListener('dev-mode-test-rating', handleTestRating);
+      window.removeEventListener('dev-force-night-toggle', handleNightToggle);
+    };
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setIsNight(isNightTime());
@@ -331,21 +356,222 @@ const Homepage = () => {
     longitude: 77.5946,
     zoom: 13,
   });
-  // Initial Load (LocalStorage)
+  const [showLocationChangedBanner, setShowLocationChangedBanner] = useState(false);
+
+  const handleFirstInstallLocationFlow = async () => {
+    try {
+      let permission = await Geolocation.checkPermissions();
+      if (permission.location !== 'granted') {
+        permission = await Geolocation.requestPermissions();
+      }
+      
+      if (permission.location === 'granted') {
+        const position = await Geolocation.getCurrentPosition();
+        const { latitude, longitude } = position.coords;
+        const fullCode = OpenLocationCode.encode(latitude, longitude);
+        
+        // Reverse Geocode
+        const result = await reverseGeocode(latitude, longitude);
+        if (result) {
+          const area =
+            result.address?.suburb ||
+            result.address?.neighbourhood ||
+            result.address?.city ||
+            'Current Location';
+            
+          // Check serviceability
+          const { data: isServiceableZone, error } = await supabase.rpc('check_service_availability', {
+            p_lat: Number(latitude) || 0,
+            p_lng: Number(longitude) || 0,
+          });
+          
+          if (error) {
+            console.error('Availability check RPC failed:', error);
+          }
+          
+          const isServiceable = !!isServiceableZone;
+          
+          if (isServiceable) {
+            const addressToSave: SavedAddress = {
+              id: '',
+              user_id: userId || '',
+              created_at: new Date().toISOString(),
+              label: null,
+              apartment: null,
+              contact_name: null,
+              contact_phone: null,
+              plus_code: fullCode,
+              tag: 'Current Location',
+              house: '',
+              area: area,
+              name: 'You',
+              phone: '',
+              displayAddress: result.display_name || `${area}, Current Location`,
+              city: result.address?.city || '',
+              state: result.address?.state || '',
+              postcode: result.address?.postcode || '',
+              latitude: latitude,
+              longitude: longitude,
+              plusCode: fullCode,
+            };
+            
+            // Set as current location on Home screen
+            setSavedAddress(addressToSave);
+            try { setActiveAddress?.(addressToSave); } catch {}
+            localStorage.setItem('gridpe_selected_address', JSON.stringify(addressToSave));
+            
+            // Prompt user to confirm or add a saved address
+            setIsAddressSheetOpen(true);
+          } else {
+            // If not serviceable → show the not-serviceable screen immediately
+            setIsUnserviceable(true);
+          }
+        } else {
+          // Fallback to manual entry if reverse geocoding fails
+          setIsAddressSheetOpen(true);
+        }
+      } else {
+        // If permission denied → show the address picker so user can manually enter location
+        setIsAddressSheetOpen(true);
+      }
+    } catch (e) {
+      console.error('Error in first install location flow:', e);
+      // Fallback
+      setIsAddressSheetOpen(true);
+    }
+  };
+
+  // Sync savedAddress with activeAddress from context when it updates
   useEffect(() => {
     if (activeAddress) {
       setSavedAddress(activeAddress);
-      return;
     }
-    const addressStr = localStorage.getItem('gridpe_user_address');
-    if (addressStr) {
-      try {
-        setSavedAddress(JSON.parse(addressStr));
-      } catch (e) {
-        console.error('Failed to parse saved address', e);
+  }, [activeAddress]);
+
+  // Initial Load (LocalStorage / Context Sync)
+  useEffect(() => {
+    const loadAddress = async () => {
+      const selectedStr = localStorage.getItem('gridpe_selected_address');
+      if (selectedStr) {
+        try {
+          const parsed = JSON.parse(selectedStr);
+          if (parsed) {
+            setSavedAddress(parsed);
+            try { setActiveAddress?.(parsed); } catch {}
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to parse gridpe_selected_address', e);
+        }
       }
-    }
+      
+      if (activeAddress) {
+        setSavedAddress(activeAddress);
+        return;
+      }
+      
+      const addressStr = localStorage.getItem('gridpe_user_address');
+      if (addressStr) {
+        try {
+          const parsed = JSON.parse(addressStr);
+          if (parsed) {
+            setSavedAddress(parsed);
+            try { setActiveAddress?.(parsed); } catch {}
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to parse saved address', e);
+        }
+      }
+      
+      // FIRST INSTALL FLOW (when no address has ever been selected)
+      await handleFirstInstallLocationFlow();
+    };
+    
+    loadAddress();
   }, []);
+
+  // Foreground location change detection listener
+  useEffect(() => {
+    const handleForeground = async () => {
+      if (!savedAddress?.latitude || !savedAddress?.longitude) return;
+      
+      try {
+        const permission = await Geolocation.checkPermissions();
+        if (permission.location !== 'granted') return;
+        
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: false,
+          timeout: 5000,
+        });
+        
+        const { latitude, longitude } = position.coords;
+        
+        // Calculate distance in km
+        const lat1 = Number(savedAddress.latitude);
+        const lon1 = Number(savedAddress.longitude);
+        const lat2 = latitude;
+        const lon2 = longitude;
+        
+        const R = 6371; // km
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+        
+        // Check new zone
+        const { data: newZoneId } = await supabase.rpc('check_service_availability', {
+          p_lat: Number(latitude) || 0,
+          p_lng: Number(longitude) || 0,
+        });
+        
+        // If moved significantly (> 5km or different zone ID)
+        if (distance > 5 || newZoneId !== currentZoneId) {
+          setShowLocationChangedBanner(true);
+        } else {
+          setShowLocationChangedBanner(false);
+        }
+      } catch (e) {
+        console.warn('Failed to detect location change on foreground', e);
+      }
+    };
+
+    // Web visibility change
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleForeground();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    
+    // Native App state change (if on native device)
+    let nativeAppListener: any = null;
+    if (Capacitor.isNativePlatform()) {
+      import('@capacitor/app').then(({ App }) => {
+        App.addListener('appStateChange', (state) => {
+          if (state.isActive) {
+            handleForeground();
+          }
+        }).then(listener => {
+          nativeAppListener = listener;
+        });
+      });
+    }
+
+    // Run on mount
+    handleForeground();
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (nativeAppListener) {
+        nativeAppListener.remove();
+      }
+    };
+  }, [savedAddress, currentZoneId]);
 
   // Real-time Subscriptions
   useEffect(() => {
@@ -662,15 +888,6 @@ const Homepage = () => {
         }}
       >
         <div className="flex flex-col min-h-full">
-          {/* Dev Mode Toggle */}
-          {import.meta.env.DEV && (
-            <button
-              onClick={() => setForceNight(!forceNight)}
-              className="fixed bottom-24 right-4 z-[1000] bg-orange-500 text-white text-[10px] px-2 py-1 rounded-full shadow-lg opacity-50 hover:opacity-100 font-mono"
-            >
-              DEV: {forceNight ? 'FORCE_NIGHT_ON' : 'AUTO_TIME'}
-            </button>
-          )}
           <AnimatePresence mode="popLayout">
             {displayNightMode ? (
               <motion.div
@@ -844,6 +1061,33 @@ const Homepage = () => {
                 </Button>
               </div>
               {/* Balance Alert Banner */}
+              {/* Location Changed Banner */}
+              {showLocationChangedBanner && (
+                <div className="mx-5 mt-6 p-4 rounded-[13px] bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
+                      <MapPin className="w-6 h-6 text-brand-primary" />
+                    </div>
+                    <div>
+                      <p className="text-brand-primary text-[14px] font-bold font-satoshi leading-tight">
+                        Location Changed
+                      </p>
+                      <p className={`text-[12px] font-medium font-satoshi mt-1 leading-tight ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                        Your location has changed. Update delivery address?
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsAddressSheetOpen(true);
+                      setShowLocationChangedBanner(false);
+                    }}
+                    className="px-4 py-2 bg-brand-primary text-white text-[12px] font-bold rounded-full active:scale-95 transition-transform shrink-0"
+                  >
+                    Update
+                  </button>
+                </div>
+              )}
               {balanceAlert && (
                 <div className="mx-5 mt-6 p-4 rounded-[13px] bg-brand-error/10 border border-brand-error/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
                   <div className="w-10 h-10 rounded-full bg-brand-error/20 flex items-center justify-center shrink-0">
@@ -1294,16 +1538,6 @@ const Homepage = () => {
         isOpen={completedOrder !== null}
         onClose={() => setCompletedOrder(null)}
         order={completedOrder}
-      />
-      <DevModeOverlay
-        onTestRating={() =>
-          setCompletedOrder({
-            id: 'dev-test-order-id',
-            rider_id: 'dev-test-rider-id',
-            rider_name: 'Rohit Khandelwal',
-            rider_photo: null,
-          })
-        }
       />
     </div>
   );

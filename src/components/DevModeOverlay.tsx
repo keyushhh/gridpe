@@ -1,363 +1,347 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '@/routes';
 
-interface DevModeOverlayProps {
-  orderId?: string;
-  isFx?: boolean;
-  onTestRating?: () => void;
-}
+// ─── DevModeOverlay ───────────────────────────────────────────────────────────
+// A global floating dev-tools panel. Renders only in Vite dev server in browser.
+// Mounted inside <Router> in App.tsx but outside all <Routes>.
+// No useNavigate, no real-time subscriptions, no complex hooks.
+// ──────────────────────────────────────────────────────────────────────────────
 
-const DevModeOverlay: React.FC<DevModeOverlayProps> = ({ orderId, isFx = false, onTestRating }) => {
+const DevModeOverlay: React.FC = () => {
+  // Gate: only show in browser dev, never in native Capacitor builds
+  const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
+  if (!import.meta.env.DEV || isNative) return null;
+
+  // ── State ──────────────────────────────────────────────────────────────────
+
   const [isOpen, setIsOpen] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [resultType, setResultType] = useState<'ok' | 'err'>('ok');
+
   const { profile, setProfile, refreshBalance } = useUser();
   const { showToaster } = useCustomToaster();
-  const navigate = useNavigate();
-  const [balances, setBalances] = useState({ available: 0, held: 0 });
 
-  // Strict dev-environment check and aggressive mobile/webview detection
-  const isMobileDevice = typeof window !== 'undefined' && (
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      (typeof navigator !== 'undefined' && navigator.userAgent) || ''
-    ) ||
-    (window as any).screen?.width <= 768 ||
-    (window as any).hasOwnProperty && ((window as any).hasOwnProperty('Capacitor') || (window as any).hasOwnProperty('cordova'))
+  // Night hours toggle state (synced with localStorage)
+  const [nightForced, setNightForced] = useState(
+    () => localStorage.getItem('dev_force_night_hours') === 'true',
   );
 
-  // Strict enforcement: only show dev tools in development builds and never on mobile wrappers
-  const shouldShowDevTools = process.env.NODE_ENV === 'development' && !isMobileDevice;
+  // ── Draggable position ─────────────────────────────────────────────────────
 
+  const BUTTON_SIZE = 52;
+
+  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(val, max));
+
+  const [pos, setPos] = useState(() => {
+    const fallbackX = (window.innerWidth ?? 375) - BUTTON_SIZE - 20;
+    const fallbackY = (window.innerHeight ?? 812) - BUTTON_SIZE - 100;
+    try {
+      const raw = localStorage.getItem('dev_overlay_pos');
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (typeof p.x === 'number' && typeof p.y === 'number') {
+          return {
+            x: clamp(p.x, 0, window.innerWidth - BUTTON_SIZE),
+            y: clamp(p.y, 0, window.innerHeight - BUTTON_SIZE),
+          };
+        }
+      }
+    } catch { /* ignore */ }
+    return { x: fallbackX, y: fallbackY };
+  });
+
+  const [dragging, setDragging] = useState(false);
+  const origin = useRef({ x: 0, y: 0, cx: 0, cy: 0 });
+
+  // Re-clamp on window resize
   useEffect(() => {
-    if (isDevMode && isOpen && profile?.id) {
-      fetchBalances();
-    }
-  }, [isOpen, profile?.id]);
+    const onResize = () =>
+      setPos(p => ({
+        x: clamp(p.x, 0, window.innerWidth - BUTTON_SIZE),
+        y: clamp(p.y, 0, window.innerHeight - BUTTON_SIZE),
+      }));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
-  const fetchBalances = async () => {
-    if (!profile?.id) return;
+  const onDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    setDragging(true);
+    origin.current = { x: pos.x, y: pos.y, cx: e.clientX, cy: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragging) return;
+    const dx = e.clientX - origin.current.cx;
+    const dy = e.clientY - origin.current.cy;
+    const next = {
+      x: clamp(origin.current.x + dx, 0, window.innerWidth - BUTTON_SIZE),
+      y: clamp(origin.current.y + dy, 0, window.innerHeight - BUTTON_SIZE),
+    };
+    setPos(next);
+    localStorage.setItem('dev_overlay_pos', JSON.stringify(next));
+  };
+
+  const onUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    setDragging(false);
+    const dx = Math.abs(e.clientX - origin.current.cx);
+    const dy = Math.abs(e.clientY - origin.current.cy);
+    if (dx < 5 && dy < 5) {
+      setIsOpen(true);
+      setResult(null);
+    }
+  };
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  const ok = (msg: string) => { setResult(msg); setResultType('ok'); };
+  const err = (msg: string) => { setResult(msg); setResultType('err'); };
+
+  /** Fetch the user's latest active order id */
+  const getActiveOrderId = async (): Promise<string | null> => {
+    if (!profile?.id) return null;
     const { data, error } = await supabase
-      .from('wallets')
-      .select('available_balance, held_balance')
+      .from('orders')
+      .select('id')
       .eq('user_id', profile.id)
-      .single();
-
-    if (data) {
-      setBalances({
-        available: data.available_balance,
-        held: data.held_balance,
-      });
-    }
+      .not('status', 'in', '("delivered","success","cancelled","failed")')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) { err(error.message); return null; }
+    if (!data || data.length === 0) { err('No active order found.'); return null; }
+    return data[0].id;
   };
 
-  const handleMarkDelivered = async () => {
-    if (!orderId || !profile?.id) return;
-    try {
-      const rpcName = isFx ? 'complete_fx_order' : 'complete_cash_order';
-      const { data, error } = await supabase.rpc(rpcName, {
-        p_order_id: orderId,
-        p_user_id: profile.id,
-      });
+  // ── Actions ────────────────────────────────────────────────────────────────
 
-      if (error) throw error;
-      const result = data as { success: boolean; error?: string } | null;
-      if (result?.success === false) throw new Error(result.error);
-
-      showToaster('Order marked delivered!', 'success');
-      await refreshBalance();
-      await fetchBalances();
-
-      // Navigate to order-delivered screen
-      setTimeout(() => {
-        navigate(ROUTES.ORDER_DELIVERED, { state: { orderId } });
-      }, 1000);
-    } catch (err: unknown) {
-      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
-    }
+  const handleToggleNight = () => {
+    const next = !nightForced;
+    setNightForced(next);
+    localStorage.setItem('dev_force_night_hours', String(next));
+    // Dispatch event so Homepage immediately re-evaluates
+    window.dispatchEvent(new CustomEvent('dev-force-night-toggle'));
+    ok(next ? 'Night hours forced ON (11PM–6AM)' : 'Night hours override OFF');
   };
 
-  const handleCancelOrder = async () => {
-    if (!orderId || !profile?.id) return;
+  const handleSimulatePickup = async () => {
+    const orderId = await getActiveOrderId();
+    if (!orderId) return;
     try {
-      const { data, error } = await supabase.rpc('cancel_order', {
-        p_order_id: orderId,
-        p_user_id: profile.id,
-        p_cancel_reason_type: 'Dev Mode Cancellation',
-        p_cancel_reason_text: 'Cancelled via Dev Overlay',
-      });
-
-      if (error) throw error;
-      const result = data as { success: boolean; error?: string } | null;
-      if (result?.success === false) throw new Error(result.error);
-
-      showToaster('Order cancelled!', 'success');
-      await refreshBalance();
-      await fetchBalances();
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (err: unknown) {
-      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
-    }
+      const { error: e } = await supabase
+        .from('orders')
+        .update({ status: 'picked_up' })
+        .eq('id', orderId);
+      if (e) throw e;
+      ok(`Pickup simulated → ${orderId.slice(0, 8)}`);
+      showToaster('Order picked up!', 'success');
+    } catch (e: any) { err(e.message ?? String(e)); }
   };
 
-  const handleReleaseHold = async () => {
-    if (!profile?.id) return;
+  const handleSimulateDelivery = async () => {
+    const orderId = await getActiveOrderId();
+    if (!orderId) return;
     try {
-      const { error } = await supabase
-        .from('wallets')
-        .update({ held_balance: 0 })
-        .eq('user_id', profile.id);
+      const { error: e } = await supabase
+        .from('orders')
+        .update({ status: 'delivered' })
+        .eq('id', orderId);
+      if (e) throw e;
+      window.dispatchEvent(new CustomEvent('dev-order-delivered', { detail: { orderId } }));
+      ok(`Delivery simulated → ${orderId.slice(0, 8)}`);
+      showToaster('Order delivered!', 'success');
+    } catch (e: any) { err(e.message ?? String(e)); }
+  };
 
-      if (error) throw error;
-
-      showToaster('Hold released (emergency)!', 'success');
-      await refreshBalance();
-      await fetchBalances();
-    } catch (err: unknown) {
-      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
-    }
+  const handleTriggerRating = () => {
+    window.dispatchEvent(new CustomEvent('dev-mode-test-rating'));
+    ok('Rider rating sheet triggered.');
+    showToaster('Rating sheet triggered!', 'success');
   };
 
   const handleResetTerms = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) { err('Profile not loaded.'); return; }
     try {
-      const { error } = await supabase
+      const { error: e } = await supabase
         .from('profiles')
-        .update({
-          terms_accepted_at: null,
-          terms_version: null,
-        } as any)
+        .update({ terms_accepted_at: null, terms_version: null } as any)
         .eq('id', profile.id);
-
-      if (error) throw error;
-
-      setProfile({
-        ...profile,
-        terms_accepted_at: null,
-        terms_version: null,
-      });
-
-      showToaster('Terms reset in DB and context! Gate should appear.', 'success');
-    } catch (err: unknown) {
-      showToaster(err instanceof Error ? err.message : 'An unknown error occurred', 'error');
-    }
+      if (e) throw e;
+      setProfile({ ...profile, terms_accepted_at: null, terms_version: null });
+      ok('Terms reset in DB + context.');
+      showToaster('Terms reset!', 'success');
+    } catch (e: any) { err(e.message ?? String(e)); }
   };
 
   const handleForceTermsGate = () => {
-    if (!profile) return;
-    
-    setProfile({
-      ...profile,
-      terms_accepted_at: null,
-      terms_version: null,
-    });
-    
-    showToaster('Local terms state cleared. Gate forced open!', 'success');
+    if (!profile) { err('Profile not loaded.'); return; }
+    setProfile({ ...profile, terms_accepted_at: null, terms_version: null });
+    ok('Local terms state cleared — gate should appear.');
+    showToaster('Terms gate forced open!', 'success');
   };
 
-  if (!shouldShowDevTools) return null;
+  const handleSeedDevData = async () => {
+    if (!profile?.id) { err('Profile not loaded.'); return; }
+    try {
+      const { error: updateErr } = await supabase
+        .from('wallets')
+        .update({ available_balance: 100000 })
+        .eq('user_id', profile.id);
+      if (updateErr) throw updateErr;
+      await refreshBalance();
+      ok('Seeded ₹1,00,000 balance!');
+      showToaster('Dev data seeded!', 'success');
+    } catch (e: any) { err(e.message ?? String(e)); }
+  };
+
+  // ── Menu item definitions ──────────────────────────────────────────────────
+
+  const actions: { label: string; emoji: string; onClick: () => void; accent?: string }[] = [
+    {
+      label: nightForced ? '🌙 Disable Night Hours' : '🌙 Force Time (11PM – 6AM)',
+      emoji: '',
+      onClick: handleToggleNight,
+      accent: nightForced ? '#f59e0b' : undefined,
+    },
+    { label: 'Simulate Pickup', emoji: '📦', onClick: handleSimulatePickup },
+    { label: 'Simulate Delivery', emoji: '🏁', onClick: handleSimulateDelivery },
+    { label: 'Trigger Rider Rating', emoji: '⭐', onClick: handleTriggerRating },
+    { label: 'Reset Terms', emoji: '📄', onClick: handleResetTerms },
+    { label: 'Force Terms Gate', emoji: '🔓', onClick: handleForceTermsGate },
+    { label: 'Seed Dev Data', emoji: '🌱', onClick: handleSeedDevData },
+  ];
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  const btnBase: React.CSSProperties = {
+    padding: '10px 14px',
+    backgroundColor: '#1f2937',
+    border: 'none',
+    borderRadius: '8px',
+    color: '#e5e7eb',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '13px',
+    textAlign: 'left',
+    transition: 'background-color 0.15s',
+    width: '100%',
+  };
 
   return (
-    <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
-      {!isOpen ? (
+    <div
+      style={{
+        position: 'fixed',
+        left: isOpen ? undefined : pos.x,
+        top: isOpen ? undefined : pos.y,
+        bottom: isOpen ? 20 : undefined,
+        right: isOpen ? 20 : undefined,
+        zIndex: 99999,
+      }}
+    >
+      {/* ── Floating button ─────────────────────────────────────────────── */}
+      {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onPointerDown={onDown}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
           style={{
-            backgroundColor: '#FF4500',
-            color: 'white',
-            border: 'none',
+            width: BUTTON_SIZE,
+            height: BUTTON_SIZE,
             borderRadius: '50%',
-            width: '60px',
-            height: '60px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
+            backgroundColor: '#6366f1',
+            color: '#fff',
+            border: 'none',
+            fontSize: 20,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '14px',
+            boxShadow: '0 6px 20px rgba(99,102,241,0.45)',
+            cursor: 'grab',
+            touchAction: 'none',
           }}
         >
-          🛠 Dev
+          🛠
         </button>
-      ) : (
+      )}
+
+      {/* ── Panel ───────────────────────────────────────────────────────── */}
+      {isOpen && (
         <div
           style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            color: 'white',
-            padding: '20px',
-            borderRadius: '16px',
-            width: '300px',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 12px 48px rgba(0,0,0,0.7)',
+            width: 300,
+            backgroundColor: 'rgba(15,17,23,0.96)',
+            color: '#fff',
+            borderRadius: 14,
+            padding: 20,
+            boxShadow: '0 20px 50px rgba(0,0,0,0.55)',
+            border: '1px solid rgba(255,255,255,0.08)',
             fontFamily: 'system-ui, -apple-system, sans-serif',
+            backdropFilter: 'blur(16px)',
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px',
-            }}
-          >
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#5260FE' }}>
-              Dev Controls
-            </h3>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#a5b4fc' }}>🛠 Dev Controls</span>
             <button
               onClick={() => setIsOpen(false)}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                color: 'white',
-                cursor: 'pointer',
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 18, padding: '2px 6px' }}
             >
               ✕
             </button>
           </div>
 
-          <div
-            style={{
-              fontSize: '13px',
-              marginBottom: '20px',
-              padding: '12px',
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              borderRadius: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#888' }}>Order ID:</span>
-              <span style={{ fontFamily: 'monospace' }}>
-                {orderId ? orderId.slice(0, 8) : 'None'}
-              </span>
+          {/* Result toast */}
+          {result && (
+            <div
+              style={{
+                padding: '8px 10px',
+                borderRadius: 6,
+                fontSize: 12,
+                marginBottom: 10,
+                backgroundColor: resultType === 'ok' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
+                color: resultType === 'ok' ? '#86efac' : '#fca5a5',
+                border: `1px solid ${resultType === 'ok' ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                wordBreak: 'break-word',
+              }}
+            >
+              {result}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#888' }}>Available:</span>
-              <span style={{ fontWeight: 'bold' }}>
-                ₹{balances.available.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#888' }}>Held:</span>
-              <span style={{ fontWeight: 'bold', color: balances.held > 0 ? '#f59e0b' : '#888' }}>
-                ₹{balances.held.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
+          )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Action buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {actions.map((a) => (
+              <button
+                key={a.label}
+                onClick={a.onClick}
+                style={{
+                  ...btnBase,
+                  ...(a.accent ? { borderLeft: `3px solid ${a.accent}` } : {}),
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#374151')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#1f2937')}
+              >
+                {a.emoji ? `${a.emoji} ` : ''}{a.label}
+              </button>
+            ))}
+
+            {/* Close */}
             <button
-              onClick={handleMarkDelivered}
-              disabled={!orderId}
+              onClick={() => setIsOpen(false)}
               style={{
-                padding: '12px',
-                backgroundColor: orderId ? '#22c55e' : '#1e293b',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'white',
-                cursor: orderId ? 'pointer' : 'not-allowed',
-                fontWeight: 'bold',
-                transition: 'all 0.2s',
-                opacity: orderId ? 1 : 0.5,
-              }}
-            >
-              Mark Delivered
-            </button>
-            <button
-              onClick={handleCancelOrder}
-              disabled={!orderId}
-              style={{
-                padding: '12px',
-                backgroundColor: orderId ? '#ef4444' : '#1e293b',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'white',
-                cursor: orderId ? 'pointer' : 'not-allowed',
-                fontWeight: 'bold',
-                transition: 'all 0.2s',
-                opacity: orderId ? 1 : 0.5,
-              }}
-            >
-              Cancel Order
-            </button>
-            <button
-              onClick={handleReleaseHold}
-              style={{
-                padding: '12px',
+                ...btnBase,
+                textAlign: 'center',
                 backgroundColor: 'transparent',
-                border: '1px solid #f59e0b',
-                borderRadius: '8px',
-                color: '#f59e0b',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                marginTop: '8px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: '#d1d5db',
+                marginTop: 4,
               }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              Release Hold (Emergency)
+              Close
             </button>
-            {onTestRating && (
-              <button
-                onClick={onTestRating}
-                style={{
-                  padding: '12px',
-                  backgroundColor: '#5260FE',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  marginTop: '8px',
-                }}
-              >
-                Test Rating Sheet
-              </button>
-            )}
-            
-            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '12px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                onClick={handleResetTerms}
-                style={{
-                  padding: '10px',
-                  backgroundColor: '#7c3aed',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                }}
-              >
-                Reset Terms (DB + Context)
-              </button>
-              <button
-                onClick={handleForceTermsGate}
-                style={{
-                  padding: '10px',
-                  backgroundColor: 'transparent',
-                  border: '1px solid #7c3aed',
-                  borderRadius: '8px',
-                  color: '#a78bfa',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                }}
-              >
-                Force Terms Gate (Local Only)
-              </button>
-            </div>
           </div>
         </div>
       )}

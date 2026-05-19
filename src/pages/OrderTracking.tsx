@@ -14,7 +14,6 @@ import { Order } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { setBadge } from '@/utils/badge';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import DevModeOverlay from '@/components/DevModeOverlay';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { LayerProps } from 'react-map-gl/maplibre';
@@ -597,7 +596,6 @@ const OrderTracking = () => {
           </span>
         </Button>
       </div>
-      <DevModeOverlay orderId={order?.id} />
     </div>
   );
 };

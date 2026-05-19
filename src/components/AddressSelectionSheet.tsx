@@ -134,22 +134,23 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             setSelectedAddress(current);
             if (current.id) setLastSelectedAddressId(current.id);
           } else {
-          // Check legacy key and migrate if it matches current user
-          const legacy = localStorage.getItem('gridpe_user_address');
-          if (legacy) {
-            try {
-              const parsed = JSON.parse(legacy);
-              if (parsed?.user_id && parsed.user_id === userId) {
-                writeStorage('user_address', parsed, userId);
-                removeStorage('gridpe_user_address', userId);
-                setSelectedAddress(parsed);
-                if (parsed.id) setLastSelectedAddressId(parsed.id);
-              } else {
+            // Check legacy key and migrate if it matches current user
+            const legacy = localStorage.getItem('gridpe_user_address');
+            if (legacy) {
+              try {
+                const parsed = JSON.parse(legacy);
+                if (parsed?.user_id && parsed.user_id === userId) {
+                  writeStorage('user_address', parsed, userId);
+                  removeStorage('gridpe_user_address', userId);
+                  setSelectedAddress(parsed);
+                  if (parsed.id) setLastSelectedAddressId(parsed.id);
+                } else {
+                  localStorage.removeItem('gridpe_user_address');
+                }
+              } catch (e) {
                 localStorage.removeItem('gridpe_user_address');
+                console.warn('Corrupted local address data cleared.');
               }
-            } catch (e) {
-              localStorage.removeItem('gridpe_user_address');
-              console.warn('Corrupted local address data cleared.');
             }
           }
         }

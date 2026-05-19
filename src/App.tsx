@@ -110,6 +110,7 @@ import { Button } from '@/components/ui/button';
 import { LiquidGlassFilters } from './components/ui/LiquidGlassFilters';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { TermsAcceptanceGate } from './components/TermsAcceptanceGate';
+import DevModeOverlay from './components/DevModeOverlay';
 
 const LocationTracker = ({
   currentPathRef,
@@ -357,6 +358,7 @@ const App = () => {
                 <Router>
                   <LocationTracker currentPathRef={currentPathRef} />
                   <BackNavigationHandler currentPathRef={currentPathRef} />
+                  <DevModeOverlay />
                   <Routes>
                     <Route path={ROUTES.INDEX} element={<Index />} />
                     <Route

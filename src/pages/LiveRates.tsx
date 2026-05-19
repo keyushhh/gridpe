@@ -172,6 +172,8 @@ const LiveRates = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const currentFrom = isSwapped ? toCurrency : fromCurrency;
   const currentTo = isSwapped ? fromCurrency : toCurrency;
+  const isTrendingUp = history.length > 1 ? history[history.length - 1].rate >= history[0].rate : true;
+  const chartColor = isTrendingUp ? '#22C55E' : '#EF4444';
   const ranges = ['1D', '5D', '1M', '1Y', '5Y', 'Max'];
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
@@ -526,8 +528,8 @@ const LiveRates = () => {
                 <AreaChart data={history} margin={{ top: 10, right: 13, left: 14, bottom: 24 }}>
                   <defs>
                     <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22C55E" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
+                      <stop offset="5%" stopColor={chartColor} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
@@ -592,13 +594,13 @@ const LiveRates = () => {
                             color: '#000000',
                           }
                     }
-                    itemStyle={{ color: '#22C55E' }}
+                    itemStyle={{ color: chartColor }}
                     labelClassName="hidden"
                   />
                   <Area
                     type="monotone"
                     dataKey="rate"
-                    stroke="#22C55E"
+                    stroke={chartColor}
                     fillOpacity={1}
                     fill="url(#colorRate)"
                     strokeWidth={2}

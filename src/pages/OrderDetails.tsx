@@ -13,7 +13,6 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
-import DevModeOverlay from '@/components/DevModeOverlay';
 import OrderDetailsSkeleton from '@/components/skeletons/OrderDetailsSkeleton';
 const OrderDetails = () => {
   const { containerOverflow } = useWebScroll();
@@ -748,7 +747,6 @@ const OrderDetails = () => {
           </div>
         </div>
       )}
-      <DevModeOverlay orderId={orderId} />
     </div>
   );
 };

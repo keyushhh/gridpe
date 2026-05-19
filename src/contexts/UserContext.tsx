@@ -149,10 +149,22 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const stored = localStorage.getItem(USER_STORAGE_KEY);
         const parsedLocalStorage = stored ? JSON.parse(stored) : {};
 
+        const savedAddrStr = localStorage.getItem('gridpe_selected_address');
+        let savedAddr = null;
+        if (savedAddrStr) {
+          try {
+            savedAddr = JSON.parse(savedAddrStr);
+          } catch (e) {
+            console.warn('Failed to parse gridpe_selected_address on load', e);
+          }
+        }
+
         // Immediately unblock the UI with optimistic non-sensitive data
         setState(prev => ({
           ...prev,
           ...parsedLocalStorage,
+          activeAddress: savedAddr || parsedLocalStorage.activeAddress || prev.activeAddress,
+          activeAddressId: savedAddr?.id || parsedLocalStorage.activeAddressId || prev.activeAddressId,
           isInitializing: false,
         }));
 
@@ -526,6 +538,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const userId = state.profile?.id;
       if (!userId) return;
       try {
+        const savedAddrStr = localStorage.getItem('gridpe_selected_address');
+        if (savedAddrStr) {
+          const savedAddr = JSON.parse(savedAddrStr);
+          if (savedAddr) {
+            setState(prev => ({ ...prev, activeAddress: savedAddr, activeAddressId: savedAddr.id ?? null }));
+            return;
+          }
+        }
         const addr = readStorage<SavedAddress>('user_address', userId);
         const lastId = readStorage<string>('last_selected_address_id', userId);
         if (addr) {
@@ -737,6 +757,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (!userId) {
         // Fallback: update in-memory only
+        if (addr) {
+          localStorage.setItem('gridpe_selected_address', JSON.stringify(addr));
+        } else {
+          localStorage.removeItem('gridpe_selected_address');
+        }
         setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
         return;
       }
@@ -745,6 +770,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         // Clear stored values
         try { removeStorage('user_address', userId); } catch (e) {}
         try { removeStorage('last_selected_address_id', userId); } catch (e) {}
+        localStorage.removeItem('gridpe_selected_address');
         setState(prev => ({ ...prev, activeAddress: null, activeAddressId: null }));
         return;
       }
@@ -755,9 +781,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         try { writeStorage('last_selected_address_id', addr.id, userId); } catch (e) {}
       }
 
+      localStorage.setItem('gridpe_selected_address', JSON.stringify(addr));
+
       setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? null }));
     } catch (err) {
       console.error('Failed to set active address:', err);
+      if (addr) {
+        localStorage.setItem('gridpe_selected_address', JSON.stringify(addr));
+      } else {
+        localStorage.removeItem('gridpe_selected_address');
+      }
       setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
     }
   }, [supabase, state.profile?.id]);
