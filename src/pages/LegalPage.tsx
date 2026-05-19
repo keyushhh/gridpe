@@ -41,11 +41,11 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
       if (!userId) {
         return { content: null, isAccepted: false, hasSession: false, error: null };
       }
-      const { data: results, error: fetchError } = await supabase
-        .from(table)
+      const { data: results, error: fetchError } = (await supabase
+        .from(table as any)
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(1);
+        .limit(1)) as any;
       if (fetchError) {
         return {
           content: null,

@@ -13,6 +13,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -65,6 +67,37 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const { showToaster } = useCustomToaster();
+
+  // Gesture State for Drag to Dismiss
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = React.useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    startYRef.current = touch.clientY;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const diffY = touch.clientY - startYRef.current;
+    if (diffY >= 0) {
+      setDragY(diffY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragY > 80) {
+      onClose();
+    }
+    setDragY(0);
+  };
+
+  useBodyScrollLock(isOpen && order !== null);
 
   const existingRating = order?.order_ratings?.[0] ?? null;
   const isAlreadyRated = existingRating !== null;
@@ -240,17 +273,17 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
   };
   // Unified render for all states
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center pointer-events-none">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 z-10 bg-black/60 backdrop-blur-md transition-opacity pointer-events-auto"
         onClick={onClose}
       />
       {/* Sheet — `transition-all` was animating min-height swings as the
                 sheet content loaded, which forces layout reflow each frame.
                 Restrict to compositor-only properties. */}
       <div
-        className={`relative w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-[transform,opacity] duration-300 shadow-2xl mt-[100px] ${isDarkMode ? '' : 'bg-white'}`}
+        className={`fixed bottom-0 z-20 w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden shadow-2xl ${isDarkMode ? '' : 'bg-white'} pointer-events-auto`}
         style={{
           background: isDarkMode
             ? 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box'
@@ -261,14 +294,20 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
           backdropFilter: isDarkMode ? 'blur(16px)' : 'none',
           WebkitBackdropFilter: isDarkMode ? 'blur(16px)' : 'none',
           willChange: 'transform',
-          transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)',
+          transform: `translateY(${dragY}px) translateZ(0)`,
+          WebkitTransform: `translateY(${dragY}px) translateZ(0)`,
+          transition: isDragging ? 'none' : 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease',
         }}
       >
         {/* Internal Scroller - This ensures padding and scrolling don't break the rounded top corners */}
-        <div className="w-full h-full max-h-[inherit] overflow-y-auto custom-scrollbar pt-4 pb-10 px-5 rounded-t-[32px]">
+        <div className="w-full h-full max-h-[inherit] overflow-x-hidden overflow-y-auto overscroll-contain custom-scrollbar pt-4 pb-10 px-5 rounded-t-[32px]" style={{ touchAction: 'pan-y' }}>
           {/* Drag Handle Container */}
-          <div className="w-full flex justify-center pb-6">
+          <div 
+            className="w-full flex justify-center pb-6 cursor-grab active:cursor-grabbing select-none touch-none"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <div
               className={`w-[48px] h-[5px] rounded-full ${isDarkMode ? 'bg-[#313033]' : 'bg-brand-border-light'}`}
             />
@@ -335,7 +374,9 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 <span
                   className={`text-[16px] font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
-                  {order.meta_data?.type === 'FX_EXCHANGE'
+                  {order.order_type === 'REWARD'
+                    ? (order.meta_data as any)?.item_value || 'Reward'
+                    : order.meta_data?.type === 'FX_EXCHANGE'
                     ? 'FX Exchange'
                     : order.addresses?.label
                       ? `Order to ${order.addresses.label}`
@@ -350,9 +391,11 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
               <span
                 className={`absolute top-[25px] right-[17px] text-[16px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
-                {order.meta_data?.type === 'FX_EXCHANGE'
+                {order.order_type === 'REWARD'
+                  ? `${order.amount} pts`
+                  : order.meta_data?.type === 'FX_EXCHANGE'
                   ? `${currencySymbols[order.meta_data.to_currency || order.meta_data.toCurrency || ''] || ''}${Number(order.meta_data.receive_amount || order.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  : `₹${order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+                  : `₹${(order.amount / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
               </span>
               <div
                 className="absolute left-[12px] h-[1px]"

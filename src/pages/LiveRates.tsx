@@ -174,7 +174,13 @@ const LiveRates = () => {
   const currentTo = isSwapped ? fromCurrency : toCurrency;
   const ranges = ['1D', '5D', '1M', '1Y', '5Y', 'Max'];
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
+    let val = e.target.value;
+    
+    // Strip leading zeros if followed by other digits (e.g. "05" -> "5", but keep "0" and "0.")
+    if (/^0[0-9]/.test(val)) {
+      val = val.replace(/^0+/, '');
+    }
+    
     // Allow only numbers and one decimal point
     if (/^\d*\.?\d*$/.test(val)) {
       setAmount(val);
@@ -308,6 +314,13 @@ const LiveRates = () => {
         backgroundPosition: 'center',
       }}
     >
+      <style dangerouslySetInnerHTML={{ __html: `
+        .fx-convert-input {
+          font-size: 40px !important;
+          font-weight: 700 !important;
+          font-family: 'Satoshi', sans-serif !important;
+        }
+      `}} />
       {/* Light Mode Purple Glow Orb */}
       {!isDarkMode && (
         <div
@@ -339,7 +352,12 @@ const LiveRates = () => {
         <div className="relative flex flex-col gap-2">
           {/* From Card */}
           <div
-            className={`${isDarkMode ? 'bg-muted/30 border-white/5' : 'bg-background border-border'} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            className={`${isDarkMode ? 'border-solid' : 'bg-background border-border'} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            style={isDarkMode ? {
+              backgroundColor: 'rgba(25, 25, 25, 0.31)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderWidth: '0.63px',
+            } : undefined}
           >
             <div className="flex justify-between items-center mb-2">
               <span
@@ -349,11 +367,20 @@ const LiveRates = () => {
               </span>
               <button
                 onClick={() => setIsSelectingFrom(true)}
-                className={`w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? 'bg-muted border-white/10' : 'bg-background border-border'} rounded-full border active:scale-95 transition-transform`}
+                className={`w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 rounded-full border active:scale-95 transition-transform ${
+                  isDarkMode 
+                    ? 'border-solid text-white' 
+                    : 'text-black bg-black/5 border-black/10'
+                }`}
+                style={isDarkMode ? {
+                  backgroundColor: 'rgba(25, 25, 25, 0.31)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                  borderWidth: '0.63px',
+                } : undefined}
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white' : 'ring-black/20'}`}
+                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'}`}
                   >
                     <img
                       src={`https://flagcdn.com/w160/${currencyToCountry[currentFrom]}.png`}
@@ -362,13 +389,13 @@ const LiveRates = () => {
                     />
                   </div>
                   <span
-                    className={`text-[12px] font-medium uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    className={`text-[12px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
                   >
                     {currentFrom}
                   </span>
                 </div>
                 <ChevronDown
-                  className={`w-3 h-3 ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}
+                  className={`w-3 h-3 ${isDarkMode ? 'text-white' : 'text-black'}`}
                 />
               </button>
             </div>
@@ -382,7 +409,7 @@ const LiveRates = () => {
                 type="text"
                 value={amount}
                 onChange={handleAmountChange}
-                className={`text-[40px] font-bold bg-transparent outline-none border-none w-full ${isDarkMode ? 'text-white' : 'text-black'}`}
+                className={`fx-convert-input bg-transparent outline-none border-none w-full ${isDarkMode ? 'text-white' : 'text-black'}`}
                 inputMode="decimal"
               />
             </div>
@@ -402,7 +429,12 @@ const LiveRates = () => {
           </div>
           {/* To Card */}
           <div
-            className={`${isDarkMode ? 'bg-muted/30 border-white/5' : 'bg-background border-border'} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            className={`${isDarkMode ? 'border-solid' : 'bg-background border-border'} rounded-[20px] p-6 border relative h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            style={isDarkMode ? {
+              backgroundColor: 'rgba(25, 25, 25, 0.31)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderWidth: '0.63px',
+            } : undefined}
           >
             <div className="flex justify-between items-center mb-2">
               <span
@@ -412,11 +444,20 @@ const LiveRates = () => {
               </span>
               <button
                 onClick={() => setIsSelectingTo(true)}
-                className={`w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? 'bg-muted border-white/10' : 'bg-background border-border'} rounded-full border active:scale-95 transition-transform`}
+                className={`w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 rounded-full border active:scale-95 transition-transform ${
+                  isDarkMode 
+                    ? 'border-solid text-white' 
+                    : 'text-black bg-black/5 border-black/10'
+                }`}
+                style={isDarkMode ? {
+                  backgroundColor: 'rgba(25, 25, 25, 0.31)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                  borderWidth: '0.63px',
+                } : undefined}
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white' : 'ring-black/20'}`}
+                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'}`}
                   >
                     <img
                       src={`https://flagcdn.com/w160/${currencyToCountry[currentTo]}.png`}
@@ -425,13 +466,13 @@ const LiveRates = () => {
                     />
                   </div>
                   <span
-                    className={`text-[12px] font-medium uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    className={`text-[12px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
                   >
                     {currentTo}
                   </span>
                 </div>
                 <ChevronDown
-                  className={`w-3 h-3 ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}
+                  className={`w-3 h-3 ${isDarkMode ? 'text-white' : 'text-black'}`}
                 />
               </button>
             </div>
@@ -452,7 +493,12 @@ const LiveRates = () => {
         </div>
         {/* Graph Container */}
         <div
-          className={`mt-[18px] ${isDarkMode ? 'bg-muted/30 border-white/5' : 'bg-background border-border'} rounded-[13px] border pt-[17px] backdrop-blur-[25px] h-[277px] flex flex-col relative overflow-hidden`}
+          className={`mt-[18px] ${isDarkMode ? 'border-solid' : 'bg-background border-border'} rounded-[13px] border pt-[17px] backdrop-blur-[25px] h-[277px] flex flex-col relative overflow-hidden`}
+          style={isDarkMode ? {
+            backgroundColor: 'rgba(25, 25, 25, 0.31)',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            borderWidth: '0.63px',
+          } : undefined}
         >
           {/* Range Selector */}
           <div className="flex justify-between items-center mb-6 relative ml-[14px] mr-[13px]">
@@ -527,12 +573,25 @@ const LiveRates = () => {
                     tickFormatter={val => val.toFixed(1)}
                   />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? 'hsl(var(--muted))' : 'hsl(var(--background))',
-                      border: isDarkMode ? 'none' : '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
+                    contentStyle={
+                      isDarkMode
+                        ? {
+                            backgroundColor: 'rgba(25, 25, 25, 0.31)',
+                            border: '0.63px solid rgba(255, 255, 255, 0.12)',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            color: '#FFFFFF',
+                            backdropFilter: 'blur(25px)',
+                            WebkitBackdropFilter: 'blur(25px)',
+                          }
+                        : {
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            color: '#000000',
+                          }
+                    }
                     itemStyle={{ color: '#22C55E' }}
                     labelClassName="hidden"
                   />

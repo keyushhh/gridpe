@@ -35,7 +35,7 @@ const normalizeOrder = (o: Order, type: 'CASH_ORDER' | 'FX_EXCHANGE'): Order => 
   addresses: o.addresses,
 });
 
-export const fetchRecentOrders = async (userId: string) => {
+export const fetchRecentOrders = async (userId: string): Promise<Order[]> => {
   const { data, error } = await supabase
     .from('orders')
     .select(
@@ -47,11 +47,11 @@ export const fetchRecentOrders = async (userId: string) => {
 
   if (error || !data) return [];
 
-  const ordersWithAddresses = await fetchAddressesForOrders(data);
-  return ordersWithAddresses;
+  const ordersWithAddresses = await fetchAddressesForOrders(data as any[]);
+  return ordersWithAddresses as Order[];
 };
 
-export const getOrderById = async (orderId: string) => {
+export const getOrderById = async (orderId: string): Promise<Order | null> => {
   const { data: orderData, error } = await supabase
     .from('orders')
     .select(
@@ -68,13 +68,13 @@ export const getOrderById = async (orderId: string) => {
       .select('*')
       .eq('id', orderData.address_id)
       .maybeSingle();
-    if (addr) orderData.addresses = addr;
+    if (addr) (orderData as any).addresses = addr;
   }
 
-  return orderData;
+  return orderData as unknown as Order;
 };
 
-export const fetchActiveOrders = async (userId: string) => {
+export const fetchActiveOrders = async (userId: string): Promise<Order[]> => {
   const { data, error } = await supabase
     .from('orders')
     .select(
@@ -86,11 +86,11 @@ export const fetchActiveOrders = async (userId: string) => {
 
   if (error || !data) return [];
 
-  const ordersWithAddresses = await fetchAddressesForOrders(data);
-  return ordersWithAddresses;
+  const ordersWithAddresses = await fetchAddressesForOrders(data as any[]);
+  return ordersWithAddresses as Order[];
 };
 
-export const fetchPastOrders = async (userId: string) => {
+export const fetchPastOrders = async (userId: string): Promise<Order[]> => {
   const { data, error } = await supabase
     .from('orders')
     .select('*, order_ratings(id, stars, recommend_solo, feedback, tip_amount)')
@@ -100,8 +100,8 @@ export const fetchPastOrders = async (userId: string) => {
 
   if (error || !data) return [];
 
-  const ordersWithAddresses = await fetchAddressesForOrders(data);
-  return ordersWithAddresses;
+  const ordersWithAddresses = await fetchAddressesForOrders(data as any[]);
+  return ordersWithAddresses as Order[];
 };
 
 export const cancelOrder = async (orderId: string, reasonType: string, reasonText: string) => {
@@ -195,6 +195,34 @@ export const dev_seedMockOrders = async (userId: string) => {
     },
   ];
 
-  const { error } = await supabase.from('orders').insert(mockOrders);
+  const { data: insertedOrders, error } = await supabase
+    .from('orders')
+    .insert(mockOrders)
+    .select('id, amount, created_at, status');
+
   if (error) throw error;
+
+  if (insertedOrders && insertedOrders.length > 0) {
+    const deliveredOrder = insertedOrders.find(o => o.status === 'delivered');
+    if (deliveredOrder) {
+      const mockReward = {
+        user_id: userId,
+        type: 'earned',
+        amount: deliveredOrder.amount,
+        points_amount: Math.round(deliveredOrder.amount * 40),
+        reference_id: deliveredOrder.id,
+        description: 'Earned from Cash Delivery',
+        created_at: deliveredOrder.created_at,
+        expires_at: new Date(new Date(deliveredOrder.created_at).getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+
+      const { error: rewardErr } = await supabase
+        .from('reward_transactions')
+        .insert([mockReward]);
+
+      if (rewardErr) {
+        console.error('Error seeding reward transaction:', rewardErr);
+      }
+    }
+  }
 };

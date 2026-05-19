@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import popupBg from '../assets/popup-bg-remove.png';
 import { Button } from './ui/button';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 interface SaveAddressSheetProps {
   isOpen: boolean;
@@ -12,18 +13,20 @@ interface SaveAddressSheetProps {
 const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({ isOpen, onClose, onSave, icon }) => {
   const [label, setLabel] = useState('');
 
+  useBodyScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   const hasValue = label.length > 0;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center pb-[32px]">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center pb-[32px] pointer-events-none">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+      <div className="fixed inset-0 z-10 bg-black/60 backdrop-blur-md pointer-events-auto" onClick={onClose} />
 
       {/* Sheet Content */}
       <div
-        className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center"
+        className="relative z-20 w-[360px] max-w-[90%] flex flex-col items-center pointer-events-auto"
         style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
       >
         <div

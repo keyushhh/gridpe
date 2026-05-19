@@ -50,12 +50,12 @@ export type TransactionMetadata =
 export interface WalletTransaction {
   id: string;
   user_id: string;
-  type: 'credit' | 'debit' | 'held' | 'deposit';
+  type: 'credit' | 'debit' | 'held' | 'deposit' | 'hold';
   amount: number;
   status: string;
   description: string;
   reference_id?: string | null;
-  metadata?: TransactionMetadata | null;
+  metadata?: TransactionMetadata | Record<string, unknown> | null;
   created_at: string;
 
   // UI & Legacy Aliases

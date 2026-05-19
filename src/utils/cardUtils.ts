@@ -28,7 +28,7 @@ export const getCards = async (): Promise<Card[]> => {
     if (stored) {
       const cards: Card[] = JSON.parse(stored);
       // Strip CVVs if they accidentally exist in legacy data
-      const cleanedCards = cards.map(({ cvv, ...rest }: Card) => rest);
+      const cleanedCards = cards.map(({ cvv, ...rest }: any) => rest);
       
       if (Capacitor.isNativePlatform()) {
         console.warn('Migrating cards to SecureStorage...');

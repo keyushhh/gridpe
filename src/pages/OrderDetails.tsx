@@ -564,11 +564,14 @@ const OrderDetails = () => {
           ) : (
             <button
               onClick={() => navigate(ROUTES.HOME)}
-              className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : ''}`}
+              className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans flex items-center justify-center transition-transform active:scale-95"
               style={{
-                backgroundImage: isDarkMode ? `url(${ASSETS.BUTTON_PRIMARY_WIDE})` : 'none',
+                backgroundImage: isDarkMode ? `url(${ASSETS.BUTTON_CANCEL})` : 'none',
+                backgroundColor: isDarkMode ? 'transparent' : '#EBEBEB',
+                color: isDarkMode ? '#FFFFFF' : '#000000',
                 backgroundSize: '100% 100%',
                 backgroundRepeat: 'no-repeat',
+                border: 'none',
               }}
             >
               Go Home

@@ -1,4 +1,5 @@
-import type { OrderMetadata } from './order';
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 
 export interface Tables {
   profiles: {
@@ -20,6 +21,9 @@ export interface Tables {
     reward_points?: number;
     is_passport_verified?: boolean;
     biometric_on?: boolean;
+    push_token?: string | null;
+    is_fx_enabled?: boolean | null;
+    is_onboarded?: boolean | null;
     created_at: string;
     updated_at: string;
   };
@@ -44,19 +48,20 @@ export interface Tables {
     delivery_address_text: string | null;
     customer_phone_number: string | null;
     order_type: string;
-    meta_data: OrderMetadata | null;
+    meta_data: Json | null;
     created_at: string;
     updated_at: string;
   };
   wallet_transactions: {
     id: string;
     user_id: string;
-    type: 'credit' | 'debit' | 'held' | 'deposit';
+    type: 'credit' | 'debit' | 'held' | 'deposit' | 'hold';
     amount: number;
     status: string;
     description: string;
     reference_id: string | null;
     metadata: Record<string, unknown> | null;
+    order_id?: string | null;
     created_at: string;
   };
   addresses: {
@@ -98,6 +103,7 @@ export interface Tables {
     amount: number;
     status: 'pending' | 'success' | 'failed' | 'completed';
     currency: string;
+    vpa?: string | null;
     created_at: string;
   };
   riders: {
@@ -105,7 +111,13 @@ export interface Tables {
     full_name: string;
     email: string | null;
     phone_number: string | null;
+    kyc_dob?: string | null;
+    kyc_gender?: string | null;
+    kyc_type?: string | null;
+    kyc_number?: string | null;
     kyc_photo: string | null;
+    kyc_id_url?: string | null;
+    profile_photo?: string | null;
     kyc_status: string;
   };
   wallet_tiers: {
@@ -113,22 +125,278 @@ export interface Tables {
     name: string;
     max_wallet_balance: number;
     daily_withdraw_limit: number;
+    daily_topup_limit?: number;
     subscription_price: number;
     created_at: string;
+  };
+  reward_transactions: {
+    id: string;
+    user_id: string;
+    type: string;
+    amount: number;
+    points_amount: number;
+    reference_id: string | null;
+    description: string;
+    created_at: string;
+    expires_at: string;
+  };
+  order_ratings: {
+    id: string;
+    order_id?: string;
+    stars: number;
+    recommend_solo: boolean | null;
+    feedback: string | null;
+    tip_amount: number;
+    created_at?: string;
+  };
+  bank_cards: {
+    id: string | number;
+    user_id: string;
+    last_four: string;
+    card_holder_name: string;
+    expiry_month: number | string;
+    expiry_year: number | string;
+    card_type: string;
+    razorpay_token_id?: string | null;
+    created_at?: string;
+  };
+  user_subscriptions: {
+    id: string;
+    user_id: string;
+    status: string;
+    current_period_end: string;
+    created_at?: string;
+  };
+  wallets: {
+    id: string;
+    user_id: string;
+    balance?: number;
+    available_balance?: number;
+    held_balance?: number;
+    tier_id?: string | null;
+    created_at?: string;
+  };
+  withdrawals: {
+    id: string;
+    user_id: string;
+    amount: number;
+    status: string;
+    created_at: string;
+  };
+  hubs: {
+    id: string;
+    location_name: string;
+    city: string;
+    created_at?: string;
+  };
+  user_legal_consents: {
+    id: string;
+    user_id: string;
+    document_type: string;
+    document_id: string;
+    accepted_at: string;
+    created_at?: string;
   };
 }
 
 export interface Database {
   public: {
     Tables: {
-      [K in keyof Tables]: {
-        Row: Tables[K];
-        Insert: Tables[K];
-        Update: Partial<Tables[K]>;
+      profiles: {
+        Row: Tables['profiles'];
+        Insert: Partial<Tables['profiles']>;
+        Update: Partial<Tables['profiles']>;
+        Relationships: [];
+      };
+      orders: {
+        Row: Tables['orders'];
+        Insert: Partial<Tables['orders']>;
+        Update: Partial<Tables['orders']>;
+        Relationships: [];
+      };
+      wallet_transactions: {
+        Row: Tables['wallet_transactions'];
+        Insert: Partial<Tables['wallet_transactions']>;
+        Update: Partial<Tables['wallet_transactions']>;
+        Relationships: [];
+      };
+      addresses: {
+        Row: Tables['addresses'];
+        Insert: Partial<Tables['addresses']>;
+        Update: Partial<Tables['addresses']>;
+        Relationships: [];
+      };
+      bank_accounts: {
+        Row: Tables['bank_accounts'];
+        Insert: Partial<Tables['bank_accounts']>;
+        Update: Partial<Tables['bank_accounts']>;
+        Relationships: [];
+      };
+      payouts: {
+        Row: Tables['payouts'];
+        Insert: Partial<Tables['payouts']>;
+        Update: Partial<Tables['payouts']>;
+        Relationships: [];
+      };
+      riders: {
+        Row: Tables['riders'];
+        Insert: Partial<Tables['riders']>;
+        Update: Partial<Tables['riders']>;
+        Relationships: [];
+      };
+      wallet_tiers: {
+        Row: Tables['wallet_tiers'];
+        Insert: Partial<Tables['wallet_tiers']>;
+        Update: Partial<Tables['wallet_tiers']>;
+        Relationships: [];
+      };
+      reward_transactions: {
+        Row: Tables['reward_transactions'];
+        Insert: Partial<Tables['reward_transactions']>;
+        Update: Partial<Tables['reward_transactions']>;
+        Relationships: [];
+      };
+      order_ratings: {
+        Row: Tables['order_ratings'];
+        Insert: Partial<Tables['order_ratings']>;
+        Update: Partial<Tables['order_ratings']>;
+        Relationships: [];
+      };
+      bank_cards: {
+        Row: Tables['bank_cards'];
+        Insert: Partial<Tables['bank_cards']>;
+        Update: Partial<Tables['bank_cards']>;
+        Relationships: [];
+      };
+      user_subscriptions: {
+        Row: Tables['user_subscriptions'];
+        Insert: Partial<Tables['user_subscriptions']>;
+        Update: Partial<Tables['user_subscriptions']>;
+        Relationships: [];
+      };
+      wallets: {
+        Row: Tables['wallets'];
+        Insert: Partial<Tables['wallets']>;
+        Update: Partial<Tables['wallets']>;
+        Relationships: [];
+      };
+      withdrawals: {
+        Row: Tables['withdrawals'];
+        Insert: Partial<Tables['withdrawals']>;
+        Update: Partial<Tables['withdrawals']>;
+        Relationships: [];
+      };
+      hubs: {
+        Row: Tables['hubs'];
+        Insert: Partial<Tables['hubs']>;
+        Update: Partial<Tables['hubs']>;
+        Relationships: [];
+      };
+      user_legal_consents: {
+        Row: Tables['user_legal_consents'];
+        Insert: Partial<Tables['user_legal_consents']>;
+        Update: Partial<Tables['user_legal_consents']>;
+        Relationships: [];
       };
     };
-    Views: { [key: string]: never };
-    Functions: { [key: string]: never };
-    Enums: { [key: string]: never };
+    Views: {
+      [_ in never]: never
+    };
+    Functions: {
+      cancel_order: {
+        Args: {
+          p_order_id: string;
+          p_user_id: string;
+          p_cancel_reason_type: string;
+          p_cancel_reason_text: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      wallet_withdraw: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_payout_method: string;
+          p_vpa: string | null;
+          p_description: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      complete_cash_order: {
+        Args: {
+          p_order_id: string;
+          p_user_id: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      complete_fx_order: {
+        Args: {
+          p_order_id: string;
+          p_user_id: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      get_order_quote: {
+        Args: {
+          p_amount: number;
+          p_order_type: string;
+          p_distance_km: number;
+        };
+        Returns: { delivery_fee: number; platform_fee: number; gst: number; gst_rate: number; total_payable: number; };
+      };
+      check_service_availability: {
+        Args: {
+          p_lat: number;
+          p_lng: number;
+        };
+        Returns: string | null;
+      };
+      wallet_hold: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_order_id: string | null;
+          p_description: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      calculate_rider_earning: {
+        Args: {
+          dist_km: number;
+          cash_amount: number;
+        };
+        Returns: string;
+      };
+      schedule_downgrade: {
+        Args: {
+          p_user_id: string;
+          p_tier_name: string;
+          p_tier_change_date: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      apply_tier_forfeiture: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+      wallet_deposit: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_description: string;
+          p_reference_id: string;
+          p_metadata?: Record<string, unknown>;
+        };
+        Returns: { success: boolean; error?: string };
+      };
+    };
+    Enums: {
+      [_ in never]: never
+    };
+    CompositeTypes: {
+      [_ in never]: never
+    };
   };
 }

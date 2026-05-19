@@ -12,6 +12,8 @@ import { supabase } from '@/lib/supabase';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+
 interface MpinSheetProps {
   onClose: () => void;
   mode?: 'verify' | 'change' | 'reset';
@@ -21,6 +23,8 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
   const { profile, resetForDemo } = useUser();
+
+  useBodyScrollLock(true);
 
   // Stabilize onClose via ref to avoid re-triggering the verification effect
   const onCloseRef = useRef(onClose);
@@ -306,9 +310,9 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
   }) => (
     <button
       onClick={onClick}
-      className="w-[113px] h-[65px] bg-black rounded-xl flex items-center justify-center active:bg-white/10 transition-colors"
+      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-brand-primary active:text-white transition-colors ${isDarkMode ? 'bg-black' : 'bg-white'}`}
     >
-      {icon ? icon : <span className="text-white font-bold font-sans text-[32px]">{label}</span>}
+      {icon ? icon : <span className={`font-bold font-sans text-[32px] ${isDarkMode ? 'text-white' : 'text-black'}`}>{label}</span>}
     </button>
   );
   const isPredictableError = createError.includes('predictable');
@@ -319,13 +323,14 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
     return 'rgba(26, 26, 46, 0.5)';
   };
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-end pointer-events-none">
       {/* Full screen backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-10 bg-black/80 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
       {/* Animation Wrapper. Composited via translateZ + will-change so the
                 slide-in stays on the GPU on Android WebView. */}
+      {/* Animation Wrapper */}
       <div
-        className="relative w-full h-[92%] animate-in slide-in-from-bottom duration-300"
+        className="fixed bottom-0 z-20 w-full h-[92%] animate-in slide-in-from-bottom duration-300 pointer-events-auto"
         style={{ willChange: 'transform', transform: 'translateZ(0)' }}
       >
         {/* Underlying Sheet (The Stacked Effect) */}
@@ -358,7 +363,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
             </button>
           </div>
           {/* Content Area */}
-          <div className="flex-1 flex flex-col items-center pt-[60px] gap-8 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center pt-[60px] gap-8 overflow-x-hidden overflow-y-auto overscroll-contain" style={{ touchAction: 'pan-y' }}>
             {/* STEP 1: VERIFY OLD */}
             {step === 'VERIFY_OLD' && (
               <>
@@ -549,7 +554,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
           {!(step === 'CREATE_NEW' && createSuccess) && (
             <div
               className="rounded-t-[30px] p-[20px] safe-bottom pb-4"
-              style={{ backgroundColor: isDarkMode ? '#05050B' : '#F2F2F7' }}
+              style={{ backgroundColor: isDarkMode ? '#05050B' : '#F1F5F9' }}
             >
               {/* Keypad */}
               <div className="flex flex-col gap-[10px] items-center">
@@ -582,6 +587,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
                         src={ASSETS.BACKSPACE}
                         alt="Backspace"
                         className="w-[18px] h-[18px] object-contain"
+                        style={isDarkMode ? { filter: 'brightness(0) saturate(100%) invert(1)' } : { filter: 'brightness(0)' }}
                       />
                     }
                   />

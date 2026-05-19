@@ -8,6 +8,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatINR } from '@/utils/format';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 const currencyToCountry: Record<string, string> = {
   AUD: 'au',
   BRL: 'br',
@@ -100,7 +101,14 @@ const CurrencyModal = ({
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div
-        className={`relative w-full max-w-md ${isDarkMode ? 'bg-background' : 'bg-background'} rounded-t-[32px] overflow-hidden border-t ${isDarkMode ? 'border-white/10' : 'border-border'} flex flex-col max-h-[85vh]`}
+        className={`relative w-full max-w-md rounded-t-[32px] overflow-hidden border-t ${isDarkMode ? 'border-t-solid' : 'bg-background border-border'} flex flex-col max-h-[85vh]`}
+        style={isDarkMode ? {
+          backgroundColor: 'rgba(25, 25, 25, 0.31)',
+          borderTopColor: 'rgba(255, 255, 255, 0.12)',
+          borderTopWidth: '0.63px',
+          backdropFilter: 'blur(25px)',
+          WebkitBackdropFilter: 'blur(25px)',
+        } : undefined}
       >
         {/* Fixed Header */}
         <div className="p-6 pb-4">
@@ -267,6 +275,43 @@ const FxExchange = () => {
   const [isSelectingTo, setIsSelectingTo] = useState(false);
   const [timer, setTimer] = useState(600); // 10 minutes in seconds
   const isDarkMode = useIsDarkMode();
+
+  const [inputValue, setInputValue] = useState<string>((initialAmount || 1).toString());
+
+  const handleAmountChange = (val: string) => {
+    // Only allow numbers and one decimal point
+    let cleaned = val.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+
+    // Strip leading zeros if followed by other digits
+    if (/^0[0-9]/.test(cleaned)) {
+      cleaned = cleaned.replace(/^0+/, '');
+      if (cleaned === '') cleaned = '0';
+    }
+
+    setInputValue(cleaned);
+
+    const parsed = parseFloat(cleaned);
+    if (!isNaN(parsed)) {
+      setAmount(parsed);
+    } else {
+      setAmount(0);
+    }
+  };
+
+  // Sync state if updated externally
+  useEffect(() => {
+    const parsed = parseFloat(inputValue);
+    if (isNaN(parsed) && amount === 0) {
+      return;
+    }
+    if (parsed !== amount) {
+      setInputValue(amount.toString());
+    }
+  }, [amount]);
   // Fetch Currencies and Live Rate
   useEffect(() => {
     const init = async () => {
@@ -280,9 +325,19 @@ const FxExchange = () => {
           AED: 'United Arab Emirates Dirham',
         };
         setCurCurrencies(fallbackCurrencies);
+        
         // Fetch Initial Rate from secure Edge Function
+        let url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates`;
+        if (fromCurrency === 'USD') {
+          url += `?from=USD&to=${toCurrency}`;
+        } else if (toCurrency === 'USD') {
+          url += `?from=USD&to=${fromCurrency}`;
+        } else {
+          url += `?from=USD`;
+        }
+
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates?from=${fromCurrency}&to=${toCurrency}`,
+          url,
           {
             headers: {
               apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
@@ -291,18 +346,39 @@ const FxExchange = () => {
         );
         if (response.ok) {
           const data = await response.json();
-          if (data.rates && data.rates[toCurrency]) {
-            setFxRate(data.rates[toCurrency]);
-          } else if (toCurrency === 'INR') {
-            setFxRate(83.45); // Fallback for INR
+          if (data.rates) {
+            if (fromCurrency === 'USD' && data.rates[toCurrency]) {
+              setFxRate(data.rates[toCurrency]);
+            } else if (toCurrency === 'USD' && data.rates[fromCurrency]) {
+              setFxRate(1 / data.rates[fromCurrency]);
+            } else if (data.rates[toCurrency] && data.rates[fromCurrency]) {
+              setFxRate(data.rates[toCurrency] / data.rates[fromCurrency]);
+            } else if (toCurrency === 'INR') {
+              setFxRate(83.45); // Fallback for INR
+            } else if (fromCurrency === 'INR') {
+              setFxRate(1 / 83.45);
+            } else {
+              throw new Error('Required rates not found in response');
+            }
+          } else {
+            throw new Error('Edge function response missing rates object');
           }
         } else {
-          throw new Error('Edge function returned error');
+          throw new Error(`Edge function returned error status: ${response.status}`);
         }
       } catch (error) {
         console.error('Failed to fetch FX data:', error);
-        if (toCurrency === 'INR') {
+        toast.error('Failed to fetch live exchange rates. Using fallback rates.');
+        if (fromCurrency === 'USD' && toCurrency === 'INR') {
           setFxRate(83.45);
+        } else if (fromCurrency === 'INR' && toCurrency === 'USD') {
+          setFxRate(1 / 83.45);
+        } else if (toCurrency === 'INR') {
+          setFxRate(83.45);
+        } else if (fromCurrency === 'INR') {
+          setFxRate(1 / 83.45);
+        } else {
+          setFxRate(1.0);
         }
       }
     };
@@ -383,7 +459,12 @@ const FxExchange = () => {
         <div className="relative flex flex-col gap-2">
           {/* From Card */}
           <div
-            className={`${isDarkMode ? 'bg-muted/30 border-white/5' : 'bg-background border-border shadow-sm'} rounded-[20px] p-6 border relative min-h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            className={`${isDarkMode ? 'border-solid' : 'bg-background border-border shadow-sm'} rounded-[20px] p-6 border relative min-h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            style={isDarkMode ? {
+              backgroundColor: 'rgba(25, 25, 25, 0.31)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderWidth: '0.63px',
+            } : undefined}
           >
             <div className="flex justify-between items-center mb-2">
               <span
@@ -393,11 +474,20 @@ const FxExchange = () => {
               </span>
               <button
                 onClick={() => setIsSelectingFrom(true)}
-                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? 'bg-muted border-white/10' : 'bg-background border-border'} rounded-full border active:scale-95 transition-transform overflow-hidden`}
+                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 rounded-full border active:scale-95 transition-transform overflow-hidden ${
+                  isDarkMode
+                    ? 'text-white border-solid'
+                    : 'text-black bg-black/5 border-black/10'
+                }`}
+                style={isDarkMode ? {
+                  backgroundColor: 'rgba(25, 25, 25, 0.31)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                  borderWidth: '0.63px',
+                } : undefined}
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white' : 'ring-black/20'} ring-inset flex-shrink-0`}
+                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'} ring-inset flex-shrink-0`}
                   >
                     <img
                       src={`https://flagcdn.com/w160/${currencyToCountry[currentFrom] || 'un'}.png`}
@@ -406,33 +496,28 @@ const FxExchange = () => {
                     />
                   </div>
                   <span
-                    className={`text-[12px] font-medium font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    className={`text-[12px] font-bold font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
                   >
                     {currentFrom}
                   </span>
                 </div>
                 <ChevronDown
-                  className={`w-3 h-3 ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}
+                  className={`w-3 h-3 ${isDarkMode ? 'text-white' : 'text-black'}`}
                 />
               </button>
             </div>
             <div className="flex items-center gap-2">
               <span
-                className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}
+                className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi`}
               >
-                {currentFrom === 'USD'
-                  ? '$'
-                  : currentFrom === 'EUR'
-                    ? '€'
-                    : currentFrom === 'GBP'
-                      ? '£'
-                      : ''}
+                {currencySymbols[currentFrom] || ''}
               </span>
               <input
-                type="number"
-                value={amount}
-                onChange={e => setAmount(Number(e.target.value))}
-                className={`bg-transparent text-[40px] font-bold w-full outline-none focus:ring-0 ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/20'}`}
+                type="text"
+                inputMode="decimal"
+                value={inputValue}
+                onChange={e => handleAmountChange(e.target.value)}
+                className={`bg-transparent text-[40px] font-bold w-full outline-none focus:ring-0 ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/20'} font-satoshi fx-convert-input`}
                 placeholder="0"
               />
             </div>
@@ -452,7 +537,12 @@ const FxExchange = () => {
           </div>
           {/* To Card */}
           <div
-            className={`${isDarkMode ? 'bg-muted/30 border-white/5' : 'bg-background border-border shadow-sm'} rounded-[20px] p-6 border relative min-h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            className={`${isDarkMode ? 'border-solid' : 'bg-background border-border shadow-sm'} rounded-[20px] p-6 border relative min-h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
+            style={isDarkMode ? {
+              backgroundColor: 'rgba(25, 25, 25, 0.31)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderWidth: '0.63px',
+            } : undefined}
           >
             <div className="flex justify-between items-center mb-2">
               <span
@@ -462,11 +552,20 @@ const FxExchange = () => {
               </span>
               <button
                 onClick={() => setIsSelectingTo(true)}
-                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 ${isDarkMode ? 'bg-muted border-white/10' : 'bg-background border-border'} rounded-full border active:scale-95 transition-transform overflow-hidden`}
+                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 rounded-full border active:scale-95 transition-transform overflow-hidden ${
+                  isDarkMode
+                    ? 'text-white border-solid'
+                    : 'text-black bg-black/5 border-black/10'
+                }`}
+                style={isDarkMode ? {
+                  backgroundColor: 'rgba(25, 25, 25, 0.31)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                  borderWidth: '0.63px',
+                } : undefined}
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white' : 'ring-black/20'} ring-inset flex-shrink-0`}
+                    className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'} ring-inset flex-shrink-0`}
                   >
                     <img
                       src={`https://flagcdn.com/w160/${currencyToCountry[currentTo] || 'un'}.png`}
@@ -475,30 +574,24 @@ const FxExchange = () => {
                     />
                   </div>
                   <span
-                    className={`text-[12px] font-medium font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    className={`text-[12px] font-bold font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
                   >
                     {currentTo}
                   </span>
                 </div>
                 <ChevronDown
-                  className={`w-3 h-3 ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}
+                  className={`w-3 h-3 ${isDarkMode ? 'text-white' : 'text-black'}`}
                 />
               </button>
             </div>
             <div className="flex items-center gap-2">
               <span
-                className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}
+                className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi`}
               >
-                {currentTo === 'INR'
-                  ? '₹'
-                  : currentTo === 'EUR'
-                    ? '€'
-                    : currentTo === 'GBP'
-                      ? '£'
-                      : ''}
+                {currencySymbols[currentTo] || ''}
               </span>
               <span
-                className={`text-[40px] font-bold truncate ${isDarkMode ? 'text-white' : 'text-black'}`}
+                className={`text-[40px] font-bold truncate ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi`}
               >
                 {convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
               </span>
@@ -507,8 +600,20 @@ const FxExchange = () => {
         </div>
         {/* Price Breakdown */}
         <div
-          className={`mt-[18px] ${isDarkMode ? 'bg-muted/30 border-white/5' : 'bg-background border-border shadow-sm'} border backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'min-h-[270px] rounded-[13px]' : 'min-h-[64px] rounded-[8px]'}`}
+          className={`mt-[18px] ${isDarkMode ? 'border-solid' : 'bg-background border-border shadow-sm'} border backdrop-blur-[25px] overflow-hidden transition-all duration-300 relative ${isBreakdownOpen ? 'min-h-[270px] rounded-[13px]' : 'min-h-[64px] rounded-[8px]'}`}
+          style={isDarkMode ? {
+            backgroundColor: 'rgba(25, 25, 25, 0.31)',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            borderWidth: '0.63px',
+          } : undefined}
         >
+          <style dangerouslySetInnerHTML={{ __html: `
+            .fx-convert-input {
+              font-size: 40px !important;
+              font-weight: 700 !important;
+              font-family: 'Satoshi', sans-serif !important;
+            }
+          `}} />
           {/* Header Section */}
           <div
             className={`pt-[14px] px-[12px] flex justify-between items-start ${!isBreakdownOpen ? 'pb-[12px]' : ''}`}

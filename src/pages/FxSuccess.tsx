@@ -564,11 +564,12 @@ const FxSuccess = () => {
         <div className="w-full pb-6">
           <button
             onClick={() => navigate(ROUTES.HOME)}
-            className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans ${!isDarkMode ? 'bg-black rounded-full' : 'rounded-[296px]'}`}
+            className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans flex items-center justify-center transition-transform active:scale-95"
             style={{
-              backgroundImage: isDarkMode ? `url(${ASSETS.DARKBG_CTA})` : 'none',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundImage: isDarkMode ? `url(${ASSETS.BUTTON_CANCEL})` : 'none',
+              backgroundColor: isDarkMode ? 'transparent' : '#EBEBEB',
+              color: isDarkMode ? '#FFFFFF' : '#000000',
+              backgroundSize: '100% 100%',
               backgroundRepeat: 'no-repeat',
               border: 'none',
             }}

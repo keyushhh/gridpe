@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 interface RatingSheetProps {
   isOpen: boolean;
@@ -30,6 +31,8 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
   const [tipAmount, setTipAmount] = useState(0); // In paise for API, but UI shows INR
   const [customTipValue, setCustomTipValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useBodyScrollLock(isOpen);
 
   if (!isOpen || !order) return null;
 
@@ -100,16 +103,16 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-end justify-center">
+    <div className="fixed inset-0 z-[150] flex items-end justify-center pointer-events-none">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 z-10 bg-black/60 backdrop-blur-md transition-opacity pointer-events-auto"
         onClick={onClose}
       />
       {/* Sheet */}
       <div
         className={cn(
-          "relative w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-[transform,opacity] duration-300 shadow-2xl",
+          "fixed bottom-0 z-20 w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-[transform,opacity] duration-300 shadow-2xl pointer-events-auto",
           !isDarkMode && "bg-white"
         )}
         style={{
@@ -122,7 +125,7 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
           transform: 'translateZ(0)',
         }}
       >
-        <div className="w-full h-full max-h-[inherit] overflow-y-auto custom-scrollbar pt-4 pb-10 px-5">
+        <div className="w-full h-full max-h-[inherit] overflow-x-hidden overflow-y-auto overscroll-contain custom-scrollbar pt-4 pb-10 px-5" style={{ touchAction: 'pan-y' }}>
           {/* Drag Handle Container */}
           <div className="w-full flex justify-center pb-6">
             <div className={cn("w-[48px] h-[5px] rounded-full", isDarkMode ? "bg-[#313033]" : "bg-brand-border-light")} />

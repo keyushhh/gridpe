@@ -117,7 +117,7 @@ const SuccessScreen = () => {
       </p>
       {/* CTA Section - using flex-1 to push footer text down */}
       <div className="flex-1" />
-      <div className="pb-4 space-y-4 relative z-10 w-full flex flex-col items-center">
+      <div className="pb-4 space-y-4 relative z-10 w-full flex flex-col items-center px-5">
         <button
           onClick={() => {
             if (kycStatus === 'verified') {

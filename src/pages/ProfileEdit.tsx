@@ -148,19 +148,29 @@ const ProfileEdit = () => {
             <button
               onClick={triggerFileInput}
               disabled={!isEditing}
-              className={`px-4 h-[32px] flex items-center justify-center rounded-full text-[14px] ${isDarkMode ? 'text-foreground' : 'text-white bg-black'} mb-2 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`px-4 h-[36px] rounded-full flex items-center justify-center gap-2 active:scale-95 transition-transform overflow-hidden relative ${
+                isDarkMode ? 'glass-container glass-physics-clear grow-0' : 'bg-black'
+              } mb-2 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
               style={
-                isDarkMode
-                  ? {
-                      backgroundImage:
-                        'url("/lovable-uploads/881be237-04b4-4be4-b639-b56090b04ed5.png")',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }
-                  : {}
+                {
+                  ...(!isDarkMode ? { backgroundColor: '#000000' } : {}),
+                  '--glass-specular-intensity': '0.2',
+                } as React.CSSProperties
               }
             >
-              Upload Photo
+              {isDarkMode && (
+                <>
+                  <div className="glass-lens" />
+                  <div
+                    className="absolute inset-0 z-[1] pointer-events-none"
+                    style={{ backgroundColor: 'var(--glass-tint)' }}
+                  />
+                  <span className="glass-rim-v2" />
+                </>
+              )}
+              <span className="relative z-10 text-white text-[14px] font-medium">
+                Upload Photo
+              </span>
             </button>
             <p className="text-black dark:text-muted-foreground text-[12px] leading-tight">
               {helperText}

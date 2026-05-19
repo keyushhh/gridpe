@@ -391,8 +391,8 @@ const WalletTransactionHistory = () => {
       };
       
       const methodId = tx.metadata?.paymentMethodId as string | undefined;
-      const method = tx.payout_method || tx.metadata?.payout_method;
-      const vpa = tx.vpa || tx.metadata?.vpa;
+      const method = tx.payout_method || (tx.metadata as any)?.payout_method;
+      const vpa = tx.vpa || (tx.metadata as any)?.vpa;
       
       let methodLabel = methodId ? methodNames[methodId] || 'Bank' : null;
       if (!methodLabel) {

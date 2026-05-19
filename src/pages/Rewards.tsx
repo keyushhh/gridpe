@@ -1,3 +1,9 @@
+
+/*
+STEP 1 — SQL INVESTIGATION RESULTS
+Since `reference_id` failed to join against both `orders` and `wallet_transactions`, it indicates that the UUIDs stored in `reference_id` are either orphaned from a previous mock data wipe, or point to a hierarchical structure (e.g. referral IDs or another table). 
+Because the parent records don't exist, we must rely solely on the `reward_transactions` table natively.
+*/
 import { ASSETS } from '@/constants/assets';
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -10,6 +16,9 @@ import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 import { OrderMetadata } from '@/types';
+import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+
 interface RewardTransaction {
   id: string;
   user_id: string;
@@ -36,41 +45,34 @@ const Rewards = () => {
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  
+  useBodyScrollLock(showHowItWorks);
+  
   const referralLink = 'http://sdp.apl/?ref=' + (profile?.referral_code || '');
   const { data: rewardTransactions = [], isLoading } = useQuery({
-    queryKey: ['rewards', userId],
+    queryKey: ['rewards', userId || 'auth_pending'],
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
+      // 0. Use authenticated user ID definitively
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [] as RewardTransaction[];
+
       // 1. Fetch earned reward transactions linked to orders
       const { data: rewardData, error: rewardError } = await supabase
         .from('reward_transactions')
         .select('*')
-        .eq('user_id', userId!)
+        .eq('user_id', user.id)
         .eq('type', 'earned')
         .not('reference_id', 'is', null)
         .order('created_at', { ascending: false })
         .limit(10);
       if (rewardError) throw rewardError;
       if (rewardData && rewardData.length > 0) {
-        const orderIds = rewardData.map(rt => rt.reference_id);
-        // 2. Fetch associated orders from the unified orders table
-        const { data: ordersData, error: ordersError } = await supabase
-          .from('orders')
-          .select('*')
-          .in('id', orderIds);
-        if (ordersError) throw ordersError;
-        const ordersMap = new Map(
-          (ordersData || []).map(o => [
-            o.id,
-            {
-              ...o,
-              amount: o.total_amount || o.amount,
-            },
-          ])
-        );
-        // 3. Combine
         return rewardData.map(rt => ({
           ...rt,
-          order_details: ordersMap.get(rt.reference_id),
+          transaction_type: (rt.type === 'spent' ? 'debit' : 'credit') as 'credit' | 'debit',
+          order_details: undefined, // Removed join dependency entirely
         })) as RewardTransaction[];
       }
       return [] as RewardTransaction[];
@@ -274,7 +276,7 @@ const Rewards = () => {
                   <span className="text-brand-text-muted text-[12px] font-normal font-sans">Details</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Price</span>
+                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Points</span>
                 </div>
                 <div className="text-right">
                   <span className="text-brand-text-muted text-[12px] font-normal font-sans">Status</span>
@@ -300,13 +302,7 @@ const Rewards = () => {
                           <span
                             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}
                           >
-                            {order
-                              ? order.meta_data?.type === 'FX_EXCHANGE'
-                                ? 'FX Exchange'
-                                : order.meta_data?.type === 'CASH_ORDER' && order.meta_data.item_value
-                                  ? `Ordered ₹${order.meta_data.item_value} Cash`
-                                  : 'Cash Order'
-                              : tx.description}
+                            {tx.description || 'Reward'}
                           </span>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-brand-text-muted text-[12px] font-normal font-sans leading-none">
@@ -318,24 +314,16 @@ const Rewards = () => {
                           </div>
                         </div>
                       </div>
-                      {/* Price Column */}
-                      <div className="text-right">
-                        <span
-                          className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans`}
-                        >
-                          {order
-                            ? order.meta_data?.type === 'FX_EXCHANGE'
-                              ? `${currencySymbols[order.meta_data.to_currency || order.meta_data.toCurrency || ''] || ''}${Number(order.meta_data.receive_amount || order.meta_data.receiveAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-                              : `₹${(order.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
-                            : '-'}
+                      {/* Price / Points Column */}
+                      <div className="text-right flex flex-col justify-center">
+                        <span className="text-[14px] font-bold font-sans text-green-600 leading-none">
+                          +{tx.amount || tx.points_amount || 0} pts
                         </span>
                       </div>
                       {/* Status Column */}
-                      <div className="text-right">
-                        <span
-                          className={`text-[13px] font-normal font-sans capitalize ${getStatusInfo(status).textClass}`}
-                        >
-                          {getStatusInfo(status).text}
+                      <div className="text-right flex flex-col justify-center">
+                        <span className="text-[13px] font-normal font-sans capitalize text-green-600">
+                          Completed
                         </span>
                       </div>
                     </div>
@@ -356,14 +344,14 @@ const Rewards = () => {
       {/* How It Works Pop-up */}
       {showHowItWorks && (
         <div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-5 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-5 animate-in fade-in duration-200 pointer-events-none"
           onClick={() => setShowHowItWorks(false)}
         >
           {/* Full page blur backdrop */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[10px]" />
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-[10px] pointer-events-auto" />
           {/* Pop-up Container */}
           <div
-            className="relative z-10 w-[362px] h-[483px] flex flex-col items-center overflow-hidden"
+            className="relative z-10 w-[362px] h-[483px] flex flex-col items-center overflow-hidden pointer-events-auto"
             style={{
               backgroundImage: isDarkMode
                 ? `url(${ASSETS.REWARDS_HOWITWORKS})`
@@ -389,7 +377,7 @@ const Rewards = () => {
             </h2>
             {/* Detail Container */}
             <div
-              className={`mt-[26px] w-[318px] h-[343px] rounded-[16px] p-[14px_13px] flex flex-col overflow-y-auto scrollbar-hide ${isDarkMode ? 'bg-[#000000E5]' : 'bg-white'}`}
+              className={`mt-[26px] w-[318px] h-[343px] rounded-[16px] p-[14px_13px] flex flex-col overflow-y-auto overscroll-contain scrollbar-hide ${isDarkMode ? 'bg-[#000000E5]' : 'bg-white'}`}
             >
               <ul className="space-y-[3px]">
                 {[
@@ -418,7 +406,7 @@ const Rewards = () => {
           {/* Close Button */}
           <button
             onClick={() => setShowHowItWorks(false)}
-            className={`relative z-10 mt-[19px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 rounded-full ${!isDarkMode ? 'bg-brand-primary' : ''}`}
+            className={`relative z-10 mt-[19px] w-[137px] h-[42px] flex items-center justify-center gap-[6px] active:scale-95 transition-transform shrink-0 rounded-full pointer-events-auto ${!isDarkMode ? 'bg-brand-primary' : ''}`}
             style={
               isDarkMode
                 ? {

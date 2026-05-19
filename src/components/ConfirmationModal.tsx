@@ -2,6 +2,7 @@ import React from 'react';
 import { hapticMedium, hapticWarning } from '@/utils/haptics';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import popupBg from '../assets/popup-bg-remove.png';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -28,23 +29,24 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   const isDarkMode = useIsDarkMode();
 
+  useBodyScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center pb-[32px]">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center pb-[32px] pointer-events-none">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-md"
+        className="fixed inset-0 z-10 bg-black/40 backdrop-blur-md pointer-events-auto"
         onClick={e => {
           e.stopPropagation();
           onClose();
         }}
       />
 
-      {/* Modal Content. Promote to its own compositor layer so the backdrop
-          blur + modal scale don't repaint the rest of the screen on Android. */}
+      {/* Modal Content */}
       <div
-        className="relative z-10 w-[360px] max-w-[90%] flex flex-col items-center"
+        className="relative z-20 w-[360px] max-w-[90%] flex flex-col items-center pointer-events-auto"
         style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
       >
         {/* Card Background Container */}

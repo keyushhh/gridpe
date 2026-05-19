@@ -54,17 +54,19 @@ const OrderCash = () => {
   }) => (
     <button
       onClick={onClick}
-      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-brand-primary active:text-white transition-colors group bg-black text-white shadow-sm`}
+      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-brand-primary active:text-white transition-colors group shadow-sm ${
+        isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
+      }`}
     >
       {icon ? (
         <div className="group-active:brightness-200">
           {React.cloneElement(icon as React.ReactElement, {
-            style: { filter: 'brightness(0) saturate(100%) invert(1)' },
+            style: { filter: isDarkMode ? 'brightness(0) saturate(100%) invert(1)' : 'brightness(0)' },
             className: `${(icon as React.ReactElement).props.className} group-active:filter-none`,
           })}
         </div>
       ) : (
-        <span className="font-bold font-sans text-[32px] group-active:text-white text-white">
+        <span className={`font-bold font-sans text-[32px] group-active:text-white ${isDarkMode ? 'text-white' : 'text-black'}`}>
           {label}
         </span>
       )}
@@ -198,7 +200,7 @@ const OrderCash = () => {
           <div
             className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
             style={{
-              backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : '#FFFFFF',
+              backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : '#F1F5F9',
             }}
           >
             <div className="flex flex-col gap-[10px] items-center relative z-10">

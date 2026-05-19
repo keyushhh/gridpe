@@ -182,7 +182,7 @@ const WalletAddMoney = () => {
           <div
             className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
             style={{
-              backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : 'hsl(var(--background))',
+              backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : '#F1F5F9',
             }}
           >
             <Keypad

@@ -351,7 +351,7 @@ const WalletWithdraw = () => {
         )}
         <div
           className="w-full h-full p-[20px] safe-bottom pb-4 backdrop-blur-[25px]"
-          style={{ backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : 'transparent' }}
+          style={{ backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.31)' : '#F1F5F9' }}
         >
           <div className="flex flex-col gap-[10px] items-center relative z-10">
             {showKeypad && (

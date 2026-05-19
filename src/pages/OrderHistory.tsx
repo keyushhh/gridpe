@@ -46,14 +46,22 @@ const OrderCard = React.memo(
 
     const getStatusConfig = (status: string) => {
       const s = status.toLowerCase();
-      if (s === 'processing' || s === 'out_for_delivery' || s === 'arrived') {
+      if (
+        s === 'pending' ||
+        s === 'accepted' ||
+        s === 'picked_up' ||
+        s === 'at_store' ||
+        s === 'processing' ||
+        s === 'out_for_delivery' ||
+        s === 'arrived'
+      ) {
         return {
           textClass: 'text-yellow-700 dark:text-yellow-600',
           bgColor: '#FACC15',
           bgOpacity: 0.21,
           icon: ASSETS.PROCESSING,
           statusIcon: ASSETS.REFRESH,
-          label: 'Processing',
+          label: s === 'pending' ? 'pending' : (s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ')),
           iconFilter: !isDarkMode
             ? 'brightness(0) saturate(100%) invert(54%) sepia(93%) saturate(2311%) hue-rotate(18deg) brightness(96%) contrast(101%)'
             : undefined,
@@ -188,7 +196,9 @@ const OrderCard = React.memo(
                 <span
                   className={`text-[16px] font-regular font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
-                  {order.meta_data?.type === 'FX_EXCHANGE'
+                  {order.order_type === 'REWARD'
+                    ? (order.meta_data as any)?.item_value || 'Reward'
+                    : order.meta_data?.type === 'FX_EXCHANGE'
                     ? 'FX Exchange'
                     : 'Cash Order'}
                 </span>
@@ -200,11 +210,17 @@ const OrderCard = React.memo(
               </div>
             </div>
             <div className="flex flex-col items-end">
-              <span
-                className={`text-[16px] font-bold font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
-              >
-                ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </span>
+              {order.order_type === 'REWARD' ? (
+                <span className="text-[16px] font-bold font-satoshi text-green-600 leading-none">
+                  +{order.amount || 0} pts
+                </span>
+              ) : (
+                <span
+                  className={`text-[16px] font-bold font-satoshi leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
+                >
+                  ₹{(order.amount / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -244,6 +260,8 @@ const currencySymbols: Record<string, string> = {
   USD: '$',
   ZAR: 'R',
 };
+const EMPTY_ARRAY: Order[] = [];
+
 const OrderHistory = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -260,34 +278,57 @@ const OrderHistory = () => {
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
   const queryClient = useQueryClient();
   const { data: ordersData, isLoading, isError, refetch } = useQuery({
-    queryKey: ['orders', userId, showOnlyRewards],
+    queryKey: ['orders', userId || 'auth_pending', showOnlyRewards],
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
-      if (!userId) return { active: [] as Order[], past: [] as Order[] };
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('OrderHistory: Fetching orders. userId:', user?.id, 'showOnlyRewards:', showOnlyRewards);
+      if (!user) return { active: [] as Order[], past: [] as Order[] };
+
       // Fetch Active Orders
-      const active = await fetchActiveOrders(userId);
+      const active = await fetchActiveOrders(user.id);
       // Fetch Past Orders
-      const past = await fetchPastOrders(userId);
+      const past = await fetchPastOrders(user.id);
+      console.log('OrderHistory: active fetched:', active.length, 'past fetched:', past.length);
+
       if (showOnlyRewards) {
-        const { data: rewardData } = await supabase
+        const { data: rewardData, error: rewardErr } = await supabase
           .from('reward_transactions')
-          .select('reference_id')
-          .eq('user_id', userId)
+          .select('*')
+          .eq('user_id', user.id)
           .eq('type', 'earned')
-          .not('reference_id', 'is', null);
-        if (rewardData) {
-          const earnedOrderIds = new Set(rewardData.map(r => r.reference_id));
-          const filtered = past.filter(o => earnedOrderIds.has(o.id));
-          return { active: [] as Order[], past: filtered };
+          .order('created_at', { ascending: false });
+
+        console.log('OrderHistory: rewardData fetched:', rewardData?.length, 'error:', rewardErr);
+
+        if (rewardData && rewardData.length > 0) {
+          const sortedOrders = rewardData.map(rt => {
+            return {
+              id: rt.id,
+              user_id: rt.user_id,
+              amount: rt.points_amount || rt.amount || 0,
+              total_amount: rt.points_amount || rt.amount || 0,
+              status: 'delivered', // maps to 'completed' visually
+              payment_mode: 'wallet',
+              order_type: 'REWARD',
+              meta_data: { type: 'REWARD', item_value: rt.description || 'Reward' },
+              created_at: rt.created_at,
+              updated_at: rt.created_at,
+            } as unknown as Order;
+          });
+
+          console.log('OrderHistory: sortedOrders count:', sortedOrders.length);
+          return { active: [] as Order[], past: sortedOrders };
         }
         return { active: [] as Order[], past: [] as Order[] };
       }
       return { active, past };
     },
     enabled: !!userId,
-    staleTime: 60 * 1000,
   });
-  const activeOrders = ordersData?.active ?? [];
-  const pastOrders = ordersData?.past ?? [];
+  const activeOrders = ordersData?.active ?? EMPTY_ARRAY;
+  const pastOrders = ordersData?.past ?? EMPTY_ARRAY;
   // Real-time subscription — invalidates query cache on changes
   useEffect(() => {
     if (!userId) return;
@@ -527,12 +568,22 @@ const OrderHistory = () => {
           <div
             className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
           >
-            <img
-              src={ASSETS.ORDER_CASH}
-              alt="No orders"
-              className="w-12 h-12 opacity-40"
-              style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
-            />
+            {showOnlyRewards ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+                <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                <rect x="2" y="7" width="20" height="5"></rect>
+                <line x1="12" y1="22" x2="12" y2="7"></line>
+                <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+              </svg>
+            ) : (
+              <img
+                src={showOnlyPast ? ASSETS.HELP : ASSETS.ORDER_CASH}
+                alt="No orders"
+                className="w-12 h-12 opacity-40"
+                style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
+              />
+            )}
           </div>
           <h2
             className={`text-[20px] font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -546,7 +597,7 @@ const OrderHistory = () => {
           </p>
           <button
             onClick={() => navigate(ROUTES.ORDER_CASH)}
-            className={`w-full max-w-[240px] h-[48px] rounded-full font-medium transition-all active:scale-95 shadow-lg ${isDarkMode ? 'bg-white text-black shadow-white/5' : 'bg-brand-primary text-white shadow-brand-primary/20'}`}
+            className="w-full max-w-[240px] h-[48px] rounded-full text-white font-medium text-[16px] btn-gradient transition-all active:scale-95 shadow-xl shadow-brand-primary/20"
           >
             Withdraw Cash Now
           </button>

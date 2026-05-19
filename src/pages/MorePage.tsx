@@ -108,9 +108,9 @@ const MorePage = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="flex-1 px-5 safe-top pb-[calc(120px+env(safe-area-inset-bottom))]">
+      <div className="flex-1 px-5 safe-top pt-4 pb-[calc(120px+env(safe-area-inset-bottom))]">
         {/* Header */}
-        <div className="mt-8 mb-10">
+        <div className="mb-6 relative z-10">
           <img
             src={ASSETS.GRIDPE_LOGO}
             alt="grid.pe"

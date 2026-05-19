@@ -198,11 +198,11 @@ const Homepage = () => {
           .select('available_balance')
           .eq('user_id', userId)
           .maybeSingle();
-        if (error) {
-          console.error('walletBalanceQuery Supabase error:', error);
+        if (error || !data) {
+          if (error) console.error('walletBalanceQuery Supabase error:', error);
           return 0;
         }
-        return Math.floor(Number(data?.available_balance || 0));
+        return Math.floor(Number(data.available_balance || 0));
       } catch (e) {
         console.error('walletBalanceQuery unexpected error:', e);
         return 0;
@@ -363,11 +363,14 @@ const Homepage = () => {
                   .eq('id', newOrder.rider_id)
                   .single();
 
+                const riderName = rider ? rider.full_name : 'Rider';
+                const riderPhoto = rider ? rider.kyc_photo : null;
+
                 setCompletedOrder({
                   id: newOrder.id,
                   rider_id: newOrder.rider_id,
-                  rider_name: rider?.full_name || 'Rider',
-                  rider_photo: rider?.kyc_photo || null,
+                  rider_name: riderName,
+                  rider_photo: riderPhoto,
                 });
               } catch (err) {
                 console.error('Error fetching rider for rating:', err);
@@ -407,7 +410,7 @@ const Homepage = () => {
   useEffect(() => {
     if (activeOrder?.addresses?.plus_code) {
       try {
-        const decoded = OpenLocationCode.decode(activeOrder.addresses.plus_code);
+        const decoded = (new OpenLocationCode() as any).decode(activeOrder.addresses.plus_code);
         setViewState({
           latitude: decoded.latitudeCenter,
           longitude: decoded.longitudeCenter,
@@ -433,7 +436,7 @@ const Homepage = () => {
       }
       setIsCheckingAvailability(true);
       try {
-        const { data, error } = await supabase.rpc('check_service_availability', {
+        const { data, error } = await (supabase as any).rpc('check_service_availability', {
           p_lat: Number(savedAddress.latitude) || 0,
           p_lng: Number(savedAddress.longitude) || 0,
         });

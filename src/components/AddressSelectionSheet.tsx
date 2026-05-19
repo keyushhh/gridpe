@@ -1,8 +1,8 @@
 import { ASSETS } from '@/constants/assets';
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
-import { X, Search, Plus, MapPin, MessageSquareMore } from 'lucide-react';
+import { X, Search, Plus, MapPin, MessageSquareMore, Trash2 } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Geolocation } from '@capacitor/geolocation';
 import { OpenLocationCode } from 'open-location-code';
@@ -10,6 +10,7 @@ import { fetchAddresses, deleteAddress } from '@/lib/addresses';
 import { Address, SavedAddress } from '@/types';
 import { GeocodeResult, reverseGeocode, forwardGeocode } from '@/utils/geoUtils';
 import { supabase } from '@/lib/supabase';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 // Assets
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -67,6 +68,9 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       fetchCurrentLocationName();
     }
   }, [isOpen]);
+  // Prevent background scroll bleed
+  useBodyScrollLock(isOpen);
+
   // Load addresses
   useEffect(() => {
     const loadAddresses = async () => {
@@ -152,9 +156,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       }
       const position = await Geolocation.getCurrentPosition();
       const { latitude, longitude } = position.coords;
-      // Generate full Plus Code
-      const olc = new OpenLocationCode();
-      const fullCode = olc.encode(latitude, longitude);
+      const fullCode = OpenLocationCode.encode(latitude, longitude);
       // Reverse Geocode to get area name
       const result = await reverseGeocode(latitude, longitude);
       if (result) {
@@ -277,12 +279,12 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   };
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center pointer-events-none">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="fixed inset-0 z-10 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={onClose} />
       {/* Sheet */}
       <div
-        className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'}`}
+        className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} pointer-events-auto`}
         style={{
           boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.5)',
           paddingBottom: 'env(safe-area-inset-bottom)',
@@ -349,8 +351,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         </div>
         {/* Scrollable Content */}
         <div
-          className="flex-1 overflow-y-auto px-5 pb-4"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-4"
+          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
         >
           {/* Static Actions Container */}
           <div
