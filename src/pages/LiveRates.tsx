@@ -255,15 +255,11 @@ const LiveRates = () => {
   useEffect(() => {
     const fetchRates = async () => {
       try {
-        // Build the edge-function URL the same way as FxExchange
-        let url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates`;
-        if (currentFrom === 'USD') {
-          url += `?from=USD&to=${currentTo}`;
-        } else if (currentTo === 'USD') {
-          url += `?from=USD&to=${currentFrom}`;
-        } else {
-          url += `?from=USD`;
-        }
+        const params = new URLSearchParams({
+          from: currentFrom,
+          to: currentTo,
+        });
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates?${params.toString()}`;
 
         const response = await fetch(url, {
           headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
@@ -272,11 +268,16 @@ const LiveRates = () => {
         if (response.ok) {
           const data = await response.json();
           if (data.rates) {
-            if (currentFrom === 'USD' && data.rates[currentTo]) {
+            if (currentFrom === currentTo) {
+              setFxRate(1);
+            } else if (typeof data.rates[currentTo] === 'number') {
               setFxRate(data.rates[currentTo]);
-            } else if (currentTo === 'USD' && data.rates[currentFrom]) {
+            } else if (currentTo === 'USD' && typeof data.rates[currentFrom] === 'number') {
               setFxRate(1 / data.rates[currentFrom]);
-            } else if (data.rates[currentTo] && data.rates[currentFrom]) {
+            } else if (
+              typeof data.rates[currentTo] === 'number' &&
+              typeof data.rates[currentFrom] === 'number'
+            ) {
               setFxRate(data.rates[currentTo] / data.rates[currentFrom]);
             } else if (currentTo === 'INR') {
               setFxRate(83.45);

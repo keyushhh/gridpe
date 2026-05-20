@@ -327,32 +327,31 @@ const FxExchange = () => {
         };
         setCurCurrencies(fallbackCurrencies);
         
-        // Fetch Initial Rate from secure Edge Function
-        let url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates`;
-        if (fromCurrency === 'USD') {
-          url += `?from=USD&to=${toCurrency}`;
-        } else if (toCurrency === 'USD') {
-          url += `?from=USD&to=${fromCurrency}`;
-        } else {
-          url += `?from=USD`;
-        }
+        // Fetch Initial Rate from secure Edge Function using the actual pair direction.
+        const params = new URLSearchParams({
+          from: fromCurrency,
+          to: toCurrency,
+        });
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates?${params.toString()}`;
 
-        const response = await fetch(
-          url,
-          {
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-            },
-          }
-        );
+        const response = await fetch(url, {
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           if (data.rates) {
-            if (fromCurrency === 'USD' && data.rates[toCurrency]) {
+            if (fromCurrency === toCurrency) {
+              setFxRate(1);
+            } else if (typeof data.rates[toCurrency] === 'number') {
               setFxRate(data.rates[toCurrency]);
-            } else if (toCurrency === 'USD' && data.rates[fromCurrency]) {
+            } else if (toCurrency === 'USD' && typeof data.rates[fromCurrency] === 'number') {
               setFxRate(1 / data.rates[fromCurrency]);
-            } else if (data.rates[toCurrency] && data.rates[fromCurrency]) {
+            } else if (
+              typeof data.rates[toCurrency] === 'number' &&
+              typeof data.rates[fromCurrency] === 'number'
+            ) {
               setFxRate(data.rates[toCurrency] / data.rates[fromCurrency]);
             } else if (toCurrency === 'INR') {
               setFxRate(83.45); // Fallback for INR

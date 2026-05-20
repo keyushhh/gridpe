@@ -58,12 +58,12 @@ const HelpCategoryPage = () => {
         </header>
         <main className="flex-1 px-5 relative z-10">
           <h2
-            className={`text-[16px] font-bold font-satoshi mb-[14px] uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
+            className={`text-[16px] font-bold font-satoshi mb-[14px] uppercase px-4 ${isDarkMode ? 'text-white' : 'text-black'}`}
           >
             {category.title}
           </h2>
           <div
-            className={`w-full rounded-[13px] p-[10px] overflow-hidden flex flex-col transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-brand-border-light shadow-sm'}`}
+            className={`w-full rounded-[13px] px-4 py-4 overflow-hidden flex flex-col transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-brand-border-light shadow-sm'}`}
           >
             {category.faqs.map((faq, idx) => {
               const isExpanded = expandedId === faq.id;
@@ -71,10 +71,10 @@ const HelpCategoryPage = () => {
                 <div key={faq.id} className="flex flex-col">
                   <button
                     onClick={() => toggleAccordion(faq.id)}
-                    className={`w-full flex items-center justify-between py-[10px] pr-[5px] transition-colors text-left ${isDarkMode ? 'active:bg-white/5' : 'active:bg-brand-bg-light'}`}
+                    className={`w-full flex items-center justify-between px-4 py-3 transition-colors text-left ${isDarkMode ? 'active:bg-white/5' : 'active:bg-brand-bg-light'}`}
                   >
                     <span
-                      className={`text-[14px] font-normal font-satoshi pr-4 ${isDarkMode ? 'text-white' : 'text-black'}`}
+                      className={`text-[14px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
                     >
                       {faq.question}
                     </span>
@@ -89,9 +89,9 @@ const HelpCategoryPage = () => {
                     )}
                   </button>
                   {isExpanded && (
-                    <div className="pb-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="pb-4 animate-in fade-in slide-in-from-top-1 duration-200 px-4">
                       <div
-                        className={`w-[calc(100%+20px)] mx-[-10px] h-[1px] border-t border-dashed mb-4 ${isDarkMode ? 'border-white/20' : 'border-brand-border-light'}`}
+                        className={`w-full h-[1px] border-t border-dashed mb-4 ${isDarkMode ? 'border-white/20' : 'border-brand-border-light'}`}
                       />
                       <p
                         className={`text-[12px] leading-relaxed font-satoshi font-light ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -102,7 +102,7 @@ const HelpCategoryPage = () => {
                   )}
                   {idx < category.faqs.length - 1 && (
                     <div
-                      className={`w-[calc(100%+20px)] mx-[-10px] h-[1px] ${isDarkMode ? 'bg-white/5' : 'bg-brand-border-light'}`}
+                      className={`w-full h-[1px] ${isDarkMode ? 'bg-white/5' : 'bg-brand-border-light'}`}
                     />
                   )}
                 </div>

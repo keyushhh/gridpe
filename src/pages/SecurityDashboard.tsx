@@ -119,33 +119,36 @@ const SecurityDashboard = () => {
       navigate(ROUTES.KYC_STATUS_COMPLETE);
     }
   };
-  const handleBiometricToggle = async () => {
+  const handleBiometricToggle = async (nextState?: boolean) => {
     try {
       await hapticLight();
     } catch (_) {
       /* non-critical */
     }
-    if (isDeviceEnabled) {
+
+    const shouldEnable = typeof nextState === 'boolean' ? nextState : !isDeviceEnabled;
+    if (!shouldEnable) {
       // Disable — require MPIN verification first
       setBiometricAction('disable');
       setShowMpinForBiometric(true);
-    } else {
-      // Enable — check biometric availability, then require MPIN
-      try {
-        const availability = await BiometricAuth.checkBiometry();
-        if (!availability.isAvailable) {
-          const reason =
-            availability.reason || 'Biometric authentication is not available on this device';
-          toast.error(reason);
-          return;
-        }
-        setBiometricAction('enable');
-        setShowMpinForBiometric(true);
-      } catch (error: unknown) {
-        console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
-        const errorMessage = error instanceof Error ? error.message : 'Failed to check biometric availability';
-        toast.error(errorMessage);
+      return;
+    }
+
+    // Enable — check biometric availability, then require MPIN
+    try {
+      const availability = await BiometricAuth.checkBiometry();
+      if (!availability.isAvailable) {
+        const reason =
+          availability.reason || 'Biometric authentication is not available on this device';
+        toast.error(reason);
+        return;
       }
+      setBiometricAction('enable');
+      setShowMpinForBiometric(true);
+    } catch (error: unknown) {
+      console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to check biometric availability';
+      toast.error(errorMessage);
     }
   };
   const onMpinVerifySuccess = async (mpin?: string) => {
