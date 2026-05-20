@@ -2,11 +2,11 @@ import { ASSETS } from '@/constants/assets';
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import Skeleton from 'react-loading-skeleton';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { ChevronDown, Home, Briefcase, Users, MapPin, Eye, EyeOff } from 'lucide-react';
-import { OpenLocationCode } from 'open-location-code';
+import { olc } from '@/utils/olc';
 import { fetchRecentOrders, fetchActiveOrders } from '@/lib/orders';
 import { Order, SavedAddress, Rider } from '@/types';
 import { supabase } from '@/lib/supabase';
@@ -33,7 +33,7 @@ import { isNightTime } from '@/utils/time';
 import NightDeliveryState from '@/components/NightDeliveryState';
 import { motion, AnimatePresence } from 'framer-motion';
 import HomePageSkeleton from '@/components/skeletons/HomePageSkeleton';
-import { Geolocation } from '@capacitor/geolocation';
+import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
 import { reverseGeocode } from '@/utils/geoUtils';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
@@ -129,6 +129,16 @@ const Homepage = () => {
   }, [scheduledDowngrade, walletBalance]);
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
+
+  // Re-open address sheet when returning from AddAddress via back navigation
+  const routeLocation = useLocation();
+  useEffect(() => {
+    if ((routeLocation.state as Record<string, unknown>)?.fromAddressSheet) {
+      setIsAddressSheetOpen(true);
+      // Clear the flag so it doesn't re-trigger on future renders
+      window.history.replaceState({}, '');
+    }
+  }, [routeLocation.state]);
   
   const queryClient = useQueryClient();
 
@@ -361,15 +371,15 @@ const Homepage = () => {
 
   const handleFirstInstallLocationFlow = async () => {
     try {
-      let permission = await Geolocation.checkPermissions();
+      let permission = await checkLocationPermission();
       if (permission.location !== 'granted') {
-        permission = await Geolocation.requestPermissions();
+        permission = await requestLocationPermission();
       }
       
       if (permission.location === 'granted') {
-        const position = await Geolocation.getCurrentPosition();
+        const position = await getCurrentPosition();
         const { latitude, longitude } = position.coords;
-        const fullCode = OpenLocationCode.encode(latitude, longitude);
+        const fullCode = olc.encode(latitude, longitude);
         
         // Reverse Geocode
         const result = await reverseGeocode(latitude, longitude);
@@ -525,10 +535,10 @@ const Homepage = () => {
       if (!savedAddress?.latitude || !savedAddress?.longitude) return;
 
       try {
-        const permission = await Geolocation.checkPermissions();
+        const permission = await checkLocationPermission();
         if (permission.location !== 'granted') return;
 
-        const position = await Geolocation.getCurrentPosition({
+        const position = await getCurrentPosition({
           enableHighAccuracy: false,
           timeout: 5000,
         });
@@ -691,7 +701,7 @@ const Homepage = () => {
   useEffect(() => {
     if (activeOrder?.addresses?.plus_code) {
       try {
-        const decoded = (new OpenLocationCode() as any).decode(activeOrder.addresses.plus_code);
+        const decoded = olc.decode(activeOrder.addresses.plus_code);
         setViewState({
           latitude: decoded.latitudeCenter,
           longitude: decoded.longitudeCenter,

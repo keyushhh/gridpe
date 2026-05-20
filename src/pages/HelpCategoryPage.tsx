@@ -63,7 +63,7 @@ const HelpCategoryPage = () => {
             {category.title}
           </h2>
           <div
-            className={`w-[363px] rounded-[13px] p-[10px] overflow-hidden flex flex-col transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-brand-border-light shadow-sm'}`}
+            className={`w-full rounded-[13px] p-[10px] overflow-hidden flex flex-col transition-colors ${isDarkMode ? 'bg-black/20 backdrop-blur-[25px] border border-white/10' : 'bg-white border border-brand-border-light shadow-sm'}`}
           >
             {category.faqs.map((faq, idx) => {
               const isExpanded = expandedId === faq.id;

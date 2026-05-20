@@ -269,7 +269,8 @@ const FxExchange = () => {
   const [toCurrency, setToCurrency] = useState(initialTo || 'INR');
   const [currencies, setCurCurrencies] = useState<Record<string, string>>({});
   const [fxRate, setFxRate] = useState<number>(87.36);
-  const [isSwapped, setIsSwapped] = useState(false);
+  // NOTE: No isSwapped flag — swap button directly swaps fromCurrency/toCurrency
+  // which triggers the rate-fetch effect automatically.
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
   const [isSelectingFrom, setIsSelectingFrom] = useState(false);
   const [isSelectingTo, setIsSelectingTo] = useState(false);
@@ -397,12 +398,29 @@ const FxExchange = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   const markupPercent = 0.006;
-  const flatFee = 150;
-  const currentFrom = isSwapped ? toCurrency : fromCurrency;
-  const currentTo = isSwapped ? fromCurrency : toCurrency;
+  const FLAT_FEE_INR = 150; // Flat fee is always ₹150
+  const currentFrom = fromCurrency;
+  const currentTo = toCurrency;
+
+  // Core conversion: amount in FROM currency → amount in TO currency
   const convertedAmount = amount * fxRate;
   const markupAmount = convertedAmount * markupPercent;
-  const finalAmount = convertedAmount - markupAmount - flatFee;
+
+  // Convert the flat fee (₹150) into the TO-currency so it can be
+  // subtracted from the converted output consistently.
+  const flatFeeInToCurrency = (() => {
+    if (currentTo === 'INR') return FLAT_FEE_INR;
+    if (currentFrom === 'INR') return FLAT_FEE_INR * fxRate;
+    // Neither side is INR — approximate via the rate (fee is small)
+    // Edge function always returns FROM→TO, so we can't easily get INR rate.
+    // Use a reasonable fallback: ₹150 ≈ $1.75 when USD≈86
+    return FLAT_FEE_INR / 86;
+  })();
+
+  const rawFinalAmount = convertedAmount - markupAmount - flatFeeInToCurrency;
+  // Guard: never show a negative final amount
+  const isBelowMinimum = rawFinalAmount <= 0;
+  const finalAmount = isBelowMinimum ? 0 : rawFinalAmount;
   const hasInsufficientFunds = walletBalance < finalAmount;
   const tierBackgrounds = {
     Starter: ASSETS.FX_WALLET_STARTER,
@@ -525,7 +543,14 @@ const FxExchange = () => {
           {/* Swap Button */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <button
-              onClick={() => setIsSwapped(!isSwapped)}
+              onClick={() => {
+                // Actually swap the currency state — this triggers the rate
+                // fetch effect, which re-fetches and correctly inverts the rate.
+                const prevFrom = fromCurrency;
+                const prevTo = toCurrency;
+                setFromCurrency(prevTo);
+                setToCurrency(prevFrom);
+              }}
               className="active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0"
             >
               <img
@@ -652,7 +677,7 @@ const FxExchange = () => {
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Base Rate</span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   1 {currentFrom} = {currencySymbols[currentTo] || ''}
-                  {fxRate.toFixed(2)}
+                  {fxRate < 0.01 ? fxRate.toFixed(6) : fxRate < 1 ? fxRate.toFixed(4) : fxRate.toFixed(2)}
                 </span>
               </div>
               {/* Amount Entered */}
@@ -694,7 +719,7 @@ const FxExchange = () => {
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Flat Fee</span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   - {currencySymbols[currentTo] || ''}
-                  {flatFee}
+                  {flatFeeInToCurrency < 1 ? flatFeeInToCurrency.toFixed(4) : flatFeeInToCurrency.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -710,11 +735,17 @@ const FxExchange = () => {
               <span
                 className={`text-[13px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
-                {currencySymbols[currentTo] || ''}
-                {finalAmount.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {isBelowMinimum ? (
+                  <span className="text-destructive">Amount too low</span>
+                ) : (
+                  <>
+                    {currencySymbols[currentTo] || ''}
+                    {finalAmount.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </>
+                )}
               </span>
             </div>
           </div>
@@ -754,7 +785,7 @@ const FxExchange = () => {
         </p>
         <button
           className={`w-full h-[48px] bg-primary rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? 'shadow-primary/20 text-white' : 'shadow-primary/30 text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
-          disabled={false}
+          disabled={isBelowMinimum}
           onClick={() => {
             if (hasInsufficientFunds) {
               navigate(ROUTES.WALLET_ADD_MONEY);
@@ -767,7 +798,7 @@ const FxExchange = () => {
                   toCurrency: currentTo,
                   convertedAmount: convertedAmount,
                   markupAmount: markupAmount,
-                  flatFee: flatFee,
+                  flatFee: flatFeeInToCurrency,
                   finalAmount: finalAmount,
                   markupPercent: markupPercent,
                   currencySymbols: currencySymbols,
@@ -783,7 +814,7 @@ const FxExchange = () => {
       <CurrencyModal
         isOpen={isSelectingFrom}
         onClose={() => setIsSelectingFrom(false)}
-        onSelect={code => (isSwapped ? setToCurrency(code) : setFromCurrency(code))}
+        onSelect={code => setFromCurrency(code)}
         current={currentFrom}
         currencies={currencies}
         type="from"
@@ -791,7 +822,7 @@ const FxExchange = () => {
       <CurrencyModal
         isOpen={isSelectingTo}
         onClose={() => setIsSelectingTo(false)}
-        onSelect={code => (isSwapped ? setFromCurrency(code) : setToCurrency(code))}
+        onSelect={code => setToCurrency(code)}
         current={currentTo}
         currencies={currencies}
         type="to"

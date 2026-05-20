@@ -6,7 +6,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticSuccess } from '@/utils/haptics';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { OpenLocationCode } from 'open-location-code';
+import { olc } from '@/utils/olc';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 // Fallback if ASSETS.FAILED_LIGHT doesn't exist
@@ -143,7 +143,7 @@ const FxSuccess = () => {
     const addr = order?.addresses || location.state?.savedAddress;
     if (addr?.plus_code) {
       try {
-        const decoded = OpenLocationCode.decode(addr.plus_code);
+        const decoded = olc.decode(addr.plus_code);
         setViewState({
           latitude: decoded.latitudeCenter,
           longitude: decoded.longitudeCenter,

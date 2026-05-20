@@ -166,12 +166,12 @@ const LiveRates = () => {
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [activeRange, setActiveRange] = useState('1M');
   const [timestamp, setTimestamp] = useState('');
-  const [isSwapped, setIsSwapped] = useState(false);
+  // NOTE: No isSwapped flag — swap button directly swaps currencies
   const [isSelectingFrom, setIsSelectingFrom] = useState(false);
   const [isSelectingTo, setIsSelectingTo] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const currentFrom = isSwapped ? toCurrency : fromCurrency;
-  const currentTo = isSwapped ? fromCurrency : toCurrency;
+  const currentFrom = fromCurrency;
+  const currentTo = toCurrency;
   const isTrendingUp = history.length > 1 ? history[history.length - 1].rate >= history[0].rate : true;
   const chartColor = isTrendingUp ? '#22C55E' : '#EF4444';
   const ranges = ['1D', '5D', '1M', '1Y', '5Y', 'Max'];
@@ -255,31 +255,49 @@ const LiveRates = () => {
   useEffect(() => {
     const fetchRates = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates?from=${currentFrom}&to=${currentTo}`,
-          {
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-            },
-          }
-        );
+        // Build the edge-function URL the same way as FxExchange
+        let url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fx-rates`;
+        if (currentFrom === 'USD') {
+          url += `?from=USD&to=${currentTo}`;
+        } else if (currentTo === 'USD') {
+          url += `?from=USD&to=${currentFrom}`;
+        } else {
+          url += `?from=USD`;
+        }
+
+        const response = await fetch(url, {
+          headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+        });
+
         if (response.ok) {
           const data = await response.json();
-          if (data.rates && data.rates[currentTo]) {
-            setFxRate(data.rates[currentTo]);
-            const now = new Date();
-            const options: Intl.DateTimeFormatOptions = {
-              day: '2-digit',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true,
-              timeZoneName: 'short',
-            };
-            setTimestamp(now.toLocaleDateString('en-GB', options).replace(',', ''));
-          } else if (currentTo === 'INR') {
-            setFxRate(83.45);
+          if (data.rates) {
+            if (currentFrom === 'USD' && data.rates[currentTo]) {
+              setFxRate(data.rates[currentTo]);
+            } else if (currentTo === 'USD' && data.rates[currentFrom]) {
+              setFxRate(1 / data.rates[currentFrom]);
+            } else if (data.rates[currentTo] && data.rates[currentFrom]) {
+              setFxRate(data.rates[currentTo] / data.rates[currentFrom]);
+            } else if (currentTo === 'INR') {
+              setFxRate(83.45);
+            } else if (currentFrom === 'INR') {
+              setFxRate(1 / 83.45);
+            } else {
+              throw new Error('Required rates not found');
+            }
+          } else {
+            throw new Error('Edge function response missing rates');
           }
+          const now = new Date();
+          const options: Intl.DateTimeFormatOptions = {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZoneName: 'short',
+          };
+          setTimestamp(now.toLocaleDateString('en-GB', options).replace(',', ''));
         } else {
           throw new Error('Edge function error');
         }
@@ -287,8 +305,12 @@ const LiveRates = () => {
         fetchHistoricalData(currentFrom, currentTo, activeRange);
       } catch (err) {
         console.error('Error fetching rates:', err);
-        if (currentTo === 'INR') {
+        if (currentFrom === 'INR') {
+          setFxRate(1 / 83.45);
+        } else if (currentTo === 'INR') {
           setFxRate(83.45);
+        } else {
+          setFxRate(1.0);
         }
         setHistory([]);
       }
@@ -419,7 +441,12 @@ const LiveRates = () => {
           {/* Swap Button */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <button
-              onClick={() => setIsSwapped(!isSwapped)}
+              onClick={() => {
+                const prevFrom = fromCurrency;
+                const prevTo = toCurrency;
+                setFromCurrency(prevTo);
+                setToCurrency(prevFrom);
+              }}
               className="active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0"
             >
               <img
@@ -572,7 +599,7 @@ const LiveRates = () => {
                     width={30}
                     dx={0}
                     ticks={getYTickValues()}
-                    tickFormatter={val => val.toFixed(1)}
+                    tickFormatter={val => val < 0.1 ? val.toFixed(4) : val < 1 ? val.toFixed(3) : val.toFixed(1)}
                   />
                   <Tooltip
                     contentStyle={
@@ -663,7 +690,7 @@ const LiveRates = () => {
       <CurrencyModal
         isOpen={isSelectingFrom}
         onClose={() => setIsSelectingFrom(false)}
-        onSelect={code => (isSwapped ? setToCurrency(code) : setFromCurrency(code))}
+        onSelect={code => setFromCurrency(code)}
         current={currentFrom}
         currencies={currencies}
         type="from"
@@ -671,7 +698,7 @@ const LiveRates = () => {
       <CurrencyModal
         isOpen={isSelectingTo}
         onClose={() => setIsSelectingTo(false)}
-        onSelect={code => (isSwapped ? setFromCurrency(code) : setToCurrency(code))}
+        onSelect={code => setToCurrency(code)}
         current={currentTo}
         currencies={currencies}
         type="to"

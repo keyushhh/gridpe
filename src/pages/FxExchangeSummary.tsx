@@ -1017,7 +1017,7 @@ const FxExchangeSummary = () => {
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Base Rate</span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   1 {fromCurrency} = {currencySymbols[toCurrency] || ''}
-                  {fxRate.toFixed(2)}
+                  {fxRate < 0.01 ? fxRate.toFixed(6) : fxRate < 1 ? fxRate.toFixed(4) : fxRate.toFixed(2)}
                 </span>
               </div>
               {/* Amount Entered */}
@@ -1059,7 +1059,7 @@ const FxExchangeSummary = () => {
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Flat Fee</span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
                   - {currencySymbols[toCurrency] || ''}
-                  {flatFee}
+                  {flatFee < 1 ? flatFee.toFixed(4) : flatFee.toFixed(2)}
                 </span>
               </div>
               {/* Delivery & Platform Fee */}

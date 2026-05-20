@@ -27,6 +27,7 @@ const SecurityDashboard = () => {
   const { profile, kycStatus, biometricEnabled, setBiometricEnabled } = useUser();
   const [showMpinSheet, setShowMpinSheet] = useState(false);
   const [showMpinForBiometric, setShowMpinForBiometric] = useState(false);
+  const [biometricAction, setBiometricAction] = useState<'enable' | 'disable'>('enable');
   // Local device-level gate state, initialized from localStorage
   const [isDeviceEnabled, setIsDeviceEnabled] = useState(() => {
     return localStorage.getItem('biometrics_enabled') === 'true';
@@ -125,13 +126,11 @@ const SecurityDashboard = () => {
       /* non-critical */
     }
     if (isDeviceEnabled) {
-      // Disable locally + sync to Supabase
-      localStorage.setItem('biometrics_enabled', 'false');
-      setIsDeviceEnabled(false);
-      await setBiometricEnabled(false);
-      toast.success('Biometric unlock disabled on this device');
+      // Disable — require MPIN verification first
+      setBiometricAction('disable');
+      setShowMpinForBiometric(true);
     } else {
-      // Enable
+      // Enable — check biometric availability, then require MPIN
       try {
         const availability = await BiometricAuth.checkBiometry();
         if (!availability.isAvailable) {
@@ -140,7 +139,7 @@ const SecurityDashboard = () => {
           toast.error(reason);
           return;
         }
-        // Collect MPIN first
+        setBiometricAction('enable');
         setShowMpinForBiometric(true);
       } catch (error: unknown) {
         console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
@@ -151,6 +150,27 @@ const SecurityDashboard = () => {
   };
   const onMpinVerifySuccess = async (mpin?: string) => {
     if (!mpin) return;
+
+    if (biometricAction === 'disable') {
+      // MPIN verified — disable biometrics
+      try {
+        localStorage.setItem('biometrics_enabled', 'false');
+        setIsDeviceEnabled(false);
+        await setBiometricEnabled(false);
+        if (Capacitor.isNativePlatform()) {
+          await SecureStorage.remove('mpin');
+        }
+        toast.success('Biometric unlock disabled on this device');
+      } catch (error: unknown) {
+        console.error('Failed to disable biometrics:', error);
+        toast.error('Failed to disable biometrics. Please try again.');
+      } finally {
+        setShowMpinForBiometric(false);
+      }
+      return;
+    }
+
+    // Enable flow — authenticate biometrics after MPIN
     try {
       // Wrap authenticate() in a timeout so the UI doesn't hang
       // if the native biometric prompt fails to appear on Android

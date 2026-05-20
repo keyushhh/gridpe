@@ -7,7 +7,7 @@ import { ROUTES } from '@/routes';
 import { Search } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { OpenLocationCode } from 'open-location-code';
+import { olc } from '@/utils/olc';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ import {
   forwardGeocode,
   AddressComponents,
 } from '@/utils/geoUtils';
-import { Geolocation } from '@capacitor/geolocation';
+import { getCurrentPosition, checkLocationPermission, requestLocationPermission } from '@/utils/geolocation';
 // Assets
 import { useWebScroll } from '@/hooks/useWebScroll';
 const AddAddress = () => {
@@ -72,9 +72,9 @@ const AddAddress = () => {
         // Attempt to recover nearest (handles short codes using context)
         const refLat = userLocation ? userLocation.lat : viewState.latitude;
         const refLng = userLocation ? userLocation.lng : viewState.longitude;
-        const recoveredCode = OpenLocationCode.recoverNearest(potentialCode, refLat, refLng);
-        if (OpenLocationCode.isValid(recoveredCode)) {
-          const codeArea = OpenLocationCode.decode(recoveredCode);
+        const recoveredCode = olc.recoverNearest(potentialCode, refLat, refLng);
+        if (olc.isValid(recoveredCode)) {
+          const codeArea = olc.decode(recoveredCode);
           const lat = codeArea.latitudeCenter;
           const lng = codeArea.longitudeCenter;
           // IMMEDIATELY Call reverseGeocode(lat, lng) to get the building name
@@ -115,7 +115,7 @@ const AddAddress = () => {
   ) => {
     setIsLoading(true);
     try {
-      const fullCode = OpenLocationCode.encode(lat, lng);
+      const fullCode = olc.encode(lat, lng);
       setPlusCode(fullCode);
       // Use Nominatim Reverse Geocode
       const geocodeResult = await reverseGeocode(lat, lng);
@@ -170,23 +170,23 @@ const AddAddress = () => {
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedFetchAddress = useCallback(debounce(fetchAddress, 1000), [userLocation]);
-  const checkLocationPermission = async () => {
-    const status = await Geolocation.checkPermissions();
+  const checkPermission = async () => {
+    const status = await checkLocationPermission();
     if (status.location === 'prompt' || status.location === 'prompt-with-rationale') {
-      const permission = await Geolocation.requestPermissions();
+      const permission = await requestLocationPermission();
       return permission.location === 'granted';
     }
     return status.location === 'granted';
   };
   const fetchUserLocation = useCallback(async () => {
     try {
-      const hasPermission = await checkLocationPermission();
+      const hasPermission = await checkPermission();
       if (!hasPermission) {
         return;
       }
       // Permission granted, fetch location
-      console.log('Permission granted. Requesting fresh user location via Capacitor...');
-      const position = await Geolocation.getCurrentPosition({
+      console.log('Permission granted. Requesting fresh user location...');
+      const position = await getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
@@ -212,14 +212,14 @@ const AddAddress = () => {
       // Fetch address for this new GPS location
       fetchAddress(latitude, longitude, { lat: latitude, lng: longitude });
     } catch (error) {
-      console.error('Error getting location via Capacitor:', error);
+      console.error('Error getting location:', error);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const handleSnapToGrid = () => {
     try {
-      const code = OpenLocationCode.encode(viewState.latitude, viewState.longitude);
-      const decoded = OpenLocationCode.decode(code);
+      const code = olc.encode(viewState.latitude, viewState.longitude);
+      const decoded = olc.decode(code);
       const centerLat = decoded.latitudeCenter;
       const centerLng = decoded.longitudeCenter;
       setViewState(prev => ({

@@ -9,7 +9,7 @@ import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Bike } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { OpenLocationCode } from 'open-location-code';
+import { olc } from '@/utils/olc';
 import { Order } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { setBadge } from '@/utils/badge';
@@ -57,7 +57,7 @@ const OrderTracking = () => {
     const activeOrder = order;
     if (activeOrder?.addresses?.plus_code) {
       try {
-        const decoded = OpenLocationCode.decode(activeOrder.addresses.plus_code);
+        const decoded = olc.decode(activeOrder.addresses.plus_code);
         const newLat = decoded.latitudeCenter;
         const newLng = decoded.longitudeCenter;
         setViewState(prev => ({

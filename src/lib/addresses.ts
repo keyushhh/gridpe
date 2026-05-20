@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { OpenLocationCode } from 'open-location-code';
+import { olc } from '@/utils/olc';
 import { Address } from '@/types';
 export type { Address };
 
@@ -15,11 +15,11 @@ export const ensureGlobalPlusCode = (
   if (!plusCode) return null;
 
   try {
-    if (OpenLocationCode.isFull(plusCode)) return plusCode.toUpperCase();
+    if (olc.isFull(plusCode)) return plusCode.toUpperCase();
 
     // If it's a short code, expand it
-    if (OpenLocationCode.isShort(plusCode)) {
-      return OpenLocationCode.recoverNearest(plusCode, lat, lng).toUpperCase();
+    if (olc.isShort(plusCode)) {
+      return olc.recoverNearest(plusCode, lat, lng).toUpperCase();
     }
   } catch (err) {
     console.error('Plus Code validation/expansion failed:', err);

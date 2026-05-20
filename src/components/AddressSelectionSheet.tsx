@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { X, Search, Plus, MapPin, MessageSquareMore, Trash2 } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { Geolocation } from '@capacitor/geolocation';
-import { OpenLocationCode } from 'open-location-code';
+import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
+import { olc } from '@/utils/olc';
 import { fetchAddresses, deleteAddress } from '@/lib/addresses';
 import { Address, SavedAddress } from '@/types';
 import { GeocodeResult, reverseGeocode, forwardGeocode } from '@/utils/geoUtils';
@@ -57,13 +57,13 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   useEffect(() => {
     const fetchCurrentLocationName = async () => {
       try {
-        const permission = await Geolocation.checkPermissions();
+        const permission = await checkLocationPermission();
         if (permission.location !== 'granted') {
           // Attempt request? Or just silent fail?
           // For now, silent fail or leave as placeholder
           return;
         }
-        const position = await Geolocation.getCurrentPosition();
+        const position = await getCurrentPosition();
         const { latitude, longitude } = position.coords;
         const result = await reverseGeocode(latitude, longitude);
         if (result) {
@@ -190,13 +190,13 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   };
   const handleUseCurrentLocation = async () => {
     try {
-      const permission = await Geolocation.checkPermissions();
+      const permission = await checkLocationPermission();
       if (permission.location !== 'granted') {
-        await Geolocation.requestPermissions();
+        await requestLocationPermission();
       }
-      const position = await Geolocation.getCurrentPosition();
+      const position = await getCurrentPosition();
       const { latitude, longitude } = position.coords;
-      const fullCode = OpenLocationCode.encode(latitude, longitude);
+      const fullCode = olc.encode(latitude, longitude);
       // Reverse Geocode to get area name
       const result = await reverseGeocode(latitude, longitude);
       if (result) {
@@ -424,7 +424,14 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             {/* 1. Add New Address */}
             <div
               className={`flex items-center justify-between cursor-pointer px-3 pt-3 pb-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-              onClick={() => navigate(ROUTES.ADD_ADDRESS)}
+              onClick={() => {
+                // Stamp the current (Homepage) history entry with a flag so
+                // pressing back from AddAddress will re-open this sheet.
+                // Using navigate(replace) keeps React Router's internal state intact.
+                navigate('.', { replace: true, state: { fromAddressSheet: true } });
+                // Now push the AddAddress route
+                setTimeout(() => navigate(ROUTES.ADD_ADDRESS), 0);
+              }}
             >
               <div className="flex items-center gap-3">
                 <Plus size={20} color="#5260FE" strokeWidth={2.5} />
