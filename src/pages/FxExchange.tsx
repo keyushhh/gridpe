@@ -79,11 +79,7 @@ const CurrencyModal = ({
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder={
-                type === 'from'
-                  ? 'Which currency do you want to convert?'
-                  : 'Which currency do you want to convert to?'
-              }
+              placeholder="Search currency..."
               className={`w-full h-full bg-transparent pl-12 pr-4 text-[14px] ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/30'} outline-none transition-colors`}
             />
           </div>
