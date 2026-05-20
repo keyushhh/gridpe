@@ -250,16 +250,10 @@ const MyCards = () => {
                   No saved cards
                 </h2>
                 <p
-                  className={`text-[14px] leading-relaxed mb-10 ${isDarkMode ? 'text-white/60' : 'text-black/40'}`}
+                  className={`text-[14px] leading-relaxed ${isDarkMode ? 'text-white/60' : 'text-black/40'}`}
                 >
                   Add a card to your account for faster payments.
                 </p>
-                <button
-                  onClick={() => navigate(ROUTES.CARDS_ADD)}
-                  className={`w-full max-w-[240px] h-[48px] rounded-full font-medium transition-all active:scale-95 shadow-lg ${isDarkMode ? 'bg-white text-black shadow-white/5' : 'bg-brand-primary text-white shadow-brand-primary/20'}`}
-                >
-                  Add a Card
-                </button>
               </div>
             ) : (
               <div

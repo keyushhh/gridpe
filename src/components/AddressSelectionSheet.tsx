@@ -342,17 +342,17 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       />
       {/* Sheet */}
       <div
-        className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'} pointer-events-auto z-20`}
+        className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col pointer-events-auto z-20`}
         style={{
           boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.5)',
           paddingBottom: 'env(safe-area-inset-bottom)',
           willChange: 'transform',
           transform: 'translateZ(0)',
-          ...(isAndroid ? {
-            backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.85)' : 'rgba(255, 255, 255, 0.98)',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-          } : {})
+          /* Fully opaque solid backgrounds — Android WebView doesn't support
+             backdrop-filter and renders rgba/opacity as semi-transparent. */
+          backgroundColor: isDarkMode ? '#0a0a0a' : '#ffffff',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
         }}
       >
         {/* Drag Handle */}

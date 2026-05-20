@@ -36,6 +36,7 @@ import HomePageSkeleton from '@/components/skeletons/HomePageSkeleton';
 import { Geolocation } from '@capacitor/geolocation';
 import { reverseGeocode } from '@/utils/geoUtils';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -419,6 +420,7 @@ const Homepage = () => {
             setSavedAddress(addressToSave);
             try { setActiveAddress?.(addressToSave); } catch {}
             localStorage.setItem('gridpe_selected_address', JSON.stringify(addressToSave));
+            Preferences.set({ key: 'gridpe_selected_address', value: JSON.stringify(addressToSave) }).catch(() => {});
             
             // Prompt user to confirm or add a saved address
             setIsAddressSheetOpen(true);
@@ -451,6 +453,22 @@ const Homepage = () => {
   // Initial Load (LocalStorage / Context Sync)
   useEffect(() => {
     const loadAddress = async () => {
+      // Prefer Capacitor Preferences (reliable on Android) over localStorage
+      try {
+        const { value } = await Preferences.get({ key: 'gridpe_selected_address' });
+        if (value) {
+          const parsed = JSON.parse(value);
+          if (parsed) {
+            setSavedAddress(parsed);
+            try { setActiveAddress?.(parsed); } catch {}
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to read address from Preferences', e);
+      }
+
+      // Fallback: try localStorage (for web or if Preferences is empty)
       const selectedStr = localStorage.getItem('gridpe_selected_address');
       if (selectedStr) {
         try {
@@ -458,6 +476,8 @@ const Homepage = () => {
           if (parsed) {
             setSavedAddress(parsed);
             try { setActiveAddress?.(parsed); } catch {}
+            // Migrate to Preferences
+            Preferences.set({ key: 'gridpe_selected_address', value: selectedStr }).catch(() => {});
             return;
           }
         } catch (e) {
@@ -492,45 +512,45 @@ const Homepage = () => {
   }, []);
 
   // Foreground location change detection listener
+  // Debounced: waits 10s after foreground before checking, to avoid flash on
+  // quick navigation returns (Add Money → Home, FX → Home, etc.).
+  // Only shows the banner if the user is in a different service zone or is
+  // now unserviceable. Simple distance changes silently update the header address.
   useEffect(() => {
-    const handleForeground = async () => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+
+    const runLocationCheck = async () => {
+      if (cancelled) return;
       if (!savedAddress?.latitude || !savedAddress?.longitude) return;
-      
+
       try {
         const permission = await Geolocation.checkPermissions();
         if (permission.location !== 'granted') return;
-        
+
         const position = await Geolocation.getCurrentPosition({
           enableHighAccuracy: false,
           timeout: 5000,
         });
-        
+
+        if (cancelled) return;
+
         const { latitude, longitude } = position.coords;
-        
-        // Calculate distance in km
-        const lat1 = Number(savedAddress.latitude);
-        const lon1 = Number(savedAddress.longitude);
-        const lat2 = latitude;
-        const lon2 = longitude;
-        
-        const R = 6371; // km
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a =
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-          Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c;
-        
-        // Check new zone
+
+        // Check the service zone at the new position
         const { data: newZoneId } = await supabase.rpc('check_service_availability', {
           p_lat: Number(latitude) || 0,
           p_lng: Number(longitude) || 0,
         });
-        
-        // If moved significantly (> 5km or different zone ID)
-        if (distance > 5 || newZoneId !== currentZoneId) {
+
+        if (cancelled) return;
+
+        // Only show the banner if the zone has actually changed (different
+        // serviceable zone, or moved from serviceable → unserviceable).
+        const zoneChanged = newZoneId !== currentZoneId;
+        const nowUnserviceable = !newZoneId && !!currentZoneId;
+
+        if (zoneChanged || nowUnserviceable) {
           setShowLocationChangedBanner(true);
         } else {
           setShowLocationChangedBanner(false);
@@ -540,10 +560,22 @@ const Homepage = () => {
       }
     };
 
+    const scheduleCheck = () => {
+      // Clear any pending check so we don't stack timers
+      if (debounceTimer) clearTimeout(debounceTimer);
+      // Wait 10 seconds before comparing — avoids flash on quick nav returns
+      debounceTimer = setTimeout(() => {
+        runLocationCheck();
+      }, 10_000);
+    };
+
     // Web visibility change
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        handleForeground();
+        scheduleCheck();
+      } else {
+        // User left — cancel any pending check
+        if (debounceTimer) clearTimeout(debounceTimer);
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
@@ -554,7 +586,9 @@ const Homepage = () => {
       import('@capacitor/app').then(({ App }) => {
         App.addListener('appStateChange', (state) => {
           if (state.isActive) {
-            handleForeground();
+            scheduleCheck();
+          } else {
+            if (debounceTimer) clearTimeout(debounceTimer);
           }
         }).then(listener => {
           nativeAppListener = listener;
@@ -562,10 +596,12 @@ const Homepage = () => {
       });
     }
 
-    // Run on mount
-    handleForeground();
+    // Schedule initial check on mount (with the same 10s debounce)
+    scheduleCheck();
 
     return () => {
+      cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       if (nativeAppListener) {
         nativeAppListener.remove();

@@ -5,9 +5,41 @@ import { calculateBalance, calculateHeldBalance } from '@/lib/wallet';
 import { WalletTier, WalletTransaction, Profile as UserProfile, Tables } from '@/types';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { purgeOtherUsersStorage, readStorage, writeStorage, removeStorage } from '@/utils/storage';
 import { SavedAddress } from '@/types';
+
+/* ── Capacitor Preferences helpers for address persistence ──
+ * localStorage is unreliable on Capacitor Android (WebView can purge it).
+ * Preferences uses native SharedPreferences / NSUserDefaults instead. */
+const ADDR_PREF_KEY = 'gridpe_selected_address';
+
+async function getAddressPref(): Promise<SavedAddress | null> {
+  try {
+    const { value } = await Preferences.get({ key: ADDR_PREF_KEY });
+    if (value) return JSON.parse(value) as SavedAddress;
+  } catch (e) {
+    console.warn('Failed to read address from Preferences', e);
+  }
+  return null;
+}
+
+async function setAddressPref(addr: SavedAddress): Promise<void> {
+  try {
+    await Preferences.set({ key: ADDR_PREF_KEY, value: JSON.stringify(addr) });
+  } catch (e) {
+    console.warn('Failed to write address to Preferences', e);
+  }
+}
+
+async function removeAddressPref(): Promise<void> {
+  try {
+    await Preferences.remove({ key: ADDR_PREF_KEY });
+  } catch (e) {
+    console.warn('Failed to remove address from Preferences', e);
+  }
+}
 
 export type { WalletTier };
 
@@ -149,15 +181,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const stored = localStorage.getItem(USER_STORAGE_KEY);
         const parsedLocalStorage = stored ? JSON.parse(stored) : {};
 
-        const savedAddrStr = localStorage.getItem('gridpe_selected_address');
-        let savedAddr = null;
-        if (savedAddrStr) {
-          try {
-            savedAddr = JSON.parse(savedAddrStr);
-          } catch (e) {
-            console.warn('Failed to parse gridpe_selected_address on load', e);
-          }
-        }
+        // Read persisted address from Capacitor Preferences (reliable on Android)
+        const savedAddr = await getAddressPref();
 
         // Immediately unblock the UI with optimistic non-sensitive data
         setState(prev => ({
@@ -538,13 +563,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const userId = state.profile?.id;
       if (!userId) return;
       try {
-        const savedAddrStr = localStorage.getItem('gridpe_selected_address');
-        if (savedAddrStr) {
-          const savedAddr = JSON.parse(savedAddrStr);
-          if (savedAddr) {
-            setState(prev => ({ ...prev, activeAddress: savedAddr, activeAddressId: savedAddr.id ?? null }));
-            return;
-          }
+        const savedAddr = await getAddressPref();
+        if (savedAddr) {
+          setState(prev => ({ ...prev, activeAddress: savedAddr, activeAddressId: savedAddr.id ?? null }));
+          return;
         }
         const addr = readStorage<SavedAddress>('user_address', userId);
         const lastId = readStorage<string>('last_selected_address_id', userId);
@@ -758,9 +780,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (!userId) {
         // Fallback: update in-memory only
         if (addr) {
-          localStorage.setItem('gridpe_selected_address', JSON.stringify(addr));
+          await setAddressPref(addr);
         } else {
-          localStorage.removeItem('gridpe_selected_address');
+          await removeAddressPref();
         }
         setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
         return;
@@ -770,7 +792,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         // Clear stored values
         try { removeStorage('user_address', userId); } catch (e) {}
         try { removeStorage('last_selected_address_id', userId); } catch (e) {}
-        localStorage.removeItem('gridpe_selected_address');
+        await removeAddressPref();
         setState(prev => ({ ...prev, activeAddress: null, activeAddressId: null }));
         return;
       }
@@ -781,15 +803,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         try { writeStorage('last_selected_address_id', addr.id, userId); } catch (e) {}
       }
 
-      localStorage.setItem('gridpe_selected_address', JSON.stringify(addr));
+      await setAddressPref(addr);
 
       setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? null }));
     } catch (err) {
       console.error('Failed to set active address:', err);
       if (addr) {
-        localStorage.setItem('gridpe_selected_address', JSON.stringify(addr));
+        setAddressPref(addr).catch(() => {});
       } else {
-        localStorage.removeItem('gridpe_selected_address');
+        removeAddressPref().catch(() => {});
       }
       setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
     }
