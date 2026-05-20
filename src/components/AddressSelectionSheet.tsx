@@ -431,7 +431,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             {/* 1. Add New Address */}
             <div
               className={`flex items-center justify-between cursor-pointer px-3 pt-3 pb-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-              onClick={() => navigate(ROUTES.ADD_ADDRESS)}
+              onClick={handleOpenAddAddress}
             >
               <div className="flex items-center gap-3">
                 <Plus size={20} color="#5260FE" strokeWidth={2.5} />

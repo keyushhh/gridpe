@@ -195,17 +195,17 @@ const FxExchange = () => {
   const { walletTier, walletLimit, walletBalance } = useUser();
   const isWalletLimitReached = walletBalance >= walletLimit;
   // Initial State from navigation
-  const { amount: initialAmount, from: initialFrom, to: initialTo } = location.state || {};
+  const { amount: initialAmount, from: initialFrom } = location.state || {};
+  const initialFromCurrency = initialFrom === 'INR' ? 'USD' : initialFrom || 'USD';
   const [amount, setAmount] = useState<number>(initialAmount || 1);
-  const [fromCurrency, setFromCurrency] = useState(initialFrom || 'USD');
-  const [toCurrency, setToCurrency] = useState(initialTo || 'INR');
+  const [fromCurrency, setFromCurrency] = useState(initialFromCurrency);
+  const [toCurrency, setToCurrency] = useState('INR');
   const [currencies, setCurCurrencies] = useState<Record<string, string>>({});
   const [fxRate, setFxRate] = useState<number>(87.36);
   // NOTE: No isSwapped flag — swap button directly swaps fromCurrency/toCurrency
   // which triggers the rate-fetch effect automatically.
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
   const [isSelectingFrom, setIsSelectingFrom] = useState(false);
-  const [isSelectingTo, setIsSelectingTo] = useState(false);
   const [timer, setTimer] = useState(600); // 10 minutes in seconds
   const isDarkMode = useIsDarkMode();
 
@@ -219,15 +219,6 @@ const FxExchange = () => {
       return;
     }
     setFromCurrency(code);
-  };
-
-  const handleSelectToCurrency = (code: string) => {
-    if (code === currentFrom) {
-      setToCurrency(code);
-      setFromCurrency(currentTo);
-      return;
-    }
-    setToCurrency(code);
   };
 
   const computeCrossRate = (data: any, from: string, to: string): number | null => {
@@ -372,6 +363,9 @@ const FxExchange = () => {
   const FLAT_FEE_INR = 150; // Flat fee is always ₹150
   const currentFrom = fromCurrency;
   const currentTo = toCurrency;
+  const fromCurrencies = Object.fromEntries(
+    Object.entries(currencies).filter(([code]) => code !== 'INR')
+  );
 
   // Core conversion: amount in FROM currency → amount in TO currency
   const convertedAmount = amount * fxRate;
@@ -509,25 +503,6 @@ const FxExchange = () => {
               />
             </div>
           </div>
-          {/* Swap Button */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-            <button
-              onClick={() => {
-                const prevFrom = fromCurrency;
-                const prevTo = toCurrency;
-                setFromCurrency(prevTo);
-                setToCurrency(prevFrom);
-              }}
-              disabled={isSameCurrency}
-              className={`active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0 ${isSameCurrency ? 'opacity-40 cursor-not-allowed' : ''}`}
-            >
-              <img
-                src={isDarkMode ? ASSETS.ARROW_DOWN_UP : ASSETS.ARROW_DOWN_UP_LIGHT}
-                alt="Swap"
-                className="w-10 h-10 border-none outline-none shadow-none"
-              />
-            </button>
-          </div>
           {/* To Card */}
           <div
             className={`${isDarkMode ? 'border-solid' : 'bg-background border-border shadow-sm'} rounded-[20px] p-6 border relative min-h-[120px] flex flex-col justify-center backdrop-blur-[25px]`}
@@ -543,13 +518,12 @@ const FxExchange = () => {
               >
                 To
               </span>
-              <button
-                onClick={() => setIsSelectingTo(true)}
-                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-between pl-[6px] pr-3 rounded-full border active:scale-95 transition-transform overflow-hidden ${
+              <div
+                className={`absolute top-[15px] right-[15px] w-[86px] h-[28px] flex items-center justify-center rounded-full border ${
                   isDarkMode
                     ? 'text-white border-solid'
                     : 'text-black bg-black/5 border-black/10'
-                }`}
+                } cursor-default`}
                 style={isDarkMode ? {
                   backgroundColor: 'rgba(25, 25, 25, 0.31)',
                   borderColor: 'rgba(255, 255, 255, 0.12)',
@@ -570,10 +544,7 @@ const FxExchange = () => {
                     {currentTo}
                   </span>
                 </div>
-                <ChevronDown
-                  className={`w-3 h-3 ${isDarkMode ? 'text-white' : 'text-black'}`}
-                />
-              </button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <span
@@ -781,16 +752,8 @@ const FxExchange = () => {
         onClose={() => setIsSelectingFrom(false)}
         onSelect={handleSelectFromCurrency}
         current={currentFrom}
-        currencies={currencies}
+        currencies={fromCurrencies}
         type="from"
-      />
-      <CurrencyModal
-        isOpen={isSelectingTo}
-        onClose={() => setIsSelectingTo(false)}
-        onSelect={handleSelectToCurrency}
-        current={currentTo}
-        currencies={currencies}
-        type="to"
       />
       <PassportUpgradeModal isOpen={kycStatus === 'verified' && !isPassportVerified} />
     </div>
