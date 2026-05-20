@@ -6,73 +6,11 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { formatINR } from '@/utils/format';
+import { formatINR, formatFxAmount } from '@/utils/format';
+import { CURRENCY_NAMES, CURRENCY_MAP, currencySymbols } from '@/constants/currencies';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-const currencyToCountry: Record<string, string> = {
-  AUD: 'au',
-  BRL: 'br',
-  CAD: 'ca',
-  CHF: 'ch',
-  CNY: 'cn',
-  CZK: 'cz',
-  DKK: 'dk',
-  EUR: 'eu',
-  GBP: 'gb',
-  HKD: 'hk',
-  HUF: 'hu',
-  IDR: 'id',
-  ILS: 'il',
-  INR: 'in',
-  ISK: 'is',
-  JPY: 'jp',
-  KRW: 'kr',
-  MXN: 'mx',
-  MYR: 'my',
-  NOK: 'no',
-  NZD: 'nz',
-  PHP: 'ph',
-  PLN: 'pl',
-  RON: 'ro',
-  SEK: 'se',
-  SGD: 'sg',
-  THB: 'th',
-  TRY: 'tr',
-  USD: 'us',
-  ZAR: 'za',
-};
-const currencySymbols: Record<string, string> = {
-  AUD: '$',
-  BRL: 'R$',
-  CAD: '$',
-  CHF: 'Fr',
-  CNY: '¥',
-  CZK: 'Kč',
-  DKK: 'kr',
-  EUR: '€',
-  GBP: '£',
-  HKD: '$',
-  HUF: 'Ft',
-  IDR: 'Rp',
-  ILS: '₪',
-  INR: '₹',
-  ISK: 'kr',
-  JPY: '¥',
-  KRW: '₩',
-  MXN: '$',
-  MYR: 'RM',
-  NOK: 'kr',
-  NZD: '$',
-  PHP: '₱',
-  PLN: 'zł',
-  RON: 'lei',
-  SEK: 'kr',
-  SGD: '$',
-  THB: '฿',
-  TRY: '₺',
-  USD: '$',
-  ZAR: 'R',
-};
+
 interface CurrencyModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -175,11 +113,9 @@ const CurrencyModal = ({
                   <div
                     className={`w-8 h-8 rounded-full overflow-hidden ring-1 ${isDarkMode ? 'ring-white/20' : 'ring-black/5'}`}
                   >
-                    <img
-                      src={`https://flagcdn.com/w160/${currencyToCountry[code] || 'un'}.png`}
-                      alt={code}
-                      className="w-full h-full object-cover scale-150"
-                    />
+                    <span className="flex items-center justify-center w-full h-full text-[18px]">
+                      {CURRENCY_MAP[code]?.flag || '🏳'}
+                    </span>
                   </div>
                   <div className="text-left">
                     <div
@@ -197,7 +133,7 @@ const CurrencyModal = ({
                 <div
                   className={`text-[16px] font-bold ${isDarkMode ? 'text-white/80' : 'text-black/80'} pr-2`}
                 >
-                  {currencySymbols[code] || ''}
+                  {CURRENCY_MAP[code]?.symbol || currencySymbols[code] || ''}
                 </div>
               </button>
             ))}
@@ -278,6 +214,55 @@ const FxExchange = () => {
   const isDarkMode = useIsDarkMode();
 
   const [inputValue, setInputValue] = useState<string>((initialAmount || 1).toString());
+  const isSameCurrency = fromCurrency === toCurrency;
+
+  const handleSelectFromCurrency = (code: string) => {
+    if (code === currentTo) {
+      setFromCurrency(code);
+      setToCurrency(currentFrom);
+      return;
+    }
+    setFromCurrency(code);
+  };
+
+  const handleSelectToCurrency = (code: string) => {
+    if (code === currentFrom) {
+      setToCurrency(code);
+      setFromCurrency(currentTo);
+      return;
+    }
+    setToCurrency(code);
+  };
+
+  const computeCrossRate = (data: any, from: string, to: string): number | null => {
+    if (from === to) return 1;
+    const rates = data.rates ?? {};
+    const base = (data.base as string) || 'USD';
+    const fromRate = rates[from];
+    const toRate = rates[to];
+
+    if (typeof toRate === 'number' && typeof fromRate === 'number') {
+      return toRate / fromRate;
+    }
+    if (base === from && typeof toRate === 'number') {
+      return toRate;
+    }
+    if (base === to && typeof fromRate === 'number') {
+      return 1 / fromRate;
+    }
+    if (base === 'USD') {
+      if (typeof toRate === 'number' && typeof fromRate === 'number') {
+        return toRate / fromRate;
+      }
+      if (from === 'USD' && typeof toRate === 'number') {
+        return toRate;
+      }
+      if (to === 'USD' && typeof fromRate === 'number') {
+        return 1 / fromRate;
+      }
+    }
+    return null;
+  };
 
   const handleAmountChange = (val: string) => {
     // Only allow numbers and one decimal point
@@ -318,16 +303,13 @@ const FxExchange = () => {
     const init = async () => {
       try {
         // Fetch Currencies - Use static list as requested to avoid Frankfurter CORS
-        const fallbackCurrencies = {
-          USD: 'United States Dollar',
-          INR: 'Indian Rupee',
-          EUR: 'Euro',
-          GBP: 'British Pound',
-          AED: 'United Arab Emirates Dirham',
-        };
-        setCurCurrencies(fallbackCurrencies);
-        
-        // Fetch Initial Rate from secure Edge Function using the actual pair direction.
+        setCurCurrencies(CURRENCY_NAMES);
+
+        if (isSameCurrency) {
+          setFxRate(1);
+          return;
+        }
+
         const params = new URLSearchParams({
           from: fromCurrency,
           to: toCurrency,
@@ -339,37 +321,31 @@ const FxExchange = () => {
             apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
           },
         });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.rates) {
-            if (fromCurrency === toCurrency) {
-              setFxRate(1);
-            } else if (typeof data.rates[toCurrency] === 'number') {
-              setFxRate(data.rates[toCurrency]);
-            } else if (toCurrency === 'USD' && typeof data.rates[fromCurrency] === 'number') {
-              setFxRate(1 / data.rates[fromCurrency]);
-            } else if (
-              typeof data.rates[toCurrency] === 'number' &&
-              typeof data.rates[fromCurrency] === 'number'
-            ) {
-              setFxRate(data.rates[toCurrency] / data.rates[fromCurrency]);
-            } else if (toCurrency === 'INR') {
-              setFxRate(83.45); // Fallback for INR
-            } else if (fromCurrency === 'INR') {
-              setFxRate(1 / 83.45);
-            } else {
-              throw new Error('Required rates not found in response');
-            }
-          } else {
-            throw new Error('Edge function response missing rates object');
-          }
-        } else {
+        if (!response.ok) {
           throw new Error(`Edge function returned error status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (fromCurrency === 'AED' || toCurrency === 'AED') {
+          console.debug('FX AED raw response:', { url, data });
+        }
+
+        if (!data.rates) {
+          throw new Error('Edge function response missing rates object');
+        }
+
+        const crossRate = computeCrossRate(data, fromCurrency, toCurrency);
+        if (crossRate !== null) {
+          setFxRate(crossRate);
+        } else {
+          throw new Error(`Required rates not found in response: ${JSON.stringify(data)}`);
         }
       } catch (error) {
         console.error('Failed to fetch FX data:', error);
         toast.error('Failed to fetch live exchange rates. Using fallback rates.');
-        if (fromCurrency === 'USD' && toCurrency === 'INR') {
+        if (isSameCurrency) {
+          setFxRate(1);
+        } else if (fromCurrency === 'USD' && toCurrency === 'INR') {
           setFxRate(83.45);
         } else if (fromCurrency === 'INR' && toCurrency === 'USD') {
           setFxRate(1 / 83.45);
@@ -383,7 +359,7 @@ const FxExchange = () => {
       }
     };
     init();
-  }, [fromCurrency, toCurrency]);
+  }, [fromCurrency, toCurrency, isSameCurrency]);
   // Timer logic
   useEffect(() => {
     const interval = setInterval(() => {
@@ -506,11 +482,9 @@ const FxExchange = () => {
                   <div
                     className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'} ring-inset flex-shrink-0`}
                   >
-                    <img
-                      src={`https://flagcdn.com/w160/${currencyToCountry[currentFrom] || 'un'}.png`}
-                      alt={currentFrom}
-                      className="w-full h-full object-cover scale-150"
-                    />
+                    <span className="flex items-center justify-center w-full h-full text-[18px]">
+                      {CURRENCY_MAP[currentFrom]?.flag || '🏳'}
+                    </span>
                   </div>
                   <span
                     className={`text-[12px] font-bold font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -527,7 +501,7 @@ const FxExchange = () => {
               <span
                 className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi`}
               >
-                {currencySymbols[currentFrom] || ''}
+                {CURRENCY_MAP[currentFrom]?.symbol || currencySymbols[currentFrom] || ''}
               </span>
               <input
                 type="text"
@@ -543,14 +517,13 @@ const FxExchange = () => {
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <button
               onClick={() => {
-                // Actually swap the currency state — this triggers the rate
-                // fetch effect, which re-fetches and correctly inverts the rate.
                 const prevFrom = fromCurrency;
                 const prevTo = toCurrency;
                 setFromCurrency(prevTo);
                 setToCurrency(prevFrom);
               }}
-              className="active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0"
+              disabled={isSameCurrency}
+              className={`active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0 ${isSameCurrency ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
               <img
                 src={isDarkMode ? ASSETS.ARROW_DOWN_UP : ASSETS.ARROW_DOWN_UP_LIGHT}
@@ -591,11 +564,9 @@ const FxExchange = () => {
                   <div
                     className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'} ring-inset flex-shrink-0`}
                   >
-                    <img
-                      src={`https://flagcdn.com/w160/${currencyToCountry[currentTo] || 'un'}.png`}
-                      alt={currentTo}
-                      className="w-full h-full object-cover scale-150"
-                    />
+                    <span className="flex items-center justify-center w-full h-full text-[18px]">
+                      {CURRENCY_MAP[currentTo]?.flag || '🏳'}
+                    </span>
                   </div>
                   <span
                     className={`text-[12px] font-bold font-satoshi uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -612,12 +583,12 @@ const FxExchange = () => {
               <span
                 className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi`}
               >
-                {currencySymbols[currentTo] || ''}
+                {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
               </span>
               <span
                 className={`text-[40px] font-bold truncate ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi`}
               >
-                {convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                {formatFxAmount(convertedAmount)}
               </span>
             </div>
           </div>
@@ -675,22 +646,19 @@ const FxExchange = () => {
               <div className="flex justify-between items-center h-[18px]">
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Base Rate</span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  1 {currentFrom} = {currencySymbols[currentTo] || ''}
-                  {fxRate < 0.01 ? fxRate.toFixed(6) : fxRate < 1 ? fxRate.toFixed(4) : fxRate.toFixed(2)}
+                  1 {currentFrom} = {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
+                  {formatFxAmount(fxRate)}
                 </span>
               </div>
               {/* Amount Entered */}
               <div className="flex justify-between items-center h-[18px] mt-[8px]">
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  Amount Entered: {currencySymbols[currentFrom] || ''}
+                  Amount Entered: {CURRENCY_MAP[currentFrom]?.symbol || currencySymbols[currentFrom] || ''}
                   {amount}
                 </span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  {currencySymbols[currentTo] || ''}
-                  {convertedAmount.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
+                  {formatFxAmount(convertedAmount)}
                 </span>
               </div>
               {/* Markup/Spread */}
@@ -699,7 +667,7 @@ const FxExchange = () => {
                   Markup/Spread (0.60%)
                 </span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  - {currencySymbols[currentTo] || ''}
+                  - {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
                   {markupAmount.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
@@ -717,7 +685,7 @@ const FxExchange = () => {
               <div className="flex justify-between items-center h-[18px] mt-[8px]">
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Flat Fee</span>
                 <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  - {currencySymbols[currentTo] || ''}
+                  {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
                   {flatFeeInToCurrency < 1 ? flatFeeInToCurrency.toFixed(4) : flatFeeInToCurrency.toFixed(2)}
                 </span>
               </div>
@@ -738,11 +706,8 @@ const FxExchange = () => {
                   <span className="text-destructive">Amount too low</span>
                 ) : (
                   <>
-                    {currencySymbols[currentTo] || ''}
-                    {finalAmount.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
+                    {formatFxAmount(finalAmount)}
                   </>
                 )}
               </span>
@@ -782,9 +747,14 @@ const FxExchange = () => {
         <p className={`text-[12px] ${isDarkMode ? 'text-white/60' : 'text-black'}`}>
           (Rate locked for <span className="text-primary font-bold">{formatTime(timer)}</span>)
         </p>
+        {isSameCurrency && (
+          <p className={`text-[14px] text-center ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
+            Please select different currencies to convert.
+          </p>
+        )}
         <button
           className={`w-full h-[48px] bg-primary rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? 'shadow-primary/20 text-white' : 'shadow-primary/30 text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
-          disabled={isBelowMinimum}
+          disabled={isBelowMinimum || isSameCurrency}
           onClick={() => {
             if (hasInsufficientFunds) {
               navigate(ROUTES.WALLET_ADD_MONEY);
@@ -813,7 +783,7 @@ const FxExchange = () => {
       <CurrencyModal
         isOpen={isSelectingFrom}
         onClose={() => setIsSelectingFrom(false)}
-        onSelect={code => setFromCurrency(code)}
+        onSelect={handleSelectFromCurrency}
         current={currentFrom}
         currencies={currencies}
         type="from"
@@ -821,7 +791,7 @@ const FxExchange = () => {
       <CurrencyModal
         isOpen={isSelectingTo}
         onClose={() => setIsSelectingTo(false)}
-        onSelect={code => setToCurrency(code)}
+        onSelect={handleSelectToCurrency}
         current={currentTo}
         currencies={currencies}
         type="to"

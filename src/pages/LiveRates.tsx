@@ -16,33 +16,10 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
+import { formatFxAmount } from '@/utils/format';
+import { CURRENCY_NAMES, CURRENCY_MAP, currencySymbols } from '@/constants/currencies';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
-const currencyToCountry: Record<string, string> = {
-  USD: 'us',
-  INR: 'in',
-  EUR: 'eu',
-  GBP: 'gb',
-  JPY: 'jp',
-  AUD: 'au',
-  CAD: 'ca',
-  CHF: 'ch',
-  CNY: 'cn',
-  AED: 'ae',
-  SAR: 'sa',
-};
-const currencySymbols: Record<string, string> = {
-  USD: '$',
-  INR: '₹',
-  EUR: '€',
-  GBP: '£',
-  JPY: '¥',
-  AUD: 'A$',
-  CAD: 'C$',
-  CHF: 'Fr',
-  CNY: '¥',
-  AED: 'د.إ',
-  SAR: 'ر.س',
-};
+
 const CurrencyModal = ({
   isOpen,
   onClose,
@@ -114,11 +91,9 @@ const CurrencyModal = ({
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full overflow-hidden ring-1 ring-white/10">
-                    <img
-                      src={`https://flagcdn.com/w160/${currencyToCountry[code] || 'un'}.png`}
-                      alt={code}
-                      className="w-full h-full object-cover scale-150"
-                    />
+                    <span className="flex items-center justify-center w-full h-full text-[18px]">
+                      {CURRENCY_MAP[code]?.flag || '🏳'}
+                    </span>
                   </div>
                   <div className="text-left">
                     <div
@@ -136,7 +111,7 @@ const CurrencyModal = ({
                 <span
                   className={`text-[16px] font-bold ${current === code ? 'text-primary' : 'text-white/40'}`}
                 >
-                  {currencySymbols[code] || ''}
+                  {CURRENCY_MAP[code]?.symbol || currencySymbols[code] || ''}
                 </span>
               </button>
             ))}
@@ -172,6 +147,56 @@ const LiveRates = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const currentFrom = fromCurrency;
   const currentTo = toCurrency;
+  const isSameCurrency = currentFrom === currentTo;
+
+  const handleSelectFromCurrency = (code: string) => {
+    if (code === currentTo) {
+      setFromCurrency(code);
+      setToCurrency(currentFrom);
+      return;
+    }
+    setFromCurrency(code);
+  };
+
+  const handleSelectToCurrency = (code: string) => {
+    if (code === currentFrom) {
+      setToCurrency(code);
+      setFromCurrency(currentTo);
+      return;
+    }
+    setToCurrency(code);
+  };
+
+  const computeCrossRate = (data: any, from: string, to: string): number | null => {
+    if (from === to) return 1;
+    const rates = data.rates ?? {};
+    const base = (data.base as string) || 'USD';
+    const fromRate = rates[from];
+    const toRate = rates[to];
+
+    if (typeof toRate === 'number' && typeof fromRate === 'number') {
+      return toRate / fromRate;
+    }
+    if (base === from && typeof toRate === 'number') {
+      return toRate;
+    }
+    if (base === to && typeof fromRate === 'number') {
+      return 1 / fromRate;
+    }
+    if (base === 'USD') {
+      if (typeof toRate === 'number' && typeof fromRate === 'number') {
+        return toRate / fromRate;
+      }
+      if (from === 'USD' && typeof toRate === 'number') {
+        return toRate;
+      }
+      if (to === 'USD' && typeof fromRate === 'number') {
+        return 1 / fromRate;
+      }
+    }
+    return null;
+  };
+
   const isTrendingUp = history.length > 1 ? history[history.length - 1].rate >= history[0].rate : true;
   const chartColor = isTrendingUp ? '#22C55E' : '#EF4444';
   const ranges = ['1D', '5D', '1M', '1Y', '5Y', 'Max'];
@@ -191,14 +216,7 @@ const LiveRates = () => {
   useEffect(() => {
     const fetchCurrencies = async () => {
       // Use static list as requested to avoid Frankfurter CORS
-      const fallbackCurrencies = {
-        USD: 'United States Dollar',
-        INR: 'Indian Rupee',
-        EUR: 'Euro',
-        GBP: 'British Pound',
-        AED: 'United Arab Emirates Dirham',
-      };
-      setCurrencies(fallbackCurrencies);
+      setCurrencies(CURRENCY_NAMES);
     };
     fetchCurrencies();
   }, []);
@@ -255,6 +273,21 @@ const LiveRates = () => {
   useEffect(() => {
     const fetchRates = async () => {
       try {
+        if (isSameCurrency) {
+          setFxRate(1);
+          setHistory([]);
+          const now = new Date();
+          const options: Intl.DateTimeFormatOptions = {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZoneName: 'short',
+          };
+          setTimestamp(now.toLocaleDateString('en-GB', options).replace(',', ''));
+          return;
+        }
         const params = new URLSearchParams({
           from: currentFrom,
           to: currentTo,
@@ -267,27 +300,17 @@ const LiveRates = () => {
 
         if (response.ok) {
           const data = await response.json();
-          if (data.rates) {
-            if (currentFrom === currentTo) {
-              setFxRate(1);
-            } else if (typeof data.rates[currentTo] === 'number') {
-              setFxRate(data.rates[currentTo]);
-            } else if (currentTo === 'USD' && typeof data.rates[currentFrom] === 'number') {
-              setFxRate(1 / data.rates[currentFrom]);
-            } else if (
-              typeof data.rates[currentTo] === 'number' &&
-              typeof data.rates[currentFrom] === 'number'
-            ) {
-              setFxRate(data.rates[currentTo] / data.rates[currentFrom]);
-            } else if (currentTo === 'INR') {
-              setFxRate(83.45);
-            } else if (currentFrom === 'INR') {
-              setFxRate(1 / 83.45);
-            } else {
-              throw new Error('Required rates not found');
-            }
-          } else {
+          if (currentFrom === 'AED' || currentTo === 'AED') {
+            console.debug('LiveRates AED raw response:', { url, data });
+          }
+          if (!data.rates) {
             throw new Error('Edge function response missing rates');
+          }
+          const crossRate = computeCrossRate(data, currentFrom, currentTo);
+          if (crossRate !== null) {
+            setFxRate(crossRate);
+          } else {
+            throw new Error(`Required rates not found: ${JSON.stringify(data)}`);
           }
           const now = new Date();
           const options: Intl.DateTimeFormatOptions = {
@@ -407,11 +430,9 @@ const LiveRates = () => {
                   <div
                     className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'}`}
                   >
-                    <img
-                      src={`https://flagcdn.com/w160/${currencyToCountry[currentFrom]}.png`}
-                      alt={currentFrom}
-                      className="w-full h-full object-cover scale-150"
-                    />
+                    <span className="flex items-center justify-center w-full h-full text-[18px]">
+                      {CURRENCY_MAP[currentFrom]?.flag || '🏳'}
+                    </span>
                   </div>
                   <span
                     className={`text-[12px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -428,7 +449,7 @@ const LiveRates = () => {
               <span
                 className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
-                {currencySymbols[currentFrom] || ''}
+                {CURRENCY_MAP[currentFrom]?.symbol || currencySymbols[currentFrom] || ''}
               </span>
               <input
                 type="text"
@@ -448,7 +469,8 @@ const LiveRates = () => {
                 setFromCurrency(prevTo);
                 setToCurrency(prevFrom);
               }}
-              className="active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0"
+              disabled={isSameCurrency}
+              className={`active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0 ${isSameCurrency ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
               <img
                 src={isDarkMode ? ASSETS.ARROW_DOWN_UP : ASSETS.ARROW_DOWN_UP_LIGHT}
@@ -489,11 +511,9 @@ const LiveRates = () => {
                   <div
                     className={`w-4 h-4 rounded-full overflow-hidden ring-[0.5px] ${isDarkMode ? 'ring-white/20' : 'ring-black/10'}`}
                   >
-                    <img
-                      src={`https://flagcdn.com/w160/${currencyToCountry[currentTo]}.png`}
-                      alt={currentTo}
-                      className="w-full h-full object-cover scale-150"
-                    />
+                    <span className="flex items-center justify-center w-full h-full text-[18px]">
+                      {CURRENCY_MAP[currentTo]?.flag || '🏳'}
+                    </span>
                   </div>
                   <span
                     className={`text-[12px] font-bold uppercase ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -510,167 +530,142 @@ const LiveRates = () => {
               <span
                 className={`text-[32px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
-                {currencySymbols[currentTo] || ''}
+                {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
               </span>
               <span className={`text-[40px] font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                {(parseFloat(amount || '0') * fxRate).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {formatFxAmount(parseFloat(amount || '0') * fxRate)}
               </span>
             </div>
           </div>
         </div>
-        {/* Graph Container */}
-        <div
-          className={`mt-[18px] ${isDarkMode ? 'border-solid' : 'bg-background border-border'} rounded-[13px] border pt-[17px] backdrop-blur-[25px] h-[277px] flex flex-col relative overflow-hidden`}
-          style={isDarkMode ? {
-            backgroundColor: 'rgba(25, 25, 25, 0.31)',
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-            borderWidth: '0.63px',
-          } : undefined}
-        >
-          {/* Range Selector */}
-          <div className="flex justify-between items-center mb-6 relative ml-[14px] mr-[13px]">
-            {ranges.map(range => (
-              <button
-                key={range}
-                onClick={() => setActiveRange(range)}
-                className={`text-[13px] font-medium w-[37px] h-[37px] flex items-center justify-center rounded-full transition-all relative z-10 ${activeRange === range ? 'text-white bg-primary' : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
-              >
-                <span className="relative z-20">{range}</span>
-              </button>
-            ))}
-          </div>
-          {/* Chart */}
-          <div className="flex-1 w-full relative">
-            {isLoadingHistory ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                <BaseListSkeleton rows={5} />
-                <p className={`text-[12px] mt-4 ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
-                  Fetching historical trends...
-                </p>
-              </div>
-            ) : history.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={history} margin={{ top: 10, right: 13, left: 14, bottom: 24 }}>
-                  <defs>
-                    <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={chartColor} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    vertical={false}
-                    stroke={isDarkMode ? 'rgba(255,255,255,0.05)' : 'hsl(var(--border))'}
-                  />
-                  <XAxis
-                    dataKey="date"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{
-                      fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-                      fontSize: 11,
-                      fontWeight: 500,
-                    }}
-                    dy={15}
-                    ticks={
-                      history.length > 2
-                        ? [
-                            history[Math.floor(history.length * 0.25)].date,
-                            history[history.length - 1].date,
-                          ]
-                        : []
-                    }
-                    tickFormatter={val => {
-                      const d = new Date(val);
-                      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-                    }}
-                  />
-                  <YAxis
-                    orientation="left"
-                    domain={['dataMin', 'dataMax']}
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{
-                      fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-                      fontSize: 11,
-                      fontWeight: 500,
-                    }}
-                    width={30}
-                    dx={0}
-                    ticks={getYTickValues()}
-                    tickFormatter={val => val < 0.1 ? val.toFixed(4) : val < 1 ? val.toFixed(3) : val.toFixed(1)}
-                  />
-                  <Tooltip
-                    contentStyle={
-                      isDarkMode
-                        ? {
-                            backgroundColor: 'rgba(25, 25, 25, 0.31)',
-                            border: '0.63px solid rgba(255, 255, 255, 0.12)',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            color: '#FFFFFF',
-                            backdropFilter: 'blur(25px)',
-                            WebkitBackdropFilter: 'blur(25px)',
-                          }
-                        : {
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            color: '#000000',
-                          }
-                    }
-                    itemStyle={{ color: chartColor }}
-                    labelClassName="hidden"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="rate"
-                    stroke={chartColor}
-                    fillOpacity={1}
-                    fill="url(#colorRate)"
-                    strokeWidth={2}
-                    animationDuration={1100}
-                    animationEasing="ease-in-out"
-                    isAnimationActive={true}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                <div
-                  className={`w-12 h-12 mb-4 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}
+        {(history.length > 0 || isLoadingHistory) && (
+          <div
+            className={`mt-[18px] ${isDarkMode ? 'border-solid' : 'bg-background border-border'} rounded-[13px] border pt-[17px] backdrop-blur-[25px] h-[277px] flex flex-col relative overflow-hidden`}
+            style={isDarkMode ? {
+              backgroundColor: 'rgba(25, 25, 25, 0.31)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderWidth: '0.63px',
+            } : undefined}
+          >
+            {/* Range Selector */}
+            <div className="flex justify-between items-center mb-6 relative ml-[14px] mr-[13px]">
+              {ranges.map(range => (
+                <button
+                  key={range}
+                  onClick={() => setActiveRange(range)}
+                  className={`text-[13px] font-medium w-[37px] h-[37px] flex items-center justify-center rounded-full transition-all relative z-10 ${activeRange === range ? 'text-white bg-primary' : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
                 >
-                  <svg
-                    className={`w-6 h-6 ${isDarkMode ? 'text-white/20' : 'text-black/20'}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
+                  <span className="relative z-20">{range}</span>
+                </button>
+              ))}
+            </div>
+            {/* Chart */}
+            <div className="flex-1 w-full relative">
+              {isLoadingHistory ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                  <BaseListSkeleton rows={5} />
+                  <p className={`text-[12px] mt-4 ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
+                    Fetching historical trends...
+                  </p>
                 </div>
-                <p
-                  className={`text-[14px] font-medium leading-snug ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}
-                >
-                  Historical Data Temporarily Unavailable
-                </p>
-                <p className={`text-[12px] mt-1 ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
-                  We're updating our secure data feeds. Check back soon!
-                </p>
-              </div>
-            )}
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={history} margin={{ top: 10, right: 13, left: 14, bottom: 24 }}>
+                    <defs>
+                      <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={chartColor} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      vertical={false}
+                      stroke={isDarkMode ? 'rgba(255,255,255,0.05)' : 'hsl(var(--border))'}
+                    />
+                    <XAxis
+                      dataKey="date"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{
+                        fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+                        fontSize: 11,
+                        fontWeight: 500,
+                      }}
+                      dy={15}
+                      ticks={
+                        history.length > 2
+                          ? [
+                              history[Math.floor(history.length * 0.25)].date,
+                              history[history.length - 1].date,
+                            ]
+                          : []
+                      }
+                      tickFormatter={val => {
+                        const d = new Date(val);
+                        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                      }}
+                    />
+                    <YAxis
+                      orientation="left"
+                      domain={['dataMin', 'dataMax']}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{
+                        fill: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+                        fontSize: 11,
+                        fontWeight: 500,
+                      }}
+                      width={30}
+                      dx={0}
+                      ticks={getYTickValues()}
+                      tickFormatter={val => val < 0.1 ? val.toFixed(4) : val < 1 ? val.toFixed(3) : val.toFixed(1)}
+                    />
+                    <Tooltip
+                      contentStyle={
+                        isDarkMode
+                          ? {
+                              backgroundColor: 'rgba(25, 25, 25, 0.31)',
+                              border: '0.63px solid rgba(255, 255, 255, 0.12)',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              color: '#FFFFFF',
+                              backdropFilter: 'blur(25px)',
+                              WebkitBackdropFilter: 'blur(25px)',
+                            }
+                          : {
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              color: '#000000',
+                            }
+                      }
+                      itemStyle={{ color: chartColor }}
+                      labelClassName="hidden"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="rate"
+                      stroke={chartColor}
+                      fillOpacity={1}
+                      fill="url(#colorRate)"
+                      strokeWidth={2}
+                      animationDuration={1100}
+                      animationEasing="ease-in-out"
+                      isAnimationActive={true}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         {/* CTA */}
         <div className="mt-12 safe-bottom pb-4">
+          {isSameCurrency && (
+            <p className={`text-[14px] text-center mb-3 ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
+              Please select different currencies to convert.
+            </p>
+          )}
           <button
             onClick={() =>
               navigate(ROUTES.FX_EXCHANGE, {
@@ -681,7 +676,8 @@ const LiveRates = () => {
                 },
               })
             }
-            className={`w-full h-[48px] bg-primary rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? 'shadow-primary/20 text-white' : 'shadow-primary/30 text-white'}`}
+            disabled={isSameCurrency}
+            className={`w-full h-[48px] bg-primary rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? 'shadow-primary/20 text-white' : 'shadow-primary/30 text-white'} ${isSameCurrency ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             Exchange Currency
           </button>
@@ -691,7 +687,7 @@ const LiveRates = () => {
       <CurrencyModal
         isOpen={isSelectingFrom}
         onClose={() => setIsSelectingFrom(false)}
-        onSelect={code => setFromCurrency(code)}
+        onSelect={handleSelectFromCurrency}
         current={currentFrom}
         currencies={currencies}
         type="from"
@@ -699,7 +695,7 @@ const LiveRates = () => {
       <CurrencyModal
         isOpen={isSelectingTo}
         onClose={() => setIsSelectingTo(false)}
-        onSelect={code => setToCurrency(code)}
+        onSelect={handleSelectToCurrency}
         current={currentTo}
         currencies={currencies}
         type="to"

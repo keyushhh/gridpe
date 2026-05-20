@@ -178,16 +178,23 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       setSearchResults([]);
     }
   };
-  const handleSearchResultClick = (result: GeocodeResult) => {
-    // Navigate to Map with coordinates
+  const handleOpenAddAddress = (locationState?: { lat: number; lng: number }) => {
+    const currentHistoryState = (window.history.state as Record<string, unknown>) || {};
+    const updatedState = { ...currentHistoryState, fromAddressSheet: true } as Record<string, unknown>;
+    delete (updatedState as Record<string, unknown>).modalOpen;
+    window.history.replaceState(updatedState, '');
     navigate(ROUTES.ADD_ADDRESS, {
-      state: {
-        lat: parseFloat(result.lat),
-        lng: parseFloat(result.lon),
-      },
+      state: locationState,
     });
-    // AddAddress needs to handle this state to center map
   };
+
+  const handleSearchResultClick = (result: GeocodeResult) => {
+    handleOpenAddAddress({
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+    });
+  };
+
   const handleUseCurrentLocation = async () => {
     try {
       const permission = await checkLocationPermission();
@@ -424,14 +431,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             {/* 1. Add New Address */}
             <div
               className={`flex items-center justify-between cursor-pointer px-3 pt-3 pb-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-              onClick={() => {
-                // Stamp the current (Homepage) history entry with a flag so
-                // pressing back from AddAddress will re-open this sheet.
-                // Using navigate(replace) keeps React Router's internal state intact.
-                navigate('.', { replace: true, state: { fromAddressSheet: true } });
-                // Now push the AddAddress route
-                setTimeout(() => navigate(ROUTES.ADD_ADDRESS), 0);
-              }}
+              onClick={handleOpenAddAddress}
             >
               <div className="flex items-center gap-3">
                 <Plus size={20} color="#5260FE" strokeWidth={2.5} />

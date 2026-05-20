@@ -182,6 +182,7 @@ const AddAddress = () => {
     try {
       const hasPermission = await checkPermission();
       if (!hasPermission) {
+        showToaster('Location permission is required to center the map on your current position.', 'error');
         return;
       }
       // Permission granted, fetch location
@@ -213,9 +214,10 @@ const AddAddress = () => {
       fetchAddress(latitude, longitude, { lat: latitude, lng: longitude });
     } catch (error) {
       console.error('Error getting location:', error);
+      showToaster('Unable to retrieve your current location. Please try again or check your GPS settings.', 'error');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [showToaster]);
   const handleSnapToGrid = () => {
     try {
       const code = olc.encode(viewState.latitude, viewState.longitude);

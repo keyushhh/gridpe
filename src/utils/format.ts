@@ -22,6 +22,14 @@ export const formatINR = (
   return showSymbol ? `₹${formatted}` : formatted;
 };
 
+export const formatFxAmount = (value: number): string => {
+  if (value === 0) return '0';
+  if (value >= 1000) return value.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  if (value >= 1) return value.toFixed(2);
+  if (value >= 0.01) return value.toFixed(4);
+  return value.toFixed(6);
+};
+
 /**
  * Standardizes date formatting across the app
  */

@@ -133,10 +133,13 @@ const Homepage = () => {
   // Re-open address sheet when returning from AddAddress via back navigation
   const routeLocation = useLocation();
   useEffect(() => {
-    if ((routeLocation.state as Record<string, unknown>)?.fromAddressSheet) {
+    const locationState = routeLocation.state as Record<string, unknown> | null;
+    const historyState = window.history.state as Record<string, unknown> | null;
+    if (locationState?.fromAddressSheet || historyState?.fromAddressSheet) {
       setIsAddressSheetOpen(true);
-      // Clear the flag so it doesn't re-trigger on future renders
-      window.history.replaceState({}, '');
+      const nextState = { ...(historyState || {}) };
+      delete (nextState as Record<string, unknown>).fromAddressSheet;
+      window.history.replaceState(nextState, '');
     }
   }, [routeLocation.state]);
   
