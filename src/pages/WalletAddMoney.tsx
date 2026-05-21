@@ -12,6 +12,8 @@ import { formatINR } from '@/utils/format';
 import { useKeypad } from '@/hooks/useKeypad';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import Keypad from '@/components/Keypad';
+import { Browser } from '@capacitor/browser';
+import { App } from '@capacitor/app';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const WalletAddMoney = () => {
   const { containerOverflow } = useWebScroll();
@@ -33,6 +35,7 @@ const WalletAddMoney = () => {
   const currentBalance = walletBalance || 0;
   const fromWallet = location.state?.from === 'wallet';
   const [isLoading, setIsLoading] = useState(false);
+  const isInternationalUser = (profile?.country !== 'India' && profile?.country !== 'IN') || (profile?.kyc_document_type === 'passport');
   const { amount, handleKeyPress, handleBackspace, setPillAmount, amountVal, isZero } = useKeypad();
   const isExceedingLimit =
     amountVal + currentBalance > walletLimit || currentBalance + 500 > walletLimit;
@@ -200,6 +203,13 @@ const WalletAddMoney = () => {
                     }
                     const val = amountVal;
                     if (Math.floor(val) >= 500) {
+                      if (isInternationalUser) {
+                        navigate(ROUTES.INTERNATIONAL_PAYMENT, {
+                          state: { amount: val, currency: 'USD', flow: 'wallet_topup' }
+                        });
+                        return;
+                      }
+
                       try {
                         setIsLoading(true);
                         const currentUserId = userId;

@@ -62,6 +62,7 @@ export const ROUTES = {
   MORE: '/more',
   FX_EXCHANGE: '/fx-exchange',
   FX_EXCHANGE_SUMMARY: '/fx-exchange-summary',
+  INTERNATIONAL_PAYMENT: '/international-payment',
   FX_SUCCESS: '/fx-success/:orderId',
   FX_INTRO: '/fx-intro',
   FX_PASSPORT_GATE: '/fx-passport-gate',

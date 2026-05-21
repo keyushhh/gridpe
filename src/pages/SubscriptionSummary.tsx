@@ -8,6 +8,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { SlideToPay } from '@/components/SlideToPay';
 import { supabase } from '@/lib/supabase';
+import { Browser } from '@capacitor/browser';
+import { App } from '@capacitor/app';
 // Light Mode Assets
 import { tierChipColorMap, fetchTierPrices } from '@/lib/walletTiers';
 const subscriptionBanners: Record<string, string> = {
@@ -59,6 +61,8 @@ const SubscriptionSummary = () => {
   const userId = profile?.id;
   const { tier, paymentMethod } = location.state || { tier: '', paymentMethod: '' };
   const [isLoading, setIsLoading] = useState(false);
+  const isInternationalUser = (profile?.country !== 'India' && profile?.country !== 'IN') || (profile?.kyc_document_type === 'passport');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'razorpay' | 'paypal'>(isInternationalUser ? 'paypal' : 'razorpay');
   const [tierPrices, setTierPrices] = useState<Record<string, number>>({});
   useEffect(() => {
     const loadPrices = async () => {
@@ -105,6 +109,88 @@ const SubscriptionSummary = () => {
           `Invalid tier: ${tier}. Subscription is only available for Pro, Elite, or Supreme tiers.`
         );
       }
+      
+      if (selectedPaymentMethod === 'paypal') {
+        try {
+          const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-paypal-order`;
+          const currentUserId = userId;
+          const payload = {
+            amount: selectedTierPrice,
+            userId: currentUserId,
+            type: 'tier_upgrade',
+            tier_name: selectedTierName,
+            currency: 'USD'
+          };
+          const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Failed to create PayPal order');
+          }
+          const data = await response.json();
+          
+          const listener = await App.addListener('appUrlOpen', async (urlData) => {
+            await listener.remove();
+            await Browser.close();
+            if (urlData.url.includes('paypal-return')) {
+              setIsLoading(true);
+              const urlParams = new URLSearchParams(new URL(urlData.url).search);
+              const token = urlParams.get('token');
+              const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-paypal-payment`;
+              const verifyResponse = await fetch(verifyUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                  apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify({
+                  orderID: token,
+                  userId: currentUserId,
+                  type: 'tier_upgrade',
+                  tier_name: selectedTierName,
+                  amount: selectedTierPrice
+                }),
+              });
+              const verifyData = await verifyResponse.json().catch(() => ({}));
+              if (!verifyResponse.ok || !verifyData.success) {
+                alert('Payment successful, but verification failed: ' + (verifyData.error || 'Verification failed'));
+                setIsLoading(false);
+                return;
+              }
+              await fetchProfileData();
+              await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+              navigate(ROUTES.WALLET_UPGRADE_SUCCESS, {
+                state: {
+                  tier,
+                  flow: location.state?.flow,
+                  message: `Subscription Renewed for ${tier}`,
+                },
+              });
+              setIsLoading(false);
+            } else if (urlData.url.includes('paypal-cancel')) {
+              alert('Payment cancelled');
+              setIsLoading(false);
+            }
+          });
+          
+          await Browser.open({ url: data.approvalUrl });
+        } catch (err) {
+          console.error('PayPal initiation error', err);
+          alert('PayPal unavailable, please use Razorpay');
+          setSelectedPaymentMethod('razorpay');
+          setIsLoading(false);
+        }
+        return;
+      }
+
       // 1. Manually call the function URL
       const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-razorpay-order`;
       const currentUserId = userId;
@@ -424,6 +510,22 @@ const SubscriptionSummary = () => {
       </div>
       {/* Slide to Pay */}
       <div className="px-5 mt-auto safe-bottom pb-4 pt-4 shrink-0">
+        {isInternationalUser && !isDowngrade && (
+          <div className="w-full mb-4 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setSelectedPaymentMethod('razorpay')}
+              className={`px-4 py-2 rounded-full text-[14px] font-medium transition-colors ${selectedPaymentMethod === 'razorpay' ? 'bg-[#6c63ff] text-white' : 'bg-[#12122a] text-white/70'}`}
+            >
+              Razorpay
+            </button>
+            <button
+              onClick={() => setSelectedPaymentMethod('paypal')}
+              className={`px-4 py-2 rounded-full text-[14px] font-medium transition-colors ${selectedPaymentMethod === 'paypal' ? 'bg-[#6c63ff] text-white' : 'bg-[#12122a] text-white/70'}`}
+            >
+              PayPal
+            </button>
+          </div>
+        )}
         <SlideToPay
           onComplete={async () => {
             if (isDowngrade) {

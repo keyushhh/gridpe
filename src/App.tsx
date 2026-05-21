@@ -95,6 +95,7 @@ const FxIntro = lazy(() => import('./pages/FxIntro'));
 const FxPassportGate = lazy(() => import('./pages/FxPassportGate'));
 const FxPassportKYC = lazy(() => import('./pages/FxPassportKYC'));
 const FxKYCSuccess = lazy(() => import('./pages/FxKYCSuccess'));
+const InternationalPayment = lazy(() => import('./pages/InternationalPayment'));
 const LiveRates = lazy(() => import('@/pages/LiveRates'));
 const Subscriptions = lazy(() => import('@/pages/Subscriptions'));
 const ManageSubscription = lazy(() => import('@/pages/ManageSubscription'));
@@ -918,6 +919,22 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <FxExchangeSummary />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.INTERNATIONAL_PAYMENT}
+                      element={
+                        <ProtectedRoute>
+                          <InternationalPayment />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.INTERNATIONAL_PAYMENT}
+                      element={
+                        <ProtectedRoute>
+                          <InternationalPayment />
                         </ProtectedRoute>
                       }
                     />
