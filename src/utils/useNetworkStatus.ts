@@ -40,12 +40,14 @@ export function useNetworkStatus() {
 
     const init = async () => {
       try {
-        // Get initial status
         const status = await Network.getStatus()
         if (import.meta.env.DEV) {
           console.log('[Network] Initial status:', status)
         }
-        handleStatusChange(status.connected)
+        
+        // Set initial state IMMEDIATELY from real device status
+        setIsConnected(status.connected)
+        wasConnected.current = status.connected
 
         // Listen for changes
         listenerHandle = await Network.addListener(

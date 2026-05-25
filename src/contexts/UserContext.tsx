@@ -9,6 +9,7 @@ import { Preferences } from '@capacitor/preferences';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { purgeOtherUsersStorage, readStorage, writeStorage, removeStorage } from '@/utils/storage';
 import { SavedAddress } from '@/types';
+import { useNetworkStatus } from '@/utils/useNetworkStatus';
 
 /* ── Capacitor Preferences helpers for address persistence ──
  * localStorage is unreliable on Capacitor Android (WebView can purge it).
@@ -166,6 +167,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<UserState>(defaultState);
   const { showToaster } = useCustomToaster();
+  const { isConnected } = useNetworkStatus();
+  const wasOffline = useRef(!isConnected);
 
   // Ref to track activation status without triggering re-renders or stale closures in callbacks
   const isWalletActivatedRef = useRef(state.isWalletActivated);
@@ -281,10 +284,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const fetchAndCalculateBalance = useCallback(
     async (overrideUserId?: string) => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session && !overrideUserId) return;
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 4000)
+        );
+        let session: any;
+        try {
+          const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          session = data?.session;
+        } catch (err) {
+          if (import.meta.env.DEV) {
+            console.warn('[UserContext] Session check failed or timed out:', err);
+          }
+          session = null;
+        }
+
+        if (!session && !overrideUserId) {
+          setState(prev => ({ ...prev, isInitializing: false }));
+          return;
+        }
 
         const userId = overrideUserId || session?.user?.id;
 
@@ -293,6 +311,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           .from('wallets')
           .select('available_balance')
           .eq('user_id', userId)
+          .abortSignal(AbortSignal.timeout(4000))
           .maybeSingle();
 
         if (walletError) {
@@ -318,7 +337,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           .from('wallet_transactions')
           .select('*')
           .eq('user_id', userId)
-          .eq('status', 'held');
+          .eq('status', 'held')
+          .abortSignal(AbortSignal.timeout(4000));
 
         const held = Math.floor(calculateHeldBalance((txData as WalletTransaction[]) || []));
 
@@ -338,7 +358,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           const { count, error: txError } = await supabase
             .from('wallet_transactions')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .abortSignal(AbortSignal.timeout(4000));
 
           if (count && count > 0) {
             setState(prev => ({ ...prev, isWalletActivated: true }));
@@ -360,10 +381,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     async (overrideUserId?: string) => {
       try {
         if (state.isResetting) return;
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session && !overrideUserId) return;
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 4000)
+        );
+        let session: any;
+        try {
+          const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          session = data?.session;
+        } catch (err) {
+          if (import.meta.env.DEV) {
+            console.warn('[UserContext] Session check failed or timed out:', err);
+          }
+          session = null;
+        }
+
+        if (!session && !overrideUserId) {
+          setState(prev => ({ ...prev, isInitializing: false }));
+          return;
+        }
 
         const userId = overrideUserId || session?.user?.id;
 
@@ -381,6 +417,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         `
           )
           .eq('id', userId)
+          .abortSignal(AbortSignal.timeout(4000))
           .maybeSingle();
 
         // Defensive fallback: If database columns do not exist yet (code 42703), fallback to query without terms columns
@@ -398,6 +435,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           `
             )
             .eq('id', userId)
+            .abortSignal(AbortSignal.timeout(4000))
             .maybeSingle();
         }
 
@@ -522,9 +560,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error('Failed to fetch profile data:', error);
         // Fallback but still calculate balance
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 4000)
+        );
+        let session: any;
+        try {
+          const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          session = data?.session;
+        } catch (err) {
+          if (import.meta.env.DEV) {
+            console.warn('[UserContext] Session check failed or timed out during fallback:', err);
+          }
+          session = null;
+        }
+        
         if (session?.user?.id || overrideUserId) {
           await fetchAndCalculateBalance(overrideUserId || session?.user?.id);
         }
@@ -535,8 +585,35 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   /* Initial Load */
   useEffect(() => {
-    fetchProfileData();
+    const INIT_TIMEOUT_MS = 5000 // 5 seconds max
+
+    const initWithTimeout = Promise.race([
+      fetchProfileData(), // existing init logic
+      new Promise<void>((resolve) => 
+        setTimeout(() => {
+          if (import.meta.env.DEV) {
+            console.warn('[UserContext] Init timed out — forcing ready state')
+          }
+          resolve()
+        }, INIT_TIMEOUT_MS)
+      )
+    ])
+
+    initWithTimeout.finally(() => {
+      // Always set isInitializing to false after this, regardless of outcome
+      setState(prev => ({ ...prev, isInitializing: false }))
+    })
   }, [fetchProfileData]);
+
+  // Re-initialization when network returns
+  useEffect(() => {
+    if (isConnected && wasOffline.current) {
+      if (!state.profile) {
+        fetchProfileData();
+      }
+    }
+    wasOffline.current = !isConnected;
+  }, [isConnected, state.profile, fetchProfileData]);
 
   /* Monitor Auth Changes to update session-based data */
   useEffect(() => {

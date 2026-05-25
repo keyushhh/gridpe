@@ -224,6 +224,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
   const { isInitializing } = useUser();
   const [fontsReady, setFontsReady] = useState(false);
   const [authReady, setAuthReady] = useState(false);
+  const hasHiddenSplash = useRef<boolean>(false);
 
   // Fonts ready signal
   useEffect(() => {
@@ -248,6 +249,13 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
       setAuthReady(true);
     }
   }, [isInitializing]);
+
+  // If offline, auth will never resolve — mark as ready immediately
+  useEffect(() => {
+    if (!isConnected) {
+      setAuthReady(true);
+    }
+  }, [isConnected]);
 
   // Safety timeout
   useEffect(() => {
@@ -276,6 +284,8 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
 
     requestAnimationFrame(() => {
       requestAnimationFrame(async () => {
+        if (hasHiddenSplash.current) return;
+        hasHiddenSplash.current = true;
         try {
           await SplashScreen.hide({ fadeOutDuration: 200 });
         } catch (err) {
@@ -284,6 +294,21 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
       });
     });
   }, [fontsReady, authReady]);
+
+  // Offline safety net: force splash hide after 3s if offline
+  useEffect(() => {
+    if (!isConnected) {
+      const offlineTimer = setTimeout(async () => {
+        if (!Capacitor.isNativePlatform()) return;
+        if (hasHiddenSplash.current) return;
+        hasHiddenSplash.current = true;
+        try {
+          await SplashScreen.hide({ fadeOutDuration: 200 });
+        } catch {}
+      }, 3000);
+      return () => clearTimeout(offlineTimer);
+    }
+  }, [isConnected]);
 
 
 
