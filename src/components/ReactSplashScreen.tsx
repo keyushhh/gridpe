@@ -7,8 +7,8 @@ interface ReactSplashScreenProps {
   onComplete: () => void;
 }
 
-const MIN_SPLASH_TIME = 1500;
-const MAX_SPLASH_TIME = 2500;
+const MIN_SPLASH_TIME = 2200;
+const MAX_SPLASH_TIME = 3200;
 
 export const ReactSplashScreen: React.FC<ReactSplashScreenProps> = ({ onComplete }) => {
   const { initialized, loading, shortName } = useLocationContext();
@@ -57,20 +57,29 @@ export const ReactSplashScreen: React.FC<ReactSplashScreenProps> = ({ onComplete
           key="react-splash"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="fixed inset-0 z-[9999] flex flex-col justify-between items-center bg-[#0A0A12] text-white safe-top safe-bottom"
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0A0A12] text-white safe-top safe-bottom"
         >
-          {/* Top spacer */}
-          <div className="flex-1" />
+          {/* Main Content Area shifted slightly up */}
+          <div className="flex flex-col items-center justify-center -mt-24 space-y-8 w-full px-8">
+            <motion.div
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+            >
+              <div className="flex flex-col items-center justify-center">
+                <h1 className="text-4xl font-bold font-satoshi tracking-tight">Grid.Pe</h1>
+              </div>
+            </motion.div>
 
-          {/* Center Logo Area */}
-          <div className="flex flex-col items-center justify-center animate-pulse">
-            <h1 className="text-4xl font-bold font-satoshi tracking-tight">Grid.Pe</h1>
-          </div>
-
-          {/* Bottom Location Area */}
-          <div className="flex-1 flex flex-col justify-end w-full px-8 pb-12">
-            <LocationDisplay variant="splash" />
+            <motion.div
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+               className="w-full flex justify-center"
+            >
+              <LocationDisplay variant="splash" />
+            </motion.div>
           </div>
         </motion.div>
       )}

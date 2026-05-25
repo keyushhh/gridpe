@@ -11,6 +11,7 @@ export interface LocationState {
   fullAddress: string | null;
   lat: number | null;
   lng: number | null;
+  splashAddress: string | null;
   loading: boolean;
   isRefreshing: boolean;
   permissionDenied: boolean;
@@ -30,6 +31,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<LocationState>({
     shortName: null,
     fullAddress: null,
+    splashAddress: null,
     lat: null,
     lng: null,
     loading: true,
@@ -113,10 +115,13 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       
       const shortName = result.address?.suburb || result.address?.neighbourhood || result.address?.city || 'Current Location';
       const fullAddress = result.display_name || `${shortName}, Current Location`;
+      const city = result.address?.city || result.address?.town || result.address?.village || result.address?.state || '';
+      const splashAddress = shortName !== city && city ? `${shortName}, ${city}` : city || shortName;
 
       const newState = {
         shortName,
         fullAddress,
+        splashAddress,
         lat: latitude,
         lng: longitude,
         permissionDenied: false,
@@ -175,6 +180,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     updateState({
       shortName: null,
       fullAddress: null,
+      splashAddress: null,
       lat: null,
       lng: null,
       loading: false,

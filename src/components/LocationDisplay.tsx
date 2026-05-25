@@ -12,8 +12,10 @@ interface LocationDisplayProps {
 }
 
 const LocationDisplay = React.memo(({ variant = 'header', onClick }: LocationDisplayProps) => {
-  const { shortName, fullAddress, loading, isRefreshing, permissionDenied } = useLocationContext();
+  const { shortName, fullAddress, splashAddress, loading, isRefreshing, permissionDenied } = useLocationContext();
   const isDark = useIsDarkMode() || variant === 'splash'; // Splash is always dark
+
+  const displayAddress = variant === 'splash' ? splashAddress : fullAddress;
 
   const textColor = isDark ? 'text-white' : 'text-black';
   const mutedTextColor = isDark ? 'text-white/60' : 'text-black/60';
@@ -21,7 +23,7 @@ const LocationDisplay = React.memo(({ variant = 'header', onClick }: LocationDis
 
   if (loading && !shortName) {
     return (
-      <div className="flex flex-col gap-1 w-full max-w-[250px]">
+      <div className={`flex flex-col gap-1 w-full ${variant === 'header' ? 'max-w-[250px]' : 'items-center max-w-full'}`}>
         <div className="flex items-center gap-1">
           <MapPin size={16} color={iconColor} />
           <Skeleton width={100} height={16} baseColor={isDark ? '#222' : '#ebebeb'} highlightColor={isDark ? '#444' : '#f5f5f5'} />
@@ -33,7 +35,7 @@ const LocationDisplay = React.memo(({ variant = 'header', onClick }: LocationDis
 
   if (permissionDenied) {
     return (
-      <button onClick={onClick} className="flex flex-col gap-1 text-left w-full max-w-[250px]">
+      <button onClick={onClick} className={`flex flex-col gap-1 w-full ${variant === 'header' ? 'text-left max-w-[250px]' : 'items-center text-center max-w-full'}`}>
         <div className="flex items-center gap-1">
           <MapPin size={16} color={iconColor} />
           <span className={`text-[14px] font-bold font-satoshi tracking-wider uppercase ${textColor}`}>
@@ -49,8 +51,8 @@ const LocationDisplay = React.memo(({ variant = 'header', onClick }: LocationDis
   }
 
   return (
-    <button onClick={onClick} className={`flex flex-col gap-1 text-left w-full ${variant === 'header' ? 'max-w-[70%]' : 'max-w-full'}`}>
-      <div className="flex items-center gap-1 relative">
+    <button onClick={onClick} className={`flex flex-col gap-1 w-full ${variant === 'header' ? 'text-left max-w-[70%]' : 'items-center text-center max-w-full'}`}>
+      <div className={`flex items-center gap-1 relative ${variant === 'splash' ? 'justify-center' : ''}`}>
         <MapPin size={16} color={iconColor} />
         <div className="relative overflow-hidden h-[20px] flex items-center">
           <AnimatePresence mode="popLayout">
@@ -79,17 +81,17 @@ const LocationDisplay = React.memo(({ variant = 'header', onClick }: LocationDis
         )}
       </div>
 
-      <div className="relative overflow-hidden h-[16px] flex items-center">
+      <div className={`relative overflow-hidden h-[16px] flex items-center ${variant === 'splash' ? 'justify-center' : ''}`}>
         <AnimatePresence mode="popLayout">
           <motion.span
-            key={fullAddress || 'unknown'}
+            key={displayAddress || 'unknown'}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className={`text-[12px] font-medium truncate w-full block ${mutedTextColor}`}
           >
-            {fullAddress || 'Fetching details...'}
+            {displayAddress || 'Fetching details...'}
           </motion.span>
         </AnimatePresence>
       </div>
