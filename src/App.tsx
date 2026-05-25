@@ -482,8 +482,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
               transform: 'translateZ(0)',
             }}
           >
-            <div className="app-container h-full w-full flex flex-col overflow-y-auto relative">
-              {!effectivelyConnected && <NetworkAlertBanner isDarkMode={isDarkMode} />}
+              <div className="app-container h-full w-full flex flex-col overflow-y-auto relative">
               <GlobalCustomToaster />
               <LiquidGlassFilters />
               <TermsAcceptanceGate />

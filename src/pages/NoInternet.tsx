@@ -2,10 +2,29 @@ import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 
 const NoInternet: React.FC = () => {
   const isDarkMode = useIsDarkMode();
   const { isReconnecting } = useNetworkStatus();
+
+  const openSettings = async () => {
+    try {
+      if (Capacitor.getPlatform() === 'ios') {
+        // @ts-ignore
+        await App.openUrl({ url: 'App-Prefs:' });
+      } else if (Capacitor.getPlatform() === 'android') {
+        // @ts-ignore
+        await App.openUrl({ url: 'android.settings.SETTINGS' });
+      }
+    } catch {
+      try {
+        // @ts-ignore
+        await App.openUrl({ url: 'app-settings:' });
+      } catch {}
+    }
+  };
 
   return (
     <div className="desktop-backdrop fixed inset-0 w-full h-full" style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}>
@@ -31,7 +50,7 @@ const NoInternet: React.FC = () => {
             }}
           >
             <DotLottieReact
-              src="https://lottie.host/29c3abb7-1a8b-4f07-89b8-aad572c87d56/wHKK5aDSLG.lottie"
+              src="/animations/no-internet.lottie"
               loop
               autoplay
               style={{ width: 220, height: 220, marginBottom: '8px' }}
@@ -63,15 +82,16 @@ const NoInternet: React.FC = () => {
               Your internet connection appears to be offline.
             </p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={openSettings}
               style={{
                 fontFamily: 'Satoshi, sans-serif',
-                width: '100%',
+                width: 'fit-content',
+                padding: '14px 32px',
                 height: '52px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: '100px',
+                borderRadius: '9999px',
                 fontSize: '15px',
                 fontWeight: 600,
                 letterSpacing: '0.1px',
@@ -81,8 +101,6 @@ const NoInternet: React.FC = () => {
                 border: 'none',
                 color: '#FFFFFF',
                 transition: 'filter 0.15s ease',
-                pointerEvents: isReconnecting ? 'none' : 'auto',
-                animation: isReconnecting ? 'pulseReconnect 0.8s infinite ease-in-out' : 'none'
               }}
               onPointerDown={(e) => {
                 e.currentTarget.style.filter = 'brightness(0.85)';
@@ -92,6 +110,22 @@ const NoInternet: React.FC = () => {
               }}
               onPointerLeave={(e) => {
                 e.currentTarget.style.filter = 'none';
+              }}
+            >
+              Open Settings
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                fontFamily: 'Satoshi, sans-serif',
+                background: 'none',
+                border: 'none',
+                color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(10,10,18,0.6)',
+                fontSize: '14px',
+                marginTop: '20px',
+                textDecoration: 'underline',
+                pointerEvents: isReconnecting ? 'none' : 'auto',
+                animation: isReconnecting ? 'pulseReconnect 0.8s infinite ease-in-out' : 'none'
               }}
             >
               {isReconnecting ? 'Reconnecting...' : 'Try again'}
