@@ -330,7 +330,7 @@ const ZingChat = () => {
         </div>
         <div className="h-[20px] shrink-0" />
       </main>
-      <div className="px-5 pb-5 relative z-20 mt-auto bg-transparent">
+      <div className="px-5 pb-2 relative z-20 mt-auto bg-transparent">
         <input
           type="file"
           ref={fileInputRef}

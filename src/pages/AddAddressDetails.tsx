@@ -303,8 +303,8 @@ const AddAddressDetails = () => {
         />
       )}
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-scroll safe-bottom pb-4 relative z-10 font-sans">
-        <div className="pt-4 px-5">
+      <div className="flex-1 overflow-y-scroll safe-bottom relative z-10 font-sans">
+        <div className="px-5 pb-8">
           {/* Sentinel: tracked by IO to drive header opacity */}
           <div
             ref={sentinelRef}
@@ -314,8 +314,8 @@ const AddAddressDetails = () => {
           {/* Header */}
           <div
             ref={headerRef}
-            className="flex items-center sticky top-0 z-50 transition-colors"
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
+            className={`flex items-center sticky top-0 z-50 transition-colors pt-4 pb-2 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+            style={{ willChange: 'opacity', transform: 'translateZ(0)', margin: '0 -20px', paddingLeft: '20px', paddingRight: '20px' }}
           >
             <BackButton onClick={() => navigate(-1)} className="mr-2" />
             <h1

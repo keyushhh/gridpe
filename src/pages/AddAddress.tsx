@@ -45,6 +45,7 @@ const AddAddress = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GeocodeResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [distanceInMeters, setDistanceInMeters] = useState<number | null>(null);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
@@ -367,6 +368,11 @@ const AddAddress = () => {
               value={searchQuery}
               onChange={handleSearchInput}
               onKeyDown={handleSearch}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => {
+                // small delay so clicks on results register before hiding
+                setTimeout(() => setIsSearchFocused(false), 200);
+              }}
               className={`bg-transparent border-none outline-none flex-1 text-[14px] ${isDarkMode ? 'text-white placeholder-white' : 'text-black placeholder-muted-foreground'} font-normal font-sans`}
               style={{ fontFamily: 'Satoshi, sans-serif' }}
             />
@@ -374,14 +380,14 @@ const AddAddress = () => {
           {/* Dropdown Results */}
           {showDropdown && searchResults.length > 0 && (
             <div
-              className={`absolute top-[52px] w-[363px] backdrop-blur-md border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto shadow-xl ${isDarkMode ? 'bg-muted/95 border-white/10' : 'bg-background/95 border-border'}`}
+              className={`absolute top-[52px] w-[363px] backdrop-blur-xl border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto shadow-2xl ${isDarkMode ? 'bg-brand-card-dark border-[#313131]' : 'bg-background/95 border-border'}`}
               style={{ zIndex: 50 }}
             >
               {searchResults.map((result, idx) => (
                 <div
                   key={idx}
                   onClick={() => handleSelectResult(result)}
-                  className={`px-4 py-3 border-b cursor-pointer flex items-center ${isDarkMode ? 'border-white/5 hover:bg-white/10' : 'border-border hover:bg-muted'}`}
+                  className={`px-4 py-3 border-b cursor-pointer flex items-center transition-colors ${isDarkMode ? 'border-white/5 hover:bg-white/5' : 'border-border hover:bg-muted'}`}
                 >
                   <img                     src={ASSETS.LOCATION_PIN}
                     alt="Pin"
@@ -403,18 +409,26 @@ const AddAddress = () => {
           )}
         </div>
       </div>
-      {/* Fixed Center Pin */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
-        <div className="relative z-0 -mt-10">
-          <img src={ASSETS.MAP_PIN_ICON} alt="Pin" loading="eager" decoding="async" width="46" height="58" className="w-[46px] h-[58px]" />
-          {/* Light mode pulse effect could be added here if needed */}
-        </div>
-      </div>
-      {/* Helper Pill & Navigation Button Container */}
-      <div
-        className="absolute left-0 right-0 z-30 flex items-center justify-center pointer-events-none transition-all duration-300 ease-in-out"
-        style={{ bottom: `${bottomSheetHeight + 14}px` }}
+      
+      {/* Hide Map UI when actively searching */}
+      <div 
+        className="transition-opacity duration-300 ease-in-out"
+        style={{ 
+          opacity: (isSearchFocused || showDropdown) && searchQuery.trim().length > 0 ? 0 : 1,
+          pointerEvents: (isSearchFocused || showDropdown) && searchQuery.trim().length > 0 ? 'none' : 'auto'
+        }}
       >
+        {/* Fixed Center Pin */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
+          <div className="relative z-0 -mt-10">
+            <img src={ASSETS.MAP_PIN_ICON} alt="Pin" loading="eager" decoding="async" width="46" height="58" className="w-[46px] h-[58px]" />
+          </div>
+        </div>
+        {/* Helper Pill & Navigation Button Container */}
+        <div
+          className="absolute left-0 right-0 z-30 flex items-center justify-center pointer-events-none transition-all duration-300 ease-in-out"
+          style={{ bottom: `${bottomSheetHeight + 14}px` }}
+        >
         <div className="flex items-center pointer-events-auto">
           {/* Helper Pill */}
           <div
@@ -491,7 +505,10 @@ const AddAddress = () => {
       {/* Bottom Sheet */}
       <div
         ref={bottomSheetRef}
-        className={`fixed bottom-0 left-0 right-0 rounded-t-[32px] pt-0 safe-bottom z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] ${isDarkMode ? 'bg-background border-t border-white/10' : 'bg-background'}`}
+        className={`fixed bottom-0 left-0 right-0 rounded-t-[32px] pt-0 safe-bottom z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] transition-transform duration-300 ease-out ${isDarkMode ? 'bg-background border-t border-white/10' : 'bg-background'}`}
+        style={{
+          transform: (isSearchFocused || showDropdown) && searchQuery.trim().length > 0 ? 'translateY(100%)' : 'translateY(0)'
+        }}
       >
         <div className="flex flex-col items-center w-full">
           {/* Header Pill - 12px from top */}
@@ -730,6 +747,7 @@ const AddAddress = () => {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
