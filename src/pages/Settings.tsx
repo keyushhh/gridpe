@@ -20,6 +20,7 @@ import { Switch } from '@/components/ui/switch';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { useAppUpdateCheck } from '@/hooks/useAppUpdateCheck';
 
 type SecurityStatus = 'verified' | 'in_review' | 'pending' | 'incomplete';
 
@@ -111,6 +112,11 @@ const Settings = () => {
   // Ensure we have a default boolean for the switch (true for dark)
   const isDarkMode = useIsDarkMode();
   const { containerOverflow } = useWebScroll();
+  const { updateStatus, storeUrl } = useAppUpdateCheck('customer');
+  const [devForceUpdate, setDevForceUpdate] = useState(false);
+  const effectiveUpdateStatus = import.meta.env?.DEV && devForceUpdate ? 'soft' : updateStatus;
+  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const dragRef = useRef({ isDragging: false, startX: 0, startY: 0, hasDragged: false });
 
   // ... (keep previous lines)
 
@@ -392,6 +398,41 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Update Available Row */}
+        {effectiveUpdateStatus === 'soft' && (Capacitor.getPlatform() !== 'web' || devForceUpdate) && (
+          <div className="px-5 mt-4">
+            <div 
+              className={`flex justify-between items-center cursor-pointer p-3 rounded-xl active:scale-[0.98] transition-all ${isDarkMode ? 'border border-white/10' : ''}`}
+              style={{
+                border: !isDarkMode ? '0.5px solid rgba(82, 96, 254, 0.5)' : undefined,
+                borderLeft: '3px solid #5260FE',
+                backgroundColor: isDarkMode ? 'rgba(82,96,254,0.06)' : 'rgba(82,96,254,0.03)'
+              }}
+              onClick={() => {
+                // @ts-ignore
+                App.openUrl({ url: storeUrl });
+              }}
+            >
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'rgba(82,96,254,0.15)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5260FE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="16 12 12 8 8 12"></polyline>
+                    <line x1="12" y1="16" x2="12" y2="8"></line>
+                  </svg>
+                </div>
+                <div className="mx-3 flex-1 flex flex-col">
+                  <span className="text-[15px] font-semibold text-[#5260FE]">Update Available</span>
+                  <span className="text-[12px] font-normal" style={{ color: 'rgba(82,96,254,0.7)' }}>Tap to update to the latest version</span>
+                </div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5260FE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        )}
+
         {/* PAYMENT SETTINGS */}
         <div className="px-5 mt-6">
           <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
@@ -549,6 +590,53 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Dev Simulate Update */}
+      {import.meta.env?.DEV && (
+        <button
+          onPointerDown={(e) => {
+            dragRef.current.isDragging = true;
+            dragRef.current.startX = e.clientX - dragPos.x;
+            dragRef.current.startY = e.clientY - dragPos.y;
+            dragRef.current.hasDragged = false;
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={(e) => {
+            if (dragRef.current.isDragging) {
+              dragRef.current.hasDragged = true;
+              setDragPos({
+                x: e.clientX - dragRef.current.startX,
+                y: e.clientY - dragRef.current.startY
+              });
+            }
+          }}
+          onPointerUp={(e) => {
+            dragRef.current.isDragging = false;
+            e.currentTarget.releasePointerCapture(e.pointerId);
+            if (!dragRef.current.hasDragged) {
+              setDevForceUpdate(!devForceUpdate);
+            }
+          }}
+          style={{
+            position: 'fixed',
+            bottom: 'calc(env(safe-area-inset-bottom) + 16px)',
+            left: '16px',
+            zIndex: 9999,
+            backgroundColor: 'rgba(255,149,0,0.15)',
+            border: '1px solid rgba(255,149,0,0.4)',
+            padding: '6px 12px',
+            borderRadius: '9999px',
+            fontSize: '11px',
+            fontWeight: 600,
+            color: '#FF9500',
+            cursor: 'grab',
+            touchAction: 'none',
+            transform: `translate(${dragPos.x}px, ${dragPos.y}px)`
+          }}
+        >
+          {effectiveUpdateStatus === 'soft' ? "🔴 Reset Update" : "🟡 Simulate Update"}
+        </button>
+      )}
 
       {/* Logout Confirmation Bottom Sheet */}
       {showLogoutConfirmation && (

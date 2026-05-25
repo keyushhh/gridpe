@@ -198,6 +198,8 @@ import flashSvg from '@/assets/flash.svg';
 import frame_2095585539 from '@/assets/frame-2095585539.svg';
 import frame from '@/assets/frame.png';
 import freechip from '@/assets/free chip.png';
+import forceUpdateDark from '@/assets/force-update-dark.png';
+import forceUpdateLight from '@/assets/force-update-light.png';
 import fxconvert from '@/assets/fx convert.svg';
 import fxConvert from '@/assets/fx-convert.svg';
 import fxLight from '@/assets/fx-light.png';
@@ -736,6 +738,8 @@ export const ASSETS = {
   FRAME_2095585539: frame_2095585539,
   FRAME: frame,
   FREECHIP: freechip,
+  FORCE_UPDATE_DARK: forceUpdateDark,
+  FORCE_UPDATE_LIGHT: forceUpdateLight,
   FXCONVERT: fxconvert,
   FX_CONVERT: fxConvert,
   FX_LIGHT: fxLight,

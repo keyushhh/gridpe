@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useBackButtonHandler } from '@/hooks/useBackButtonHandler';
 import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 import { readStorage, writeStorage, removeStorage, storageKey } from '@/utils/storage';
 // Assets
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -59,11 +60,13 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       try {
         const permission = await checkLocationPermission();
         if (permission.location !== 'granted') {
-          // Attempt request? Or just silent fail?
-          // For now, silent fail or leave as placeholder
+          setCurrentLocationName('Location unavailable — enter manually');
           return;
         }
-        const position = await getCurrentPosition();
+        const position = await getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
         const { latitude, longitude } = position.coords;
         const result = await reverseGeocode(latitude, longitude);
         if (result) {
@@ -73,10 +76,12 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             result.address?.city ||
             'Current Location';
           setCurrentLocationName(area);
+        } else {
+          setCurrentLocationName('Location unavailable — enter manually');
         }
       } catch (e) {
         console.error('Failed to fetch current location name', e);
-        setCurrentLocationName('Location unavailable');
+        setCurrentLocationName('Location unavailable — enter manually');
       }
     };
     if (isOpen) {
@@ -178,13 +183,17 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       setSearchResults([]);
     }
   };
-  const handleOpenAddAddress = (locationState?: { lat: number; lng: number }) => {
+  const handleOpenAddAddress = (locationState?: { lat: number; lng: number } | any) => {
+    let cleanState = undefined;
+    if (locationState && typeof locationState === 'object' && !('nativeEvent' in locationState) && !('clientX' in locationState) && !('type' in locationState)) {
+       cleanState = locationState;
+    }
     const currentHistoryState = (window.history.state as Record<string, unknown>) || {};
     const updatedState = { ...currentHistoryState, fromAddressSheet: true } as Record<string, unknown>;
     delete (updatedState as Record<string, unknown>).modalOpen;
     window.history.replaceState(updatedState, '');
     navigate(ROUTES.ADD_ADDRESS, {
-      state: locationState,
+      state: cleanState,
     });
   };
 
@@ -195,13 +204,56 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     });
   };
 
+  const handleAddAddress = () => {
+    // Step 1: Close sheet first to avoid router context issues
+    onClose?.() // use whatever close prop is called
+    
+    // Step 2: Wait for sheet close animation then navigate
+    setTimeout(() => {
+      navigate('/add-address')
+    }, 300) // 300ms matches typical sheet close animation
+  };
+
+  const handleRequestAddress = async () => {
+    try {
+      // Check if sharing is available first
+      const canShare = await Share.canShare()
+      if (!canShare.value) {
+        // Fallback for web
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Share your address with me',
+            text: 'Hey! Can you share your delivery address? I need it to send something to you via Grid.Pe.',
+          })
+        }
+        return
+      }
+
+      await Share.share({
+        title: 'Share your address with me',
+        text: 'Hey! Can you share your delivery address with me? I need it to send something to you via Grid.Pe.',
+        dialogTitle: 'Request address via', // shown on Android share sheet
+      })
+    } catch (error) {
+      // User cancelled — silent fail on both platforms
+      if (import.meta.env.DEV) console.log('Share cancelled or failed')
+    }
+  };
+
   const handleUseCurrentLocation = async () => {
     try {
       const permission = await checkLocationPermission();
       if (permission.location !== 'granted') {
-        await requestLocationPermission();
+        const req = await requestLocationPermission();
+        if (req.location !== 'granted') {
+          showToaster('Please enable location access in settings.', 'error');
+          return;
+        }
       }
-      const position = await getCurrentPosition();
+      const position = await getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+      });
       const { latitude, longitude } = position.coords;
       const fullCode = olc.encode(latitude, longitude);
       // Reverse Geocode to get area name
@@ -431,7 +483,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             {/* 1. Add New Address */}
             <div
               className={`flex items-center justify-between cursor-pointer px-3 pt-3 pb-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-              onClick={handleOpenAddAddress}
+              onClick={handleAddAddress}
             >
               <div className="flex items-center gap-3">
                 <Plus size={20} color="#5260FE" strokeWidth={2.5} />
@@ -484,7 +536,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             {/* 3. Request Address */}
             <div
               className={`w-full flex items-center justify-between cursor-pointer px-3 py-2.5 ${isDarkMode ? 'active:bg-white/5' : 'active:bg-gray-50'}`}
-              onClick={() => {}} // No-op as requested
+              onClick={handleRequestAddress}
             >
               <div className="flex items-center gap-3">
                 <MessageSquareMore size={20} color="#5260FE" strokeWidth={2.5} />

@@ -283,7 +283,7 @@ const OrderHistory = () => {
     gcTime: 0,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('OrderHistory: Fetching orders. userId:', user?.id, 'showOnlyRewards:', showOnlyRewards);
+      if (import.meta.env.DEV) console.log('OrderHistory: Fetching orders', { showOnlyRewards });
       if (!user) return { active: [] as Order[], past: [] as Order[] };
 
       // Fetch Active Orders

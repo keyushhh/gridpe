@@ -39,6 +39,7 @@
 		"SecureStorage",
 		"SafeAreaPlugin",
 		"AppPlugin",
+		"CAPBrowserPlugin",
 		"GeolocationPlugin",
 		"HapticsPlugin",
 		"KeyboardPlugin",

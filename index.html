@@ -36,6 +36,7 @@
         var theme = window.localStorage.getItem('theme');
         var isDark = theme !== 'light';
         document.documentElement.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
+        document.documentElement.style.setProperty('--splash-bg', isDark ? '#0A0A12' : '#FFFFFF');
         if (document.body) {
           document.body.style.backgroundColor = isDark ? '#0A0A12' : '#FFFFFF';
         }

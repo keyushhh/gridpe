@@ -2,6 +2,7 @@ package com.gridpe.customer;
 
 import android.os.Bundle;
 import android.webkit.WebView;
+import android.view.WindowManager;
 import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 
@@ -11,6 +12,8 @@ public class MainActivity extends BridgeActivity {
         // Handle splash screen transition
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+        
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
         
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         

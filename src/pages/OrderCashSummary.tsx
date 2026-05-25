@@ -355,7 +355,7 @@ const OrderCashSummary = () => {
           dAddressText
         );
         // Diagnostic Log for Audit Check #4
-        console.log('[AUDIT] Final Order Payload:', payload);
+        if (import.meta.env.DEV) console.log('[AUDIT] Final Order Payload:', { ...payload, user_id: '[REDACTED]', customer_phone_number: '[REDACTED]' });
         const orderData = await createOrderDirectly(
           addressId!,
           customerPhoneNumber,

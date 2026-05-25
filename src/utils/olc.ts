@@ -9,4 +9,6 @@
  */
 import { OpenLocationCode } from 'open-location-code';
 
-export const olc = new OpenLocationCode();
+// The types from @types/open-location-code incorrectly assume encode/decode are static methods.
+// We cast to any to fix TS errors while preserving runtime behavior.
+export const olc: any = new OpenLocationCode();

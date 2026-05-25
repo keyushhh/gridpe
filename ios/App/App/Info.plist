@@ -72,6 +72,6 @@
     <key>NSLocalNetworkUsageDescription</key>
     <string>We need access to your local network to connect to the development server for live reloading during development.</string>
     <key>NSUserNotificationUsageDescription</key>
-    <string>Grid.Pe uses badges to show your active order status.</string>
+    <string>Grid.Pe sends you alerts for transactions, payments, orders and account activity.</string>
 </dict>
 </plist>

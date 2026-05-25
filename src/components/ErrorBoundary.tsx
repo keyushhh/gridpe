@@ -1,85 +1,148 @@
-import { ASSETS } from '@/constants/assets';
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-
-interface Props {
-  children: ReactNode;
-}
+import React from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 interface State {
   hasError: boolean;
+  errorMessage: string;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-  };
+class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
+  state = { hasError: false, errorMessage: '' };
 
-  public static getDerivedStateFromError(_: Error): State {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, errorMessage: error.message };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error in application:', error, errorInfo);
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    // Log to console in dev — swap for your analytics/Sentry later
+    console.error('[ErrorBoundary caught]', error, info.componentStack);
   }
 
-  private handleRestart = () => {
-    // Hard reset — same pattern as useAuth logout
-    window.location.replace('/');
+  handleReset = () => {
+    this.setState({ hasError: false, errorMessage: '' });
+    window.location.reload();
   };
 
-  private getIsDark = (): boolean => {
-    // Class components can't use hooks, so we check:
-    // 1. localStorage theme preference (set by next-themes)
-    // 2. System preference as fallback
-    if (typeof window === 'undefined') return true;
-    const stored = localStorage.getItem('theme');
-    if (stored === 'light') return false;
-    if (stored === 'dark') return true;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  };
-
-  public render() {
+  render() {
     if (this.state.hasError) {
-      const isDark = this.getIsDark();
-
-      return (
-        <div
-          className="flex flex-col items-center justify-center min-h-screen w-full p-6 text-center"
-          style={{ backgroundColor: isDark ? '#0a0a12' : '#FFFFFF' }}
-        >
-          <div className="mb-8 animate-fade-in">
-            <img
-              src={ASSETS.GRIDPE_LOGO}
-              alt="Grid.Pe"
-              className="w-20 h-20 mb-6 mx-auto"
-              style={{ filter: isDark ? 'none' : 'invert(1)' }}
-            />
-            <h1
-              className="text-2xl font-bold mb-2"
-              style={{ color: isDark ? '#FFFFFF' : '#000000' }}
-            >
-              Something went wrong
-            </h1>
-            <p
-              className="mb-8 max-w-[280px] mx-auto text-base leading-relaxed"
-              style={{ color: isDark ? '#a1a1aa' : '#71717a' }}
-            >
-              We encountered an unexpected glitch. Our engineers have been notified.
-            </p>
-          </div>
-          <Button
-            onClick={this.handleRestart}
-            className="w-full max-w-[280px] h-14 text-lg font-bold rounded-2xl bg-brand-primary hover:bg-[#4350E0] text-white shadow-[0_8px_16px_rgba(82,96,254,0.3)] transition-all active:scale-95"
-          >
-            Restart App
-          </Button>
-        </div>
-      );
+      return <ErrorFallback onReset={this.handleReset} errorMessage={this.state.errorMessage} />;
     }
-
     return this.props.children;
   }
 }
+
+const ErrorFallback: React.FC<{ onReset: () => void; errorMessage: string }> = ({ onReset, errorMessage }) => {
+  const isDarkMode = (typeof window !== 'undefined' && document.documentElement.classList.contains('dark')) || 
+                     (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  const primaryColor = '#5260FE';
+  const bgColor = isDarkMode ? '#0A0A12' : '#FFFFFF';
+  const textColor = isDarkMode ? '#FFFFFF' : '#0A0A12';
+  const subtextColor = isDarkMode ? 'rgba(255,255,255,0.45)' : 'rgba(10,10,18,0.45)';
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: bgColor,
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 999999,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          maxWidth: '430px',
+          padding: '0 24px',
+          marginTop: '-40px',
+        }}
+      >
+        <DotLottieReact
+          src="https://lottie.host/b7a68356-b7e4-4e05-a939-ff1b224650d6/CJBuGIhVa0.lottie"
+          loop
+          autoplay
+          style={{ width: 200, height: 200 }}
+        />
+        
+        <h1
+          style={{
+            fontSize: '26px',
+            fontWeight: 600,
+            letterSpacing: '-0.5px',
+            color: textColor,
+            marginTop: '8px',
+            marginBottom: '8px',
+            fontFamily: 'Satoshi, sans-serif',
+          }}
+        >
+          Something went wrong
+        </h1>
+        
+        <p
+          style={{
+            fontSize: '14px',
+            fontWeight: 400,
+            lineHeight: 1.65,
+            color: subtextColor,
+            maxWidth: '260px',
+            textAlign: 'center',
+            marginBottom: '32px',
+            fontFamily: 'Satoshi, sans-serif',
+          }}
+        >
+          We hit an unexpected error. This has been noted and we're on it.
+        </p>
+
+        <button
+          onClick={onReset}
+          style={{
+            width: '100%',
+            height: '52px',
+            borderRadius: '100px',
+            backgroundColor: primaryColor,
+            color: '#FFFFFF',
+            fontWeight: 600,
+            fontSize: '15px',
+            border: 'none',
+            fontFamily: 'Satoshi, sans-serif',
+            cursor: 'pointer',
+            transition: 'filter 0.15s ease',
+          }}
+          onPointerDown={(e) => { e.currentTarget.style.filter = 'brightness(0.85)'; }}
+          onPointerUp={(e) => { e.currentTarget.style.filter = 'brightness(1)'; }}
+          onPointerLeave={(e) => { e.currentTarget.style.filter = 'brightness(1)'; }}
+        >
+          Reload app
+        </button>
+
+        {((import.meta as any).env?.DEV || process.env.NODE_ENV === 'development') && errorMessage && (
+          <div
+            style={{
+              marginTop: '16px',
+              fontSize: '11px',
+              opacity: 0.3,
+              fontFamily: 'monospace',
+              color: textColor,
+              textAlign: 'center',
+              wordBreak: 'break-all',
+              maxWidth: '100%',
+            }}
+          >
+            {errorMessage.substring(0, 120)}{errorMessage.length > 120 ? '...' : ''}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default ErrorBoundary;

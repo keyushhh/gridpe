@@ -1,6 +1,18 @@
-import { PushNotifications } from '@capacitor/push-notifications';
+import { PushNotifications, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
+
+// Store notification data when app is opened from a tapped notification
+// before the router is ready
+let pendingNotificationData: Record<string, any> | null = null;
+
+export function getPendingNotificationData() {
+  return pendingNotificationData;
+}
+
+export function clearPendingNotificationData() {
+  pendingNotificationData = null;
+}
 
 export const registerPushNotifications = async (navigate?: (path: string) => void) => {
   if (!Capacitor.isNativePlatform()) {
@@ -29,21 +41,28 @@ export const registerPushNotifications = async (navigate?: (path: string) => voi
       console.error('Push registration error:', error);
     });
 
-    PushNotifications.addListener('pushNotificationReceived', notification => {
-      // App is in foreground — show a toast with notification title and body
+    // Notification received while app is in FOREGROUND — show in-app banner (handled separately)
+    PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
+      console.log('[Push] Received in foreground:', notification);
+      window.dispatchEvent(new CustomEvent('notification-received', { 
+        detail: {
+          title: notification.title,
+          body: notification.body,
+          data: notification.data
+        }
+      }));
     });
 
-    PushNotifications.addListener('pushNotificationActionPerformed', action => {
-      // User tapped the notification — navigate based on data payload
+    // Notification tapped while app is OPEN (foreground/background)
+    PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
       const data = action.notification.data;
-      if (data?.orderId) {
-        const path = `/order-tracking/${data.orderId}`;
-        if (Capacitor.isNativePlatform() && navigate) {
-          navigate(path);
-        } else {
-          window.location.href = path;
-        }
-      }
+      console.log('[Push] Notification tapped:', data);
+      
+      // Store for router to consume
+      pendingNotificationData = data;
+      
+      // Dispatch custom event so the router hook can react immediately
+      window.dispatchEvent(new CustomEvent('notification-tapped', { detail: data }));
     });
   } catch (e) {
     console.error('Push notification setup failed:', e);

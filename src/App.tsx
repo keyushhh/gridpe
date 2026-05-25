@@ -1,3 +1,9 @@
+/*
+ * LOGIC FLOW (Three Network States):
+ * 1. ONLINE: App renders normally, all routes accessible. (isConnected = true, isAirplaneMode = false)
+ * 2. OFFLINE (NoInternet Screen): Full screen blocking view. (isConnected = false)
+ * 3. AIRPLANE MODE (Overlay Banner): App remains accessible but banner drops down over UI. (isAirplaneMode = true)
+ */
 import { HashRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -17,6 +23,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { handleBackButtonGesture } from '@/hooks/useBackButtonHandler';
+import { useUser } from '@/contexts/UserContext';
 
 // Lazy-load page components
 const Index = lazy(() => import('./pages/Index'));
@@ -107,11 +114,25 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const DeliveryCaution = lazy(() => import('./pages/DeliveryCaution'));
 const NotAvailable = lazy(() => import('./pages/NotAvailable'));
 import { Button } from '@/components/ui/button';
+import { useNotificationNavigation } from './hooks/useNotificationNavigation';
+import { InAppNotificationBanner } from './components/InAppNotificationBanner';
+
+const NotificationSetup = () => {
+  useNotificationNavigation();
+  return null;
+};
 
 import { LiquidGlassFilters } from './components/ui/LiquidGlassFilters';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { TermsAcceptanceGate } from './components/TermsAcceptanceGate';
 import DevModeOverlay from './components/DevModeOverlay';
+import { useNetworkStatus } from './utils/useNetworkStatus';
+import NoInternet from './pages/NoInternet';
+import NetworkAlertBanner from './components/NetworkAlertBanner';
+import { useAppUpdateCheck } from './hooks/useAppUpdateCheck';
+import UpdatePrompt from './components/UpdatePrompt';
+import ForceUpdateSheet from './components/ForceUpdateSheet';
+import { PrivacyScreen } from './components/PrivacyScreen';
 
 const LocationTracker = ({
   currentPathRef,
@@ -182,10 +203,59 @@ const BackNavigationHandler = ({
   return null;
 };
 
-const App = () => {
+interface AppContentProps {
+  updateStatus: any;
+  storeUrl: string;
+  setUpdateStatus: (status: any) => void;
+}
+
+const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps) => {
   const isDarkMode = useIsDarkMode();
   const [isReloading, setIsReloading] = useState(false);
   const isOnline = useOnlineStatus();
+  
+  const { isConnected, isReconnecting } = useNetworkStatus();
+  const [simulateOffline, setSimulateOffline] = useState(false);
+
+  
+  const isDev = import.meta.env?.DEV;
+  const effectivelyConnected = isConnected && !simulateOffline;
+
+  const { isInitializing } = useUser();
+  const [fontsReady, setFontsReady] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+
+  // Fonts ready signal
+  useEffect(() => {
+    const el = document.documentElement;
+    if (!el.classList.contains('font-pending')) {
+      setFontsReady(true);
+      return;
+    }
+    const observer = new MutationObserver(() => {
+      if (!el.classList.contains('font-pending')) {
+        setFontsReady(true);
+        observer.disconnect();
+      }
+    });
+    observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Auth ready signal
+  useEffect(() => {
+    if (!isInitializing) {
+      setAuthReady(true);
+    }
+  }, [isInitializing]);
+
+  // Safety timeout
+  useEffect(() => {
+    const safety = setTimeout(() => {
+      setAuthReady(true);
+    }, 4000);
+    return () => clearTimeout(safety);
+  }, []);
 
   useLayoutEffect(() => {
     const reloading = localStorage.getItem('gridpe_reloading') === '1';
@@ -197,19 +267,23 @@ const App = () => {
         setIsReloading(false);
       });
     }
+  }, []);
 
-    // Hide splash screen after first paint
-    if (Capacitor.isNativePlatform()) {
-      const timer = setTimeout(async () => {
+  // Hide splash only when ALL signals are ready
+  useLayoutEffect(() => {
+    if (!fontsReady || !authReady) return;
+    if (!Capacitor.isNativePlatform()) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
         try {
-          await SplashScreen.hide();
+          await SplashScreen.hide({ fadeOutDuration: 200 });
         } catch (err) {
           console.warn('Failed to hide splash screen:', err);
         }
-      }, 500); // Give React enough time to mount the shell
-      return () => clearTimeout(timer);
-    }
-  }, []);
+      });
+    });
+  }, [fontsReady, authReady]);
 
 
 
@@ -220,7 +294,7 @@ const App = () => {
     // Sync Supabase session from OAuth deep links
     const listener = CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
       if (url.startsWith('gridpe://')) {
-        console.log('App opened with URL:', url); // Debug logging
+        if (import.meta.env.DEV) console.log('App opened with URL'); // Debug logging
 
         // Handle PKCE/Implicit flow tokens from URL fragments or queries
         if (url.includes('access_token') && url.includes('refresh_token')) {
@@ -311,8 +385,55 @@ const App = () => {
 
 
 
+
   return (
     <>
+      <UpdatePrompt status={updateStatus} storeUrl={storeUrl} onDismiss={() => setUpdateStatus('none')} />
+      {isDev && (
+        <>
+          <button
+            onClick={() => setUpdateStatus('force')}
+            style={{
+              position: 'fixed',
+              bottom: '16px',
+              right: '180px',
+              zIndex: 9999,
+              backgroundColor: '#131313',
+              color: '#FFFFFF',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              fontSize: '14px',
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            🔴 Force Update
+          </button>
+          <button
+            onClick={() => setSimulateOffline(true)}
+            style={{
+              position: 'fixed',
+              bottom: '16px',
+              right: '16px',
+              zIndex: 9999,
+              backgroundColor: '#EF4444',
+              color: '#FFFFFF',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              fontSize: '14px',
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Simulate Offline
+          </button>
+        </>
+      )}
+
       {isReloading && (
         <div 
           className="fixed inset-0 z-[99999]" 
@@ -323,7 +444,6 @@ const App = () => {
       baseColor={isDarkMode ? '#1A1C20' : '#F3F4F6'}
       highlightColor={isDarkMode ? '#2A2D35' : '#E5E7EB'}
     >
-      <ErrorBoundary>
         {/* ── Desktop wallpaper backdrop ── */}
         <div
           className="desktop-backdrop fixed inset-0 w-full h-full"
@@ -338,28 +458,29 @@ const App = () => {
             }}
           >
             <div className="app-container h-full w-full flex flex-col overflow-y-auto relative">
-              {!isOnline && (
-                <div
-                  className={`sticky top-0 z-[10000] w-full flex items-center justify-center gap-2 py-2 px-4 animate-in slide-in-from-top duration-300 ${isDarkMode ? 'bg-red-500/90 text-white' : 'bg-red-500 text-white shadow-md'}`}
-                >
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm font-medium">No internet connection</span>
-                </div>
-              )}
+              {!effectivelyConnected && <NetworkAlertBanner isDarkMode={isDarkMode} />}
               <GlobalCustomToaster />
               <LiquidGlassFilters />
               <TermsAcceptanceGate />
               <Suspense
                 fallback={
-                  <div className="flex items-center justify-center h-screen bg-background">
-                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                  </div>
+                  <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'var(--splash-bg, #0A0A12)',
+                    zIndex: 9999,
+                  }} />
                 }
               >
                 <Router>
+                  <NotificationSetup />
+                  <InAppNotificationBanner />
                   <LocationTracker currentPathRef={currentPathRef} />
                   <BackNavigationHandler currentPathRef={currentPathRef} />
                   <DevModeOverlay />
+                  {!effectivelyConnected ? (
+                    <NoInternet />
+                  ) : (
                   <Routes>
                     <Route path={ROUTES.INDEX} element={<Index />} />
                     <Route
@@ -1039,14 +1160,25 @@ const App = () => {
                     <Route path={ROUTES.LEGAL_PRIVACY} element={<LegalPage type="privacy" />} />
                     <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
                   </Routes>
+                  )}
                 </Router>
               </Suspense>
             </div>
           </main>
         </div>
-      </ErrorBoundary>
-    </SkeletonTheme>
+      </SkeletonTheme>
     </>
+  );
+};
+
+const App = () => {
+  const { updateStatus, storeUrl, setUpdateStatus } = useAppUpdateCheck('customer');
+  return (
+    <ErrorBoundary>
+      {updateStatus === 'force' && <ForceUpdateSheet storeUrl={storeUrl} onClose={() => setUpdateStatus('none')} />}
+      <PrivacyScreen />
+      <AppContent updateStatus={updateStatus} storeUrl={storeUrl} setUpdateStatus={setUpdateStatus} />
+    </ErrorBoundary>
   );
 };
 

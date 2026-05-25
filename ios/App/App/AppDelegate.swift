@@ -22,8 +22,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
-        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+        if let window = window {
+            // Remove any existing privacy view first
+            window.viewWithTag(9999)?.removeFromSuperview()
+            
+            let privacyView = UIView(frame: window.bounds)
+            privacyView.backgroundColor = UIColor(
+                red: 0.039, green: 0.039, blue: 0.071, alpha: 1.0
+            ) // #0A0A12
+            privacyView.tag = 9999
+            privacyView.autoresizingMask = [
+                .flexibleWidth, .flexibleHeight
+            ]
+            
+            // Grid.Pe wordmark centered
+            let label = UILabel()
+            label.text = "grid.pe"
+            label.textColor = UIColor.white.withAlphaComponent(0.9)
+            label.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+            label.translatesAutoresizingMaskIntoConstraints = false
+            privacyView.addSubview(label)
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(
+                    equalTo: privacyView.centerXAnchor
+                ),
+                label.centerYAnchor.constraint(
+                    equalTo: privacyView.centerYAnchor
+                )
+            ])
+            
+            window.addSubview(privacyView)
+            window.bringSubviewToFront(privacyView)
+        }
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
@@ -36,7 +66,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // Remove privacy overlay when returning to foreground
+        window?.viewWithTag(9999)?.removeFromSuperview()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

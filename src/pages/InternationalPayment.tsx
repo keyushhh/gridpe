@@ -269,7 +269,7 @@ const InternationalPayment = () => {
       setIsLoading(true);
       const currentUserId = profile.id;
 
-      console.log('[PayCard] Processing payment for userId:', currentUserId);
+      if (import.meta.env.DEV) console.log('[PayCard] Processing payment');
 
       const [expMonthStr, expYearStr] = expiry.split('/');
       const expiryMonth = expMonthStr;

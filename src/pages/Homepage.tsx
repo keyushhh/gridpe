@@ -34,7 +34,7 @@ import NightDeliveryState from '@/components/NightDeliveryState';
 import { motion, AnimatePresence } from 'framer-motion';
 import HomePageSkeleton from '@/components/skeletons/HomePageSkeleton';
 import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
-import { reverseGeocode } from '@/utils/geoUtils';
+import { reverseGeocode, getDistance } from '@/utils/geoUtils';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 const currencySymbols: Record<string, string> = {
@@ -144,6 +144,93 @@ const Homepage = () => {
   }, [routeLocation.state]);
   
   const queryClient = useQueryClient();
+
+  // Auto-detect location on mount
+  useEffect(() => {
+    const autoDetectLocation = async () => {
+      try {
+        const permission = await checkLocationPermission();
+        if (permission.location !== 'granted') return;
+        
+        const position = await getCurrentPosition({
+          enableHighAccuracy: false,
+          timeout: 8000,
+        });
+        
+        const { latitude, longitude } = position.coords;
+        
+        let currentLat = null;
+        let currentLng = null;
+        try {
+          const { value } = await Preferences.get({ key: 'gridpe_selected_address' });
+          if (value) {
+            const parsed = JSON.parse(value);
+            currentLat = parsed.latitude;
+            currentLng = parsed.longitude;
+          } else {
+            const storedStr = localStorage.getItem('gridpe_selected_address');
+            if (storedStr) {
+              const parsed = JSON.parse(storedStr);
+              currentLat = parsed.latitude;
+              currentLng = parsed.longitude;
+            }
+          }
+        } catch(e) {}
+        
+        if (currentLat && currentLng) {
+          const distanceMeters = getDistance(
+            currentLat,
+            currentLng,
+            latitude,
+            longitude
+          );
+          if (distanceMeters <= 500) return;
+        }
+        
+        const result = await reverseGeocode(latitude, longitude);
+        if (result) {
+          const area =
+            result.address?.suburb ||
+            result.address?.neighbourhood ||
+            result.address?.city ||
+            'Current Location';
+            
+          const fullCode = olc.encode(latitude, longitude);
+          const addressToSave: SavedAddress = {
+            id: '',
+            user_id: userId || '',
+            created_at: new Date().toISOString(),
+            label: null,
+            apartment: null,
+            contact_name: null,
+            contact_phone: null,
+            plus_code: fullCode,
+            tag: 'Current Location',
+            house: '',
+            area: area,
+            name: 'You',
+            phone: '',
+            displayAddress: result.display_name || `${area}, Current Location`,
+            city: result.address?.city || '',
+            state: result.address?.state || '',
+            postcode: result.address?.postcode || '',
+            latitude: latitude,
+            longitude: longitude,
+            plusCode: fullCode,
+          };
+          
+          setSavedAddress(addressToSave);
+          try { setActiveAddress?.(addressToSave); } catch {}
+          localStorage.setItem('gridpe_selected_address', JSON.stringify(addressToSave));
+          Preferences.set({ key: 'gridpe_selected_address', value: JSON.stringify(addressToSave) }).catch(() => {});
+        }
+      } catch (e) {
+        // Silent fail
+      }
+    };
+    
+    autoDetectLocation();
+  }, []);
 
   // Core Data Queries
   const activeOrderQuery = useQuery({

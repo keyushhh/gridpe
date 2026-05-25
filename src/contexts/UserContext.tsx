@@ -490,7 +490,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               !!profileData.is_passport_verified,
           }));
         } else {
-          console.warn('No profile found for user:', userId, '- Attempting to create one...');
+          if (import.meta.env.DEV) console.warn('No profile found for user - Attempting to create one...');
 
           // Auto-create a minimal profile if missing
           const { data: newProfile, error: createError } = await supabase
@@ -844,7 +844,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     const userId = state.profile.id;
 
-    console.log('[WalletActivation] Initializing wallet for user:', userId);
+    if (import.meta.env.DEV) console.log('[WalletActivation] Initializing wallet');
 
     // Create wallet row if it doesn't exist
     const { error: walletError } = await supabase.from('wallets').upsert(
