@@ -1,5 +1,6 @@
 import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import noInternetData from '../assets/no-internet.json';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
 
@@ -31,7 +32,7 @@ const NoInternet: React.FC = () => {
             }}
           >
             <DotLottieReact
-              src="/animations/No%20Internet%20Animation.lottie"
+              data={noInternetData}
               loop
               autoplay
               style={{ width: 220, height: 220, marginBottom: '8px' }}
