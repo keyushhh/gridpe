@@ -18,7 +18,6 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
-import { useVisualViewport } from '@/hooks/useVisualViewport';
 // Assets
 interface AddressState {
   id?: string; // Unique ID for editing
@@ -77,7 +76,6 @@ const AddAddressDetails = () => {
   const isFormValid =
     house.trim() !== '' && area.trim() !== '' && name.trim() !== '' && phone.trim().length === 10;
     
-  const { viewportHeight } = useVisualViewport();
   useEffect(() => {
     if (!initialState) return;
     // Construct base parts
@@ -280,7 +278,7 @@ const AddAddressDetails = () => {
             onFocus={(e) => {
               setTimeout(() => {
                 e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }, 150);
+              }, 300);
             }}
             className={getInputClass(value)}
           />
@@ -290,8 +288,7 @@ const AddAddressDetails = () => {
   };
   return (
     <div
-      className={`w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative transition-[height] duration-150 ease-out ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} text-brand-bg-deep`}
-      style={{ height: viewportHeight ? `${viewportHeight}px` : '100%' }}
+      className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} text-brand-bg-deep`}
     >
       {/* Background - Applied to a container to avoid scroll issues if needed, but fixed attachment works on scrollable too */}
       {isDarkMode && (
@@ -453,7 +450,7 @@ const AddAddressDetails = () => {
                 onFocus={(e) => {
                   setTimeout(() => {
                     e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }, 150);
+                  }, 300);
                 }}
                 className={`${getInputClass(plusCode)} flex-1 mr-2`}
               />
@@ -499,7 +496,7 @@ const AddAddressDetails = () => {
                   onFocus={(e) => {
                     setTimeout(() => {
                       e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 150);
+                    }, 300);
                   }}
                   className={getInputClass(phone)}
                   style={{ paddingRight: '30px' }}

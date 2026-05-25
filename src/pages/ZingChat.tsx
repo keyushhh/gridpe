@@ -6,7 +6,6 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
-import { useVisualViewport } from '@/hooks/useVisualViewport';
 interface Message {
   id: string;
   sender: 'zing' | 'user';
@@ -21,7 +20,6 @@ const ZingChat = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
   const { isSecureStorageReady } = useUser();
-  const { viewportHeight } = useVisualViewport();
 
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -149,9 +147,8 @@ const ZingChat = () => {
   };
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col safe-top transition-[height] duration-150 ease-out ${isDarkMode ? 'bg-background' : 'bg-background'}`}
+      className={`h-full w-full flex flex-col safe-top ${isDarkMode ? 'bg-background' : 'bg-background'}`}
       style={{
-        height: viewportHeight ? `${viewportHeight}px` : '100%',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
@@ -342,8 +339,8 @@ const ZingChat = () => {
           onChange={handleFileSelect}
         />
         <div
-          className={`w-full h-[48px] backdrop-blur-[25px] border rounded-full flex items-center px-[18px] transition-all duration-300 ${
-            isDarkMode ? 'bg-muted/30 border-border' : 'bg-background border-border shadow-sm'
+          className={`w-full h-[48px] rounded-full flex items-center px-6 transition-all duration-300 ${
+            isDarkMode ? 'bg-brand-card-dark border border-[#313131] shadow-sm' : 'bg-white border border-brand-border-light shadow-sm'
           }`}
         >
           <label htmlFor="chat-input" className="sr-only">
@@ -355,19 +352,24 @@ const ZingChat = () => {
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
             onKeyPress={e => e.key === 'Enter' && handleSend()}
-            placeholder="Start typing..."
+            onFocus={(e) => {
+              setTimeout(() => {
+                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 300);
+            }}
+            placeholder="Message Zing..."
             autoCorrect="on"
             autoComplete="on"
             autoCapitalize="sentences"
             spellCheck={true}
             enterKeyHint="send"
-            className={`bg-transparent text-[15px] font-normal font-satoshi flex-1 outline-none transition-colors ${
+            className={`bg-transparent text-[14px] font-medium font-satoshi flex-1 outline-none transition-colors ${
               isDarkMode
-                ? 'text-white placeholder:text-muted-foreground'
-                : 'text-black placeholder:text-muted-foreground'
+                ? 'text-white placeholder:text-white/50'
+                : 'text-brand-bg-deep placeholder:text-[#666666]'
             }`}
           />
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 ml-2">
             <button
               onClick={() => fileInputRef.current?.click()}
               className={`p-1 active:scale-95 hover:scale-105 transition-transform opacity-80 cursor-pointer ${!isDarkMode ? 'grayscale invert' : ''}`}
