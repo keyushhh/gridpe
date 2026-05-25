@@ -414,8 +414,8 @@ const AddAddress = () => {
       <div 
         className="transition-opacity duration-300 ease-in-out"
         style={{ 
-          opacity: (isSearchFocused || showDropdown) && searchQuery.trim().length > 0 ? 0 : 1,
-          pointerEvents: (isSearchFocused || showDropdown) && searchQuery.trim().length > 0 ? 'none' : 'auto'
+          opacity: isSearchFocused ? 0 : 1,
+          pointerEvents: isSearchFocused ? 'none' : 'auto'
         }}
       >
         {/* Fixed Center Pin */}
@@ -507,7 +507,7 @@ const AddAddress = () => {
         ref={bottomSheetRef}
         className={`fixed bottom-0 left-0 right-0 rounded-t-[32px] pt-0 safe-bottom z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] transition-transform duration-300 ease-out ${isDarkMode ? 'bg-background border-t border-white/10' : 'bg-background'}`}
         style={{
-          transform: (isSearchFocused || showDropdown) && searchQuery.trim().length > 0 ? 'translateY(100%)' : 'translateY(0)'
+          transform: isSearchFocused ? 'translateY(100%)' : 'translateY(0)'
         }}
       >
         <div className="flex flex-col items-center w-full">
