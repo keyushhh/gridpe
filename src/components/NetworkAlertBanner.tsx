@@ -9,39 +9,20 @@ const NetworkAlertBanner: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) =
     requestAnimationFrame(() => setShow(true));
   }, []);
 
-  const handleOpenSettings = async () => {
-    const platform = Capacitor.getPlatform()
-    
+  const openDeviceSettings = async () => {
     try {
-      if (platform === 'ios') {
-        // Try WiFi settings first, fall back to general settings
-        try {
-          // @ts-ignore
-          await App.openUrl({ url: 'App-Prefs:WIFI' })
-        } catch {
-          // @ts-ignore
-          await App.openUrl({ url: 'app-settings:' })
-        }
-      } else if (platform === 'android') {
-        // Android WiFi settings intent
-        try {
-          // @ts-ignore
-          await App.openUrl({ 
-            url: 'android.settings.WIFI_SETTINGS' 
-          })
-        } catch {
-          // Fallback to general wireless settings
-          // @ts-ignore
-          await App.openUrl({ 
-            url: 'android.settings.WIRELESS_SETTINGS' 
-          })
-        }
+      if (Capacitor.getPlatform() === 'ios') {
+        // @ts-ignore
+        await App.openUrl({ url: 'App-Prefs:' });
+      } else if (Capacitor.getPlatform() === 'android') {
+        // @ts-ignore
+        await App.openUrl({ url: 'android.settings.SETTINGS' });
       }
-      // Web: do nothing
     } catch {
-      if (import.meta.env.DEV) {
-        console.log('Could not open settings')
-      }
+      try {
+        // @ts-ignore
+        await App.openUrl({ url: 'app-settings:' });
+      } catch {}
     }
   };
 
@@ -81,29 +62,33 @@ const NetworkAlertBanner: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) =
           Turn Off Airplane Mode or Use Wi-Fi to Access Data
         </span>
       </div>
-      <button
-        onClick={handleOpenSettings}
-        style={{
-          marginTop: '12px',
-          width: '100%',
-          height: '44px',
-          backgroundColor: btnBg,
-          color: text1Color,
-          fontSize: '15px',
-          fontWeight: 600,
-          borderRadius: '12px',
-          border: 'none',
-          fontFamily: 'Satoshi, sans-serif',
-          cursor: 'pointer',
-          letterSpacing: '-0.1px',
-          transition: 'background 0.15s ease',
-        }}
-        onPointerDown={(e) => { e.currentTarget.style.backgroundColor = btnActiveBg; }}
-        onPointerUp={(e) => { e.currentTarget.style.backgroundColor = btnBg; }}
-        onPointerLeave={(e) => { e.currentTarget.style.backgroundColor = btnBg; }}
-      >
-        Open Settings
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <button
+          onClick={openDeviceSettings}
+          style={{
+            marginTop: '12px',
+            padding: '12px 28px',
+            backgroundColor: '#5260FE',
+            color: '#FFFFFF',
+            fontSize: '15px',
+            fontWeight: 600,
+            borderRadius: '9999px',
+            border: 'none',
+            fontFamily: 'Satoshi, sans-serif',
+            cursor: 'pointer',
+            letterSpacing: '-0.1px',
+            transition: 'filter 0.15s ease',
+            pointerEvents: 'auto',
+            position: 'relative',
+            zIndex: 10,
+          }}
+          onPointerDown={(e) => { e.currentTarget.style.filter = 'brightness(0.85)'; }}
+          onPointerUp={(e) => { e.currentTarget.style.filter = 'none'; }}
+          onPointerLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
+        >
+          Open Settings
+        </button>
+      </div>
     </div>
   );
 };
