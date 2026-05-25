@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { X, Search, Plus, MapPin, MessageSquareMore, Trash2 } from 'lucide-react';
+import { motion, PanInfo } from 'framer-motion';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
 import { olc } from '@/utils/olc';
@@ -49,7 +50,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { refreshLocation } = useLocationContext();
 
-  const handleCloseSafe = (e?: React.MouseEvent) => {
+  const handleCloseSafe = (e?: React.MouseEvent | TouchEvent | Event) => {
     if (e) {
       e.stopPropagation();
       e.preventDefault();
@@ -57,6 +58,14 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     if (isSubmitting) return;
     onClose();
   };
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // If swiped down fast enough, or dragged down far enough
+    if (info.velocity.y > 500 || info.offset.y > 150) {
+      handleCloseSafe();
+    }
+  };
+
   // Fetch Current Location Name on Mount/Open
   useEffect(() => {
     const fetchCurrentLocationName = async () => {
@@ -352,16 +361,16 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         className={`fixed inset-0 z-10 ${isAndroid ? 'bg-black/60 pointer-events-auto' : 'bg-black/40 backdrop-blur-[2px] pointer-events-auto'}`} 
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCloseSafe(e); }} 
       />
-      {/* Sheet */}
-      <div
+      <motion.div
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
         className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col pointer-events-auto z-20`}
         style={{
           boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.5)',
           paddingBottom: 'env(safe-area-inset-bottom)',
           willChange: 'transform',
-          transform: 'translateZ(0)',
-          /* Fully opaque solid backgrounds — Android WebView doesn't support
-             backdrop-filter and renders rgba/opacity as semi-transparent. */
           backgroundColor: isDarkMode ? '#0a0a0a' : '#ffffff',
           backdropFilter: 'none',
           WebkitBackdropFilter: 'none',
@@ -428,6 +437,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         <div
           className="flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-4"
           style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           {/* Static Actions Container */}
           <div
@@ -637,7 +647,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             })}
           </div>
         </div>
-      </div>
+      </motion.div>
       {/* Delete Confirmation Modal */}
       <ConfirmationModal
         isOpen={addressToDelete !== null}

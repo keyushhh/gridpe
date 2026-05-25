@@ -6,6 +6,7 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
+import { useVisualViewport } from '@/hooks/useVisualViewport';
 interface Message {
   id: string;
   sender: 'zing' | 'user';
@@ -20,6 +21,7 @@ const ZingChat = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
   const { isSecureStorageReady } = useUser();
+  const { viewportHeight } = useVisualViewport();
 
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -147,8 +149,9 @@ const ZingChat = () => {
   };
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col safe-top transition-colors duration-300 ${isDarkMode ? 'bg-background' : 'bg-background'}`}
+      className={`fixed inset-0 w-full flex flex-col safe-top transition-[height] duration-150 ease-out ${isDarkMode ? 'bg-background' : 'bg-background'}`}
       style={{
+        height: viewportHeight ? `${viewportHeight}px` : '100%',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
@@ -189,57 +192,59 @@ const ZingChat = () => {
           </span>
         </div>
         <div className="flex-1" />
-        <div className="flex flex-col gap-6">
-          {messages.map(msg => (
+        <div className="flex flex-col gap-[2px]">
+          {messages.map((msg, index) => {
+            const isConsecutive = index > 0 && messages[index - 1].sender === msg.sender;
+            const isLastInGroup = index === messages.length - 1 || messages[index + 1].sender !== msg.sender;
+            
+            return (
             <div
               key={msg.id}
-              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} ${!isConsecutive ? 'mt-4' : ''}`}
             >
               <div
-                className={`flex items-end gap-[12px] max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}
+                className={`flex items-end gap-2 w-full ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}
               >
                 {msg.sender === 'zing' ? (
-                  <div className="w-[60px] h-[60px] shrink-0 transform -mb-1 flex items-center justify-center">
+                  <div className={`w-[35px] shrink-0 flex items-center justify-center ${!isLastInGroup ? 'opacity-0 h-0 pointer-events-none' : 'h-auto mb-1'}`}>
                     {!hasInteracted ? (
-                      <DotLottieReact
-                        src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
-                        loop
-                        autoplay
-                      />
+                      <div className="w-[50px] h-[50px] transform scale-125">
+                        <DotLottieReact
+                          src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
+                          loop
+                          autoplay
+                        />
+                      </div>
                     ) : (
                       <img
                         src={ASSETS.ZING_SMALL}
                         alt="Zing"
-                        className="w-[35px] h-[24px] object-contain mb-2"
-                        width={35}
-                        height={24}
+                        className="w-[28px] h-auto object-contain"
                       />
                     )}
                   </div>
                 ) : (
-                  <div className="w-[40px] h-[40px] rounded-full overflow-hidden shrink-0 mb-2">
+                  <div className={`w-[28px] h-[28px] rounded-full overflow-hidden shrink-0 mb-1 ${!isLastInGroup ? 'opacity-0 h-0 pointer-events-none' : ''}`}>
                     <img
                       src={ASSETS.AVATAR}
                       alt="User"
                       className="w-full h-full object-cover"
-                      width={40}
-                      height={40}
                     />
                   </div>
                 )}
-                <div className="flex flex-col gap-2">
+                <div className={`flex flex-col gap-1 max-w-[75%]`}>
                   <div
-                    className={`p-4 flex flex-col gap-2 transition-colors ${
+                    className={`px-4 py-3 flex flex-col gap-2 transition-colors ${
                       msg.sender === 'zing'
-                        ? `w-fit max-w-[249px] backdrop-blur-[25px] rounded-t-[18px] rounded-br-[18px] rounded-bl-0 ${
+                        ? `w-fit rounded-2xl ${isConsecutive ? 'rounded-tl-md' : ''} ${!isLastInGroup ? 'rounded-bl-md' : 'rounded-bl-sm'} ${
                             isDarkMode
-                              ? 'bg-muted/50 border border-border'
-                              : 'bg-muted border border-border'
+                              ? 'bg-[#1A1A1A] border border-white/5 shadow-sm'
+                              : 'bg-white border border-gray-100 shadow-sm'
                           }`
-                        : `backdrop-blur-[25px] rounded-t-[18px] rounded-bl-[18px] rounded-br-0 ${
+                        : `rounded-2xl ${isConsecutive ? 'rounded-tr-md' : ''} ${!isLastInGroup ? 'rounded-br-md' : 'rounded-br-sm'} ${
                             isDarkMode
-                              ? 'bg-primary/20 border border-primary/20'
-                              : 'bg-primary/10 border border-primary/20'
+                              ? 'bg-brand-primary border border-brand-primary text-white shadow-sm'
+                              : 'bg-brand-primary border border-brand-primary text-white shadow-sm'
                           }`
                     }`}
                   >
@@ -255,14 +260,14 @@ const ZingChat = () => {
                     {msg.text.map((t, i) => (
                       <p
                         key={i}
-                        className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}
+                        className={`text-[14px] font-normal font-satoshi leading-snug ${msg.sender === 'user' ? 'text-white' : isDarkMode ? 'text-white/90' : 'text-black'}`}
                       >
                         {t}
                       </p>
                     ))}
                   </div>
-                  {msg.sender === 'user' && (
-                    <div className="flex items-center gap-1 self-end mr-1 mt-[-4px]">
+                  {msg.sender === 'user' && isLastInGroup && (
+                    <div className="flex items-center gap-1 self-end mr-1 mt-1">
                       <span
                         className={`text-[11px] font-medium font-satoshi transition-colors ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                       >
@@ -295,19 +300,22 @@ const ZingChat = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
           {isThinking && (
-            <div className="flex items-end gap-[12px] max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="w-[60px] h-[60px] shrink-0 transform -mb-1">
-                <DotLottieReact
-                  src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
-                  loop
-                  autoplay
-                />
+            <div className="flex items-end gap-2 max-w-[75%] animate-in fade-in slide-in-from-bottom-2 duration-300 mt-4">
+              <div className="w-[35px] shrink-0 flex items-center justify-center h-auto mb-1">
+                <div className="w-[50px] h-[50px] transform scale-125">
+                  <DotLottieReact
+                    src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
+                    loop
+                    autoplay
+                  />
+                </div>
               </div>
               <div
-                className={`backdrop-blur-[25px] border rounded-t-[18px] rounded-br-[18px] rounded-bl-0 px-4 py-3 flex gap-1 mb-2 transition-colors ${
-                  isDarkMode ? 'bg-muted/50 border-border' : 'bg-muted border-border'
+                className={`rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 mb-1 transition-colors ${
+                  isDarkMode ? 'bg-[#1A1A1A] border border-white/5 shadow-sm' : 'bg-white border border-gray-100 shadow-sm'
                 }`}
               >
                 <div
@@ -323,9 +331,9 @@ const ZingChat = () => {
             </div>
           )}
         </div>
-        <div className="h-[28px] shrink-0" />
+        <div className="h-[20px] shrink-0" />
       </main>
-      <div className="px-5 pb-20 relative z-20 mt-auto">
+      <div className="px-5 pb-5 relative z-20 mt-auto bg-transparent">
         <input
           type="file"
           ref={fileInputRef}
