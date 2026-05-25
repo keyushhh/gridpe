@@ -844,6 +844,11 @@ const Homepage = () => {
       setIsAddressSheetOpen(false);
     }
   };
+
+  const handleAddressSheetClose = () => {
+    if (isAddressModalOpen) return;
+    setIsAddressSheetOpen(false);
+  };
   const handleCancelOrder = async (orderId: string) => {
     try {
       await cancelOrder(orderId, 'User Request', 'Cancelled from homepage');
@@ -1131,7 +1136,7 @@ const Homepage = () => {
           <div className="pointer-events-auto">
             <AddressSelectionSheet
               isOpen={isAddressSheetOpen}
-              onClose={() => setIsAddressSheetOpen(false)}
+              onClose={handleAddressSheetClose}
               onAddressSelect={handleAddressSelect}
               onModalStateChange={setIsAddressModalOpen}
             />

@@ -340,8 +340,6 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         setSelectedAddress(null);
         setLastSelectedAddressId(null);
         onAddressSelect(null);
-        navigate(ROUTES.HOME);
-        onClose();
       } else if (selectedAddress && selectedAddress.id === idToDelete) {
         removeStorage('user_address', userId);
         removeStorage('last_selected_address_id', userId);
