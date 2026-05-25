@@ -153,8 +153,6 @@ const ZingChat = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat',
-        willChange: 'transform',
-        transform: 'translateZ(0)',
       }}
     >
       {/* Light Mode Purple Glow */}
@@ -350,6 +348,11 @@ const ZingChat = () => {
             onChange={e => setInputValue(e.target.value)}
             onKeyPress={e => e.key === 'Enter' && handleSend()}
             placeholder="Start typing..."
+            autoCorrect="on"
+            autoComplete="on"
+            autoCapitalize="sentences"
+            spellCheck={true}
+            enterKeyHint="send"
             className={`bg-transparent text-[15px] font-normal font-satoshi flex-1 outline-none transition-colors ${
               isDarkMode
                 ? 'text-white placeholder:text-muted-foreground'
