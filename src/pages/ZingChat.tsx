@@ -69,6 +69,7 @@ const ZingChat = () => {
         },
       });
       if (error) {
+        if (import.meta.env.DEV) console.error('[edge function error]', error);
         throw error;
       }
       const zingReply: Message = {

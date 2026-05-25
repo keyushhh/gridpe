@@ -88,7 +88,10 @@ export const initiateUPIDisbursement = async (amount: number, upiId: string, use
     body: { amount, upi_id: upiId, user_id: userId },
   });
 
-  if (error) throw error;
+  if (error) {
+    if (import.meta.env.DEV) console.error('[edge function error]', error);
+    throw error;
+  }
   return data;
 };
 
@@ -97,6 +100,9 @@ export const verifyVPA = async (upiId: string) => {
     body: { upi_id: upiId, action: 'verify-vpa' },
   });
 
-  if (error) throw error;
+  if (error) {
+    if (import.meta.env.DEV) console.error('[edge function error]', error);
+    throw error;
+  }
   return data;
 };

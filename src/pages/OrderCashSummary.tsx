@@ -16,6 +16,7 @@ import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
 import { SavedAddress } from '@/types';
 import { cn } from '@/lib/utils';
+import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const OrderCashSummary = () => {
   const { containerOverflow } = useWebScroll();
@@ -72,14 +73,14 @@ const OrderCashSummary = () => {
     return base;
   };
   React.useEffect(() => {
-    const addressStr = localStorage.getItem('gridpe_user_address');
-    if (addressStr) {
-      try {
-        setSavedAddress(JSON.parse(addressStr));
-      } catch (e) {
-        console.error('Failed to parse saved address', e);
+    const loadAddress = async () => {
+      await migrateAddressKey(ADDRESS_KEYS.USER_ADDRESS);
+      const address = await getAddress<SavedAddress>(ADDRESS_KEYS.USER_ADDRESS, null);
+      if (address) {
+        setSavedAddress(address);
       }
-    }
+    };
+    loadAddress();
   }, []);
   const handleAddressSelect = (address: SavedAddress | null) => {
     setSavedAddress(address);

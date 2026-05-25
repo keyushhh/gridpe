@@ -36,8 +36,12 @@ export const useAuth = () => {
       try {
         if (Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
           // Best-effort removals (some keys may not exist)
-          await SecureStorage.remove('gridpe_secure_user_state').catch(() => {});
-          await SecureStorage.remove('supabase.auth.token').catch(() => {});
+          await SecureStorage.remove('gridpe_secure_user_state').catch((err) => {
+            if (import.meta.env.DEV) console.warn('[non-critical]', err);
+          });
+          await SecureStorage.remove('supabase.auth.token').catch((err) => {
+            if (import.meta.env.DEV) console.warn('[non-critical]', err);
+          });
         }
       } catch (e) {
         // ignore failures

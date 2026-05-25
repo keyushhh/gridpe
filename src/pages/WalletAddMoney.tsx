@@ -228,7 +228,7 @@ const WalletAddMoney = () => {
                           }
                         );
                         if (error) {
-                          console.error('Functions error:', error);
+                          if (import.meta.env.DEV) console.error('[edge function error]', error);
                           let errorMessage = error.message || 'Failed to create payment order';
                           // Try to extract the specific error message from the response body
                           try {
@@ -288,6 +288,7 @@ const WalletAddMoney = () => {
                                   },
                                 });
                               if (verifyError) {
+                                if (import.meta.env.DEV) console.error('[edge function error]', verifyError);
                                 throw verifyError;
                               }
                               let verification = verifyData;

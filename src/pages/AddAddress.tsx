@@ -386,6 +386,10 @@ const AddAddress = () => {
                   <img
                     src={ASSETS.LOCATION_PIN}
                     alt="Pin"
+                    loading="lazy"
+                    decoding="async"
+                    width="12"
+                    height="12"
                     className="w-3 h-3 mr-3 opacity-70"
                     style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
                   />
@@ -403,7 +407,7 @@ const AddAddress = () => {
       {/* Fixed Center Pin */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
         <div className="relative z-0 -mt-10">
-          <img src={ASSETS.MAP_PIN_ICON} alt="Pin" className="w-[46px] h-[58px]" />
+          <img src={ASSETS.MAP_PIN_ICON} alt="Pin" loading="eager" decoding="async" width="46" height="58" className="w-[46px] h-[58px]" />
           {/* Light mode pulse effect could be added here if needed */}
         </div>
       </div>
@@ -431,6 +435,10 @@ const AddAddress = () => {
             <img
               src={ASSETS.LOCATION_PIN}
               alt="Snap"
+              loading="eager"
+              decoding="async"
+              width="16"
+              height="16"
               className="w-4 h-4 mr-2 cursor-pointer hover:scale-110 transition-transform"
               onClick={handleSnapToGrid}
               data-testid="helper-pin-icon"
@@ -466,6 +474,10 @@ const AddAddress = () => {
             <img
               src={ASSETS.NAVIGATION_ICON}
               alt="Nav"
+              loading="eager"
+              decoding="async"
+              width="18"
+              height="18"
               className="w-[18px] h-[18px] object-cover"
               style={
                 !isDarkMode
@@ -530,6 +542,10 @@ const AddAddress = () => {
                 <img
                   src={ASSETS.LOCATION_PIN}
                   alt="Loc"
+                  loading="eager"
+                  decoding="async"
+                  width="16"
+                  height="16"
                   className="w-4 h-4"
                   style={
                     !isDarkMode
@@ -584,6 +600,10 @@ const AddAddress = () => {
                           <img
                             src={ASSETS.COPY}
                             alt="Copy"
+                            loading="eager"
+                            decoding="async"
+                            width="12"
+                            height="12"
                             className="w-3 h-3"
                             style={
                               !isDarkMode
@@ -625,6 +645,8 @@ const AddAddress = () => {
                   <img
                     src={ASSETS.DISTANCE_CALLOUT}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-fill pointer-events-none"
                   />
                   <span

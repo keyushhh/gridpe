@@ -21,6 +21,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 const FxExchangeSummary = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -52,14 +53,14 @@ const FxExchangeSummary = () => {
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
   useEffect(() => {
-    const addressStr = localStorage.getItem('gridpe_user_address');
-    if (addressStr) {
-      try {
-        setSavedAddress(JSON.parse(addressStr));
-      } catch (e) {
-        console.error('Failed to parse saved address', e);
+    const loadAddress = async () => {
+      await migrateAddressKey(ADDRESS_KEYS.USER_ADDRESS);
+      const address = await getAddress<SavedAddress>(ADDRESS_KEYS.USER_ADDRESS, null);
+      if (address) {
+        setSavedAddress(address);
       }
-    }
+    };
+    loadAddress();
   }, []);
   const handleAddressSelect = (address: SavedAddress | null) => {
     setSavedAddress(address);
@@ -608,6 +609,10 @@ const FxExchangeSummary = () => {
               <img
                 src={ASSETS.LOCATION}
                 alt="Location"
+                loading="eager"
+                decoding="async"
+                width="22"
+                height="22"
                 className={`w-[22px] h-[22px] ${!isDarkMode ? 'brightness-0' : ''}`}
               />
             </div>
@@ -621,6 +626,10 @@ const FxExchangeSummary = () => {
                 <img
                   src={ASSETS.CHEVRON_DOWN}
                   alt="Toggle"
+                  loading="eager"
+                  decoding="async"
+                  width="16"
+                  height="16"
                   className={`w-4 h-4 ${!isDarkMode ? 'brightness-0' : ''}`}
                 />
               </div>
@@ -653,6 +662,10 @@ const FxExchangeSummary = () => {
               <img
                 src={ASSETS.DELIVERY}
                 alt="Delivery"
+                loading="eager"
+                decoding="async"
+                width="24"
+                height="24"
                 className={`w-6 h-6 ${!isDarkMode ? 'brightness-0' : ''}`}
               />
             </div>
@@ -676,6 +689,10 @@ const FxExchangeSummary = () => {
             <img
               src={ASSETS.CALENDAR}
               alt="Calendar"
+              loading="eager"
+              decoding="async"
+              width="18"
+              height="18"
               className={`w-[18px] h-[18px] ${!isDarkMode ? 'brightness-0' : ''}`}
             />
             <span
@@ -725,6 +742,10 @@ const FxExchangeSummary = () => {
             <img
               src={ASSETS.CHEVRON_DOWN}
               alt="Toggle"
+              loading="lazy"
+              decoding="async"
+              width="16"
+              height="16"
               className={`w-4 h-4 transition-transform ${isRewardsOpen ? 'rotate-180' : ''} ${!isDarkMode ? 'brightness-0' : ''}`}
             />
           </button>
@@ -750,7 +771,7 @@ const FxExchangeSummary = () => {
                   />
                   {rewardApplied && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <img src={ASSETS.CHECK} alt="Applied" className="w-4 h-4" />
+                      <img src={ASSETS.CHECK} alt="Applied" loading="lazy" decoding="async" width="16" height="16" className="w-4 h-4" />
                     </div>
                   )}
                 </div>
@@ -814,6 +835,10 @@ const FxExchangeSummary = () => {
                   <img
                     src={isDarkMode ? ASSETS.DELIVERY_TIP_INFO : ASSETS.INFO_TIP}
                     alt="Info"
+                    loading="lazy"
+                    decoding="async"
+                    width="16"
+                    height="16"
                     className={`w-full h-full ${!isDarkMode ? '' : 'brightness-0 opacity-100 invert-[38%] sepia-[68%] saturate-[3440%] hue-rotate-[197deg] brightness-[102%] contrast-[106%]'}`}
                     style={isDarkMode ? { filter: 'none' } : {}}
                   />
@@ -828,6 +853,10 @@ const FxExchangeSummary = () => {
                 <img
                   src={ASSETS.CHEVRON_DOWN}
                   alt="Collapse"
+                  loading="lazy"
+                  decoding="async"
+                  width="16"
+                  height="16"
                   className={`w-4 h-4 transition-transform duration-200 ${!isTipCollapsed ? 'rotate-180' : ''} ${!isDarkMode ? 'brightness-0' : ''}`}
                 />
               </button>
@@ -884,6 +913,10 @@ const FxExchangeSummary = () => {
                               <img
                                 src={ASSETS.CROSS_ICON}
                                 alt="Remove"
+                                loading="lazy"
+                                decoding="async"
+                                width="12"
+                                height="12"
                                 className="w-full h-full object-contain"
                               />
                             </div>
@@ -938,6 +971,10 @@ const FxExchangeSummary = () => {
                           <img
                             src={ASSETS.CROSS_ICON}
                             alt="Remove"
+                            loading="lazy"
+                            decoding="async"
+                            width="12"
+                            height="12"
                             className="w-full h-full object-contain"
                           />
                         </div>
@@ -1000,6 +1037,10 @@ const FxExchangeSummary = () => {
               <img
                 src={ASSETS.CHEVRON_SMALL}
                 alt="Toggle"
+                loading="lazy"
+                decoding="async"
+                width="24"
+                height="24"
                 className={`w-6 h-6 transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : 'rotate-0'} ${!isDarkMode ? 'invert' : ''}`}
               />
             </button>
@@ -1185,6 +1226,8 @@ const FxExchangeSummary = () => {
             <img
               src={isDarkMode ? ASSETS.CARD_ICO : ASSETS.CARD_ICON}
               alt="Delivery Tip"
+              loading="lazy"
+              decoding="async"
               className={`object-contain ${isDarkMode ? 'w-8 h-8 mb-4' : 'w-[30px] h-[30px] mt-[19px]'}`}
             />
             <h2

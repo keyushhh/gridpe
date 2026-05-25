@@ -15,6 +15,7 @@ import { useBackButtonHandler } from '@/hooks/useBackButtonHandler';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { readStorage, writeStorage, removeStorage, storageKey } from '@/utils/storage';
+import { getAddress, removeAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 // Assets
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -140,20 +141,21 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
             if (current.id) setLastSelectedAddressId(current.id);
           } else {
             // Check legacy key and migrate if it matches current user
-            const legacy = localStorage.getItem('gridpe_user_address');
+            await migrateAddressKey(ADDRESS_KEYS.USER_ADDRESS);
+            const legacy = await getAddress<SavedAddress>(ADDRESS_KEYS.USER_ADDRESS, null);
             if (legacy) {
               try {
-                const parsed = JSON.parse(legacy);
+                const parsed = legacy;
                 if (parsed?.user_id && parsed.user_id === userId) {
                   writeStorage('user_address', parsed, userId);
-                  removeStorage('gridpe_user_address', userId);
+                  await removeAddress(ADDRESS_KEYS.USER_ADDRESS);
                   setSelectedAddress(parsed);
                   if (parsed.id) setLastSelectedAddressId(parsed.id);
                 } else {
-                  localStorage.removeItem('gridpe_user_address');
+                  await removeAddress(ADDRESS_KEYS.USER_ADDRESS);
                 }
               } catch (e) {
-                localStorage.removeItem('gridpe_user_address');
+                await removeAddress(ADDRESS_KEYS.USER_ADDRESS);
                 console.warn('Corrupted local address data cleared.');
               }
             }

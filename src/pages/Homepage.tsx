@@ -36,7 +36,12 @@ import HomePageSkeleton from '@/components/skeletons/HomePageSkeleton';
 import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
 import { reverseGeocode, getDistance } from '@/utils/geoUtils';
 import { Capacitor } from '@capacitor/core';
-import { Preferences } from '@capacitor/preferences';
+import { 
+  getAddress, 
+  setAddress, 
+  migrateAddressKey, 
+  ADDRESS_KEYS 
+} from '@/utils/addressStorage';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -69,6 +74,8 @@ const currencySymbols: Record<string, string> = {
   USD: '$',
   ZAR: 'R',
 };
+
+
 const Homepage = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -162,18 +169,10 @@ const Homepage = () => {
         let currentLat = null;
         let currentLng = null;
         try {
-          const { value } = await Preferences.get({ key: 'gridpe_selected_address' });
-          if (value) {
-            const parsed = JSON.parse(value);
+          const parsed = await getAddress<any>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
+          if (parsed) {
             currentLat = parsed.latitude;
             currentLng = parsed.longitude;
-          } else {
-            const storedStr = localStorage.getItem('gridpe_selected_address');
-            if (storedStr) {
-              const parsed = JSON.parse(storedStr);
-              currentLat = parsed.latitude;
-              currentLng = parsed.longitude;
-            }
           }
         } catch(e) {}
         
@@ -221,8 +220,7 @@ const Homepage = () => {
           
           setSavedAddress(addressToSave);
           try { setActiveAddress?.(addressToSave); } catch {}
-          localStorage.setItem('gridpe_selected_address', JSON.stringify(addressToSave));
-          Preferences.set({ key: 'gridpe_selected_address', value: JSON.stringify(addressToSave) }).catch(() => {});
+          await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addressToSave);
         }
       } catch (e) {
         // Silent fail
@@ -519,8 +517,7 @@ const Homepage = () => {
             // Set as current location on Home screen
             setSavedAddress(addressToSave);
             try { setActiveAddress?.(addressToSave); } catch {}
-            localStorage.setItem('gridpe_selected_address', JSON.stringify(addressToSave));
-            Preferences.set({ key: 'gridpe_selected_address', value: JSON.stringify(addressToSave) }).catch(() => {});
+            await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addressToSave);
             
             // Prompt user to confirm or add a saved address
             setIsAddressSheetOpen(true);
@@ -553,55 +550,27 @@ const Homepage = () => {
   // Initial Load (LocalStorage / Context Sync)
   useEffect(() => {
     const loadAddress = async () => {
-      // Prefer Capacitor Preferences (reliable on Android) over localStorage
-      try {
-        const { value } = await Preferences.get({ key: 'gridpe_selected_address' });
-        if (value) {
-          const parsed = JSON.parse(value);
-          if (parsed) {
-            setSavedAddress(parsed);
-            try { setActiveAddress?.(parsed); } catch {}
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to read address from Preferences', e);
+      // Run Migrations first
+      await migrateAddressKey(ADDRESS_KEYS.SELECTED_ADDRESS);
+      await migrateAddressKey(ADDRESS_KEYS.USER_ADDRESS);
+
+      const parsed = await getAddress<SavedAddress | null>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
+      if (parsed) {
+        setSavedAddress(parsed);
+        try { setActiveAddress?.(parsed); } catch {}
+        return;
       }
 
-      // Fallback: try localStorage (for web or if Preferences is empty)
-      const selectedStr = localStorage.getItem('gridpe_selected_address');
-      if (selectedStr) {
-        try {
-          const parsed = JSON.parse(selectedStr);
-          if (parsed) {
-            setSavedAddress(parsed);
-            try { setActiveAddress?.(parsed); } catch {}
-            // Migrate to Preferences
-            Preferences.set({ key: 'gridpe_selected_address', value: selectedStr }).catch(() => {});
-            return;
-          }
-        } catch (e) {
-          console.error('Failed to parse gridpe_selected_address', e);
-        }
-      }
-      
       if (activeAddress) {
         setSavedAddress(activeAddress);
         return;
       }
-      
-      const addressStr = localStorage.getItem('gridpe_user_address');
-      if (addressStr) {
-        try {
-          const parsed = JSON.parse(addressStr);
-          if (parsed) {
-            setSavedAddress(parsed);
-            try { setActiveAddress?.(parsed); } catch {}
-            return;
-          }
-        } catch (e) {
-          console.error('Failed to parse saved address', e);
-        }
+
+      const parsedLegacy = await getAddress<SavedAddress | null>(ADDRESS_KEYS.USER_ADDRESS, null);
+      if (parsedLegacy) {
+        setSavedAddress(parsedLegacy);
+        try { setActiveAddress?.(parsedLegacy); } catch {}
+        return;
       }
       
       // FIRST INSTALL FLOW (when no address has ever been selected)
@@ -714,7 +683,7 @@ const Homepage = () => {
     if (!userId) return;
 
     const channel = supabase
-      .channel('homepage-order-sync')
+      .channel(`homepage-order-sync-${userId}`)
       .on(
         'postgres_changes',
         {

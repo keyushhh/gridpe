@@ -10,6 +10,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { SavedAddress } from '@/types';
+import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -62,30 +63,28 @@ const SavedAddresses = () => {
   useBackButtonHandler(showActionSheet, () => setShowActionSheet(false));
 
   useEffect(() => {
-    // Prefer active address from global context
-    if (activeAddressId) {
-      setSelectedAddressId(activeAddressId);
-      return;
-    }
-    // Fallback to namespaced storage for older sessions
-    try {
-      const lastId = localStorage.getItem('gridpe_last_selected_address_id');
-      if (lastId) {
-        setSelectedAddressId(lastId);
+    const initAddress = async () => {
+      // Prefer active address from global context
+      if (activeAddressId) {
+        setSelectedAddressId(activeAddressId);
         return;
       }
-      const addressStr = localStorage.getItem('gridpe_user_address');
-      if (addressStr) {
-        try {
-          const parsed = JSON.parse(addressStr);
-          if (parsed?.id) setSelectedAddressId(parsed.id);
-        } catch (e) {
-          console.error('Failed to parse active address', e);
+      // Fallback to namespaced storage for older sessions
+      try {
+        // TODO: migrate gridpe_last_selected_address_id to Preferences in future
+        const lastId = localStorage.getItem('gridpe_last_selected_address_id');
+        if (lastId) {
+          setSelectedAddressId(lastId);
+          return;
         }
+        await migrateAddressKey(ADDRESS_KEYS.USER_ADDRESS);
+        const parsed = await getAddress<SavedAddress>(ADDRESS_KEYS.USER_ADDRESS, null);
+        if (parsed?.id) setSelectedAddressId(parsed.id);
+      } catch (e) {
+        console.warn('Error reading legacy address keys', e);
       }
-    } catch (e) {
-      console.warn('Error reading legacy address keys', e);
-    }
+    };
+    initAddress();
   }, [activeAddressId]);
 
   useEffect(() => {

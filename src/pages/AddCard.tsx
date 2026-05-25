@@ -34,6 +34,7 @@ const AddCard = () => {
   const cvvInputRef = useRef<HTMLInputElement>(null);
   // Visibility (Eye Toggle)
   const [isEyeOpen, setIsEyeOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   // Sensitive Inputs
   const cardNumberProps = useSensitiveInput({
     isPermanentlyVisible: isEyeOpen,
@@ -142,17 +143,10 @@ const AddCard = () => {
     setErrors(newErrors);
     return isValid;
   };
-  const handleSaveCard = async () => {
-    hapticMedium();
-    if (!validateForm()) return;
-    if (!userId) {
-      toast.error('Authentication error. Please log in again.');
-      return;
-    }
+  const saveCardToDatabase = async (token: string) => {
     try {
       const [month, year] = expiry.split('/');
       const lastFour = cardNumberProps.value.slice(-4);
-      const mockToken = 'mock_tok_' + Math.random().toString(36).slice(2);
       const { data, error } = await supabase
         .from('bank_cards')
         .insert([
@@ -163,7 +157,7 @@ const AddCard = () => {
             expiry_month: month,
             expiry_year: '20' + year,
             card_type: cardType?.charAt(0).toUpperCase() + cardType?.slice(1) || 'Visa',
-            razorpay_token_id: mockToken,
+            razorpay_token_id: token,
           },
         ])
         .select();
@@ -171,9 +165,106 @@ const AddCard = () => {
       toast.success('Card saved successfully!');
       navigate(ROUTES.CARDS, { state: { cardAdded: true } });
     } catch (err) {
-      console.error('Save Card Error:', err);
       setErrors(prev => ({ ...prev, general: 'Failed to save card. Please try again.' }));
       toast.error('Failed to save card');
+    }
+  };
+
+  const handleSaveCard = async () => {
+    hapticMedium();
+    if (!validateForm()) return;
+    if (!userId) {
+      toast.error('Authentication error. Please log in again.');
+      return;
+    }
+
+    if (import.meta.env.DEV && !window.Razorpay) {
+      console.warn('[DEV ONLY] Razorpay not loaded — using mock token for local testing');
+      const mockToken = 'mock_tok_dev_' + Date.now();
+      await saveCardToDatabase(mockToken);
+      return;
+    }
+
+    if (!window.Razorpay) {
+      toast.error('Payment service not available. Please check your connection and try again.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const orderResponse = await fetch(
+        `${supabaseUrl}/functions/v1/razorpay-create-order`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseAnonKey,
+          },
+          body: JSON.stringify({
+            amount: 100, // ₹1 in paise — minimum authorization
+            currency: 'INR',
+            receipt: `card_save_${Date.now()}`,
+          }),
+        }
+      );
+
+      if (!orderResponse.ok) {
+        const err = await orderResponse.json();
+        throw new Error(err.error || 'Failed to initialize card saving');
+      }
+
+      const order = await orderResponse.json();
+
+      const paymentToken = await new Promise<string>((resolve, reject) => {
+        const options: import('@/types/razorpay').RazorpayOptions = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: 100,
+          currency: 'INR',
+          name: 'Grid.Pe',
+          description: 'Card verification (₹1 refundable)',
+          order_id: order.id,
+          theme: { color: '#5260FE' },
+          prefill: {
+            name: cardHolder,
+          },
+          handler: (response: import('@/types/razorpay').RazorpayPaymentResponse) => {
+            if (response.razorpay_payment_id) {
+              resolve(response.razorpay_payment_id);
+            } else {
+              reject(new Error('Card verification failed'));
+            }
+          },
+          modal: {
+            escape: false,
+            backdropclose: false,
+            ondismiss: () => {
+              reject(new Error('DISMISSED'));
+            },
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', (response: import('@/types/razorpay').RazorpayPaymentResponse) => {
+          reject(new Error(response.error?.description || 'Card verification failed'));
+        });
+        rzp.open();
+      });
+
+      await saveCardToDatabase(paymentToken);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === 'DISMISSED') {
+        setIsLoading(false);
+        return;
+      }
+      const message = err instanceof Error 
+        ? err.message 
+        : 'Failed to save card. Please try again.';
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
     }
   };
   const hasInput =
@@ -441,7 +532,7 @@ const AddCard = () => {
         <div className="mt-auto mt-6 safe-bottom pb-4">
           <Button
             onClick={handleSaveCard}
-            disabled={!hasInput || hasErrors}
+            disabled={!hasInput || hasErrors || isLoading}
             className="w-full h-[48px] rounded-full text-[16px] font-medium bg-brand-primary hover:bg-brand-primary/90 text-white disabled:opacity-50"
           >
             {hasInput ? 'Save Card' : 'Proceed'}

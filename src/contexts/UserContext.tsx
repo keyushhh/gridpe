@@ -8,18 +8,17 @@ import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { purgeOtherUsersStorage, readStorage, writeStorage, removeStorage } from '@/utils/storage';
+import { getAddress, setAddress, removeAddress, ADDRESS_KEYS } from '@/utils/addressStorage';
 import { SavedAddress } from '@/types';
 import { useNetworkStatus } from '@/utils/useNetworkStatus';
 
 /* ── Capacitor Preferences helpers for address persistence ──
  * localStorage is unreliable on Capacitor Android (WebView can purge it).
  * Preferences uses native SharedPreferences / NSUserDefaults instead. */
-const ADDR_PREF_KEY = 'gridpe_selected_address';
-
 async function getAddressPref(): Promise<SavedAddress | null> {
   try {
-    const { value } = await Preferences.get({ key: ADDR_PREF_KEY });
-    if (value) return JSON.parse(value) as SavedAddress;
+    const addr = await getAddress<SavedAddress>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
+    if (addr) return addr;
   } catch (e) {
     console.warn('Failed to read address from Preferences', e);
   }
@@ -28,7 +27,7 @@ async function getAddressPref(): Promise<SavedAddress | null> {
 
 async function setAddressPref(addr: SavedAddress): Promise<void> {
   try {
-    await Preferences.set({ key: ADDR_PREF_KEY, value: JSON.stringify(addr) });
+    await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addr);
   } catch (e) {
     console.warn('Failed to write address to Preferences', e);
   }
@@ -36,7 +35,7 @@ async function setAddressPref(addr: SavedAddress): Promise<void> {
 
 async function removeAddressPref(): Promise<void> {
   try {
-    await Preferences.remove({ key: ADDR_PREF_KEY });
+    await removeAddress(ADDRESS_KEYS.SELECTED_ADDRESS);
   } catch (e) {
     console.warn('Failed to remove address from Preferences', e);
   }
@@ -270,7 +269,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           phoneNumber,
           name,
           email
-        })).catch(err => console.error('SecureStorage persist failed:', err));
+        })).catch(err => {
+          if (import.meta.env.DEV) console.warn('[non-critical]', err);
+        });
       }
     } catch (error) {
       console.error('Failed to save user state:', error);
