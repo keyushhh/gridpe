@@ -20,6 +20,7 @@ import { getAddress, removeAddress, migrateAddressKey, ADDRESS_KEYS } from '@/ut
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { ROUTES } from '@/routes';
+import { useLocationContext } from '@/contexts/LocationContext';
 interface AddressSelectionSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -46,6 +47,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const [addressToDelete, setAddressToDelete] = useState<SavedAddress | null>(null);
   const [lastSelectedAddressId, setLastSelectedAddressId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { refreshLocation } = useLocationContext();
 
   const handleCloseSafe = (e?: React.MouseEvent) => {
     if (e) {
@@ -245,58 +247,8 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
 
   const handleUseCurrentLocation = async () => {
     try {
-      const permission = await checkLocationPermission();
-      if (permission.location !== 'granted') {
-        const req = await requestLocationPermission();
-        if (req.location !== 'granted') {
-          showToaster('Please enable location access in settings.', 'error');
-          return;
-        }
-      }
-      const position = await getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-      });
-      const { latitude, longitude } = position.coords;
-      const fullCode = olc.encode(latitude, longitude);
-      // Reverse Geocode to get area name
-      const result = await reverseGeocode(latitude, longitude);
-      if (result) {
-        const area =
-          result.address?.suburb ||
-          result.address?.neighbourhood ||
-          result.address?.city ||
-          'Current Location';
-        setCurrentLocationName(area);
-        const addressToSave: SavedAddress = {
-          id: '',
-          user_id: '',
-          created_at: new Date().toISOString(),
-          label: null,
-          apartment: null,
-          contact_name: null,
-          contact_phone: null,
-          plus_code: fullCode,
-          tag: 'Current Location',
-          house: '',
-          area: area,
-          name: 'You',
-          phone: '',
-          displayAddress: result.display_name,
-          city: result.address?.city || '',
-          state: result.address?.state || '',
-          postcode: result.address?.postcode || '',
-          latitude: latitude,
-          longitude: longitude,
-          plusCode: fullCode,
-        };
-        writeStorage('user_address', addressToSave, userId);
-        try { setActiveAddress?.(addressToSave); } catch {}
-        removeStorage('last_selected_address_id', userId);
-        setLastSelectedAddressId(null);
-        onAddressSelect(addressToSave);
-        onClose();
-      }
+      await refreshLocation();
+      onClose();
     } catch (e) {
       console.error('Location error', e);
     }

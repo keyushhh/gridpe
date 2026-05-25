@@ -42,6 +42,7 @@ import {
   migrateAddressKey, 
   ADDRESS_KEYS 
 } from '@/utils/addressStorage';
+import LocationDisplay from '@/components/LocationDisplay';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -1045,53 +1046,16 @@ const Homepage = () => {
               >
                 {/* Header Content Container (Individual interactive elements have pointer-events-auto) */}
                 <div className="px-5 pt-4 flex items-start justify-between relative pointer-events-auto z-50">
-                  <div className="space-y-1 max-w-[70%]">
-                    {savedAddress ? (
-                      <div className="flex items-center gap-1">
-                        {(() => {
-                          const IconProps = {
-                            size: 14,
-                            color: isDarkMode ? '#FFFFFF' : '#5260FE',
-                            strokeWidth: 2.5,
-                          };
-                          switch (savedAddress.tag) {
-                            case 'Home':
-                              return <Home {...IconProps} />;
-                            case 'Work':
-                              return <Briefcase {...IconProps} />;
-                            case 'Friends & Family':
-                              return <Users {...IconProps} />;
-                            case 'Other':
-                              return <MapPin {...IconProps} />;
-                            default:
-                              return <Home {...IconProps} />;
-                          }
-                        })()}
-                        <p className="text-[14px] font-bold text-foreground font-satoshi tracking-wider uppercase">
-                          {savedAddress.tag}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-[12px] text-black dark:text-muted-foreground font-medium tracking-wider uppercase">
-                        {name ? `HI, ${name.split(' ')[0]}` : 'DELIVERING'}
-                      </p>
-                    )}
-                    <button
-                      onClick={() => {
-                        if (hasSavedAddresses) {
-                          setIsAddressSheetOpen(true);
-                        } else {
-                          navigate(ROUTES.ADD_ADDRESS);
-                        }
-                      }}
-                      className="flex items-center gap-1 text-foreground text-[14px] font-normal w-full"
-                    >
-                      <span className="truncate block text-black dark:text-foreground">
-                        {getAddressDisplay()}
-                      </span>
-                      <ChevronDown className="w-4 h-4 shrink-0 text-black dark:text-foreground" />
-                    </button>
-                  </div>
+                  <LocationDisplay
+                    variant="header"
+                    onClick={() => {
+                      if (hasSavedAddresses) {
+                        setIsAddressSheetOpen(true);
+                      } else {
+                        navigate(ROUTES.ADD_ADDRESS);
+                      }
+                    }}
+                  />
                   <button onClick={() => navigate(ROUTES.SETTINGS)}>
                     <img loading="eager" decoding="async"                       src={profileImage || ASSETS.AVATAR}
                       alt="Profile"

@@ -133,6 +133,16 @@ import { useAppUpdateCheck } from './hooks/useAppUpdateCheck';
 import UpdatePrompt from './components/UpdatePrompt';
 import ForceUpdateSheet from './components/ForceUpdateSheet';
 import { PrivacyScreen } from './components/PrivacyScreen';
+import { LocationProvider, useLocationContext } from '@/contexts/LocationContext';
+import ReactSplashScreen from '@/components/ReactSplashScreen';
+
+const LocationBootstrapper = () => {
+  const { initializeLocation } = useLocationContext();
+  useEffect(() => {
+    initializeLocation();
+  }, [initializeLocation]);
+  return null;
+};
 
 const LocationTracker = ({
   currentPathRef,
@@ -277,38 +287,15 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
     }
   }, []);
 
-  // Hide splash only when ALL signals are ready
+  // Instantly hide native splash so ReactSplashScreen takes over
   useLayoutEffect(() => {
-    if (!fontsReady || !authReady) return;
     if (!Capacitor.isNativePlatform()) return;
-
+    if (hasHiddenSplash.current) return;
+    hasHiddenSplash.current = true;
     requestAnimationFrame(() => {
-      requestAnimationFrame(async () => {
-        if (hasHiddenSplash.current) return;
-        hasHiddenSplash.current = true;
-        try {
-          await SplashScreen.hide({ fadeOutDuration: 200 });
-        } catch (err) {
-          console.warn('Failed to hide splash screen:', err);
-        }
-      });
+      SplashScreen.hide({ fadeOutDuration: 0 }).catch(console.warn);
     });
-  }, [fontsReady, authReady]);
-
-  // Offline safety net: force splash hide after 3s if offline
-  useEffect(() => {
-    if (!isConnected) {
-      const offlineTimer = setTimeout(async () => {
-        if (!Capacitor.isNativePlatform()) return;
-        if (hasHiddenSplash.current) return;
-        hasHiddenSplash.current = true;
-        try {
-          await SplashScreen.hide({ fadeOutDuration: 200 });
-        } catch {}
-      }, 3000);
-      return () => clearTimeout(offlineTimer);
-    }
-  }, [isConnected]);
+  }, []);
 
 
 
@@ -1197,11 +1184,17 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
 
 const App = () => {
   const { updateStatus, storeUrl, setUpdateStatus } = useAppUpdateCheck('customer');
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
     <ErrorBoundary>
-      {updateStatus === 'force' && <ForceUpdateSheet storeUrl={storeUrl} onClose={() => setUpdateStatus('none')} />}
-      <PrivacyScreen />
-      <AppContent updateStatus={updateStatus} storeUrl={storeUrl} setUpdateStatus={setUpdateStatus} />
+      <LocationProvider>
+        <LocationBootstrapper />
+        {showSplash && <ReactSplashScreen onComplete={() => setShowSplash(false)} />}
+        {updateStatus === 'force' && <ForceUpdateSheet storeUrl={storeUrl} onClose={() => setUpdateStatus('none')} />}
+        <PrivacyScreen />
+        <AppContent updateStatus={updateStatus} storeUrl={storeUrl} setUpdateStatus={setUpdateStatus} />
+      </LocationProvider>
     </ErrorBoundary>
   );
 };
