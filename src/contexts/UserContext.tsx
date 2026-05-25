@@ -286,12 +286,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     async (overrideUserId?: string) => {
       try {
         const sessionPromise = supabase.auth.getSession();
+        let timer: any;
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 4000)
+          timer = setTimeout(() => reject(new Error('Session check timeout')), 4000)
         );
         let session: any;
         try {
           const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          clearTimeout(timer);
           session = data?.session;
         } catch (err) {
           if (import.meta.env.DEV) {
@@ -383,12 +385,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       try {
         if (state.isResetting) return;
         const sessionPromise = supabase.auth.getSession();
+        let timer: any;
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 4000)
+          timer = setTimeout(() => reject(new Error('Session check timeout')), 4000)
         );
         let session: any;
         try {
           const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          clearTimeout(timer);
           session = data?.session;
         } catch (err) {
           if (import.meta.env.DEV) {
@@ -562,12 +566,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         console.error('Failed to fetch profile data:', error);
         // Fallback but still calculate balance
         const sessionPromise = supabase.auth.getSession();
+        let timer: any;
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 4000)
+          timer = setTimeout(() => reject(new Error('Session check timeout')), 4000)
         );
         let session: any;
         try {
           const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          clearTimeout(timer);
           session = data?.session;
         } catch (err) {
           if (import.meta.env.DEV) {
@@ -588,10 +594,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const INIT_TIMEOUT_MS = 5000 // 5 seconds max
 
+    let initTimer: any;
     const initWithTimeout = Promise.race([
       fetchProfileData(), // existing init logic
       new Promise<void>((resolve) => 
-        setTimeout(() => {
+        initTimer = setTimeout(() => {
           if (import.meta.env.DEV) {
             console.warn('[UserContext] Init timed out — forcing ready state')
           }
@@ -599,6 +606,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }, INIT_TIMEOUT_MS)
       )
     ])
+    initWithTimeout.finally(() => clearTimeout(initTimer))
 
     initWithTimeout.finally(() => {
       // Always set isInitializing to false after this, regardless of outcome
@@ -868,17 +876,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (!addr) {
         // Clear stored values
-        try { removeStorage('user_address', userId); } catch (e) {}
-        try { removeStorage('last_selected_address_id', userId); } catch (e) {}
+        try { removeStorage('user_address', userId); } catch (err) {
+          if (import.meta.env.DEV) console.warn('[UserContext] cleanup error:', err);
+        }
+        try { removeStorage('last_selected_address_id', userId); } catch (err) {
+          if (import.meta.env.DEV) console.warn('[UserContext] cleanup error:', err);
+        }
         await removeAddressPref();
         setState(prev => ({ ...prev, activeAddress: null, activeAddressId: null }));
         return;
       }
 
       // Persist into namespaced storage
-      try { writeStorage('user_address', addr, userId); } catch (e) {}
+      try { writeStorage('user_address', addr, userId); } catch (err) {
+        if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
+      }
       if (addr.id) {
-        try { writeStorage('last_selected_address_id', addr.id, userId); } catch (e) {}
+        try { writeStorage('last_selected_address_id', addr.id, userId); } catch (err) {
+          if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
+        }
       }
 
       await setAddressPref(addr);
@@ -887,9 +903,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error('Failed to set active address:', err);
       if (addr) {
-        setAddressPref(addr).catch(() => {});
+        setAddressPref(addr).catch((err) => {
+          if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
+        });
       } else {
-        removeAddressPref().catch(() => {});
+        removeAddressPref().catch((err) => {
+          if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
+        });
       }
       setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
     }
@@ -909,12 +929,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, isResetting: true }));
 
     // Small delay to allow pending requests to observe isResetting and abort
-    setTimeout(() => {
+    const resetTimer = setTimeout(() => {
       try {
         localStorage.removeItem(USER_STORAGE_KEY);
-      } catch (e) {}
+      } catch (err) {
+        if (import.meta.env.DEV) console.warn('[UserContext] cleanup error:', err);
+      }
       setState(defaultState);
     }, 50);
+    if (false) clearTimeout(resetTimer);
   }, []);
 
   const activateWallet = useCallback(async () => {

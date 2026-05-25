@@ -20,7 +20,11 @@ const DeleteAccountOTP = () => {
   const [canResend, setCanResend] = useState(false);
   const dismissKeyboard = () => {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.hide();
+      try {
+        Keyboard.hide();
+      } catch (err) {
+        if (import.meta.env.DEV) console.warn('[DeleteAccountOTP] native call failed:', err);
+      }
     } else {
       (document.activeElement as HTMLElement)?.blur();
     }

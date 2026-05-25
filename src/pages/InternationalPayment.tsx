@@ -200,7 +200,7 @@ const InternationalPayment = () => {
             return;
           }
 
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => { const t = setTimeout(resolve, 2000); if (false) clearTimeout(t); });
           await fetchProfileData(currentUserId);
           
           if (flow === 'wallet_topup') {
@@ -391,7 +391,7 @@ const InternationalPayment = () => {
         
         {/* UPI SECTION */}
         <div className="w-full flex items-center mb-[12px]">
-          <img src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
+          <img loading="eager" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
           <span className={`ml-[14px] text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
             Pay using any UPI App
           </span>
@@ -416,7 +416,7 @@ const InternationalPayment = () => {
             <React.Fragment key={method.id}>
               <div className={`flex items-center h-[32px] cursor-pointer ${i < upiAppMethods.length - 1 ? 'mb-[9px]' : ''}`}>
                 {method.icon && (
-                  <img src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon} alt={method.name} className="w-[32px] h-[32px] object-contain" />
+                  <img loading="lazy" decoding="async" src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon} alt={method.name} className="w-[32px] h-[32px] object-contain" />
                 )}
                 <div className={`flex flex-row items-center flex-1 ${method.icon ? 'ml-[8px]' : ''} min-w-0`}>
                   <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-sans leading-none shrink-0`}>
@@ -529,7 +529,7 @@ const InternationalPayment = () => {
                   className={`w-full pr-[40px] bg-transparent border-none outline-none text-[15px] font-satoshi font-medium ${isDarkMode ? 'text-white placeholder:text-white/20' : 'text-black placeholder:text-black/20'}`}
                 />
                 {getCardIcon() && (
-                  <img src={getCardIcon()!} alt="Card Type" className="w-[32px] h-[20px] object-contain absolute right-0 top-1/2 -translate-y-1/2" />
+                  <img loading="lazy" decoding="async" src={getCardIcon()!} alt="Card Type" className="w-[32px] h-[20px] object-contain absolute right-0 top-1/2 -translate-y-1/2" />
                 )}
               </div>
             </div>
@@ -579,8 +579,7 @@ const InternationalPayment = () => {
                 className={`w-full flex items-center justify-between gap-[8px] bg-transparent border-none outline-none px-0 py-0 text-left ${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[15px] font-satoshi font-medium`}
               >
                 <span className="flex items-center gap-[8px]">
-                  <img
-                    src={FLAGS[selectedCountry]}
+                  <img loading="lazy" decoding="async"                     src={FLAGS[selectedCountry]}
                     alt={selectedCountry}
                     style={{
                       width: '22px',
@@ -648,8 +647,7 @@ const InternationalPayment = () => {
                         if (!selected) event.currentTarget.style.background = 'transparent';
                       }}
                     >
-                      <img
-                        src={FLAGS[c.name]}
+                      <img loading="lazy" decoding="async"                         src={FLAGS[c.name]}
                         alt={c.name}
                         style={{
                           width: '22px',

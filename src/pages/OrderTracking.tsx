@@ -315,8 +315,7 @@ const OrderTracking = () => {
             </Source>
             <Marker latitude={currentLat} longitude={currentLng}>
               <div className="animate-pulse">
-                <img
-                  src={ASSETS.CURRENT_LOCATION}
+                <img loading="eager" decoding="async"                   src={ASSETS.CURRENT_LOCATION}
                   alt="User"
                   className="w-6 h-6"
                   width={24}
@@ -325,8 +324,7 @@ const OrderTracking = () => {
               </div>
             </Marker>
             <Marker latitude={riderLat} longitude={riderLng}>
-              <img
-                src={ASSETS.RIDER}
+              <img loading="lazy" decoding="async"                 src={ASSETS.RIDER}
                 alt="Rider"
                 className="w-8 h-8 drop-shadow-md"
                 width={32}
@@ -372,8 +370,7 @@ const OrderTracking = () => {
                 height: '31px',
               }}
             >
-              <img
-                src={isDelivered ? ASSETS.VERIFIED_CIRCLE : ASSETS.ARRIVING}
+              <img loading="lazy" decoding="async"                 src={isDelivered ? ASSETS.VERIFIED_CIRCLE : ASSETS.ARRIVING}
                 alt="StatusIcon"
                 className="w-full h-full"
                 style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined}
@@ -439,8 +436,7 @@ const OrderTracking = () => {
             <div className="flex items-start gap-[12px] mb-4">
               {/* Photo Frame */}
               <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
-                <img
-                  src={(() => {
+                <img loading="lazy" decoding="async"                   src={(() => {
                     const rider = order?.rider;
                     const photo = rider?.kyc_photo || rider?.profile_photo;
                     if (!photo) return ASSETS.AVATAR;
@@ -452,7 +448,7 @@ const OrderTracking = () => {
                 />
                 {/* Verified Tag Bar */}
                 <div className="absolute bottom-0 left-0 right-0 bg-brand-success-vibrant h-[18px] flex items-center justify-center gap-[6px] z-10">
-                  <img src={ASSETS.VERIFIED} alt="V" className="w-[12px] h-[12px]" />
+                  <img loading="lazy" decoding="async" src={ASSETS.VERIFIED} alt="V" className="w-[12px] h-[12px]" />
                   <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
                 </div>
               </div>
@@ -468,8 +464,7 @@ const OrderTracking = () => {
                     </p>
                   </div>
                   <button className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20">
-                    <img
-                      src={ASSETS.CALL}
+                    <img loading="lazy" decoding="async"                       src={ASSETS.CALL}
                       alt="Call"
                       className="w-full h-full"
                       style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
@@ -561,8 +556,7 @@ const OrderTracking = () => {
           {/* OTP Status Row */}
           <div className="flex items-center w-full mt-[12px]">
             <div className="flex items-center gap-3">
-              <img
-                src={isOtpVerified ? ASSETS.VERIFIED_CIRCLE : ASSETS.AWAITING}
+              <img loading="lazy" decoding="async"                 src={isOtpVerified ? ASSETS.VERIFIED_CIRCLE : ASSETS.AWAITING}
                 alt="Status"
                 className="w-[20px] h-[20px]"
               />

@@ -353,7 +353,7 @@ const SubscriptionSummary = () => {
               {chipContent[tier] || 'FREE'}
             </span>
             {tier !== 'Starter' && (
-              <img src={ASSETS.AUTO_REFRESH} alt="" className="w-[10px] h-[10px]" />
+              <img loading="eager" decoding="async" src={ASSETS.AUTO_REFRESH} alt="" className="w-[10px] h-[10px]" />
             )}
           </div>
         </div>

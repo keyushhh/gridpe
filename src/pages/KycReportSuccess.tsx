@@ -35,7 +35,7 @@ const KycReportSuccess = () => {
         </h1>
         {/* Status Icon - 21px below header */}
         <div className="mt-[21px] flex items-center justify-center">
-          <img src={ASSETS.CHECK_ICON} alt="Success" style={{ width: '62px', height: '62px' }} />
+          <img loading="eager" decoding="async" src={ASSETS.CHECK_ICON} alt="Success" style={{ width: '62px', height: '62px' }} />
         </div>
         {/* Sub-text - 35px below icon */}
         <p className="mt-[35px] text-white text-[18px] font-bold font-satoshi text-center leading-[140%]">

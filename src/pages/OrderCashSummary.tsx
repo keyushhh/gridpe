@@ -484,8 +484,7 @@ const OrderCashSummary = () => {
                   : {}
               }
             >
-              <img
-                src={ASSETS.LOCATION}
+              <img loading="eager" decoding="async"                 src={ASSETS.LOCATION}
                 alt="Location"
                 className={`w-[22px] h-[22px] ${!isDarkMode ? 'brightness-0' : ''}`}
               />
@@ -497,8 +496,7 @@ const OrderCashSummary = () => {
                 >
                   {savedAddress ? savedAddress.tag : 'No Address'}
                 </span>
-                <img
-                  src={ASSETS.CHEVRON_DOWN}
+                <img loading="lazy" decoding="async"                   src={ASSETS.CHEVRON_DOWN}
                   alt="Toggle"
                   className={`w-4 h-4 ${!isDarkMode ? 'brightness-0' : ''}`}
                 />
@@ -529,8 +527,7 @@ const OrderCashSummary = () => {
                   : {}
               }
             >
-              <img
-                src={ASSETS.DELIVERY}
+              <img loading="lazy" decoding="async"                 src={ASSETS.DELIVERY}
                 alt="Delivery"
                 className={`w-[24px] h-[24px] ${!isDarkMode ? 'brightness-0' : ''}`}
               />
@@ -561,8 +558,7 @@ const OrderCashSummary = () => {
                 }}
                 className="p-1 hover:opacity-70 transition-opacity"
               >
-                <img
-                  src={ASSETS.CROSS_ICON}
+                <img loading="lazy" decoding="async"                   src={ASSETS.CROSS_ICON}
                   alt="Clear"
                   className={`w-4 h-4 ${!isDarkMode ? 'brightness-0' : ''}`}
                 />
@@ -574,8 +570,7 @@ const OrderCashSummary = () => {
                 navigate(ROUTES.SCHEDULE_DELIVERY, { state: { amount, isScheduledFlow } })
               }
             >
-              <img
-                src={ASSETS.CALENDAR}
+              <img loading="lazy" decoding="async"                 src={ASSETS.CALENDAR}
                 alt="Calendar"
                 className={`w-[18px] h-[18px] ${!isDarkMode ? 'brightness-0' : ''}`}
               />
@@ -636,8 +631,7 @@ const OrderCashSummary = () => {
             >
               Redeem Reward Points
             </span>
-            <img
-              src={ASSETS.CHEVRON_DOWN}
+            <img loading="lazy" decoding="async"               src={ASSETS.CHEVRON_DOWN}
               alt="Toggle"
               className={`w-4 h-4 transition-transform ${isRewardsOpen ? 'rotate-180' : ''} ${!isDarkMode ? 'brightness-0' : ''}`}
             />
@@ -661,7 +655,7 @@ const OrderCashSummary = () => {
                   />
                   {rewardApplied && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <img src={ASSETS.CHECK} alt="Applied" className="w-4 h-4" />
+                      <img loading="lazy" decoding="async" src={ASSETS.CHECK} alt="Applied" className="w-4 h-4" />
                     </div>
                   )}
                 </div>
@@ -722,8 +716,7 @@ const OrderCashSummary = () => {
                   }}
                   className="flex items-center justify-center w-[16px] h-[16px]"
                 >
-                  <img
-                    src={isDarkMode ? ASSETS.DELIVERY_TIP_INFO : ASSETS.INFO_TIP}
+                  <img loading="lazy" decoding="async"                     src={isDarkMode ? ASSETS.DELIVERY_TIP_INFO : ASSETS.INFO_TIP}
                     alt="Info"
                     className={`w-full h-full ${!isDarkMode ? '' : 'brightness-0 opacity-100 invert-[38%] sepia-[68%] saturate-[3440%] hue-rotate-[197deg] brightness-[102%] contrast-[106%]'}`}
                     style={isDarkMode ? { filter: 'none' } : {}}
@@ -736,8 +729,7 @@ const OrderCashSummary = () => {
                   handleCollapseTip();
                 }}
               >
-                <img
-                  src={ASSETS.CHEVRON_DOWN}
+                <img loading="lazy" decoding="async"                   src={ASSETS.CHEVRON_DOWN}
                   alt="Collapse"
                   className={`w-4 h-4 transition-transform duration-200 ${!isTipCollapsed ? 'rotate-180' : ''} ${!isDarkMode ? 'brightness-0' : ''}`}
                 />
@@ -812,8 +804,7 @@ const OrderCashSummary = () => {
               backgroundColor: 'transparent',
             }}
           >
-            <img
-              src={isDarkMode ? ASSETS.CARD_ICO : ASSETS.CARD_ICON}
+            <img loading="lazy" decoding="async"               src={isDarkMode ? ASSETS.CARD_ICO : ASSETS.CARD_ICON}
               alt="Delivery Tip"
               className={`object-contain ${isDarkMode ? 'w-8 h-8 mb-4' : 'w-[30px] h-[30px] mt-[19px]'}`}
             />

@@ -174,7 +174,9 @@ const Homepage = () => {
             currentLat = parsed.latitude;
             currentLng = parsed.longitude;
           }
-        } catch(e) {}
+        } catch (err) {
+          if (import.meta.env.DEV) console.warn('[Homepage] non-critical error:', err);
+        }
         
         if (currentLat && currentLng) {
           const distanceMeters = getDistance(
@@ -1091,8 +1093,7 @@ const Homepage = () => {
                     </button>
                   </div>
                   <button onClick={() => navigate(ROUTES.SETTINGS)}>
-                    <img
-                      src={profileImage || ASSETS.AVATAR}
+                    <img loading="eager" decoding="async"                       src={profileImage || ASSETS.AVATAR}
                       alt="Profile"
                       className="w-12 h-12 rounded-full object-cover"
                     />
@@ -1159,7 +1160,7 @@ const Homepage = () => {
                   )}
                   style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
                 >
-                  <img src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
+                  <img loading="lazy" decoding="async" src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
                   <span
                     className={cn(
                       'font-medium',
@@ -1201,7 +1202,7 @@ const Homepage = () => {
               {balanceAlert && (
                 <div className="mx-5 mt-6 p-4 rounded-[13px] bg-brand-error/10 border border-brand-error/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
                   <div className="w-10 h-10 rounded-full bg-brand-error/20 flex items-center justify-center shrink-0">
-                    <img src={ASSETS.FAILED} alt="Alert" className="w-6 h-6" />
+                    <img loading="lazy" decoding="async" src={ASSETS.FAILED} alt="Alert" className="w-6 h-6" />
                   </div>
                   <div className="flex-1 text-left">
                     <p className="text-[#FF4248] text-[14px] font-bold font-satoshi leading-tight">
@@ -1230,7 +1231,7 @@ const Homepage = () => {
                       backgroundRepeat: 'no-repeat',
                     }}
                   >
-                    <img src={iconAddMoney} alt="Add" className="w-[22px] h-[22px]" />
+                    <img loading="lazy" decoding="async" src={iconAddMoney} alt="Add" className="w-[22px] h-[22px]" />
                   </div>
                   <span className="text-foreground text-[12px] font-medium font-satoshi">
                     Add Money
@@ -1270,7 +1271,7 @@ const Homepage = () => {
                         backgroundRepeat: 'no-repeat',
                       }}
                     >
-                      <img src={action.icon} alt={action.label} className="w-[22px] h-[22px]" />
+                      <img loading="lazy" decoding="async" src={action.icon} alt={action.label} className="w-[22px] h-[22px]" />
                     </div>
                     <span className="text-foreground text-[12px] font-medium font-satoshi">
                       {action.label}
@@ -1331,8 +1332,7 @@ const Homepage = () => {
                       >
                         <Marker latitude={mapCenterLat} longitude={mapCenterLng}>
                           <div className="animate-pulse">
-                            <img
-                              src={ASSETS.CURRENT_LOCATION}
+                            <img loading="lazy" decoding="async"                               src={ASSETS.CURRENT_LOCATION}
                               alt="User"
                               className="w-4 h-4"
                               style={
@@ -1348,8 +1348,7 @@ const Homepage = () => {
                         </Marker>
                         {activeOrder?.status?.toLowerCase() === 'processing' && isRiderAssigned && (
                           <Marker latitude={mapCenterLat + 0.002} longitude={mapCenterLng + 0.002}>
-                            <img
-                              src={ASSETS.DELIVERY_RIDER}
+                            <img loading="lazy" decoding="async"                               src={ASSETS.DELIVERY_RIDER}
                               alt="Rider"
                               className="w-5 h-5"
                               style={
@@ -1384,7 +1383,7 @@ const Homepage = () => {
                         >
                           <div className="flex-1 flex flex-col justify-start relative z-10 pt-[14px] pl-[14px]">
                             <div className="mb-[4px]">
-                              <img src={iconGift} alt="Gift" className="w-6 h-6" />
+                              <img loading="lazy" decoding="async" src={iconGift} alt="Gift" className="w-6 h-6" />
                             </div>
                             <div>
                               <h3 className="text-black dark:text-white text-[16px] font-bold font-satoshi mb-[7px] leading-none">
@@ -1395,8 +1394,7 @@ const Homepage = () => {
                               </p>
                             </div>
                           </div>
-                          <img
-                            src={ASSETS.BANNER_IMAGE}
+                          <img loading="lazy" decoding="async"                             src={ASSETS.BANNER_IMAGE}
                             alt="Referral"
                             className="w-[188px] h-full object-cover rounded-r-[16px] rounded-l-none shrink-0"
                           />
@@ -1424,7 +1422,7 @@ const Homepage = () => {
                         >
                           <div className="flex-1 flex flex-col justify-between relative z-10 p-5">
                             <div className="flex items-center gap-2">
-                              <img src={ASSETS.CURRENCY} alt="Currency" className="w-6 h-6" />
+                              <img loading="lazy" decoding="async" src={ASSETS.CURRENCY} alt="Currency" className="w-6 h-6" />
                               <span className="text-black dark:text-white font-regular text-[10px] font-satoshi whitespace-nowrap dark:opacity-80">
                                 {lastUpdated}
                               </span>
@@ -1578,8 +1576,7 @@ const Homepage = () => {
                               }}
                             >
                               <div className="flex items-start">
-                                <img
-                                  src={getStatusIcon(tx.status)}
+                                <img loading="lazy" decoding="async"                                   src={getStatusIcon(tx.status)}
                                   alt="Status"
                                   className="w-[26px] h-[26px]"
                                 />

@@ -51,13 +51,11 @@ const WalletTopUpFailed: React.FC = () => {
         </h1>
         {/* Failed Icon – 12px below heading */}
         <div className="mt-[12px]">
-          <img
-            src={failedLightIcon}
+          <img loading="eager" decoding="async"             src={failedLightIcon}
             alt="Failed"
             className="w-[62px] h-[62px] object-contain dark:hidden"
           />
-          <img
-            src={ASSETS.CANCELLED_ICO}
+          <img loading="lazy" decoding="async"             src={ASSETS.CANCELLED_ICO}
             alt="Failed Dark"
             className="hidden dark:block w-[62px] h-[62px] object-contain"
           />
@@ -90,7 +88,7 @@ const WalletTopUpFailed: React.FC = () => {
             Emotionally and otherwise.
           </p>
           <div className="mt-[20px] flex items-center gap-[12px]">
-            <img src={elipseRedIcon} alt="" className="w-[12px] h-[12px] object-contain" />
+            <img loading="lazy" decoding="async" src={elipseRedIcon} alt="" className="w-[12px] h-[12px] object-contain" />
             <span className="text-muted-foreground dark:text-muted-foreground text-[12px] font-normal">
               Transaction Ghosted
             </span>

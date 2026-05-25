@@ -135,7 +135,7 @@ const FxPassportGate = () => {
             <div
               className={`w-6 h-6 rounded-full ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} relative z-10 flex items-center justify-center`}
             >
-              <img src={ASSETS.DONE} alt="Done" className="w-6 h-6" />
+              <img loading="eager" decoding="async" src={ASSETS.DONE} alt="Done" className="w-6 h-6" />
             </div>
             <span
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-satoshi`}
@@ -148,7 +148,7 @@ const FxPassportGate = () => {
             <div
               className={`w-6 h-6 rounded-full ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} relative z-10 flex items-center justify-center`}
             >
-              <img src={ASSETS.CURRENT} alt="Current" className="w-6 h-6" />
+              <img loading="lazy" decoding="async" src={ASSETS.CURRENT} alt="Current" className="w-6 h-6" />
             </div>
             <span
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-satoshi`}
@@ -162,7 +162,7 @@ const FxPassportGate = () => {
               className={`w-6 h-6 rounded-full ${isDarkMode ? (isDarkMode ? 'bg-brand-bg-dark' : 'bg-white') : 'bg-[#CCFFDE]'} border ${isDarkMode ? 'border-white/20' : 'border-brand-border-light'} relative z-10 flex items-center justify-center overflow-hidden`}
             >
               {isDarkMode ? (
-                <img src={ASSETS.PENDING} alt="Pending" className="w-6 h-6 opacity-30" />
+                <img loading="lazy" decoding="async" src={ASSETS.PENDING} alt="Pending" className="w-6 h-6 opacity-30" />
               ) : (
                 <div className="w-2 h-2 rounded-full bg-brand-success" />
               )}

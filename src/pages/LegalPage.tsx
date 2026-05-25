@@ -80,8 +80,9 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
       }
 
       try {
+        let timer: any;
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout')), 5000)
+          timer = setTimeout(() => reject(new Error('Timeout')), 5000)
         );
 
         const fetchPromise = supabase
@@ -91,6 +92,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
           .limit(1);
 
         const { data: results, error: fetchError } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        clearTimeout(timer);
 
         if (fetchError || !results || results.length === 0) {
           return defaultData;

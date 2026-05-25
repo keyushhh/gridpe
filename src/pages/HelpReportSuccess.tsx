@@ -47,7 +47,7 @@ const HelpReportSuccess = () => {
       <main className="flex-1 flex flex-col items-center px-5 relative z-10">
         {/* Icon: 21px below heading */}
         <div className="mt-[21px] flex items-center justify-center">
-          <img src={ASSETS.CHECK_ICON} alt="Success" className="w-[62px] h-[62px]" />
+          <img loading="eager" decoding="async" src={ASSETS.CHECK_ICON} alt="Success" className="w-[62px] h-[62px]" />
         </div>
         {/* Sub-heading: 35px below icon */}
         <h2

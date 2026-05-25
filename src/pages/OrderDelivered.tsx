@@ -77,8 +77,7 @@ const OrderDelivered = () => {
         </h1>
         {/* Icon: 62x62px, 21px below heading */}
         <div className="mt-[21px] flex items-center justify-center">
-          <img
-            src={isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT}
+          <img loading="eager" decoding="async"             src={isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT}
             alt="Success"
             className="w-[62px] h-[62px]"
           />
@@ -117,7 +116,7 @@ const OrderDelivered = () => {
           </p>
           {/* Status: 20px below body */}
           <div className="mt-[20px] flex items-center gap-[12px]">
-            <img src={ASSETS.VERIFIED_CIRCLE} alt="Verified" className="w-[14px] h-[14px]" />
+            <img loading="lazy" decoding="async" src={ASSETS.VERIFIED_CIRCLE} alt="Verified" className="w-[14px] h-[14px]" />
             <span
               className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-[#D0D0D0]' : 'text-brand-text-muted'}`}
             >

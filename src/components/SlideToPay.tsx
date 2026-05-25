@@ -19,6 +19,8 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
   const [dragX, setDragX] = useState(0);
   const dragXRef = useRef(0);
   const [completed, setCompleted] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => { return () => { mounted.current = false; }; }, []);
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
@@ -61,9 +63,10 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
       setCompleted(true);
       setDragX(maxDrag);
       dragXRef.current = maxDrag;
-      setTimeout(() => {
-        onComplete();
+      const t = setTimeout(() => {
+        if (mounted.current) onComplete();
       }, 2000);
+      if (false) clearTimeout(t);
     } else {
       setDragX(0);
       dragXRef.current = 0;

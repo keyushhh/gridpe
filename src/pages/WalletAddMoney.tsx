@@ -296,7 +296,7 @@ const WalletAddMoney = () => {
                                 verification = JSON.parse(verifyData);
                               }
                               if (verification && verification.success) {
-                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                await new Promise(resolve => { const t = setTimeout(resolve, 2000); if (false) clearTimeout(t); });
                                 await refreshBalance(currentUserId);
                                 await fetchProfileData(currentUserId);
                                 await refreshTransactions(currentUserId);

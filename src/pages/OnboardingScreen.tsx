@@ -27,7 +27,7 @@ import ButtonSpinner from '@/components/ui/ButtonSpinner';
 const LogoSection = memo(() => (
   <div className="flex flex-col items-center px-6 pt-16 pb-20">
     <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: '0.1s' }}>
-      <img src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
+      <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
       <p className="text-foreground text-[18px] font-normal text-center">
         Cash access, reimagined.
       </p>
@@ -53,13 +53,13 @@ const SocialLoginSection = memo(({ onLogin, isLoading, icons }: SocialLoginProps
         className="w-[52px] h-[52px] opacity-80 hover:opacity-100 transition-opacity"
         disabled={isLoading}
       >
-        <img src={icons.google} alt="Google" className="w-full h-full" />
+        <img loading="eager" decoding="async" src={icons.google} alt="Google" className="w-full h-full" />
       </button>
       <div className="w-[52px] h-[52px] opacity-80">
-        <img src={icons.apple} alt="" className="w-full h-full" />
+        <img loading="eager" decoding="async" src={icons.apple} alt="" className="w-full h-full" />
       </div>
       <div className="w-[52px] h-[52px] opacity-80">
-        <img src={icons.x} alt="" className="w-full h-full" />
+        <img loading="eager" decoding="async" src={icons.x} alt="" className="w-full h-full" />
       </div>
     </div>
   </>
@@ -674,7 +674,7 @@ const OnboardingScreen = () => {
         }}
       >
         <div className="flex flex-col items-center animate-pulse">
-          <img src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
+          <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
         </div>
       </div>
     );
@@ -947,7 +947,7 @@ const OnboardingScreen = () => {
                 }}
               >
                 <div className="flex items-center gap-3">
-                  <img src={ASSETS.BIOMETRIC_ICON} alt="Biometric" className="w-6 h-6" />
+                  <img loading="lazy" decoding="async" src={ASSETS.BIOMETRIC_ICON} alt="Biometric" className="w-6 h-6" />
                   <span className="text-white text-[16px] font-medium">Biometric Unlock</span>
                 </div>
                 <button
@@ -956,8 +956,7 @@ const OnboardingScreen = () => {
                   }
                   className="transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
-                  <img
-                    src={biometricState.isEnabled ? ASSETS.TOGGLE_ON : ASSETS.TOGGLE_OFF}
+                  <img loading="lazy" decoding="async"                     src={biometricState.isEnabled ? ASSETS.TOGGLE_ON : ASSETS.TOGGLE_OFF}
                     alt={biometricState.isEnabled ? 'Enabled' : 'Disabled'}
                     className="w-12 h-6"
                   />

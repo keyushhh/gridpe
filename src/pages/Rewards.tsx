@@ -170,8 +170,7 @@ const Rewards = () => {
       <div className="flex-1 px-5 safe-top pt-4 pb-[calc(120px+env(safe-area-inset-bottom))]">
         {/* Header */}
         <div className="mb-6 relative z-10">
-          <img
-            src={ASSETS.GRIDPE_LOGO}
+          <img loading="eager" decoding="async"             src={ASSETS.GRIDPE_LOGO}
             alt="grid.pe"
             className="h-10 mb-2"
             style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -236,7 +235,7 @@ const Rewards = () => {
             <div className="flex items-center mt-[14px]">
               <p className="font-satoshi font-medium text-[14px] text-[#848EFF]">{referralLink}</p>
               <button onClick={handleCopyLink} className="ml-[12px] p-0">
-                <img src={ASSETS.COPY} alt="Copy" style={{ width: '15px', height: '15px' }} />
+                <img loading="lazy" decoding="async" src={ASSETS.COPY} alt="Copy" style={{ width: '15px', height: '15px' }} />
               </button>
             </div>
           </div>
@@ -293,8 +292,7 @@ const Rewards = () => {
                     >
                       {/* Details Column */}
                       <div className="flex items-start">
-                        <img
-                          src={getStatusIcon(status)}
+                        <img loading="lazy" decoding="async"                           src={getStatusIcon(status)}
                           alt="Status"
                           className="w-[26px] h-[26px]"
                         />
@@ -363,8 +361,7 @@ const Rewards = () => {
             onClick={e => e.stopPropagation()}
           >
             {/* Details Icon */}
-            <img
-              src={ASSETS.DETAILS}
+            <img loading="lazy" decoding="async"               src={ASSETS.DETAILS}
               alt=""
               className="w-[30px] h-[30px] mt-[22px]"
               style={!isDarkMode ? { filter: 'brightness(0)' } : {}}
@@ -417,8 +414,7 @@ const Rewards = () => {
                 : {}
             }
           >
-            <img
-              src={ASSETS.CLOSE}
+            <img loading="lazy" decoding="async"               src={ASSETS.CLOSE}
               alt=""
               className="w-6 h-6"
               style={!isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}

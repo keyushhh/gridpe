@@ -69,8 +69,7 @@ const CurrencyModal = ({
             }}
           >
             <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 opacity-40">
-              <img
-                src={ASSETS.SEARCH}
+              <img loading="eager" decoding="async"                 src={ASSETS.SEARCH}
                 alt="search"
                 className={`w-full h-full ${!isDarkMode ? 'invert' : ''}`}
               />
@@ -159,7 +158,7 @@ const PassportUpgradeModal = ({ isOpen }: { isOpen: boolean }) => {
         <div
           className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-primary/10' : 'bg-primary/5'}`}
         >
-          <img src={ASSETS.ICON_PASSPORT} alt="Passport" className="w-10 h-10 object-contain" />
+          <img loading="lazy" decoding="async" src={ASSETS.ICON_PASSPORT} alt="Passport" className="w-10 h-10 object-contain" />
         </div>
         <h3 className={`text-[22px] font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-black'}`}>
           Passport Upgrade Required
@@ -430,8 +429,7 @@ const FxExchange = () => {
           }
           className={`w-10 h-10 rounded-full border ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-border bg-black/5'} flex items-center justify-center active:scale-90 transition-transform`}
         >
-          <img
-            src={ASSETS.CHART_LINE}
+          <img loading="lazy" decoding="async"             src={ASSETS.CHART_LINE}
             alt="Chart"
             className={`w-5 h-5 ${!isDarkMode ? 'invert' : ''}`}
           />
@@ -596,8 +594,7 @@ const FxExchange = () => {
               onClick={() => setIsBreakdownOpen(!isBreakdownOpen)}
               className="w-6 h-6 flex items-center justify-center absolute top-[12px] right-[12px] active:scale-95 transition-transform"
             >
-              <img
-                src={ASSETS.CHEVRON_SMALL}
+              <img loading="lazy" decoding="async"                 src={ASSETS.CHEVRON_SMALL}
                 alt="Toggle"
                 className={`w-6 h-6 transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : 'rotate-0'} ${!isDarkMode ? 'invert' : ''}`}
               />

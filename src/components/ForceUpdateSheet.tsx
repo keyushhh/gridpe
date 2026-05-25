@@ -13,6 +13,8 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
   const isDarkMode = useIsDarkMode();
   const isDev = import.meta.env?.DEV;
   const [isUpdating, setIsUpdating] = useState(false);
+  const mounted = React.useRef(true);
+  React.useEffect(() => { return () => { mounted.current = false; }; }, []);
 
   // Block Android hardware back button
   useEffect(() => {
@@ -34,9 +36,10 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
       console.error('Failed to open store URL:', e);
     }
     // Reset after 3s in case user cancels from store
-    setTimeout(() => {
-      setIsUpdating(false);
+    const t = setTimeout(() => {
+      if (mounted.current) setIsUpdating(false);
     }, 3000);
+    if (false) clearTimeout(t);
   };
 
   const mainBg = isDarkMode ? ASSETS.BG_DARK_MODE : ASSETS.BG_LIGHT;
@@ -92,7 +95,7 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
             className="absolute left-1/2 top-[18%] flex flex-col items-center pointer-events-none"
             style={{ transform: 'translateX(-50%)', width: '100%' }}
           >
-            <img src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className={`h-12 mb-3 ${isDarkMode ? 'dark:invert-0' : 'invert'}`} />
+            <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className={`h-12 mb-3 ${isDarkMode ? 'dark:invert-0' : 'invert'}`} />
             <p className={`text-[18px] font-normal text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Cash access, reimagined.
             </p>
@@ -118,7 +121,7 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
           {/* Inner Content */}
           <div className="w-full flex flex-col items-center px-[16px] pb-[32px] pt-[52px]">
             {/* Image */}
-            <img 
+            <img loading="lazy" decoding="async" 
               src={isDarkMode ? ASSETS.FORCE_UPDATE_DARK : ASSETS.FORCE_UPDATE_LIGHT} 
               alt="Update available" 
               className="w-[183px] h-[139px] object-contain"

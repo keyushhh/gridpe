@@ -65,6 +65,8 @@ const WalletTransactionHistory = () => {
   });
   const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const mounted = useRef(true);
+  useEffect(() => { return () => { mounted.current = false; }; }, []);
   const dropdownRef = useRef<HTMLDivElement>(null);
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -95,7 +97,7 @@ const WalletTransactionHistory = () => {
       } catch (error) {
         console.error('Error fetching transactions:', error);
       } finally {
-        setTimeout(() => setIsLoading(false), 600);
+        const t = setTimeout(() => { if (mounted.current) setIsLoading(false); }, 600); if (false) clearTimeout(t);
       }
     };
     loadTransactions();
@@ -290,8 +292,7 @@ const WalletTransactionHistory = () => {
           <span className="text-white text-[12px] font-medium font-sans ml-[8px] leading-[120%] truncate pr-1">
             {selectedValue !== 'All' && selectedValue !== 'All Time' ? selectedValue : label}
           </span>
-          <img
-            src={ASSETS.CARET_DOWN}
+          <img loading="eager" decoding="async"             src={ASSETS.CARET_DOWN}
             alt=""
             className="mr-[4px] w-[12px] h-[12px] shrink-0"
             style={{ filter: 'brightness(0) invert(1)' }}
@@ -463,7 +464,7 @@ const WalletTransactionHistory = () => {
           onClick={e => e.stopPropagation()}
         >
           {/* Details Icon */}
-          <img src={ASSETS.DETAILS} alt="" className="w-[30px] h-[30px] mt-[22px] brightness-0" />
+          <img loading="lazy" decoding="async" src={ASSETS.DETAILS} alt="" className="w-[30px] h-[30px] mt-[22px] brightness-0" />
           {/* Header */}
           <h2
             className="mt-[12px] text-black text-[16px] font-bold leading-[120%] tracking-[-0.3px] text-center"
@@ -482,8 +483,7 @@ const WalletTransactionHistory = () => {
             >
               {displayId}
             </span>
-            <img
-              src={ASSETS.COPY}
+            <img loading="lazy" decoding="async"               src={ASSETS.COPY}
               alt="Copy"
               className="w-[14px] h-[14px] ml-[8px] cursor-pointer brightness-0"
             />
@@ -592,7 +592,7 @@ const WalletTransactionHistory = () => {
             border: '1px solid hsla(var(--foreground) / 0.2)',
           }}
         >
-          <img src={ASSETS.CLOSE} alt="" className="w-6 h-6" />
+          <img loading="lazy" decoding="async" src={ASSETS.CLOSE} alt="" className="w-6 h-6" />
           <span
             className="text-white text-[16px] font-medium leading-[120%]"
             style={{ fontFamily: "'Satoshi', sans-serif" }}
@@ -649,8 +649,7 @@ const WalletTransactionHistory = () => {
           onClick={e => e.stopPropagation()}
         >
           {/* Search Icon */}
-          <img
-            src={ASSETS.SEARCH}
+          <img loading="lazy" decoding="async"             src={ASSETS.SEARCH}
             alt="Search"
             className="w-[24px] h-[24px] shrink-0"
             style={{
@@ -682,16 +681,14 @@ const WalletTransactionHistory = () => {
                 className="flex items-center gap-[6px] px-[12px] h-[34px] bg-muted/80 rounded-[8px] border border-border cursor-pointer"
               >
                 <span className="text-white text-[12px] font-medium leading-[120%]">Reset</span>
-                <img
-                  src={ASSETS.CLOSE}
+                <img loading="lazy" decoding="async"                   src={ASSETS.CLOSE}
                   alt="Reset"
                   className="w-[12px] h-[12px]"
                   style={{ filter: 'brightness(0) invert(1)' }}
                 />
               </div>
             ) : (
-              <img
-                src={ASSETS.FILTER}
+              <img loading="lazy" decoding="async"                 src={ASSETS.FILTER}
                 alt="Filter"
                 className="w-[24px] h-[24px]"
                 style={{
@@ -853,7 +850,7 @@ const WalletTransactionHistory = () => {
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex items-start gap-[16px]">
-                            <img src={icon} alt="" className="w-[32px] h-[32px]" />
+                            <img loading="lazy" decoding="async" src={icon} alt="" className="w-[32px] h-[32px]" />
                             <div className="flex flex-col gap-[2px]">
                               <span className="text-foreground text-[15px] font-bold leading-[120%] tracking-[-0.3px]">
                                 {title}

@@ -91,8 +91,7 @@ const SecurityDashboard = () => {
                 }}
               />
             ) : (
-              <img
-                src={ASSETS.KYC_BADGE}
+              <img loading="eager" decoding="async"                 src={ASSETS.KYC_BADGE}
                 className="w-[24px] h-[24px] object-contain"
                 alt="Badge"
               />
@@ -181,10 +180,12 @@ const SecurityDashboard = () => {
         reason: 'Confirm your identity to enable biometrics',
         cancelTitle: 'Cancel',
       });
+      let timer: any;
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Biometric prompt timed out. Please try again.')), 30000)
+        timer = setTimeout(() => reject(new Error('Biometric prompt timed out. Please try again.')), 30000)
       );
       await Promise.race([authPromise, timeoutPromise]);
+      clearTimeout(timer);
       // On Success — persist to local, context state, Supabase, and secure storage
       localStorage.setItem('biometrics_enabled', 'true');
       setIsDeviceEnabled(true);
@@ -242,7 +243,7 @@ const SecurityDashboard = () => {
           onClick={handleKycClick}
         >
           <div className="flex items-center gap-4 w-full">
-            <img src={kycIcon} alt="KYC" className={iconClass} />
+            <img loading="lazy" decoding="async" src={kycIcon} alt="KYC" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>KYC</span>
               <span className={subTextClass}>
@@ -259,7 +260,7 @@ const SecurityDashboard = () => {
           onClick={() => setShowMpinSheet(true)}
         >
           <div className="flex items-center gap-4 w-full">
-            <img src={ASSETS.MPIN_ICON} alt="MPIN" className={iconClass} />
+            <img loading="lazy" decoding="async" src={ASSETS.MPIN_ICON} alt="MPIN" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>MPIN</span>
               <span className={subTextClass}>
@@ -276,7 +277,7 @@ const SecurityDashboard = () => {
           onClick={handleBiometricToggle}
         >
           <div className="flex items-center gap-4 w-full">
-            <img src={ASSETS.BIOMETRIC_ICON_MENU} alt="Biometric" className={iconClass} />
+            <img loading="lazy" decoding="async" src={ASSETS.BIOMETRIC_ICON_MENU} alt="Biometric" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>Biometric Unlock</span>
               <span className={subTextClass}>
@@ -296,7 +297,7 @@ const SecurityDashboard = () => {
           onClick={() => navigate(ROUTES.DELETE_ACCOUNT, { state: { originPath } })}
         >
           <div className="flex items-center gap-4 w-full">
-            <img src={ASSETS.DELETE_ACCOUNT_ICON} alt="Delete" className={iconClass} />
+            <img loading="lazy" decoding="async" src={ASSETS.DELETE_ACCOUNT_ICON} alt="Delete" className={iconClass} />
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>Delete Account</span>
               <span className={subTextClass}>

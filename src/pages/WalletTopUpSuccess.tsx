@@ -50,13 +50,11 @@ const WalletTopUpSuccess = () => {
         </h1>
         {/* Success Icon – 12px below heading */}
         <div className="mt-[12px]">
-          <img
-            src={ASSETS.SUCCESS}
+          <img loading="eager" decoding="async"             src={ASSETS.SUCCESS}
             alt="Success"
             className="w-[62px] h-[62px] object-contain dark:hidden"
           />
-          <img
-            src={ASSETS.CHECK_ICON}
+          <img loading="lazy" decoding="async"             src={ASSETS.CHECK_ICON}
             alt="Success Dark"
             className="hidden dark:block w-[62px] h-[62px] object-contain"
           />
@@ -85,7 +83,7 @@ const WalletTopUpSuccess = () => {
             Just pure financial laziness, powered by tech.
           </p>
           <div className="mt-[20px] flex items-center gap-[12px]">
-            <img src={ASSETS.ELIPSE_GREEN} alt="" className="w-[12px] h-[12px] object-contain" />
+            <img loading="lazy" decoding="async" src={ASSETS.ELIPSE_GREEN} alt="" className="w-[12px] h-[12px] object-contain" />
             <span className="text-muted-foreground dark:text-muted-foreground text-[12px] font-normal">
               Wallet loaded.
             </span>

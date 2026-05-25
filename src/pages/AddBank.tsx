@@ -278,8 +278,7 @@ const AddBank = () => {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-4">
-                  <img
-                    src={selection === 'auto' ? ASSETS.RADIO_FILLED : ASSETS.RADIO_EMPTY}
+                  <img loading="eager" decoding="async"                     src={selection === 'auto' ? ASSETS.RADIO_FILLED : ASSETS.RADIO_EMPTY}
                     alt="radio"
                     className="w-5 h-5 shrink-0"
                     style={
@@ -354,8 +353,7 @@ const AddBank = () => {
             )}
             {/* Content Layer */}
             <div className="relative z-10 flex items-center gap-4 w-full">
-              <img
-                src={selection === 'manual' ? ASSETS.RADIO_FILLED : ASSETS.RADIO_EMPTY}
+              <img loading="lazy" decoding="async"                 src={selection === 'manual' ? ASSETS.RADIO_FILLED : ASSETS.RADIO_EMPTY}
                 alt="radio"
                 className="w-5 h-5 shrink-0"
                 style={!isDarkMode && selection !== 'manual' ? { filter: 'invert(1)' } : undefined}
@@ -424,7 +422,7 @@ const AddBank = () => {
                 </InputOTP>
                 <div className="flex items-center justify-between mt-4">
                   <div className="flex items-center gap-2">
-                    <img src={ASSETS.AWAITING_OTP} alt="pending" className="w-5 h-5" />
+                    <img loading="lazy" decoding="async" src={ASSETS.AWAITING_OTP} alt="pending" className="w-5 h-5" />
                     <span
                       className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[13px]`}
                     >
@@ -565,7 +563,7 @@ const AddBank = () => {
                     >
                       {bankName}
                     </span>
-                    <img src={ASSETS.VERIFIED} alt="verified" className="w-[18px] h-[18px]" />
+                    <img loading="lazy" decoding="async" src={ASSETS.VERIFIED} alt="verified" className="w-[18px] h-[18px]" />
                   </div>
                 )}
               </div>

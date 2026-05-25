@@ -117,7 +117,7 @@ const SelectPaymentMethod = () => {
         {/* UPI Section */}
         <div className="w-full flex flex-col mb-[36px] items-center">
           <div className="w-[362px] mb-[12px] flex justify-start">
-            <img src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
+            <img loading="eager" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
           </div>
           <div
             className="rounded-[12px] flex flex-col px-[10px] overflow-hidden"
@@ -152,8 +152,7 @@ const SelectPaymentMethod = () => {
                   onClick={() => setSelectedMethod(method.id)}
                 >
                   {method.icon && (
-                    <img
-                      src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon}
+                    <img loading="lazy" decoding="async"                       src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon}
                       alt={method.name}
                       className="w-[28px] h-[28px] object-contain"
                     />
@@ -246,8 +245,7 @@ const SelectPaymentMethod = () => {
                     className={`flex items-center ${cardMethods.length === 1 ? 'h-[66px]' : 'h-[55px]'} cursor-pointer`}
                     onClick={() => setSelectedMethod(method.id)}
                   >
-                    <img
-                      src={method.icon}
+                    <img loading="lazy" decoding="async"                       src={method.icon}
                       alt={method.name}
                       className="w-[32px] h-[32px] object-contain"
                     />
@@ -318,8 +316,7 @@ const SelectPaymentMethod = () => {
                   className="flex items-center h-[50px] cursor-pointer"
                   onClick={() => setSelectedMethod(method.id)}
                 >
-                  <img
-                    src={method.icon}
+                  <img loading="lazy" decoding="async"                     src={method.icon}
                     alt={method.name}
                     className="w-[32px] h-[32px] object-contain"
                   />

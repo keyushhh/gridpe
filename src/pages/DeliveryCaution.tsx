@@ -121,8 +121,7 @@ const DeliveryCaution = () => {
             Delivery Caution
           </h1>
           {/* Icon */}
-          <img
-            src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
+          <img loading="eager" decoding="async"             src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
             alt="Caution"
             className="mt-[21px] w-[62px] h-[62px] relative z-10"
           />
@@ -159,8 +158,7 @@ const DeliveryCaution = () => {
               onClick={() => setSelectedOption('yes')}
               className="mt-[8px] px-[14px] flex items-center gap-[16px] w-full text-left"
             >
-              <img
-                src={selectedOption === 'yes' ? ASSETS.RADIO_FILL : ASSETS.RADIO_EMPTY_SVG}
+              <img loading="lazy" decoding="async"                 src={selectedOption === 'yes' ? ASSETS.RADIO_FILL : ASSETS.RADIO_EMPTY_SVG}
                 alt="Radio"
                 className={`w-[20px] h-[20px] ${!isDarkMode && selectedOption === 'yes' ? 'filter-purple' : !isDarkMode ? 'brightness-50' : ''}`}
                 style={
@@ -185,8 +183,7 @@ const DeliveryCaution = () => {
               onClick={() => setSelectedOption('no')}
               className="mt-[8px] px-[14px] pb-[8px] flex items-center gap-[16px] w-full text-left h-full"
             >
-              <img
-                src={selectedOption === 'no' ? ASSETS.RADIO_FILL : ASSETS.RADIO_EMPTY_SVG}
+              <img loading="lazy" decoding="async"                 src={selectedOption === 'no' ? ASSETS.RADIO_FILL : ASSETS.RADIO_EMPTY_SVG}
                 alt="Radio"
                 className={`w-[20px] h-[20px] ${!isDarkMode && selectedOption === 'no' ? 'filter-purple' : !isDarkMode ? 'brightness-50' : ''}`}
                 style={
@@ -220,7 +217,7 @@ const DeliveryCaution = () => {
                 you proceed with the cancellation of the order. No additional charges.
               </p>
               <div className="mt-[26px] flex items-center gap-[14px]">
-                <img src={ASSETS.AWAITING} alt="Awaiting" className="w-[14px] h-[14px]" />
+                <img loading="lazy" decoding="async" src={ASSETS.AWAITING} alt="Awaiting" className="w-[14px] h-[14px]" />
                 <span
                   className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                 >
@@ -261,8 +258,7 @@ const DeliveryCaution = () => {
             Identity Mismatch
           </h1>
           {/* Icon */}
-          <img
-            src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
+          <img loading="lazy" decoding="async"             src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
             alt="Caution"
             className="mt-[21px] w-[62px] h-[62px] relative z-10"
           />
@@ -306,8 +302,7 @@ const DeliveryCaution = () => {
             onClick={() => setIsAgreed(!isAgreed)}
             className="mt-[24px] w-[362px] flex items-start gap-[12px] text-left relative z-10"
           >
-            <img
-              src={isAgreed ? ASSETS.CHECK_BOX_SELECTED : ASSETS.CHECK_BOX_OUTLINE_BLANK}
+            <img loading="lazy" decoding="async"               src={isAgreed ? ASSETS.CHECK_BOX_SELECTED : ASSETS.CHECK_BOX_OUTLINE_BLANK}
               alt="Check"
               className={`w-[20px] h-[20px] mt-[2px] ${!isDarkMode && isAgreed ? 'filter-purple' : !isDarkMode ? 'brightness-50' : ''}`}
               style={
@@ -431,8 +426,7 @@ const DeliveryCaution = () => {
             Identity Mismatch
           </h1>
           {/* Icon */}
-          <img
-            src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
+          <img loading="lazy" decoding="async"             src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
             alt="Caution"
             className="mt-[21px] w-[62px] h-[62px] relative z-10"
           />
@@ -476,8 +470,7 @@ const DeliveryCaution = () => {
               <div className="flex items-center gap-[12px]">
                 <div className="relative flex items-center justify-center w-[14px] h-[14px]">
                   <div className="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 animate-ping"></div>
-                  <img
-                    src={ASSETS.AWAITING}
+                  <img loading="lazy" decoding="async"                     src={ASSETS.AWAITING}
                     alt="Awaiting"
                     className="relative w-[14px] h-[14px] z-10"
                   />
@@ -529,8 +522,7 @@ const DeliveryCaution = () => {
                 <div className="flex items-center gap-[12px]">
                   <div className="relative flex items-center justify-center w-[14px] h-[14px]">
                     <div className="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 animate-ping"></div>
-                    <img
-                      src={ASSETS.AWAITING}
+                    <img loading="lazy" decoding="async"                       src={ASSETS.AWAITING}
                       alt="Awaiting"
                       className="relative w-[14px] h-[14px] z-10"
                     />

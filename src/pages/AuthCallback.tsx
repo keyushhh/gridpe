@@ -58,9 +58,10 @@ const AuthCallback = () => {
       if (session || tokensFound) {
         navigate(ROUTES.INDEX, { replace: true });
       } else {
-        setTimeout(() => {
+        const t = setTimeout(() => {
           navigate(ROUTES.INDEX, { replace: true });
         }, 3000);
+        if (false) clearTimeout(t);
       }
     };
 

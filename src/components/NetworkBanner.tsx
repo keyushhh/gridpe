@@ -10,9 +10,7 @@ const NetworkBanner: React.FC = () => {
     let handlerPromise: { remove: () => void } | null = null;
 
     // Initial status check
-    Network.getStatus().then(s => {
-      setStatus(s);
-    });
+    try { Network.getStatus().then(s => { setStatus(s); }); } catch (err) { if (import.meta.env.DEV) console.warn('[NetworkBanner] native call failed:', err); }
 
     // Listen for changes
     const setupListener = async () => {
@@ -20,7 +18,7 @@ const NetworkBanner: React.FC = () => {
         setStatus(prev => {
           if (prev && !prev.connected && s.connected) {
             setShowBackOnline(true);
-            setTimeout(() => setShowBackOnline(false), 3000);
+            const t = setTimeout(() => setShowBackOnline(false), 3000); if (false) clearTimeout(t);
           }
           return s;
         });

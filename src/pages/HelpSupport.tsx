@@ -83,8 +83,7 @@ const HelpSupport = () => {
           />
           <span className="glass-rim-v2" />
           <div className="flex items-center w-full h-full pl-[12px] relative z-10">
-            <img
-              src={ASSETS.SEARCH_ICON}
+            <img loading="eager" decoding="async"               src={ASSETS.SEARCH_ICON}
               alt=""
               className="w-6 h-6 shrink-0"
               style={{
@@ -125,8 +124,7 @@ const HelpSupport = () => {
               {/* Status Header */}
               <div className="absolute top-[4px] left-[20px] z-20 flex items-center gap-[6px]">
                 <div className="w-[12px] h-[12px] flex items-center justify-center">
-                  <img
-                    src={ASSETS.CHECK}
+                  <img loading="lazy" decoding="async"                     src={ASSETS.CHECK}
                     alt=""
                     className="w-full h-full"
                     style={
@@ -170,7 +168,7 @@ const HelpSupport = () => {
                 )}
                 <div className="relative z-10 w-full h-full">
                   <div className="absolute top-[17px] left-[17px] w-[35px] h-[35px] flex items-center justify-center">
-                    <img src={ASSETS.SUCCESS} alt="" className="w-full h-full" />
+                    <img loading="lazy" decoding="async" src={ASSETS.SUCCESS} alt="" className="w-full h-full" />
                   </div>
                   <div className="absolute top-[17px] left-[65px] flex flex-col">
                     <span
@@ -286,7 +284,7 @@ const HelpSupport = () => {
                     className={`w-full flex items-center justify-between pl-3 pr-[14px] py-[10px] transition-colors ${isDarkMode ? 'active:bg-white/5' : 'active:bg-brand-bg-light'}`}
                   >
                     <div className="flex items-center gap-3">
-                      <img src={cat.icon} alt="" className="w-[18px] h-[18px]" />
+                      <img loading="lazy" decoding="async" src={cat.icon} alt="" className="w-[18px] h-[18px]" />
                       <span
                         className={`text-[14px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
                       >
@@ -337,8 +335,7 @@ const HelpSupport = () => {
               </>
             )}
             <div className="absolute top-[12px] left-[12px] w-[25px] h-[25px] flex items-center justify-center z-10">
-              <img
-                src={isDarkMode ? ASSETS.CHAT : ASSETS.CHAT_BLACK}
+              <img loading="lazy" decoding="async"                 src={isDarkMode ? ASSETS.CHAT : ASSETS.CHAT_BLACK}
                 alt=""
                 className="w-[18px] h-[18px]"
               />

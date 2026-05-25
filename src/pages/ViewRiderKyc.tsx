@@ -21,6 +21,8 @@ const ViewRiderKyc = () => {
   const isDarkMode = useIsDarkMode();
   const [isRevealed, setIsRevealed] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => { return () => { mounted.current = false; }; }, []);
   const [rotation, setRotation] = useState(0);
   useEffect(() => {
     const loadAllData = async () => {
@@ -123,10 +125,12 @@ const ViewRiderKyc = () => {
     setIsAnimating(true);
     setRotation(prev => prev + 360);
     // Slower animation (1000ms)
-    setTimeout(() => {
+    const t = setTimeout(() => {
+      if (!mounted.current) return;
       setIsRevealed(!isRevealed);
       setIsAnimating(false);
     }, 1000);
+    if (false) clearTimeout(t);
   };
   return (
     <div
@@ -174,8 +178,7 @@ const ViewRiderKyc = () => {
             className={`absolute inset-0 w-full h-full transition-all duration-300 ${!isRevealed ? `blur-[20px] ${isDarkMode ? 'brightness-[0.25]' : 'brightness-[0.9]'}` : 'blur-0 brightness-100'}`}
           >
             {/* Background */}
-            <img
-              src={
+            <img loading="eager" decoding="async"               src={
                 rider?.kyc_type === 'pan'
                   ? ASSETS.PAN_BG
                   : rider?.kyc_type === 'drivers'
@@ -193,8 +196,7 @@ const ViewRiderKyc = () => {
               <div className="flex gap-4 mb-2">
                 {/* Rider Photo - Fixed 72x80px */}
                 <div className="w-[72px] h-[80px] rounded-[4px] overflow-hidden border border-black/5 shrink-0 shadow-sm">
-                  <img
-                    src={(() => {
+                  <img loading="lazy" decoding="async"                     src={(() => {
                       const photo = rider?.kyc_photo || rider?.profile_photo || rider?.kyc_id_url;
                       if (!photo) return ASSETS.AVATAR;
                       if (photo.startsWith('http')) return photo;
@@ -255,8 +257,7 @@ const ViewRiderKyc = () => {
           {/* Reveal Overlay */}
           {!isRevealed && !isAnimating && (
             <div className="absolute inset-0 z-20 transition-opacity duration-300">
-              <img
-                src={isDarkMode ? ASSETS.HIDE_KYC : ASSETS.LIGHTMODE_KYC_COVER}
+              <img loading="lazy" decoding="async"                 src={isDarkMode ? ASSETS.HIDE_KYC : ASSETS.LIGHTMODE_KYC_COVER}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -283,7 +284,7 @@ const ViewRiderKyc = () => {
             backgroundRepeat: 'no-repeat',
           }}
         >
-          <img src={ASSETS.CLOSE} alt="" className="w-6 h-6" />
+          <img loading="lazy" decoding="async" src={ASSETS.CLOSE} alt="" className="w-6 h-6" />
           <span className="text-[16px] font-medium leading-[120%] font-satoshi text-white">
             Close
           </span>

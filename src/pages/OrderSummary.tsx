@@ -95,15 +95,14 @@ const OrderSummary = () => {
         >
           {isDarkMode && <StrokeOverlay22 />}
           {paymentMethod?.icon ? (
-            <img
-              src={
+            <img loading="eager" decoding="async"               src={
                 paymentMethod.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : paymentMethod.icon
               }
               alt={paymentMethod.name}
               className="w-[32px] h-[32px] object-contain"
             />
           ) : paymentMethod?.id === 'upi-id' ? (
-            <img src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
+            <img loading="lazy" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
           ) : null}
           <span
             className={`ml-[20px] text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -158,8 +157,7 @@ const OrderSummary = () => {
               >
                 Processing Fee
               </span>
-              <img
-                src={ASSETS.INFOPURPLE}
+              <img loading="lazy" decoding="async"                 src={ASSETS.INFOPURPLE}
                 alt="Info"
                 className="w-[12px] h-[12px]"
                 style={
@@ -224,8 +222,7 @@ const OrderSummary = () => {
         >
           {isDarkMode && <StrokeOverlay13 />}
           <div className="flex items-start gap-[10px] px-[14px]">
-            <img
-              src={ASSETS.INFOPURPLE}
+            <img loading="lazy" decoding="async"               src={ASSETS.INFOPURPLE}
               alt="Info"
               className="w-[12px] h-[12px] mt-[4px]"
               style={

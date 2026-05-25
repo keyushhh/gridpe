@@ -324,7 +324,7 @@ const AddCard = () => {
           <div className="relative w-full h-full px-[26px]">
             {/* Top Row: Chip */}
             <div className="absolute top-[21px] right-[26px] w-[40px] h-[30px] flex justify-end">
-              <img src={ASSETS.CARD_CHIP} alt="Chip" className="h-[28px] object-contain" />
+              <img loading="eager" decoding="async" src={ASSETS.CARD_CHIP} alt="Chip" className="h-[28px] object-contain" />
             </div>
             {/* Cardholder Name */}
             <div className="absolute top-[26px] left-[26px] right-[70px] h-[22px]">
@@ -462,17 +462,16 @@ const AddCard = () => {
             {/* Network Logo */}
             <div className="absolute bottom-[26px] right-[26px] h-[24px]">
               {cardType === 'visa' && (
-                <img src={ASSETS.VISA_LOGO} alt="Visa" className="h-full object-contain" />
+                <img loading="eager" decoding="async" src={ASSETS.VISA_LOGO} alt="Visa" className="h-full object-contain" />
               )}
               {cardType === 'mastercard' && (
-                <img
-                  src={ASSETS.MASTERCARD_LOGO}
+                <img loading="eager" decoding="async"                   src={ASSETS.MASTERCARD_LOGO}
                   alt="Mastercard"
                   className="h-full object-contain"
                 />
               )}
               {cardType === 'rupay' && (
-                <img src={ASSETS.RUPAY_LOGO} alt="Rupay" className="h-full object-contain" />
+                <img loading="eager" decoding="async" src={ASSETS.RUPAY_LOGO} alt="Rupay" className="h-full object-contain" />
               )}
             </div>
           </div>
@@ -524,7 +523,7 @@ const AddCard = () => {
                   }
             }
           >
-            <img src={ASSETS.PHOTO_CAMERA} alt="Camera" className="w-4 h-4 opacity-80" />
+            <img loading="lazy" decoding="async" src={ASSETS.PHOTO_CAMERA} alt="Camera" className="w-4 h-4 opacity-80" />
             <span className="text-white text-[12px] font-medium">Scan Card</span>
           </button>
         </div>

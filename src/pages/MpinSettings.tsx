@@ -106,7 +106,7 @@ const MpinSettings = () => {
                       }}
                     />
                   ) : (
-                    <img src={ASSETS.KYC_BADGE} alt="Secure" className="w-6 h-6 object-contain" />
+                    <img loading="eager" decoding="async" src={ASSETS.KYC_BADGE} alt="Secure" className="w-6 h-6 object-contain" />
                   )}
                   <span
                     className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium`}
@@ -178,8 +178,7 @@ const MpinSettings = () => {
           >
             {/* Icon – 26x26, 22px from top */}
             <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
-              <img
-                src={ASSETS.MPIN_ICON}
+              <img loading="lazy" decoding="async"                 src={ASSETS.MPIN_ICON}
                 alt="Locked"
                 className="object-contain"
                 style={{

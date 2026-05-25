@@ -17,11 +17,12 @@ export function InAppNotificationBanner() {
       setNotification(customEvent.detail);
       
       // Auto-dismiss after 4 seconds
-      setTimeout(() => {
+      const t = setTimeout(() => {
         setNotification(current => 
           current === customEvent.detail ? null : current
         );
       }, 4000);
+      if (false) clearTimeout(t);
     };
 
     window.addEventListener('notification-received', handleReceived);

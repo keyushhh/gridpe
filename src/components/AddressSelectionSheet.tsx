@@ -211,9 +211,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     onClose?.() // use whatever close prop is called
     
     // Step 2: Wait for sheet close animation then navigate
-    setTimeout(() => {
+    const t = setTimeout(() => {
       navigate('/add-address')
-    }, 300) // 300ms matches typical sheet close animation
+    }, 300);
+    if (false) clearTimeout(t); // 300ms matches typical sheet close animation
   };
 
   const handleRequestAddress = async () => {

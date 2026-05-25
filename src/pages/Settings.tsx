@@ -314,8 +314,7 @@ const Settings = () => {
             {isLoading ? (
               <Skeleton circle width={56} height={56} />
             ) : (
-              <img
-                src={profileImage || ASSETS.AVATAR}
+              <img loading="eager" decoding="async"                 src={profileImage || ASSETS.AVATAR}
                 className="w-14 h-14 rounded-full object-cover"
               />
             )}
@@ -332,7 +331,7 @@ const Settings = () => {
                     <span className="text-black dark:text-muted-foreground text-[14px]">
                       {phoneNumber || email}
                     </span>
-                    <img src={ASSETS.VERIFIED} className="w-4 h-4 object-contain" alt="Verified" />
+                    <img loading="lazy" decoding="async" src={ASSETS.VERIFIED} className="w-4 h-4 object-contain" alt="Verified" />
                   </div>
                 </>
               )}
@@ -343,7 +342,7 @@ const Settings = () => {
             className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center p-0"
           >
             {iconEdit ? (
-              <img src={iconEdit} className="w-full h-full object-cover" />
+              <img loading="lazy" decoding="async" src={iconEdit} className="w-full h-full object-cover" />
             ) : (
               <Pencil className="w-4 h-4" />
             )}
@@ -363,7 +362,7 @@ const Settings = () => {
             <div className="flex items-center gap-3">
               <div className={securityConfig.frameClass} style={securityConfig.frameStyle}>
                 {isDarkMode ? (
-                  <img src={ASSETS.ICON_SECURITY} className="w-10 h-10 dark:filter-none" />
+                  <img loading="lazy" decoding="async" src={ASSETS.ICON_SECURITY} className="w-10 h-10 dark:filter-none" />
                 ) : (
                   <Lock className="w-[14px] h-[14px] text-black" />
                 )}
@@ -444,7 +443,7 @@ const Settings = () => {
               onClick={() => navigate(ROUTES.CARDS)}
             >
               <div className="flex items-start gap-3">
-                <img src={iconLinkedCards} className="w-[18px] mt-[2px]" />
+                <img loading="lazy" decoding="async" src={iconLinkedCards} className="w-[18px] mt-[2px]" />
                 <div>
                   <p className="text-foreground text-[14px]">Linked Cards</p>
                   <p className="text-black dark:text-muted-foreground text-[12px]">
@@ -464,7 +463,7 @@ const Settings = () => {
               onClick={() => navigate(ROUTES.BANKING)}
             >
               <div className="flex items-start gap-3">
-                <img src={iconBankAcc} className="w-[18px] mt-[2px]" />
+                <img loading="lazy" decoding="async" src={iconBankAcc} className="w-[18px] mt-[2px]" />
                 <div>
                   <p className="text-foreground text-[14px]">Bank Account Info</p>
                   <p className="text-black dark:text-muted-foreground text-[12px]">
@@ -490,7 +489,7 @@ const Settings = () => {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <img src={iconNotifs} className="w-[18px] filter brightness-0 dark:invert" />
+                  <img loading="lazy" decoding="async" src={iconNotifs} className="w-[18px] filter brightness-0 dark:invert" />
                   <p className="text-foreground">Notifications</p>
                 </div>
                 <div className="space-y-4 ml-[30px]">
@@ -527,7 +526,7 @@ const Settings = () => {
 
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <img src={iconDarkMode} className="w-[18px] filter brightness-0 dark:invert" />
+                  <img loading="lazy" decoding="async" src={iconDarkMode} className="w-[18px] filter brightness-0 dark:invert" />
                   <span
                     className={
                       isDarkMode ? 'text-foreground' : 'text-black dark:text-muted-foreground'
@@ -563,7 +562,7 @@ const Settings = () => {
 
               <div className="flex justify-between cursor-pointer" onClick={() => setShowLogoutConfirmation(true)}>
                 <div className="flex items-center gap-3">
-                  <img src={iconLogout} className="w-[18px] filter brightness-0 dark:invert" />
+                  <img loading="eager" decoding="async" src={iconLogout} className="w-[18px] filter brightness-0 dark:invert" />
                   <span>Log Out</span>
                 </div>
                 <ChevronRight />

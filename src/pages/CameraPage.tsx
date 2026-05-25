@@ -93,8 +93,7 @@ const CameraPage = () => {
         />
         {/* Frame Asset Overlay */}
         <div className="relative w-[85%] aspect-[1.586/1] max-w-[360px] flex items-center justify-center z-10">
-          <img
-            src={ASSETS.CAMERA_SCAN_FRAME}
+          <img loading="eager" decoding="async"             src={ASSETS.CAMERA_SCAN_FRAME}
             alt="Align Card"
             className="w-full h-full object-contain"
           />
@@ -124,11 +123,11 @@ const CameraPage = () => {
           disabled={isProcessing}
           className={`w-20 h-20 rounded-full flex items-center justify-center transition-transform z-20 ${isProcessing ? 'scale-90 opacity-50' : 'active:scale-95'}`}
         >
-          <img src={ASSETS.SHUTTER} alt="Capture" className="w-full h-full object-contain" />
+          <img loading="lazy" decoding="async" src={ASSETS.SHUTTER} alt="Capture" className="w-full h-full object-contain" />
         </button>
         <div className="absolute inset-0 flex items-center justify-end px-12 pointer-events-none">
           <button className="w-8 h-8 flex items-center justify-center pointer-events-auto">
-            <img src={ASSETS.FLASH} alt="Flash" className="w-full h-full object-contain" />
+            <img loading="lazy" decoding="async" src={ASSETS.FLASH} alt="Flash" className="w-full h-full object-contain" />
           </button>
         </div>
       </div>

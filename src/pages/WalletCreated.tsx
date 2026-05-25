@@ -473,8 +473,7 @@ const WalletCreated = () => {
           onClick={() => navigate(ROUTES.WALLET_SETTINGS)}
           className="w-10 h-10 flex items-center justify-center"
         >
-          <img
-            src={ASSETS.SETTINGS}
+          <img loading="eager" decoding="async"             src={ASSETS.SETTINGS}
             alt="Settings"
             className="w-6 h-6"
             style={{ filter: isDarkMode ? 'none' : 'invert(1) brightness(0)' }}
@@ -620,7 +619,7 @@ const WalletCreated = () => {
                   return (
                     <div key={tx.id} className="flex justify-between items-center gap-3">
                       <div className="flex items-center gap-[12px] flex-1 min-w-0">
-                        <img src={icon} alt="" className="w-[26px] h-[26px] shrink-0" />
+                        <img loading="lazy" decoding="async" src={icon} alt="" className="w-[26px] h-[26px] shrink-0" />
                         <div className="flex flex-col min-w-0 overflow-hidden">
                           <span
                             className={`text-[13px] font-medium font-sans leading-none mb-[2px] truncate ${isDarkMode ? 'text-white' : 'text-black'}`}

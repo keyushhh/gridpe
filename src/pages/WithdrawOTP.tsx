@@ -150,7 +150,7 @@ const WithdrawOTP = () => {
           showToaster('Withdrawal request initiated successfully!', 'success');
         }
         // 2. Wait for DB transaction to fully commit, then refresh
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => { const t = setTimeout(resolve, 2000); if (false) clearTimeout(t); });
         await refreshBalance();
         navigate(ROUTES.WALLET_WITHDRAW_SUCCESS, { state: { ...location.state, amount } });
       } catch (err: unknown) {

@@ -21,11 +21,15 @@ export function PrivacyScreen() {
 
     let listenerHandle: any
 
-    App.addListener('appStateChange', ({ isActive }) => {
-      setIsObscured(!isActive)
-    }).then(handle => {
-      listenerHandle = handle
-    })
+    try {
+      App.addListener('appStateChange', ({ isActive }) => {
+        setIsObscured(!isActive)
+      }).then(handle => {
+        listenerHandle = handle
+      })
+    } catch (err) {
+      if (import.meta.env.DEV) console.warn('[PrivacyScreen] native call failed:', err);
+    }
 
     return () => {
       listenerHandle?.remove()

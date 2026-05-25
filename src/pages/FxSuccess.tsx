@@ -329,8 +329,7 @@ const FxSuccess = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="w-6 h-6 flex items-center justify-center"
         >
-          <img
-            src={ASSETS.HAMBURGER_MENU}
+          <img loading="eager" decoding="async"             src={ASSETS.HAMBURGER_MENU}
             alt="Menu"
             className={`w-full h-full ${!isDarkMode ? 'brightness-0' : ''}`}
           />
@@ -373,7 +372,7 @@ const FxSuccess = () => {
       <div className="px-5 pb-[10px] flex flex-col items-center">
         {/* Main Icon */}
         <div className="w-[62px] h-[62px]">
-          <img src={statusConfig.mainIcon} alt="Status" className="w-full h-full object-contain" />
+          <img loading="lazy" decoding="async" src={statusConfig.mainIcon} alt="Status" className="w-full h-full object-contain" />
         </div>
         {/* Sub-text: 22px below icon, Satoshi Bold 18px */}
         <h2
@@ -441,14 +440,14 @@ const FxSuccess = () => {
                     <Layer {...routeLayer} />
                   </Source>
                   <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
-                    <img src={ASSETS.CURRENT_LOCATION} alt="User" className="w-4 h-4" />
+                    <img loading="lazy" decoding="async" src={ASSETS.CURRENT_LOCATION} alt="User" className="w-4 h-4" />
                   </Marker>
                   {order.status === 'processing' && (
                     <Marker
                       latitude={viewState.latitude + 0.002}
                       longitude={viewState.longitude + 0.002}
                     >
-                      <img src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-6 h-6" />
+                      <img loading="lazy" decoding="async" src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-6 h-6" />
                     </Marker>
                   )}
                 </Map>
@@ -587,7 +586,7 @@ const FxSuccess = () => {
             }}
           >
             <div className="w-[32px] h-[32px] mb-[16px]">
-              <img src={ASSETS.CANCEL_ICO} alt="Cancel" className="w-full h-full" />
+              <img loading="lazy" decoding="async" src={ASSETS.CANCEL_ICO} alt="Cancel" className="w-full h-full" />
             </div>
             <h2
               className={`text-[18px] font-bold font-sans mb-[8px] text-center ${isDarkMode ? 'text-white' : 'text-black'}`}

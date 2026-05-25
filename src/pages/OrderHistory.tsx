@@ -151,8 +151,7 @@ const OrderCard = React.memo(
         {/* Top Container */}
         <div className="w-full h-[25px] flex items-center px-[18px] relative overflow-hidden">
           <div className="relative z-10 flex items-center mt-[2px]">
-            <img
-              src={config.statusIcon}
+            <img loading="eager" decoding="async"               src={config.statusIcon}
               alt=""
               className="w-3 h-3 mr-[4px]"
               style={{ filter: config.iconFilter }}
@@ -185,8 +184,7 @@ const OrderCard = React.memo(
           )}
           <div className="relative z-10 flex items-start justify-between py-[14px] pl-[16px] pr-[14px]">
             <div className="flex items-start gap-[16px]">
-              <img
-                src={config.icon}
+              <img loading="lazy" decoding="async"                 src={config.icon}
                 alt={config.label}
                 className="w-[35px] h-[35px]"
                 width={35}
@@ -434,8 +432,7 @@ const OrderHistory = () => {
         className={`w-full h-[48px] rounded-full flex items-center px-[10px] transition-all ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-brand-border-light shadow-sm'}`}
       >
         <div className="w-[16px] h-[16px] ml-[6px] mr-[16px] flex items-center justify-center">
-          <img
-            src={ASSETS.SEARCH}
+          <img loading="lazy" decoding="async"             src={ASSETS.SEARCH}
             alt="Search"
             className="w-full h-full"
             style={!isDarkMode ? { filter: 'brightness(0) opacity(0.5)' } : undefined}
@@ -577,8 +574,7 @@ const OrderHistory = () => {
                 <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
               </svg>
             ) : (
-              <img
-                src={showOnlyPast ? ASSETS.HELP : ASSETS.ORDER_CASH}
+              <img loading="lazy" decoding="async"                 src={showOnlyPast ? ASSETS.HELP : ASSETS.ORDER_CASH}
                 alt="No orders"
                 className="w-12 h-12 opacity-40"
                 style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -607,7 +603,7 @@ const OrderHistory = () => {
       {isError && (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-10 relative z-20 pb-32">
           <div className={`p-4 rounded-full mb-4 ${isDarkMode ? 'bg-red-500/10' : 'bg-red-50'}`}>
-            <img src={ASSETS.FAILED} alt="Error" className="w-8 h-8" />
+            <img loading="lazy" decoding="async" src={ASSETS.FAILED} alt="Error" className="w-8 h-8" />
           </div>
           <p className={`${isDarkMode ? 'text-white/60' : 'text-black/40'} text-[18px] mb-6`}>
             Failed to load orders. Please check your connection.

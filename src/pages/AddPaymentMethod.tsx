@@ -162,8 +162,7 @@ const AddPaymentMethod = () => {
         onClick={() => method.linked && setSelectedMethod(method.id)}
       >
         {method.icon && (
-          <img
-            src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon}
+          <img loading="eager" decoding="async"             src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon}
             alt={method.name}
             className="w-[32px] h-[32px] object-contain"
           />
@@ -238,7 +237,7 @@ const AddPaymentMethod = () => {
       <div className="flex-1 flex flex-col items-center pt-[34px] px-5">
         {/* UPI Header */}
         <div className="w-full flex items-center mb-[12px] z-10">
-          <img src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
+          <img loading="lazy" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
           <span
             className={`ml-[14px] text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}
           >
@@ -300,8 +299,7 @@ const AddPaymentMethod = () => {
             >
               {isDarkMode && <StrokeOverlay />}
               <div className="absolute right-[20px] top-1/2 -translate-y-1/2">
-                <img
-                  src={ASSETS.ADD}
+                <img loading="lazy" decoding="async"                   src={ASSETS.ADD}
                   alt="Add"
                   className={`w-[20px] h-[20px] ${isDarkMode ? '' : 'invert'}`}
                 />

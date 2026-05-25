@@ -21,7 +21,11 @@ const ForgotMpin = () => {
   const [error, setError] = useState('');
   const dismissKeyboard = () => {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.hide();
+      try {
+        Keyboard.hide();
+      } catch (err) {
+        if (import.meta.env.DEV) console.warn('[ForgotMpin] native call failed:', err);
+      }
     } else {
       (document.activeElement as HTMLElement)?.blur();
     }

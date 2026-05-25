@@ -128,8 +128,7 @@ const ProfileEdit = () => {
       </div>
       <div className="px-5 mt-8">
         <div className="bg-white dark:bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-brand-border-light dark:border-white/10 h-[101px]">
-          <img
-            src={profileImage || ASSETS.AVATAR}
+          <img loading="eager" decoding="async"             src={profileImage || ASSETS.AVATAR}
             alt="Profile"
             className="w-16 h-16 rounded-full object-cover"
             style={{
@@ -215,7 +214,7 @@ const ProfileEdit = () => {
                   {phoneNumber?.replace('+91', '').replace(/\s/g, '') || contextEmail}
                 </span>
               </div>
-              <img src={ASSETS.VERIFIED} className="w-4 h-4 object-contain" alt="Verified" />
+              <img loading="lazy" decoding="async" src={ASSETS.VERIFIED} className="w-4 h-4 object-contain" alt="Verified" />
             </div>
             <p className="text-black dark:text-[#5B5B5B] text-[14px] font-normal px-4">
               This is how we know it's you. Or your evil twin.
@@ -242,8 +241,7 @@ const ProfileEdit = () => {
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
                 {emailVerified ? (
-                  <img
-                    src={ASSETS.VERIFIED}
+                  <img loading="lazy" decoding="async"                     src={ASSETS.VERIFIED}
                     className="w-4 h-4 object-contain mr-2"
                     alt="Verified"
                   />

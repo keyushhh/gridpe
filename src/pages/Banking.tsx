@@ -197,8 +197,7 @@ const Banking = () => {
                 <div
                   className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
                 >
-                  <img
-                    src={ASSETS.ICON_BANK_ACC}
+                  <img loading="eager" decoding="async"                     src={ASSETS.ICON_BANK_ACC}
                     alt="No banks"
                     className="w-12 h-12 opacity-40"
                     style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -339,8 +338,7 @@ const Banking = () => {
                                 </p>
                               </div>
                               <div className="w-[48px] h-[48px] flex items-center justify-end">
-                                <img
-                                  src={getBankLogo(account.bank_name)}
+                                <img loading="eager" decoding="async"                                   src={getBankLogo(account.bank_name)}
                                   alt="Bank"
                                   className="h-[32px] w-auto object-contain"
                                 />
@@ -419,8 +417,7 @@ const Banking = () => {
                                       onClick={e => e.stopPropagation()}
                                       className="flex items-center gap-2 px-4 w-full justify-center opacity-80 hover:opacity-100 transition-opacity"
                                     >
-                                      <img
-                                        src={ASSETS.DELETE_ICON}
+                                      <img loading="lazy" decoding="async"                                         src={ASSETS.DELETE_ICON}
                                         alt="Remove"
                                         className="w-[18px] h-[18px] object-contain"
                                       />
@@ -467,8 +464,7 @@ const Banking = () => {
                                         onClick={e => e.stopPropagation()}
                                         className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
                                       >
-                                        <img
-                                          src={ASSETS.DELETE_ICON}
+                                        <img loading="lazy" decoding="async"                                           src={ASSETS.DELETE_ICON}
                                           alt="Remove"
                                           className="w-[18px] h-[18px] object-contain"
                                         />
@@ -517,8 +513,7 @@ const Banking = () => {
                                   }}
                                   className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
                                 >
-                                  <img
-                                    src={ASSETS.DEFAULT_ICON}
+                                  <img loading="lazy" decoding="async"                                     src={ASSETS.DEFAULT_ICON}
                                     alt="Default"
                                     className="w-[18px] h-[18px] object-contain"
                                     style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -587,13 +582,13 @@ const Banking = () => {
             <div className="w-full h-full flex items-center justify-center">
               {isFabExpanded ? (
                 <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <img src={ASSETS.FAB_PLUS} alt="+" className="w-6 h-6 object-contain" />
+                  <img loading="lazy" decoding="async" src={ASSETS.FAB_PLUS} alt="+" className="w-6 h-6 object-contain" />
                   <span className="text-white text-[14px] font-medium whitespace-nowrap">
                     Add New Bank Account
                   </span>
                 </div>
               ) : (
-                <img src={ASSETS.FAB_PLUS} alt="+" className="w-6 h-6 object-contain" />
+                <img loading="lazy" decoding="async" src={ASSETS.FAB_PLUS} alt="+" className="w-6 h-6 object-contain" />
               )}
             </div>
           </div>
@@ -656,8 +651,7 @@ const Banking = () => {
           >
             {/* Icon – 26x26, 22px from top */}
             <div className="flex items-center justify-center" style={{ marginTop: '22px' }}>
-              <img
-                src={isDarkMode ? ASSETS.POPUP_CARD_ICON : ASSETS.CARD_LINE_ICON}
+              <img loading="lazy" decoding="async"                 src={isDarkMode ? ASSETS.POPUP_CARD_ICON : ASSETS.CARD_LINE_ICON}
                 alt="Success"
                 className="object-contain"
                 style={{
@@ -727,8 +721,7 @@ const Banking = () => {
           <div className="flex flex-col items-center text-center max-w-[320px] pb-32 animate-in zoom-in-95 duration-300">
             {tutorialStep === 1 && (
               <>
-                <img
-                  src={ASSETS.TUTORIAL_TAP}
+                <img loading="lazy" decoding="async"                   src={ASSETS.TUTORIAL_TAP}
                   alt="Tap"
                   className="w-[60px] h-[60px] object-contain mb-4"
                 />
@@ -739,8 +732,7 @@ const Banking = () => {
             )}
             {tutorialStep === 2 && (
               <>
-                <img
-                  src={ASSETS.TUTORIAL_LONG_PRESS}
+                <img loading="lazy" decoding="async"                   src={ASSETS.TUTORIAL_LONG_PRESS}
                   alt="Long Press"
                   className="w-[60px] h-[60px] object-contain mb-4"
                 />

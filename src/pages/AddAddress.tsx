@@ -383,8 +383,7 @@ const AddAddress = () => {
                   onClick={() => handleSelectResult(result)}
                   className={`px-4 py-3 border-b cursor-pointer flex items-center ${isDarkMode ? 'border-white/5 hover:bg-white/10' : 'border-border hover:bg-muted'}`}
                 >
-                  <img
-                    src={ASSETS.LOCATION_PIN}
+                  <img                     src={ASSETS.LOCATION_PIN}
                     alt="Pin"
                     loading="lazy"
                     decoding="async"
@@ -432,8 +431,7 @@ const AddAddress = () => {
             }}
           >
             {/* Can swap icon color or use filter */}
-            <img
-              src={ASSETS.LOCATION_PIN}
+            <img               src={ASSETS.LOCATION_PIN}
               alt="Snap"
               loading="eager"
               decoding="async"
@@ -471,8 +469,7 @@ const AddAddress = () => {
                 : '1px solid hsl(var(--border))',
             }}
           >
-            <img
-              src={ASSETS.NAVIGATION_ICON}
+            <img               src={ASSETS.NAVIGATION_ICON}
               alt="Nav"
               loading="eager"
               decoding="async"
@@ -539,8 +536,7 @@ const AddAddress = () => {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 ${isDarkMode ? 'bg-white/10' : 'bg-primary/10'}`}
               >
-                <img
-                  src={ASSETS.LOCATION_PIN}
+                <img                   src={ASSETS.LOCATION_PIN}
                   alt="Loc"
                   loading="eager"
                   decoding="async"
@@ -597,8 +593,7 @@ const AddAddress = () => {
                           >
                             {plusCode}
                           </span>
-                          <img
-                            src={ASSETS.COPY}
+                          <img                             src={ASSETS.COPY}
                             alt="Copy"
                             loading="eager"
                             decoding="async"
@@ -642,8 +637,7 @@ const AddAddress = () => {
                     paddingTop: '10px',
                   }}
                 >
-                  <img
-                    src={ASSETS.DISTANCE_CALLOUT}
+                  <img                     src={ASSETS.DISTANCE_CALLOUT}
                     alt=""
                     loading="lazy"
                     decoding="async"

@@ -338,8 +338,7 @@ const OrderDetails = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="w-6 h-6 flex items-center justify-center"
         >
-          <img
-            src={ASSETS.HAMBURGER_MENU}
+          <img loading="eager" decoding="async"             src={ASSETS.HAMBURGER_MENU}
             alt="Menu"
             className={`w-full h-full ${!isDarkMode ? 'brightness-0' : ''}`}
           />
@@ -388,7 +387,7 @@ const OrderDetails = () => {
                     }}
                     className="w-[14px] h-[14px] ml-1 flex-shrink-0 mt-[2px]"
                   >
-                    <img src={ASSETS.DELIVERY_TIP_INFO} alt="Info" className="w-full h-full" />
+                    <img loading="lazy" decoding="async" src={ASSETS.DELIVERY_TIP_INFO} alt="Info" className="w-full h-full" />
                   </button>
                 )}
               </div>
@@ -402,8 +401,7 @@ const OrderDetails = () => {
       >
         {/* Main Icon */}
         <div className="w-[62px] h-[62px] mb-[35px]">
-          <img
-            src={statusConfig.mainIcon}
+          <img loading="lazy" decoding="async"             src={statusConfig.mainIcon}
             alt="Status"
             className="w-full h-full object-contain"
             width={62}
@@ -478,7 +476,7 @@ const OrderDetails = () => {
                   </Source>
                   {/* Delivery/User Location Marker */}
                   <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
-                    <img src={ASSETS.CURRENT_LOCATION} alt="User" className="w-4 h-4" />
+                    <img loading="lazy" decoding="async" src={ASSETS.CURRENT_LOCATION} alt="User" className="w-4 h-4" />
                   </Marker>
                   {/* Mock Rider Marker (only for processing?) */}
                   {order.status === 'processing' && (
@@ -486,7 +484,7 @@ const OrderDetails = () => {
                       latitude={viewState.latitude + 0.002}
                       longitude={viewState.longitude + 0.002}
                     >
-                      <img src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-6 h-6" />
+                      <img loading="lazy" decoding="async" src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-6 h-6" />
                     </Marker>
                   )}
                 </Map>
@@ -630,7 +628,7 @@ const OrderDetails = () => {
               }}
               className="absolute top-[12px] right-[12px] w-[16px] h-[16px]"
             >
-              <img src={ASSETS.CROSS_ICON_SVG} alt="Close" className="w-full h-full" />
+              <img loading="lazy" decoding="async" src={ASSETS.CROSS_ICON_SVG} alt="Close" className="w-full h-full" />
             </button>
           </div>
         </div>
@@ -651,8 +649,7 @@ const OrderDetails = () => {
             }
           >
             <div className="w-[32px] h-[32px] mb-[16px]">
-              <img
-                src={ASSETS.CANCEL_ICO}
+              <img loading="lazy" decoding="async"                 src={ASSETS.CANCEL_ICO}
                 alt="Cancel"
                 className="w-full h-full"
                 style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
@@ -689,8 +686,7 @@ const OrderDetails = () => {
                       index !== cancelReasons.length - 1 ? 'border-b border-border/30' : ''
                     } ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'} transition-colors`}
                   >
-                    <img
-                      src={cancelReason === index ? ASSETS.RADIO_FILL : ASSETS.RADIO_EMPTY_SVG}
+                    <img loading="lazy" decoding="async"                       src={cancelReason === index ? ASSETS.RADIO_FILL : ASSETS.RADIO_EMPTY_SVG}
                       alt="radio"
                       className="w-[16px] h-[16px] mr-[12px]"
                       style={{

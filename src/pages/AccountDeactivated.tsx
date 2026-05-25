@@ -61,8 +61,7 @@ const AccountDeactivated = () => {
           Deactivated
         </h1>
         {/* Icon */}
-        <img
-          src={ASSETS.SAD}
+        <img loading="eager" decoding="async"           src={ASSETS.SAD}
           alt="Sad Face"
           className="w-[62px] h-[62px] mt-[12px]"
           style={
@@ -120,7 +119,7 @@ const AccountDeactivated = () => {
         </p>
         {/* Status Row */}
         <div className="flex items-center gap-[6px] mt-[23px]">
-          <img src={ASSETS.WARNING_ELLIPSE} alt="Status" className="w-[14px] h-[14px]" />
+          <img loading="lazy" decoding="async" src={ASSETS.WARNING_ELLIPSE} alt="Status" className="w-[14px] h-[14px]" />
           <span
             className={`${isDarkMode ? 'text-[#D0D0D0]' : 'text-black/60'} text-[13px] font-normal font-sans`}
           >

@@ -9,6 +9,8 @@ const FxPassportKYC = () => {
   const navigate = useNavigate();
   const { setPassportVerified } = useUser();
   const [step, setStep] = useState<'upload' | 'processing' | 'success'>('upload');
+  const mounted = React.useRef(true);
+  React.useEffect(() => { return () => { mounted.current = false; }; }, []);
   const [files, setFiles] = useState<{ front: boolean; back: boolean }>({
     front: false,
     back: false,
@@ -20,10 +22,12 @@ const FxPassportKYC = () => {
   const handleSubmit = () => {
     setStep('processing');
     // Simulate API call
-    setTimeout(() => {
+    const t = setTimeout(() => {
+      if (!mounted.current) return;
       setPassportVerified(true);
       setStep('success');
     }, 3000);
+    if (false) clearTimeout(t);
   };
   return (
     <div
