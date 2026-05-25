@@ -629,7 +629,11 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                       )}
                     </div>
                     <div className="flex items-center gap-[13px]">
-                      <button onClick={e => handleEdit(e, addr)}>
+                      <button onClick={e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleEdit(e, addr);
+                      }}>
                         <img
                           src={ASSETS.EDIT}
                           alt="Edit"
@@ -645,7 +649,11 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                           style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
                         />
                       </button>
-                      <button onClick={e => handleDelete(e, idx)}>
+                      <button onClick={e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDelete(e, idx);
+                      }}>
                         <img
                           src={ASSETS.DELETE}
                           alt="Delete"
