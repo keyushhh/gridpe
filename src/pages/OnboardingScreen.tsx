@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/PhoneInput';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { LockOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@/contexts/UserContext';
 import { useAsset } from '@/hooks/useAsset';
 import { Profile } from '@/types';
@@ -699,41 +700,59 @@ const OnboardingScreen = () => {
         <div
           className={`px-6 safe-bottom pb-4 space-y-6 ${uiState.step === 'mpin-setup' || uiState.step === 'mpin-login' ? 'pt-4' : ''}`}
         >
-          {/* Phone Input Screen */}
-          {uiState.step === 'phone' && (
-            <>
-              <PhoneInputSection
-                initialValue={phoneNumberRef.current}
-                isLoading={uiState.isLoading}
-                onPhoneChange={handlePhoneChange}
-                onRequestOTP={handleRequestOTP}
-                error={errorState.phone}
-              />
-              <SocialLoginSection
-                onLogin={handleSocialLogin}
-                isLoading={uiState.isLoading}
-                icons={{ google: iconGoogle, apple: iconApple, x: iconX }}
-              />
-            </>
-          )}
-          {/* OTP Input Screen */}
-          {uiState.step === 'otp' && (
-            <OTPInputSection
-              phoneNumber={phoneNumberRef.current}
-              isLoading={uiState.isLoading}
-              resendTimer={uiState.resendTimer}
-              onOtpChange={handleOtpChange}
-              onVerifyOTP={handleVerifyOTP}
-              onResendOTP={handleRequestOTP}
-              onWrongNumber={() => {
-                setUiState(prev => ({ ...prev, step: 'phone' }));
-                otpRef.current = '';
-                setErrorState(prev => ({ ...prev, otp: '' }));
-              }}
-              otpInputBg={otpInputBg}
-              error={errorState.otp}
-            />
-          )}
+          {/* Phone & OTP Input Screens with Transition */}
+          <AnimatePresence mode="wait">
+            {uiState.step === 'phone' && (
+              <motion.div
+                key="phone"
+                initial={{ x: '-100%', opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: '-100%', opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                className="w-full"
+              >
+                <PhoneInputSection
+                  initialValue={phoneNumberRef.current}
+                  isLoading={uiState.isLoading}
+                  onPhoneChange={handlePhoneChange}
+                  onRequestOTP={handleRequestOTP}
+                  error={errorState.phone}
+                />
+                <SocialLoginSection
+                  onLogin={handleSocialLogin}
+                  isLoading={uiState.isLoading}
+                  icons={{ google: iconGoogle, apple: iconApple, x: iconX }}
+                />
+              </motion.div>
+            )}
+            
+            {uiState.step === 'otp' && (
+              <motion.div
+                key="otp"
+                initial={{ x: '100%', opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: '100%', opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                className="w-full"
+              >
+                <OTPInputSection
+                  phoneNumber={phoneNumberRef.current}
+                  isLoading={uiState.isLoading}
+                  resendTimer={uiState.resendTimer}
+                  onOtpChange={handleOtpChange}
+                  onVerifyOTP={handleVerifyOTP}
+                  onResendOTP={handleRequestOTP}
+                  onWrongNumber={() => {
+                    setUiState(prev => ({ ...prev, step: 'phone' }));
+                    otpRef.current = '';
+                    setErrorState(prev => ({ ...prev, otp: '' }));
+                  }}
+                  otpInputBg={otpInputBg}
+                  error={errorState.otp}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
           {/* MPIN Login Screen */}
           {uiState.step === 'mpin-login' && (
             <div className="space-y-6 animate-fade-in flex-1 flex flex-col pt-4">
