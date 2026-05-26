@@ -295,6 +295,7 @@ const OrderCashSummary = () => {
         user_id: userId,
         address_id: aid,
         zone_id: zoneId,
+        city: savedAddress?.city || null,
         amount: parsedAmount,
         total_amount: cleanedAmount,
         payment_mode: 'WALLET',
