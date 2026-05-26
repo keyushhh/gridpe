@@ -73,7 +73,7 @@ const PhoneInputSection: React.FC<PhoneInputSectionProps> = ({
       <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
         <Button
           variant="gradient"
-          className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans"
+          className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans transition-all duration-200"
           onClick={handleSubmit}
           disabled={isLoading || phoneNumber.length === 0}
         >

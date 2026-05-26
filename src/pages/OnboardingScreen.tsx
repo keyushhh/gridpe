@@ -686,13 +686,17 @@ const OnboardingScreen = () => {
       style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}
     >
       <div
-        className="absolute inset-0 overflow-y-auto overscroll-y-none flex flex-col safe-top"
+        className="absolute inset-0 pointer-events-none transition-opacity duration-300 ease-in-out"
         style={{
-          backgroundImage: uiState.isKeyboardOpen ? 'none' : `url(${mainBg})`,
+          backgroundImage: `url(${mainBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'top center',
           backgroundRepeat: 'no-repeat',
+          opacity: uiState.isKeyboardOpen ? 0 : 1,
         }}
+      />
+      <div
+        className="absolute inset-0 overflow-y-auto overscroll-y-none flex flex-col safe-top"
       >
         {/* Logo Section - only show for phone/OTP screens */}
         {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && <LogoSection />}
@@ -709,7 +713,7 @@ const OnboardingScreen = () => {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: '-100%', opacity: 0 }}
                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                className="w-full"
+                className="w-full flex flex-col space-y-6"
               >
                 <PhoneInputSection
                   initialValue={phoneNumberRef.current}
@@ -733,7 +737,7 @@ const OnboardingScreen = () => {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: '100%', opacity: 0 }}
                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                className="w-full"
+                className="w-full flex flex-col space-y-6"
               >
                 <OTPInputSection
                   phoneNumber={phoneNumberRef.current}
