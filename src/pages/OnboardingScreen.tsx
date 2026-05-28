@@ -24,6 +24,7 @@ import OTPInputSection from '@/components/onboarding/OTPInputSection';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import AppDownloadSheet from '@/components/AppDownloadSheet';
 // --- Memoized Static Sub-components ---
 const LogoSection = memo(() => (
   <div className="flex flex-col items-center px-6 pt-16 pb-20">
@@ -87,6 +88,7 @@ const LegalFooter = memo(({ onNavigate }: LegalFooterProps) => (
 const OnboardingScreen = () => {
   const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
+  const [showSheet, setShowSheet] = useState(false);
   const {
     setPhoneNumber: savePhoneNumber,
     setBiometricEnabled: saveBiometricEnabled,
@@ -1036,6 +1038,17 @@ const OnboardingScreen = () => {
         {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && (
           <LegalFooter onNavigate={navigate} />
         )}
+        {import.meta.env.DEV && (
+          <div className="text-center mt-4 pb-4">
+            <button 
+              onClick={() => setShowSheet(true)}
+              className="text-xs text-blue-500 underline"
+            >
+              Preview App Sheet
+            </button>
+          </div>
+        )}
+        <AppDownloadSheet forceOpen={showSheet} onClose={() => setShowSheet(false)} />
       </div>
     </div>
   );

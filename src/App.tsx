@@ -126,6 +126,7 @@ import { LiquidGlassFilters } from './components/ui/LiquidGlassFilters';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { TermsAcceptanceGate } from './components/TermsAcceptanceGate';
 import DevModeOverlay from './components/DevModeOverlay';
+import AppDownloadSheet from './components/AppDownloadSheet';
 import { useNetworkStatus } from './utils/useNetworkStatus';
 import NoInternet from './pages/NoInternet';
 import NetworkAlertBanner from './components/NetworkAlertBanner';
@@ -489,6 +490,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                   <LocationTracker currentPathRef={currentPathRef} />
                   <BackNavigationHandler currentPathRef={currentPathRef} />
                   <DevModeOverlay />
+                  <AppDownloadSheet forceOpen={false} />
                   {!effectivelyConnected ? (
                     <NoInternet />
                   ) : (
