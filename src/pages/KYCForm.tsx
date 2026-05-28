@@ -94,7 +94,14 @@ const KYCForm = () => {
       const DIDIT_PASSPORT_URL = 'https://verify.didit.me/u/gFonSKPQREqtUrpyWSSnpA';
       const targetUrl = isFxFlow ? DIDIT_PASSPORT_URL : DIDIT_STANDARD_URL;
       const metaFlow = isUpgradeFlow ? 'fx_upgrade' : isFxFlow ? 'fx_passport' : 'standard';
-      const finalUrl = `${targetUrl}?vendor_data=${customerUuid}&reverify=true&webhook=true&metadata=${encodeURIComponent(JSON.stringify({ user_type: 'customer', flow: metaFlow }))}`;
+      
+      const metadata = encodeURIComponent(JSON.stringify({
+        user_type: 'customer',
+        user_id: customerUuid,
+        timestamp: Date.now()
+      }));
+      
+      const finalUrl = `${targetUrl}?vendor_data=${customerUuid}&reverify=true&webhook=true&metadata=${metadata}`;
       window.open(finalUrl, '_blank');
       // Navigate to Success Screen in the background (active when user returns)
       navigate(isFxFlow ? ROUTES.FX_KYC_SUCCESS : ROUTES.KYC_SUCCESS, {
