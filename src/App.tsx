@@ -4,7 +4,7 @@
  * 2. OFFLINE (NoInternet Screen): Full screen blocking view. (isConnected = false)
  * 3. AIRPLANE MODE (Overlay Banner): App remains accessible but banner drops down over UI. (isAirplaneMode = true)
  */
-import { HashRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -136,6 +136,13 @@ import ForceUpdateSheet from './components/ForceUpdateSheet';
 import { PrivacyScreen } from './components/PrivacyScreen';
 import { LocationProvider, useLocationContext } from '@/contexts/LocationContext';
 import ReactSplashScreen from '@/components/ReactSplashScreen';
+
+const DevSheetPreview = () => {
+  if (!import.meta.env.DEV) {
+    return <Navigate to="/" replace />;
+  }
+  return <AppDownloadSheet forceOpen={true} />;
+};
 
 const LocationBootstrapper = () => {
   const { initializeLocation } = useLocationContext();
@@ -495,6 +502,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                     <NoInternet />
                   ) : (
                   <Routes>
+                    <Route path="/dev/sheet-preview" element={<DevSheetPreview />} />
                     <Route path={ROUTES.INDEX} element={<Index />} />
                     <Route
                       path={ROUTES.HOME}
