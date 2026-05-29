@@ -4,7 +4,7 @@ import appDownloadSheetImg from '../assets/app-download-sheet.png';
 
 let hasBeenDismissedThisSession = false;
 
-export default function AppDownloadSheet({ forceOpen = false, onClose }: { forceOpen?: boolean, onClose?: () => void }) {
+export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss }: { forceOpen?: boolean, onClose?: () => void, onDismiss?: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   
@@ -79,6 +79,8 @@ export default function AppDownloadSheet({ forceOpen = false, onClose }: { force
       setIsVisible(false);
       setIsClosing(false);
       onClose?.();
+      onDismiss?.();
+      window.dispatchEvent(new CustomEvent('appSheetDismissed'));
     }, 300); // match animation duration
   };
 

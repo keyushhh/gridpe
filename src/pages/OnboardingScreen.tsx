@@ -96,6 +96,7 @@ const OnboardingScreen = () => {
   } = useUser();
   const phoneNumberRef = useRef('');
   const otpRef = useRef('');
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const [uiState, setUiState] = useState({
     step: 'phone' as 'phone' | 'otp' | 'mpin-setup' | 'mpin-login',
     isLoading: false,
@@ -187,6 +188,17 @@ const OnboardingScreen = () => {
     if (ref) {
       localStorage.setItem('referralCode', ref);
     }
+  }, []);
+
+  // Listen for AppDownloadSheet dismissal to focus phone input in web
+  useEffect(() => {
+    const handler = () => {
+      if (!Capacitor.isNativePlatform()) {
+        phoneInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('appSheetDismissed', handler);
+    return () => window.removeEventListener('appSheetDismissed', handler);
   }, []);
   // Android hardware back button is handled by the global listener in App.tsx
   // using a route allowlist (exits app on unauthenticated routes).
@@ -716,6 +728,7 @@ const OnboardingScreen = () => {
                 className="w-full flex flex-col space-y-6"
               >
                 <PhoneInputSection
+                  ref={phoneInputRef}
                   initialValue={phoneNumberRef.current}
                   isLoading={uiState.isLoading}
                   onPhoneChange={handlePhoneChange}

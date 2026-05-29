@@ -12,23 +12,27 @@ interface PhoneInputSectionProps {
   error?: string;
 }
 
-const PhoneInputSection: React.FC<PhoneInputSectionProps> = ({
+const PhoneInputSection = React.forwardRef<HTMLInputElement, PhoneInputSectionProps>(({
   initialValue,
   isLoading,
   onPhoneChange,
   onRequestOTP,
   error: parentError,
-}) => {
+}, ref) => {
   const [phoneNumber, setPhoneNumber] = useState(initialValue);
   const [localError, setLocalError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      inputRef.current?.focus();
+      if (ref && typeof ref !== 'function' && ref.current) {
+        ref.current.focus();
+      } else {
+        inputRef.current?.focus();
+      }
     }, 300);
     return () => clearTimeout(timer);
-  }, []);
+  }, [ref]);
 
   const handleChange = useCallback(
     (val: string) => {
@@ -58,7 +62,7 @@ const PhoneInputSection: React.FC<PhoneInputSectionProps> = ({
 
       <div className="animate-fade-in space-y-2" style={{ animationDelay: '0.3s' }}>
         <PhoneInput
-          ref={inputRef}
+          ref={ref || inputRef}
           value={phoneNumber}
           onChange={handleChange}
           countryCode="+91"
@@ -89,6 +93,6 @@ const PhoneInputSection: React.FC<PhoneInputSectionProps> = ({
       </div>
     </>
   );
-};
+});
 
 export default memo(PhoneInputSection);
