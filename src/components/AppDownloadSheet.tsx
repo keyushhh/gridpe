@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import appDownloadSheetImg from '../assets/app-download-sheet.png';
 
+let hasBeenDismissedThisSession = false;
+
 export default function AppDownloadSheet({ forceOpen = false, onClose }: { forceOpen?: boolean, onClose?: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -39,6 +41,8 @@ export default function AppDownloadSheet({ forceOpen = false, onClose }: { force
       return;
     }
 
+    if (hasBeenDismissedThisSession) return;
+
     // 1. Check if it's already been shown in this session
     const hasShown = sessionStorage.getItem('gridpe_app_prompt_shown');
     if (hasShown) return;
@@ -62,12 +66,14 @@ export default function AppDownloadSheet({ forceOpen = false, onClose }: { force
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [forceOpen]);
+  }, []);
 
   // Return null if completely hidden
   if (!isVisible && !isClosing) return null;
 
   const handleClose = () => {
+    hasBeenDismissedThisSession = true;
+    sessionStorage.setItem('gridpe_app_prompt_shown', 'true');
     setIsClosing(true);
     setTimeout(() => {
       setIsVisible(false);
