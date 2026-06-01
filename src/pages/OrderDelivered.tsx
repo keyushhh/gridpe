@@ -90,7 +90,7 @@ const OrderDelivered = () => {
         </p>
         {/* Container: 362x187px, radius 12px, 75px below sub-text */}
         <div
-          className={`mt-[75px] rounded-[12px] border overflow-hidden relative ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
+          className={`mt-[75px] mx-auto rounded-[12px] border overflow-hidden relative ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             width: '362px',
             height: '187px',

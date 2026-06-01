@@ -21,6 +21,8 @@ import type {
   RealtimePostgresChangesPayload, 
   RealtimePostgresUpdatePayload 
 } from '@supabase/supabase-js';
+import CustomerChatSheet from '@/components/CustomerChatSheet';
+import { useOrderChat } from '@/hooks/useOrderChat';
 
 const OrderTracking = () => {
   const navigate = useNavigate();
@@ -41,6 +43,8 @@ const OrderTracking = () => {
   const [riderName, setRiderName] = useState<string | null>(null);
   const [riderLocation, setRiderLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [showChatSheet, setShowChatSheet] = useState(false);
+  const { unreadCount } = useOrderChat(order?.id ?? null);
   // Initial check for terminal order status
   useEffect(() => {
     if (order?.status === 'delivered') {
@@ -334,8 +338,9 @@ const OrderTracking = () => {
           </Map>
         )}
       </div>
-      <div className="px-5 mt-4 shrink-0 relative z-0">
-        <div
+      <div className="flex-1 overflow-y-auto pb-safe">
+        <div className="px-5 mt-4 shrink-0 relative z-0">
+          <div
           className={`w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
           style={{
             height: '135px',
@@ -423,9 +428,9 @@ const OrderTracking = () => {
       {/* Rider Details Container */}
       <div className="px-[15px] mt-2.5 shrink-0 relative z-0">
         <div
-          className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px] overflow-hidden"
+          className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px]"
           style={{
-            height: order?.rider_id ? '290px' : 'auto',
+            height: 'auto',
             maxWidth: '362px',
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
             backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
@@ -471,6 +476,20 @@ const OrderTracking = () => {
                     />
                   </button>
                 </div>
+                <button
+                  onClick={() => setShowChatSheet(true)}
+                  className="relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-primary/30 bg-primary/5 text-primary text-sm font-medium mt-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Chat with Rider
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
                 <button
                   onClick={() =>
                     navigate(ROUTES.VIEW_RIDER_KYC.replace(':orderId', order.id), {
@@ -590,6 +609,12 @@ const OrderTracking = () => {
           </span>
         </Button>
       </div>
+      </div>
+      <CustomerChatSheet
+        isOpen={showChatSheet}
+        onClose={() => setShowChatSheet(false)}
+        orderId={order?.id ?? null}
+      />
     </div>
   );
 };

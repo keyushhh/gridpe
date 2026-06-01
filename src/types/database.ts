@@ -1,5 +1,25 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+export interface OrderMessage {
+  id: string;
+  order_id: string;
+  sender_type: 'rider' | 'customer';
+  sender_id: string;
+  message: string;
+  created_at: string;
+  read_at: string | null;
+}
+
+export const CUSTOMER_QUICK_REPLIES = [
+  'Ok, thank you!',
+  'Please hurry',
+  'I am at the door',
+  'Call me please',
+  'Leave it at the door',
+  'Coming downstairs',
+] as const;
+
+export type CustomerQuickReply = typeof CUSTOMER_QUICK_REPLIES[number];
 
 export interface Tables {
   profiles: {
@@ -28,6 +48,15 @@ export interface Tables {
     terms_version?: string | null;
     created_at: string;
     updated_at: string;
+  };
+  order_messages: {
+    id: string;
+    order_id: string;
+    sender_type: 'rider' | 'customer';
+    sender_id: string;
+    message: string;
+    created_at: string;
+    read_at: string | null;
   };
   orders: {
     id: string;
@@ -208,6 +237,12 @@ export interface Database {
         Row: Tables['profiles'];
         Insert: Partial<Tables['profiles']>;
         Update: Partial<Tables['profiles']>;
+        Relationships: [];
+      };
+      order_messages: {
+        Row: Tables['order_messages'];
+        Insert: Partial<Tables['order_messages']>;
+        Update: Partial<Tables['order_messages']>;
         Relationships: [];
       };
       orders: {
