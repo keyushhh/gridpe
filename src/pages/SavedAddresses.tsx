@@ -12,6 +12,7 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { SavedAddress } from '@/types';
 import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
+import { useLocationStore } from '@/store/useLocationStore';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -48,7 +49,9 @@ const mapToSavedAddress = (addr: Address): SavedAddress => {
 const SavedAddresses = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const { profile, activeAddressId, setActiveAddress } = useUser();
+  const { profile } = useUser();
+  const activeAddressId = useLocationStore((state) => state.activeAddressId);
+  const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
   const [loading, setLoading] = useState(true);

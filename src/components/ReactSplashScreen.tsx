@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LocationDisplay from './LocationDisplay';
-import { useLocationContext } from '@/contexts/LocationContext';
+import { useLocationStore } from '@/store/useLocationStore';
 
 interface ReactSplashScreenProps {
   onComplete: () => void;
@@ -11,7 +11,9 @@ const MIN_SPLASH_TIME = 2200;
 const MAX_SPLASH_TIME = 3200;
 
 export const ReactSplashScreen: React.FC<ReactSplashScreenProps> = ({ onComplete }) => {
-  const { initialized, loading, shortName } = useLocationContext();
+  const initialized = useLocationStore((state) => state.initialized);
+  const loading = useLocationStore((state) => state.loading);
+  const shortName = useLocationStore((state) => state.shortName);
   const [isVisible, setIsVisible] = useState(true);
   const [startTime] = useState(Date.now());
 

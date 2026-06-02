@@ -18,6 +18,8 @@ import { SavedAddress } from '@/types';
 import { cn } from '@/lib/utils';
 import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { useLocationStore } from '@/store/useLocationStore';
+import { useWalletStore } from '@/store/useWalletStore';
 const OrderCashSummary = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -32,7 +34,11 @@ const OrderCashSummary = () => {
   console.log('[AUDIT] OrderCashSummary arrived. Params:', { isScheduledFlow, initialSlot });
   const [selectedSlot, setSelectedSlot] = useState<string | null>(initialSlot || null);
   const isDarkMode = useIsDarkMode();
-  const { profile, walletBalance, rewardPoints: rewardPointsData, refreshBalance, activeAddress, setActiveAddress } = useUser();
+  const { profile, rewardPoints: rewardPointsData } = useUser();
+  const walletBalance = useWalletStore((state) => state.walletBalance);
+  const refreshBalance = useWalletStore((state) => state.refreshBalance);
+  const activeAddress = useLocationStore((state) => state.activeAddress);
+  const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
   const currentUserId = profile?.id;
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);

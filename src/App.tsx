@@ -134,7 +134,7 @@ import { useAppUpdateCheck } from './hooks/useAppUpdateCheck';
 import UpdatePrompt from './components/UpdatePrompt';
 import ForceUpdateSheet from './components/ForceUpdateSheet';
 import { PrivacyScreen } from './components/PrivacyScreen';
-import { LocationProvider, useLocationContext } from '@/contexts/LocationContext';
+import { useLocationStore } from '@/store/useLocationStore';
 import ReactSplashScreen from '@/components/ReactSplashScreen';
 
 const DevSheetPreview = () => {
@@ -145,7 +145,7 @@ const DevSheetPreview = () => {
 };
 
 const LocationBootstrapper = () => {
-  const { initializeLocation } = useLocationContext();
+  const initializeLocation = useLocationStore((state) => state.initializeLocation);
   useEffect(() => {
     initializeLocation();
   }, [initializeLocation]);
@@ -1147,6 +1147,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                     <Route path={ROUTES.LEGAL_TERMS} element={<LegalPage type="terms" />} />
                     <Route path={ROUTES.LEGAL_PRIVACY} element={<LegalPage type="privacy" />} />
                     <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
+                    <Route path="*" element={<NotFound />} />
                   </Routes>
                   )}
                 </Router>
@@ -1165,13 +1166,11 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <LocationProvider>
-        <LocationBootstrapper />
-        {showSplash && <ReactSplashScreen onComplete={() => setShowSplash(false)} />}
-        {updateStatus === 'force' && <ForceUpdateSheet storeUrl={storeUrl} onClose={() => setUpdateStatus('none')} />}
-        <PrivacyScreen />
-        <AppContent updateStatus={updateStatus} storeUrl={storeUrl} setUpdateStatus={setUpdateStatus} />
-      </LocationProvider>
+      <LocationBootstrapper />
+      {showSplash && <ReactSplashScreen onComplete={() => setShowSplash(false)} />}
+      {updateStatus === 'force' && <ForceUpdateSheet storeUrl={storeUrl} onClose={() => setUpdateStatus('none')} />}
+      <PrivacyScreen />
+      <AppContent updateStatus={updateStatus} storeUrl={storeUrl} setUpdateStatus={setUpdateStatus} />
     </ErrorBoundary>
   );
 };

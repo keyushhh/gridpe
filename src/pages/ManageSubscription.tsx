@@ -5,6 +5,7 @@ import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { useUser, WalletTier } from '@/contexts/UserContext';
+import { useWalletStore } from '@/store/useWalletStore';
 import { tiers } from '@/lib/walletTiers';
 import { formatINR } from '@/utils/format';
 // Import Assets
@@ -24,7 +25,9 @@ const subscriptionBgsLight: Record<WalletTier, string> = {
 const ManageSubscription = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const { walletTier, walletLimit, scheduleDowngrade } = useUser();
+  const walletTier = useWalletStore((state) => state.walletTier);
+  const walletLimit = useWalletStore((state) => state.walletLimit);
+  const scheduleDowngrade = useWalletStore((state) => state.scheduleDowngrade);
   const currentTierConfig = tiers.find(t => t.name === walletTier);
   if (!currentTierConfig) return null;
   const handleCancel = async () => {

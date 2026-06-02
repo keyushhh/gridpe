@@ -5,6 +5,7 @@ import { ROUTES } from '@/routes';
 import { Loader2 } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
+import { useWalletStore } from '@/store/useWalletStore';
 import { useAsset } from '@/hooks/useAsset';
 import BackButton from '@/components/ui/BackButton';
 import { useWebScroll } from '@/hooks/useWebScroll';
@@ -13,7 +14,9 @@ const Wallet = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const { isWalletActivated, activateWallet, isInitializing } = useUser();
+  const isWalletActivated = useWalletStore((state) => state.isWalletActivated);
+  const activateWallet = useWalletStore((state) => state.activateWallet);
+  const isWalletInitializing = useWalletStore((state) => state.isWalletInitializing);
   const [activeTab, setActiveTab] = useState<'how-it-works' | 'refund-policy'>('how-it-works');
   const walletBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const walletLogoAsset = useAsset(ASSETS.WALLET_LOGO, ASSETS.WALLET_LOGO);
@@ -21,11 +24,11 @@ const Wallet = () => {
   const selectedTabBackground = useAsset(ASSETS.SELECTEDTAB, ASSETS.SELECTEDTAB);
   const primaryButton = useAsset(ASSETS.BUTTON_PRIMARY_WIDE, ASSETS.BUTTON_PRIMARY_WIDE);
   useEffect(() => {
-    if (!isInitializing && isWalletActivated) {
+    if (!isWalletInitializing && isWalletActivated) {
       navigate(ROUTES.WALLET_CREATED, { replace: true });
     }
-  }, [isWalletActivated, isInitializing, navigate]);
-  if (isInitializing) {
+  }, [isWalletActivated, isWalletInitializing, navigate]);
+  if (isWalletInitializing) {
     return <WalletSkeleton />;
   }
   return (

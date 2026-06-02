@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
+import { useWalletStore } from '@/store/useWalletStore';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
@@ -12,7 +13,8 @@ const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const { walletLimit, walletBalance } = useUser();
+  const walletLimit = useWalletStore((state) => state.walletLimit);
+  const walletBalance = useWalletStore((state) => state.walletBalance);
   const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>('0.00');
   const isDarkMode = useIsDarkMode();

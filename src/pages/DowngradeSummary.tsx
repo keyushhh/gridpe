@@ -5,7 +5,8 @@ import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { SlideToPay } from '@/components/SlideToPay';
-import { useUser, WalletTier } from '@/contexts/UserContext';
+import { WalletTier } from '@/contexts/UserContext';
+import { useWalletStore } from '@/store/useWalletStore';
 import { tierChipColorMap, fetchTierPrices } from '@/lib/walletTiers';
 import { formatINR } from '@/utils/format';
 const subscriptionBanners: Record<string, string> = {
@@ -31,7 +32,8 @@ const DowngradeSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
-  const { walletTier, scheduleDowngrade, walletBalance } = useUser();
+  const scheduleDowngrade = useWalletStore((state) => state.scheduleDowngrade);
+  const walletBalance = useWalletStore((state) => state.walletBalance);
   const { tier } = location.state || { tier: '' };
   const bannerImage = isDarkMode
     ? subscriptionBanners[tier] || ASSETS.STARTER_SUBSCRIPTION

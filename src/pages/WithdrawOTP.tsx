@@ -8,6 +8,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
 import { useUser } from '@/contexts/UserContext';
+import { useWalletStore } from '@/store/useWalletStore';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { supabase } from '@/lib/supabase';
 import { verifyVPA } from '@/lib/banking';
@@ -17,7 +18,8 @@ const WithdrawOTP = () => {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const location = useLocation();
-  const { phoneNumber, refreshBalance, profile } = useUser();
+  const { phoneNumber, profile } = useUser();
+  const refreshBalance = useWalletStore((state) => state.refreshBalance);
   const userId = profile?.id;
   const isDarkMode = useIsDarkMode();
   const [otp, setOtp] = useState('');

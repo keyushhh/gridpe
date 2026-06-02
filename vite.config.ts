@@ -28,6 +28,11 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         inlineDynamicImports: false,
+        manualChunks(id) {
+          if (id.includes('maplibre-gl') || id.includes('react-map-gl')) {
+            return 'map-engine';
+          }
+        }
       },
     },
   },

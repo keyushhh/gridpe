@@ -21,7 +21,7 @@ import { getAddress, removeAddress, migrateAddressKey, ADDRESS_KEYS } from '@/ut
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { ROUTES } from '@/routes';
-import { useLocationContext } from '@/contexts/LocationContext';
+import { useLocationStore } from '@/store/useLocationStore';
 interface AddressSelectionSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,7 +34,9 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   onAddressSelect,
   onModalStateChange,
 }) => {
-  const { profile, activeAddress, setActiveAddress } = useUser();
+  const { profile } = useUser();
+  const activeAddress = useLocationStore((state) => state.activeAddress);
+  const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
   const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
@@ -48,7 +50,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const [addressToDelete, setAddressToDelete] = useState<SavedAddress | null>(null);
   const [lastSelectedAddressId, setLastSelectedAddressId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { refreshLocation } = useLocationContext();
+  const refreshLocation = useLocationStore((state) => state.refreshLocation);
 
   const handleCloseSafe = (e?: React.MouseEvent | TouchEvent | Event) => {
     if (e) {

@@ -1,45 +1,15 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
-import { calculateBalance, calculateHeldBalance } from '@/lib/wallet';
-import { WalletTier, WalletTransaction, Profile as UserProfile, Tables } from '@/types';
+import { WalletTier, Profile as UserProfile, Tables } from '@/types';
+import { useWalletStore } from '@/store/useWalletStore';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { purgeOtherUsersStorage, readStorage, writeStorage, removeStorage } from '@/utils/storage';
-import { getAddress, setAddress, removeAddress, ADDRESS_KEYS } from '@/utils/addressStorage';
 import { SavedAddress } from '@/types';
 import { useNetworkStatus } from '@/utils/useNetworkStatus';
-
-/* ── Capacitor Preferences helpers for address persistence ──
- * localStorage is unreliable on Capacitor Android (WebView can purge it).
- * Preferences uses native SharedPreferences / NSUserDefaults instead. */
-async function getAddressPref(): Promise<SavedAddress | null> {
-  try {
-    const addr = await getAddress<SavedAddress>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
-    if (addr) return addr;
-  } catch (e) {
-    console.warn('Failed to read address from Preferences', e);
-  }
-  return null;
-}
-
-async function setAddressPref(addr: SavedAddress): Promise<void> {
-  try {
-    await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addr);
-  } catch (e) {
-    console.warn('Failed to write address to Preferences', e);
-  }
-}
-
-async function removeAddressPref(): Promise<void> {
-  try {
-    await removeAddress(ADDRESS_KEYS.SELECTED_ADDRESS);
-  } catch (e) {
-    console.warn('Failed to remove address from Preferences', e);
-  }
-}
 
 export type { WalletTier };
 
@@ -53,37 +23,15 @@ interface UserState {
   kycSubmittedAt: number | null;
   biometricEnabled: boolean;
   profile: UserProfile | null;
-  isWalletActivated: boolean;
-  isInitializing: boolean;
-  isSecureStorageReady: boolean;
   isResetting: boolean;
-
-  /* Wallet Tier */
-  walletTier: WalletTier;
-  walletLimit: number;
-  dailyLimit: number | null;
-  maxWithdrawalLimit: number | null;
-  upgradeTimestamp: number | null;
-  isPassportVerified: boolean;
-  scheduledDowngrade: { tier: WalletTier; effectiveDate: string } | null;
-  lastDowngradeLoss: number | null;
-
-  /* Wallet Balance */
-  walletBalance: number;
-  heldBalance: number;
 
   /* FX Stats */
   isFxEnabled: boolean;
 
-  /* Tier Object */
-  wallet_tiers: Tables['wallet_tiers'] | null;
-  subscriptionPrice: number;
-  paymentStatus: 'pending' | 'completed' | null;
-  isRenewalPending: boolean;
   rewardPoints: number;
-  activeAddressId?: string | null;
-  activeAddress?: SavedAddress | null;
-  isManualAddressSelected: boolean;
+  isPassportVerified: boolean;
+  isInitializing: boolean;
+  isSecureStorageReady: boolean;
 }
 
 interface UserContextType extends UserState {
@@ -97,26 +45,9 @@ interface UserContextType extends UserState {
   setProfile: (profile: UserProfile | null) => void;
   submitKyc: (isPassport?: boolean) => void;
   resetForDemo: () => void;
-  activateWallet: () => void;
-  deactivateWallet: () => void;
-
-  /* Wallet Tier */
-  setWalletTier: (tier: WalletTier) => void;
   setPassportVerified: (verified: boolean) => void;
   setPassportVerifiedInDb: (verified: boolean) => Promise<void>;
-  scheduleDowngrade: (tier: WalletTier, effectiveDate: string) => void;
-  cancelDowngrade: () => void;
-  completeScheduledDowngrade: () => void;
-  refreshBalance: (userId?: string) => Promise<void>;
-  refreshTransactions: (userId?: string) => Promise<void>;
   fetchProfileData: (userId?: string) => Promise<void>;
-  activeAddressId?: string | null;
-  activeAddress?: SavedAddress | null;
-  setActiveAddress: (addr: SavedAddress | null, isManual?: boolean) => void;
-  isManualAddressSelected: boolean;
-  addMoney: (
-    amount: number
-  ) => Promise<{ success: boolean; error?: Error | PostgrestError | string }>;
   isInitializing: boolean;
   isSecureStorageReady: boolean;
   isResetting: boolean;
@@ -136,30 +67,13 @@ const defaultState: UserState = {
   kycSubmittedAt: null,
   biometricEnabled: false,
   profile: null,
-  isWalletActivated: false,
-
-  walletTier: 'Starter',
-  walletLimit: 5000,
-  dailyLimit: null,
-  maxWithdrawalLimit: null,
-  upgradeTimestamp: null,
   isPassportVerified: false,
-  scheduledDowngrade: null,
-  lastDowngradeLoss: null,
-  walletBalance: 0,
-  heldBalance: 0,
   isFxEnabled: false,
-  wallet_tiers: null,
-  subscriptionPrice: 0,
-  paymentStatus: null,
-  isRenewalPending: false,
+
   rewardPoints: 0,
   isInitializing: true,
   isSecureStorageReady: false,
   isResetting: false,
-  activeAddressId: null,
-  activeAddress: null,
-  isManualAddressSelected: false,
 };
 
 /* -------------------- Context -------------------- */
@@ -173,10 +87,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const wasOffline = useRef(!isConnected);
 
   // Ref to track activation status without triggering re-renders or stale closures in callbacks
-  const isWalletActivatedRef = useRef(state.isWalletActivated);
-  useEffect(() => {
-    isWalletActivatedRef.current = state.isWalletActivated;
-  }, [state.isWalletActivated]);
 
   // Load state on mount
   useEffect(() => {
@@ -186,15 +96,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const stored = localStorage.getItem(USER_STORAGE_KEY);
         const parsedLocalStorage = stored ? JSON.parse(stored) : {};
 
-        // Read persisted address from Capacitor Preferences (reliable on Android)
-        const savedAddr = await getAddressPref();
-
         // Immediately unblock the UI with optimistic non-sensitive data
         setState(prev => ({
           ...prev,
           ...parsedLocalStorage,
-          activeAddress: savedAddr || parsedLocalStorage.activeAddress || prev.activeAddress,
-          activeAddressId: savedAddr?.id || parsedLocalStorage.activeAddressId || prev.activeAddressId,
           isInitializing: false,
         }));
 
@@ -283,104 +188,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [state, showToaster]);
 
   /* Removed mock KYC auto-transition as per requirements to use real database status */
-
-  /* Real-time Wallet Balance Reading */
-  const fetchAndCalculateBalance = useCallback(
-    async (overrideUserId?: string) => {
-      try {
-        const sessionPromise = supabase.auth.getSession();
-        let timer: any;
-        const timeoutPromise = new Promise((_, reject) => 
-          timer = setTimeout(() => reject(new Error('Session check timeout')), 4000)
-        );
-        let session: any;
-        try {
-          const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
-          clearTimeout(timer);
-          session = data?.session;
-        } catch (err) {
-          if (import.meta.env.DEV) {
-            console.warn('[UserContext] Session check failed or timed out:', err);
-          }
-          session = null;
-        }
-
-        if (!session && !overrideUserId) {
-          setState(prev => ({ ...prev, isInitializing: false }));
-          return;
-        }
-
-        const userId = overrideUserId || session?.user?.id;
-
-        // Read directly from the wallets table to avoid calculation drift
-        const { data: walletData, error: walletError } = await supabase
-          .from('wallets')
-          .select('available_balance')
-          .eq('user_id', userId)
-          .abortSignal(AbortSignal.timeout(4000))
-          .maybeSingle();
-
-        if (walletError) {
-          console.error('Error reading wallet balance:', walletError);
-        }
-
-        if (!walletData) {
-          setState(prev => ({
-            ...prev,
-            walletBalance: 0,
-            heldBalance: 0,
-            isWalletActivated: false,
-            isInitializing: false,
-          }));
-          return;
-        }
-
-        const balance = Number(walletData?.available_balance || 0);
-        const flooredBalance = Math.floor(balance);
-
-        // We can still calculate held balance from transactions if needed
-        const { data: txData } = await supabase
-          .from('wallet_transactions')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('status', 'held')
-          .abortSignal(AbortSignal.timeout(4000));
-
-        const held = Math.floor(calculateHeldBalance((txData as WalletTransaction[]) || []));
-
-        // Auto-activate if user has balance or held funds
-        const shouldBeActivated = flooredBalance > 0 || held > 0;
-
-        setState(prev => ({
-          ...prev,
-          walletBalance: flooredBalance,
-          heldBalance: held,
-          isWalletActivated: prev.isWalletActivated || shouldBeActivated,
-          isInitializing: false,
-        }));
-
-        // If still not activated, check for ANY transaction history
-        if (!isWalletActivatedRef.current && !shouldBeActivated) {
-          const { count, error: txError } = await supabase
-            .from('wallet_transactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', userId)
-            .abortSignal(AbortSignal.timeout(4000));
-
-          if (count && count > 0) {
-            setState(prev => ({ ...prev, isWalletActivated: true }));
-          }
-          if (txError) {
-            console.error('Error in fetchAndCalculateBalance (txHistory):', txError);
-          }
-        }
-      } catch (err) {
-        console.error('Error in fetchAndCalculateBalance:', err);
-        setState(prev => ({ ...prev, isInitializing: false }));
-      }
-    },
-    [supabase, isWalletActivatedRef]
-  );
 
   /* Refetch Profile Data from Supabase */
   const fetchProfileData = useCallback(
@@ -483,57 +290,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             isFxEnabled: !!profileData.is_fx_enabled,
             biometricEnabled: !!profileData.biometric_on,
 
-            // Tier Hardening: Normalize limits to whole numbers (Math.floor)
-            walletTier: tierData?.name
-              ? ((tierData.name.charAt(0).toUpperCase() + tierData.name.slice(1)) as WalletTier)
-              : prev.walletTier || 'Starter',
-            walletLimit: tierData?.max_wallet_balance
-              ? Math.floor(tierData.max_wallet_balance)
-              : prev.walletLimit,
-            dailyLimit:
-              tierData?.daily_withdraw_limit != null
-                ? Math.floor(tierData.daily_withdraw_limit)
-                : null,
-            maxWithdrawalLimit:
-              tierData?.daily_withdraw_limit != null
-                ? Math.floor(tierData.daily_withdraw_limit)
-                : null,
-            wallet_tiers: tierData,
-            subscriptionPrice: tierData?.subscription_price
-              ? Number(tierData.subscription_price)
-              : 0,
-
-            scheduledDowngrade: profileData.scheduled_tier_id
-              ? {
-                  tier:
-                    (schedParsedName as WalletTier) || prev.scheduledDowngrade?.tier || 'Starter',
-                  effectiveDate: profileData.tier_change_date,
-                }
-              : null,
-            paymentStatus: profileData.payment_status as 'pending' | 'completed' | null,
-            isRenewalPending:
-              profileData.payment_status === 'pending' ||
-              profileData.subscription_status === 'pending' ||
-              (!!profileData.tier_change_date &&
-                new Date() >= new Date(profileData.tier_change_date)),
-            profile: {
-              ...prev.profile,
-              id: profileData.id,
-              name: profileData.name,
-              subscription_status: profileData.subscription_status,
-              kyc_status: profileData.kyc_status,
-              mpin_hash: profileData.mpin_hash,
-              biometric_on: !!profileData.biometric_on,
-              terms_accepted_at: profileData.terms_accepted_at,
-              terms_version: profileData.terms_version,
-            } as UserProfile,
-            rewardPoints: Number(profileData.reward_points || 0),
             isPassportVerified: !!profileData.is_passport_verified,
-            isWalletActivated:
-              prev.isWalletActivated ||
-              (tierData?.name && tierData.name.toLowerCase() !== 'starter') ||
-              profileData.subscription_status === 'completed' ||
-              !!profileData.is_passport_verified,
           }));
         } else {
           if (import.meta.env.DEV) console.warn('No profile found for user - Attempting to create one...');
@@ -563,34 +320,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           }
         }
 
-        // Always recalculate balance from transactions, regardless of profile existence
-        await fetchAndCalculateBalance(userId);
       } catch (error) {
         console.error('Failed to fetch profile data:', error);
-        // Fallback but still calculate balance
-        const sessionPromise = supabase.auth.getSession();
-        let timer: any;
-        const timeoutPromise = new Promise((_, reject) => 
-          timer = setTimeout(() => reject(new Error('Session check timeout')), 4000)
-        );
-        let session: any;
-        try {
-          const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
-          clearTimeout(timer);
-          session = data?.session;
-        } catch (err) {
-          if (import.meta.env.DEV) {
-            console.warn('[UserContext] Session check failed or timed out during fallback:', err);
-          }
-          session = null;
-        }
-        
-        if (session?.user?.id || overrideUserId) {
-          await fetchAndCalculateBalance(overrideUserId || session?.user?.id);
-        }
       }
     },
-    [supabase, fetchAndCalculateBalance, state.isResetting]
+    [supabase, state.isResetting]
   );
 
   /* Initial Load */
@@ -640,36 +374,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           console.warn('Failed to purge other user storage on sign-in:', e);
         }
         fetchProfileData();
+        useWalletStore.getState().initializeWallet();
       }
     });
 
     return () => subscription.unsubscribe();
   }, [fetchProfileData, supabase]);
-
-  // Load active address from namespaced storage when profile becomes available
-  useEffect(() => {
-    const loadActiveAddress = async () => {
-      const userId = state.profile?.id;
-      if (!userId) return;
-      try {
-        const savedAddr = await getAddressPref();
-        if (savedAddr) {
-          setState(prev => ({ ...prev, activeAddress: savedAddr, activeAddressId: savedAddr.id ?? null }));
-          return;
-        }
-        const addr = readStorage<SavedAddress>('user_address', userId);
-        const lastId = readStorage<string>('last_selected_address_id', userId);
-        if (addr) {
-          setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? lastId ?? null }));
-        } else if (lastId) {
-          setState(prev => ({ ...prev, activeAddressId: lastId }));
-        }
-      } catch (e) {
-        console.warn('Failed to load active address from storage', e);
-      }
-    };
-    loadActiveAddress();
-  }, [state.profile?.id]);
 
   /* Real-time KYC Status Subscription */
   useEffect(() => {
@@ -709,104 +419,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [state.profile?.id, fetchProfileData, supabase]);
 
-  const refreshTransactions = useCallback(async (overrideUserId?: string) => {
-    let id = overrideUserId;
-    if (!id) {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      id = session?.user?.id;
-    }
-    const currentId = id;
-    if (currentId) {
-      window.dispatchEvent(
-        new CustomEvent('refresh_wallet_transactions', { detail: { userId: currentId } })
-      );
-    }
-  }, []);
 
-  // 1. Initial Load & Visibility Changes (No userId filter needed for visibility)
-  useEffect(() => {
-    fetchAndCalculateBalance();
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        console.log('App focused, refreshing balance...');
-        fetchAndCalculateBalance();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [fetchAndCalculateBalance]);
-
-  // 2. Dynamic Realtime Sync (Dependent on userId)
-  useEffect(() => {
-    let channel: RealtimeChannel | null = null;
-
-    const setupSync = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id;
-
-      if (!currentUserId) return;
-
-      channel = supabase
-        .channel(`user-context-wallet-sync-${currentUserId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'wallets',
-            filter: `user_id=eq.${currentUserId}`,
-          },
-          payload => {
-            fetchAndCalculateBalance(currentUserId);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'wallet_transactions',
-            filter: `user_id=eq.${currentUserId}`,
-          },
-          () => {
-            fetchAndCalculateBalance(currentUserId);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'payouts',
-            filter: `user_id=eq.${currentUserId}`,
-          },
-          () => {
-            fetchAndCalculateBalance(currentUserId);
-          }
-        )
-        .subscribe();
-    };
-
-    setupSync();
-
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [state.profile?.id, fetchAndCalculateBalance, supabase]); // Re-subscribe when profile ID changes
-
-  const refreshBalance = useCallback(
-    async (userId?: string) => {
-      await fetchAndCalculateBalance(userId);
-    },
-    [fetchAndCalculateBalance]
-  );
 
   /* -------------------- Setters -------------------- */
 
@@ -859,53 +472,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, profile }));
   }, []);
 
-  const setActiveAddress = useCallback(async (addr: SavedAddress | null, isManual: boolean = false) => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const userId = session?.user?.id || state.profile?.id;
-
-      if (!userId) {
-        try { removeStorage('user_address', userId); } catch (err) {
-          if (import.meta.env.DEV) console.warn('[UserContext] cleanup error:', err);
-        }
-        try { removeStorage('last_selected_address_id', userId); } catch (err) {
-          if (import.meta.env.DEV) console.warn('[UserContext] cleanup error:', err);
-        }
-        await removeAddressPref();
-        setState(prev => ({ ...prev, activeAddress: null, activeAddressId: null, isManualAddressSelected: isManual || prev.isManualAddressSelected }));
-        return;
-      }
-
-      // Persist into namespaced storage
-      try { writeStorage('user_address', addr, userId); } catch (err) {
-        if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
-      }
-      if (addr.id) {
-        try { writeStorage('last_selected_address_id', addr.id, userId); } catch (err) {
-          if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
-        }
-      }
-
-      await setAddressPref(addr);
-
-      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? null, isManualAddressSelected: isManual || prev.isManualAddressSelected }));
-    } catch (err) {
-      console.error('Failed to set active address:', err);
-      if (addr) {
-        setAddressPref(addr).catch((err) => {
-          if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
-        });
-      } else {
-        removeAddressPref().catch((err) => {
-          if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
-        });
-      }
-      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null, isManualAddressSelected: isManual || prev.isManualAddressSelected }));
-    }
-  }, [supabase, state.profile?.id]);
-
   const submitKyc = useCallback((isPassport?: boolean) => {
     setState(prev => ({
       ...prev,
@@ -931,268 +497,27 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (false) clearTimeout(resetTimer);
   }, []);
 
-  const activateWallet = useCallback(async () => {
-    if (!state.profile?.id) throw new Error('No user ID found');
-
-    const userId = state.profile.id;
-
-    if (import.meta.env.DEV) console.log('[WalletActivation] Initializing wallet');
-
-    // Create wallet row if it doesn't exist
-    const { error: walletError } = await supabase.from('wallets').upsert(
-      {
-        user_id: userId,
-        available_balance: 0,
-        held_balance: 0,
-        tier_id: 'fbef1e55-688d-4916-91b5-2a44a2ff3380',
-      },
-      { onConflict: 'user_id', ignoreDuplicates: true }
-    );
-
-    if (walletError) {
-      console.error('[WalletActivation] Wallet record creation failed:', walletError);
-      throw walletError;
-    }
-
-    // Mark onboarded
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ is_onboarded: true })
-      .eq('id', userId);
-
-    if (profileError) {
-      console.error('[WalletActivation] Profile update failed:', profileError);
-      throw profileError;
-    }
-
-    setState(prev => ({ ...prev, isWalletActivated: true }));
-
-    // Refresh balance to ensure UI is in sync
-    await fetchAndCalculateBalance(userId);
-  }, [state.profile?.id, fetchAndCalculateBalance]);
-
-  const deactivateWallet = useCallback(() => {
-    setState(prev => ({ ...prev, isWalletActivated: false }));
-  }, []);
-
-  const setWalletTier = useCallback(
-    async (tier: WalletTier) => {
-      try {
-        // 1. Fetch the UUID for the tier
-        const { data: tierData, error: tierError } = await supabase
-          .from('wallet_tiers')
-          .select('id')
-          .ilike('name', tier)
-          .maybeSingle();
-
-        if (tierError) throw tierError;
-        if (!tierData) throw new Error(`Tier ${tier} not found`);
-
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
-
-        // 2. Update BOTH profiles and wallets tables for consistency
-        const [profileUpdate, walletUpdate] = await Promise.all([
-          supabase
-            .from('profiles')
-            .update({
-              current_tier_id: tierData.id,
-              scheduled_tier_id: null,
-              tier_change_date: null,
-            })
-            .eq('id', userId),
-          supabase.from('wallets').update({ tier_id: tierData.id }).eq('user_id', userId),
-        ]);
-
-        if (profileUpdate.error) throw profileUpdate.error;
-        if (walletUpdate.error) throw walletUpdate.error;
-
-        await fetchProfileData();
-      } catch (err) {
-        console.error('Failed to set wallet tier:', err);
-        showToaster("Couldn't update your plan. Please try again.", 'error');
-      }
-    },
-    [supabase, fetchProfileData]
-  );
-
   const setPassportVerified = useCallback((verified: boolean) => {
     setState(prev => ({ ...prev, isPassportVerified: verified }));
   }, []);
 
   const setPassportVerifiedInDb = useCallback(
     async (verified: boolean) => {
+      setState(prev => ({ ...prev, isPassportVerified: verified }));
       try {
         const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
-
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            is_passport_verified: verified,
-            kyc_status: verified ? 'verified' : state.kycStatus,
-          })
-          .eq('id', userId);
-
-        if (error) throw error;
-
-        setState(prev => ({
-          ...prev,
-          isPassportVerified: verified,
-          kycStatus: verified ? 'verified' : prev.kycStatus,
-        }));
-
-        // Immediate localStorage sync — closes the timing window where the app
-        // could be killed before the batched useEffect persistence runs.
-        const stored = localStorage.getItem('gridpe_user_state');
-        const parsed = stored ? JSON.parse(stored) : {};
-        localStorage.setItem(
-          'gridpe_user_state',
-          JSON.stringify({ ...parsed, isPassportVerified: verified })
-        );
-      } catch (err) {
-        console.error('Failed to update passport verification in DB:', err);
-        showToaster("Couldn't update your verification status. Please try again.", 'error');
-      }
-    },
-    [supabase, state.kycStatus]
-  );
-
-  const scheduleDowngrade = useCallback(
-    async (tier: WalletTier, effectiveDate: string) => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
-
-        const { data: rpcResult, error: rpcError } = await supabase.rpc('schedule_downgrade', {
-          p_user_id: userId,
-          p_tier_name: tier,
-          p_tier_change_date: effectiveDate,
-        });
-
-        if (rpcError) {
-          console.error('[scheduleDowngrade] RPC ERROR:', rpcError);
-          throw rpcError;
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('profiles').update({ is_passport_verified: verified }).eq('id', user.id);
         }
-
-        // Set optimistic local state immediately
-        setState(prev => ({ ...prev, scheduledDowngrade: { tier, effectiveDate } }));
-
-        // Re-fetch from DB to confirm the write actually persisted
-        await fetchProfileData();
       } catch (error) {
-        console.error('[scheduleDowngrade] Failed to schedule downgrade via RPC:', error);
-        showToaster("Couldn't schedule your plan change. Please try again.", 'error');
+        console.error('Failed to sync passport verified:', error);
       }
     },
-    [supabase, fetchProfileData]
+    [supabase]
   );
 
-  const cancelDowngrade = useCallback(async () => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          tier_change_date: null,
-        })
-        .eq('id', state.profile?.id);
-
-      if (error) throw error;
-      setState(prev => ({ ...prev, scheduledDowngrade: null }));
-    } catch (error) {
-      console.error('Failed to cancel downgrade in Supabase:', error);
-      showToaster("Couldn't cancel your plan change. Please try again.", 'error');
-    }
-  }, [supabase]);
-
-  const completeScheduledDowngrade = useCallback(async () => {
-    if (state.scheduledDowngrade) {
-      const newTier = state.scheduledDowngrade.tier;
-
-      try {
-        // 1. Fetch the ID and limits for the new tier from wallet_tiers
-        const { data: tierData, error: tierError } = await supabase
-          .from('wallet_tiers')
-          .select('id, max_wallet_balance')
-          .ilike('name', newTier)
-          .maybeSingle();
-
-        if (tierError) throw tierError;
-        if (!tierData) throw new Error(`Tier ${newTier} not found`);
-
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
-        if (!userId) throw new Error('Unauthorized');
-
-        const newLimit = tierData.max_wallet_balance || 0;
-        const currentBalance = state.walletBalance;
-
-        console.log('[completeScheduledDowngrade] Calling apply_tier_forfeiture RPC:', {
-          p_user_id: userId,
-          p_new_tier_id: tierData.id,
-          p_new_limit: newLimit,
-          p_current_balance: currentBalance,
-        });
-
-        // 2. Single atomic RPC: handles insert, balance cap, tier flip, and cleanup
-        const { data: rpcResult, error: rpcError } = await supabase.rpc('apply_tier_forfeiture', {
-          p_user_id: userId,
-          p_new_tier_id: tierData.id,
-          p_new_limit: newLimit,
-          p_current_balance: currentBalance,
-        });
-
-        if (rpcError) {
-          console.error('[completeScheduledDowngrade] RPC ERROR:', rpcError);
-          throw rpcError;
-        }
-
-        // 3. Refresh everything so the UI updates immediately
-        await refreshBalance(userId);
-        await fetchProfileData();
-      } catch (err) {
-        console.error('Failed to complete downgrade:', err);
-        showToaster("Something went wrong while updating your plan. Please contact support.", 'error');
-      }
-    }
-  }, [supabase, state.scheduledDowngrade, state.walletBalance, refreshBalance, fetchProfileData]);
-
-  const addMoney = useCallback(
-    async (amount: number) => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
-
-        // Atomic RPC: updates wallets.available_balance + inserts transaction in one DB transaction
-        const { error: rpcError } = await supabase.rpc('wallet_deposit', {
-          p_user_id: userId,
-          p_amount: amount,
-          p_description: 'Wallet Top-up',
-          p_reference_id: 'razorpay',
-        });
-
-        if (rpcError) throw rpcError;
-
-        await fetchAndCalculateBalance();
-
-        return { success: true };
-      } catch (error) {
-        console.error('Failed to add money:', error);
-        return { success: false, error };
-      }
-    },
-    [supabase, fetchAndCalculateBalance]
-  );
 
   /* -------------------- Provider -------------------- */
 
@@ -1208,21 +533,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setProfile,
     submitKyc,
     resetForDemo,
-    activateWallet,
-    deactivateWallet,
-    setWalletTier,
     setPassportVerified,
-    scheduleDowngrade,
-    cancelDowngrade,
-    completeScheduledDowngrade,
-    refreshBalance,
-    refreshTransactions,
     fetchProfileData,
-    activeAddressId: state.activeAddressId,
-    activeAddress: state.activeAddress,
-    setActiveAddress,
     setPassportVerifiedInDb,
-    addMoney,
   };
 
   return <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>;

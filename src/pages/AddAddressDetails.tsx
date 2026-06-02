@@ -21,6 +21,7 @@ import { writeStorage } from '@/utils/storage';
 import { Contact, Home, Briefcase, Navigation, MapPin, Phone as PhoneIcon } from 'lucide-react';
 import Map from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { useLocationStore } from '@/store/useLocationStore';
 // Assets
 interface AddressState {
   id?: string; // Unique ID for editing
@@ -52,7 +53,8 @@ const AddAddressDetails = () => {
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
-  const { profile, name: accountName, phoneNumber: accountPhone, setActiveAddress, fetchProfileData } = useUser();
+  const { profile, name: accountName, phoneNumber: accountPhone, fetchProfileData } = useUser();
+  const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const currentUserId = profile?.id;
   const initialState = location.state as AddressState | null;
   const isEditMode = !!initialState?.id;

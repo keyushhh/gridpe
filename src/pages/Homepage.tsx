@@ -43,6 +43,8 @@ import {
   ADDRESS_KEYS 
 } from '@/utils/addressStorage';
 import LocationDisplay from '@/components/LocationDisplay';
+import { useLocationStore } from '@/store/useLocationStore';
+import { useWalletStore } from '@/store/useWalletStore';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -93,16 +95,16 @@ const Homepage = () => {
   const isDarkMode = useIsDarkMode();
   const [showBalance, setShowBalance] = useState(false);
   const {
-    walletBalance,
-    walletTier,
+    name,
+    profile,
     isPassportVerified,
     profileImage,
-    name,
-    scheduledDowngrade,
-    profile,
-    activeAddress,
-    setActiveAddress,
   } = useUser();
+  const walletBalance = useWalletStore((state) => state.walletBalance);
+  const walletTier = useWalletStore((state) => state.walletTier);
+  const scheduledDowngrade = useWalletStore((state) => state.scheduledDowngrade);
+  const activeAddress = useLocationStore((state) => state.activeAddress);
+  const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
   const [balanceAlert, setBalanceAlert] = useState<{
     days: number;

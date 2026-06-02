@@ -6,7 +6,9 @@ import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useUser, WalletTier } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/UserContext';
+import { WalletTier } from '@/types';
+import { useWalletStore } from '@/store/useWalletStore';
 import { tierIconMap, tierCardMap, tierCardMapLight } from '@/lib/walletTiers';
 import { useAsset } from '@/hooks/useAsset';
 import { supabase } from '@/lib/supabase';
@@ -45,21 +47,19 @@ const WalletCreated = () => {
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const queryClient = useQueryClient();
-  const {
-    profile,
-    walletTier,
-    upgradeTimestamp,
-    walletBalance,
-    heldBalance,
-    walletLimit,
-    dailyLimit,
-    wallet_tiers,
-    isRenewalPending,
-    scheduledDowngrade,
-    isInitializing,
-    deactivateWallet,
-    isWalletActivated,
-  } = useUser();
+  const { profile, isInitializing } = useUser();
+  const walletTier = useWalletStore((state) => state.walletTier);
+  const walletBalance = useWalletStore((state) => state.walletBalance);
+  const heldBalance = useWalletStore((state) => state.heldBalance);
+  const walletLimit = useWalletStore((state) => state.walletLimit);
+  const dailyLimit = useWalletStore((state) => state.dailyLimit);
+  const wallet_tiers = useWalletStore((state) => state.wallet_tiers);
+  const isRenewalPending = useWalletStore((state) => state.isRenewalPending);
+  const scheduledDowngrade = useWalletStore((state) => state.scheduledDowngrade);
+  const isWalletInitializing = useWalletStore((state) => state.isWalletInitializing);
+  const deactivateWallet = useWalletStore((state) => state.deactivateWallet);
+  const isWalletActivated = useWalletStore((state) => state.isWalletActivated);
+  const upgradeTimestamp = useWalletStore((state) => state.upgradeTimestamp);
   const userId = profile?.id;
   const { data: realWalletData, isLoading: isRealWalletLoading } = useQuery({
     queryKey: ['real_wallet', userId],
@@ -433,7 +433,7 @@ const WalletCreated = () => {
   if (
     isWalletLoading ||
     isTxLoading ||
-    isInitializing ||
+    isWalletInitializing ||
     isRealWalletLoading ||
     realWalletData === null
   ) {

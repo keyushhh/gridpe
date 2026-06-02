@@ -3,7 +3,7 @@ import { MapPin, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { useLocationContext } from '@/contexts/LocationContext';
+import { useLocationStore } from '@/store/useLocationStore';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 interface LocationDisplayProps {
@@ -12,7 +12,12 @@ interface LocationDisplayProps {
 }
 
 const LocationDisplay = React.memo(({ variant = 'header', onClick }: LocationDisplayProps) => {
-  const { shortName, fullAddress, splashAddress, loading, isRefreshing, permissionDenied } = useLocationContext();
+  const shortName = useLocationStore((state) => state.shortName);
+  const fullAddress = useLocationStore((state) => state.fullAddress);
+  const splashAddress = useLocationStore((state) => state.splashAddress);
+  const loading = useLocationStore((state) => state.loading);
+  const isRefreshing = useLocationStore((state) => state.isRefreshing);
+  const permissionDenied = useLocationStore((state) => state.permissionDenied);
   const isDark = useIsDarkMode() || variant === 'splash'; // Splash is always dark
 
   const displayAddress = variant === 'splash' ? splashAddress : fullAddress;
