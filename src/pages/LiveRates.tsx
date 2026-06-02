@@ -18,7 +18,7 @@ import {
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatFxAmount } from '@/utils/format';
 import { CURRENCY_NAMES, CURRENCY_MAP, currencySymbols } from '@/constants/currencies';
-import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
+import CardSkeleton from '@/components/skeletons/CardSkeleton';
 
 const CurrencyModal = ({
   isOpen,
@@ -563,7 +563,7 @@ const LiveRates = () => {
             <div className="flex-1 w-full relative">
               {isLoadingHistory ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                  <BaseListSkeleton rows={5} />
+                  <CardSkeleton height={180} />
                   <p className={`text-[12px] mt-4 ${isDarkMode ? 'text-white/30' : 'text-black/30'}`}>
                     Fetching historical trends...
                   </p>
