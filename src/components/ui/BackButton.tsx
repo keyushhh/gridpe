@@ -1,7 +1,6 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 interface BackButtonProps {
   onClick: () => void;
@@ -9,8 +8,6 @@ interface BackButtonProps {
 }
 
 const BackButton: React.FC<BackButtonProps> = ({ onClick, className }) => {
-  const isDarkMode = useIsDarkMode();
-
   return (
     <button
       onClick={onClick}
@@ -27,7 +24,7 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick, className }) => {
       />
       <span className="glass-rim-v2" />
       <ChevronLeft
-        className={cn('w-6 h-6 relative z-10', isDarkMode ? 'text-white' : 'text-black')}
+        className="w-6 h-6 relative z-10 text-black dark:text-white"
       />
     </button>
   );

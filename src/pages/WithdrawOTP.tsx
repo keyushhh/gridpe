@@ -12,6 +12,7 @@ import { useWalletStore } from '@/store/useWalletStore';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { supabase } from '@/lib/supabase';
 import { verifyVPA } from '@/lib/banking';
+import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 const WithdrawOTP = () => {
   const navigate = useNavigate();
@@ -118,12 +119,21 @@ const WithdrawOTP = () => {
           stateMethod?.id === 'phonepe'
         ) {
           // Atomic RPC: deducts wallets.available_balance + inserts payout in one transaction
-          const { error: rpcError } = await supabase.rpc('wallet_withdraw', {
-            p_user_id: userId,
-            p_amount: parseFloat(amount),
-            p_payout_method: 'upi',
-            p_vpa: actualUpiId,
-            p_description: 'Wallet Withdrawal',
+          const { error: rpcError } = await withTimeout(
+            supabase.rpc('wallet_withdraw', {
+              p_user_id: userId,
+              p_amount: parseFloat(amount),
+              p_payout_method: 'upi',
+              p_vpa: actualUpiId,
+              p_description: 'Wallet Withdrawal',
+            }),
+            15_000,
+            'wallet-withdraw-upi'
+          ).catch((err) => {
+            if (isTimeoutError(err)) {
+              showToaster(err.message, 'error');
+            }
+            throw err;
           });
           if (rpcError) {
             setVerificationError(true);
@@ -138,12 +148,21 @@ const WithdrawOTP = () => {
               : stateMethod?.id === 'wallet'
                 ? 'wallet'
                 : 'card';
-          const { error: rpcError } = await supabase.rpc('wallet_withdraw', {
-            p_user_id: userId,
-            p_amount: parseFloat(amount),
-            p_payout_method: payoutMethod,
-            p_vpa: stateMethod?.id === 'bank-account' ? selectedMethod : method?.name || null,
-            p_description: 'Wallet Withdrawal',
+          const { error: rpcError } = await withTimeout(
+            supabase.rpc('wallet_withdraw', {
+              p_user_id: userId,
+              p_amount: parseFloat(amount),
+              p_payout_method: payoutMethod,
+              p_vpa: stateMethod?.id === 'bank-account' ? selectedMethod : method?.name || null,
+              p_description: 'Wallet Withdrawal',
+            }),
+            15_000,
+            'wallet-withdraw-bank'
+          ).catch((err) => {
+            if (isTimeoutError(err)) {
+              showToaster(err.message, 'error');
+            }
+            throw err;
           });
           if (rpcError) {
             setVerificationError(true);

@@ -1,7 +1,7 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { cancelOrder, deliverOrder } from '@/lib/orders';
+import { cancelOrder } from '@/lib/orders';
 import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
@@ -46,15 +46,6 @@ const DeliveryCaution = () => {
       setStep('verification_progress');
     } else if (step === 'verification_success') {
       // "Get OTP" action -> Update status to delivered and show OTP Display
-      if (order?.id && order.user_id) {
-        deliverOrder(order.id, order.user_id, order.metadata?.isFx || false).catch(err => {
-          console.error('Failed to mark order as delivered:', err);
-          showToaster(
-            `Delivery update failed: ${err.message || 'Please contact support.'}`,
-            'error'
-          );
-        });
-      }
       setStep('otp_display');
     } else if (step === 'otp_display') {
       navigate(ROUTES.HOME);

@@ -67,12 +67,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {/* Text Content */}
           <div className="mb-8 flex flex-col items-start text-left">
             <h2
-              className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-bold font-satoshi mb-4`}
+              className="text-black dark:text-white text-[18px] font-bold font-satoshi mb-4"
             >
               {title}
             </h2>
             <p
-              className={`${isDarkMode ? 'text-white/80' : 'text-black'} text-[16px] font-medium leading-relaxed font-satoshi`}
+              className="text-black dark:text-white/80 text-[16px] font-medium leading-relaxed font-satoshi"
             >
               {description}
             </p>
@@ -140,7 +140,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 <div className="absolute inset-0 w-full h-full rounded-full pointer-events-none bg-[#F2F3F5]" />
               )}
               <span
-                className={`relative z-10 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'} text-[16px] font-bold font-satoshi`}
+                className="relative z-10 text-brand-bg-deep dark:text-white text-[16px] font-bold font-satoshi"
               >
                 {secondaryText}
               </span>

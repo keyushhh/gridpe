@@ -236,7 +236,7 @@ const OrderDetails = () => {
     id: 'route-line',
     type: 'line' as const,
     paint: {
-      'line-color': 'hsl(var(--primary))',
+      'line-color': '#5260FE',
       'line-width': 2,
       'line-dasharray': [2, 1],
     },

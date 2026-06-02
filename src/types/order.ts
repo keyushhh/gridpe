@@ -25,7 +25,7 @@ export interface Rider {
   kyc_type?: string;
   kyc_number?: string;
   kyc_id_url?: string;
-  profile_photo?: string | null;
+  profile_url?: string | null;
 }
 
 export interface BaseOrderMetadata {

@@ -1,17 +1,14 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 interface CardSkeletonProps {
   height?: number | string;
 }
 
 const CardSkeleton: React.FC<CardSkeletonProps> = ({ height = 160 }) => {
-  const isDarkMode = useIsDarkMode();
-
   return (
     <div
-      className={`w-full rounded-[20px] p-5 flex flex-col justify-between ${isDarkMode ? 'bg-white/5 border border-white/5' : 'bg-black/5 border border-black/5'}`}
+      className="w-full rounded-[20px] p-5 flex flex-col justify-between bg-black/5 border border-black/5 dark:bg-white/5 dark:border-white/5"
       style={{ height }}
       data-testid="card-skeleton"
     >

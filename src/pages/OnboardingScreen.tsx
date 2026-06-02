@@ -24,6 +24,7 @@ import OTPInputSection from '@/components/onboarding/OTPInputSection';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 // --- Memoized Static Sub-components ---
 const LogoSection = memo(() => (
   <div className="flex flex-col items-center px-6 pt-16 pb-20">
@@ -503,16 +504,25 @@ const OnboardingScreen = () => {
       }
       // Hash the MPIN
       const hashedMpin = await hashMpin(mpinState.value);
-      const { data: updatedProfile, error } = await supabase
-        .from('profiles')
-        .update({
-          mpin_set: true,
-          mpin_hash: hashedMpin,
-          mpin_created_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-        .select()
-        .maybeSingle();
+      const { data: updatedProfile, error } = await withTimeout(
+        supabase
+          .from('profiles')
+          .update({
+            mpin_set: true,
+            mpin_hash: hashedMpin,
+            mpin_created_at: new Date().toISOString(),
+          })
+          .eq('id', user.id)
+          .select()
+          .maybeSingle(),
+        10_000,
+        'save-mpin'
+      ).catch((err) => {
+        if (isTimeoutError(err)) {
+          setErrorState(prev => ({ ...prev, general: err.message }));
+        }
+        throw err;
+      });
       if (error) {
         console.error('Failed to update MPIN status:', error);
         setErrorState(prev => ({ ...prev, general: 'Failed to save MPIN. Please try again.' }));
@@ -556,11 +566,20 @@ const OnboardingScreen = () => {
       // Fetch hash if not in context (profile might be stale if page reloaded)
       let targetHash = profile?.mpin_hash;
       if (!targetHash) {
-        const { data: fetchedProfile } = await supabase
-          .from('profiles')
-          .select('mpin_hash')
-          .eq('id', user.id)
-          .maybeSingle();
+        const { data: fetchedProfile } = await withTimeout(
+          supabase
+            .from('profiles')
+            .select('mpin_hash')
+            .eq('id', user.id)
+            .maybeSingle(),
+          10_000,
+          'verify-mpin'
+        ).catch((err) => {
+          if (isTimeoutError(err)) {
+            setErrorState(prev => ({ ...prev, general: err.message }));
+          }
+          throw err;
+        });
         targetHash = fetchedProfile?.mpin_hash ?? null;
       }
       if (!targetHash) {

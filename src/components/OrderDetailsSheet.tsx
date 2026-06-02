@@ -528,7 +528,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                           <img
                             src={(() => {
                               const rider = order?.rider;
-                              const photo = (rider?.kyc_photo || rider?.profile_photo || '').trim();
+                              const photo = (rider?.kyc_photo || rider?.profile_url || '').trim();
                               if (!photo) return ASSETS.AVATAR;
                               if (photo.startsWith('http')) {
                                 try {

@@ -148,7 +148,7 @@ export interface Tables {
     kyc_number?: string | null;
     kyc_photo: string | null;
     kyc_id_url?: string | null;
-    profile_photo?: string | null;
+    profile_url?: string | null;
     kyc_status: string;
   };
   wallet_tiers: {

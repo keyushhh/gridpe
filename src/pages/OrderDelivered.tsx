@@ -6,7 +6,6 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatINR } from '@/utils/format';
 import { hapticSuccess } from '@/utils/haptics';
 import { useUser } from '@/contexts/UserContext';
-import { deliverOrder } from '@/lib/orders';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const OrderDelivered = () => {
@@ -21,19 +20,7 @@ const OrderDelivered = () => {
   const orderAmount = location.state?.order?.amount || 2000;
   const orderData = location.state?.order;
   useEffect(() => {
-    // Redundancy check: ensure status is updated in Supabase via RPC to trigger rewards
-    if (location.state?.order?.id && profile?.id) {
-      hapticSuccess();
-      deliverOrder(location.state.order.id, profile.id, location.state.isFx).catch(err => {
-        console.error('Failed to mark order as delivered:', err);
-        showToaster(
-          `Failed to complete delivery status: ${err.message || 'Please contact support.'}`,
-          'error'
-        );
-      });
-    } else {
-      hapticSuccess();
-    }
+    hapticSuccess();
     const timer = setInterval(() => {
       setSeconds(prev => {
         if (prev <= 1) {

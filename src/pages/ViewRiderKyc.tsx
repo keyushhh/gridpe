@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -47,7 +47,7 @@ const ViewRiderKyc = () => {
           const { data, error: riderError } = await supabase
             .from('riders')
             .select(
-            'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, profile_photo'
+            'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, profile_url'
           )
             .eq('id', currentOrder.rider_id)
             .single();
@@ -197,7 +197,7 @@ const ViewRiderKyc = () => {
                 {/* Rider Photo - Fixed 72x80px */}
                 <div className="w-[72px] h-[80px] rounded-[4px] overflow-hidden border border-black/5 shrink-0 shadow-sm">
                   <img loading="lazy" decoding="async"                     src={(() => {
-                      const photo = rider?.kyc_photo || rider?.profile_photo || rider?.kyc_id_url;
+                      const photo = rider?.kyc_photo || rider?.profile_url || rider?.kyc_id_url;
                       if (!photo) return ASSETS.AVATAR;
                       if (photo.startsWith('http')) return photo;
                       return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;

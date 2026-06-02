@@ -20,6 +20,7 @@ import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStor
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useLocationStore } from '@/store/useLocationStore';
 import { useWalletStore } from '@/store/useWalletStore';
+import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 const OrderCashSummary = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -202,9 +203,18 @@ const OrderCashSummary = () => {
           return;
         }
       }
-      const { data: zoneId, error: zoneError } = await supabase.rpc('check_service_availability', {
-        p_lat: Number(activeAddress.latitude) || 0,
-        p_lng: Number(activeAddress.longitude) || 0,
+      const { data: zoneId, error: zoneError } = await withTimeout(
+        supabase.rpc('check_service_availability', {
+          p_lat: Number(activeAddress.latitude) || 0,
+          p_lng: Number(activeAddress.longitude) || 0,
+        }),
+        10_000,
+        'check-service-availability'
+      ).catch((err) => {
+        if (isTimeoutError(err)) {
+          showToaster(err.message, 'error');
+        }
+        throw err;
       });
       if (zoneError) {
         console.error('Zone check failed:', zoneError);
@@ -215,11 +225,20 @@ const OrderCashSummary = () => {
         navigate(ROUTES.NOT_AVAILABLE);
         return;
       }
-      const { error: holdError } = await supabase.rpc('wallet_hold', {
-        p_user_id: userId,
-        p_amount: totalAmount,
-        p_order_id: null,
-        p_description: 'Order Placement Hold',
+      const { error: holdError } = await withTimeout(
+        supabase.rpc('wallet_hold', {
+          p_user_id: userId,
+          p_amount: totalAmount,
+          p_order_id: null,
+          p_description: 'Order Placement Hold',
+        }),
+        15_000,
+        'wallet-hold'
+      ).catch((err) => {
+        if (isTimeoutError(err)) {
+          showToaster(err.message, 'error');
+        }
+        throw err;
       });
       if (holdError) {
         console.error('Wallet hold failed:', holdError);
@@ -262,17 +281,22 @@ const OrderCashSummary = () => {
         }
         const customerPhoneNumber = userProfile.phone;
         const deliveryAddressText = activeAddress.displayAddress || getAddressDisplay();
-        const { data: earnings, error: earningsError } = await supabase.rpc(
-          'calculate_rider_earning',
-          {
+        const { data: earnings, error: earningsError } = await withTimeout(
+          supabase.rpc('calculate_rider_earning', {
             dist_km: parseFloat(distance.toFixed(2)),
             cash_amount: parsedAmount,
-          }
+          }),
+          10_000,
+          'calculate-rider-earning'
         );
         if (!earningsError && earnings !== null) {
           riderEarnings = parseFloat(earnings);
         }
       } catch (err) {
+        if (isTimeoutError(err)) {
+          showToaster(err.message, 'error');
+          throw err;
+        }
         console.error('Failed to calculate dynamic data:', err);
       }
       const getOrderPayload = (
@@ -324,7 +348,16 @@ const OrderCashSummary = () => {
         dAddressText: string
       ) => {
         const payload = getOrderPayload(aid, phone, pAddress, dAddressText);
-        const { data, error } = await supabase.from('orders').insert([payload]).select().single();
+        const { data, error } = await withTimeout(
+          supabase.from('orders').insert([payload]).select().single(),
+          15_000,
+          'create-order'
+        ).catch((err) => {
+          if (isTimeoutError(err)) {
+            showToaster(err.message, 'error');
+          }
+          throw err;
+        });
         if (error) throw new Error(`Database error: ${error.message}`);
         return data;
       };
@@ -365,10 +398,19 @@ const OrderCashSummary = () => {
           .limit(1)
           .maybeSingle();
         if (holdTx) {
-          await supabase
-            .from('wallet_transactions')
-            .update({ order_id: orderId })
-            .eq('id', holdTx.id);
+          await withTimeout(
+            supabase
+              .from('wallet_transactions')
+              .update({ order_id: orderId })
+              .eq('id', holdTx.id),
+            10_000,
+            'link-wallet-transaction'
+          ).catch((err) => {
+            if (isTimeoutError(err)) {
+              showToaster(err.message, 'error');
+            }
+            throw err;
+          });
         }
         setBadge(1);
         await refreshBalance();

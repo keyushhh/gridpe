@@ -8,6 +8,7 @@ import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
+import { useWalletStore } from '@/store/useWalletStore';
 import { writeStorage } from '@/utils/storage';
 import { supabase } from '@/lib/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -22,13 +23,16 @@ import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
+import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 const FxExchangeSummary = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
   const { showToaster } = useCustomToaster();
   const isDarkMode = useIsDarkMode();
-  const { profile, walletBalance, rewardPoints: availableRewardPoints, refreshBalance } = useUser();
+  const { profile, rewardPoints: availableRewardPoints } = useUser();
+  const walletBalance = useWalletStore((state) => state.walletBalance);
+  const refreshBalance = useWalletStore((state) => state.refreshBalance);
   const currentUserId = profile?.id;
   // Accept full FX state
   const {
@@ -232,9 +236,18 @@ const FxExchangeSummary = () => {
         return;
       }
       // Check Service Availability & Get Zone ID
-      const { data: zoneId, error: zoneError } = await supabase.rpc('check_service_availability', {
-        p_lat: Number(savedAddress?.latitude) || 0,
-        p_lng: Number(savedAddress?.longitude) || 0,
+      const { data: zoneId, error: zoneError } = await withTimeout(
+        supabase.rpc('check_service_availability', {
+          p_lat: Number(savedAddress?.latitude) || 0,
+          p_lng: Number(savedAddress?.longitude) || 0,
+        }),
+        10_000,
+        'check-service-availability'
+      ).catch((err) => {
+        if (isTimeoutError(err)) {
+          showToaster(err.message, 'error');
+        }
+        throw err;
       });
       if (zoneError) {
         console.error('Zone check failed:', zoneError);
@@ -246,11 +259,20 @@ const FxExchangeSummary = () => {
         return;
       }
       // NEW: Wallet Hold - Moves available_balance -> held_balance before order insert
-      const { error: holdError } = await supabase.rpc('wallet_hold', {
-        p_user_id: userId,
-        p_amount: totalAmount,
-        p_order_id: null,
-        p_description: 'Order Placement Hold (FX)',
+      const { error: holdError } = await withTimeout(
+        supabase.rpc('wallet_hold', {
+          p_user_id: userId,
+          p_amount: totalAmount,
+          p_order_id: null,
+          p_description: 'Order Placement Hold (FX)',
+        }),
+        15_000,
+        'wallet-hold'
+      ).catch((err) => {
+        if (isTimeoutError(err)) {
+          showToaster(err.message, 'error');
+        }
+        throw err;
       });
       if (holdError) {
         console.error('Wallet hold failed:', holdError);
@@ -307,12 +329,13 @@ const FxExchangeSummary = () => {
           savedAddress.full_address ||
           savedAddress?.tag ||
           getAddressDisplay();
-        const { data: earnings, error: earningsError } = await supabase.rpc(
-          'calculate_rider_earning',
-          {
+        const { data: earnings, error: earningsError } = await withTimeout(
+          supabase.rpc('calculate_rider_earning', {
             dist_km: parseFloat(distance.toFixed(2)),
             cash_amount: finalAmount,
-          }
+          }),
+          10_000,
+          'calculate-rider-earning'
         );
         if (!earningsError && earnings !== null) {
           riderEarnings = parseFloat(earnings);
@@ -320,6 +343,10 @@ const FxExchangeSummary = () => {
           console.error('Rider earnings RPC failed, using 0 fallback:', earningsError);
         }
       } catch (err) {
+        if (isTimeoutError(err)) {
+          showToaster(err.message, 'error');
+          throw err;
+        }
         console.error('Failed to calculate dynamic data:', err);
       }
       const createOrderDirectly = async (
@@ -382,7 +409,16 @@ const FxExchangeSummary = () => {
           console.error('DEBUG: (FX) pickup_location (hub address) fetch failed or is NULL');
         if (!payload.delivery_address_text)
           console.error('DEBUG: (FX) delivery_address_text is NULL');
-        const { data, error } = await supabase.from('orders').insert([payload]).select().single();
+        const { data, error } = await withTimeout(
+          supabase.from('orders').insert([payload]).select().single(),
+          15_000,
+          'create-order'
+        ).catch((err) => {
+          if (isTimeoutError(err)) {
+            showToaster(err.message, 'error');
+          }
+          throw err;
+        });
         if (error) {
           console.error('Supabase FX Insert Error:', error);
           throw new Error(`Database error: ${error.message || 'Failed to insert order'}`);
@@ -429,10 +465,19 @@ const FxExchangeSummary = () => {
           .limit(1)
           .maybeSingle();
         if (holdTx) {
-          await supabase
-            .from('wallet_transactions')
-            .update({ order_id: finalOrderId })
-            .eq('id', holdTx.id);
+          await withTimeout(
+            supabase
+              .from('wallet_transactions')
+              .update({ order_id: finalOrderId })
+              .eq('id', holdTx.id),
+            10_000,
+            'link-wallet-transaction'
+          ).catch((err) => {
+            if (isTimeoutError(err)) {
+              showToaster(err.message, 'error');
+            }
+            throw err;
+          });
         }
         // Update app badge
         setBadge(1);

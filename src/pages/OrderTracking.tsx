@@ -105,7 +105,7 @@ const OrderTracking = () => {
           const { data, error } = await supabase
             .from('riders')
             .select(
-              'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, kyc_status, profile_photo'
+              'id, full_name, phone_number, kyc_photo, kyc_id_url, kyc_type, kyc_dob, kyc_gender, kyc_number, kyc_status, profile_url'
             )
             .eq('id', order.rider_id)
             .single();
@@ -443,7 +443,7 @@ const OrderTracking = () => {
               <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
                 <img loading="lazy" decoding="async"                   src={(() => {
                     const rider = order?.rider;
-                    const photo = rider?.kyc_photo || rider?.profile_photo;
+                    const photo = rider?.kyc_photo || rider?.profile_url;
                     if (!photo) return ASSETS.AVATAR;
                     if (photo.startsWith('http')) return photo;
                     return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;

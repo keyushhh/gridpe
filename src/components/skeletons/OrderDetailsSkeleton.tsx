@@ -1,13 +1,10 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 const OrderDetailsSkeleton = () => {
-  const isDarkMode = useIsDarkMode();
-
   return (
     <div
-      className={`h-full w-full flex flex-col pt-4 px-5 safe-top ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className="h-full w-full flex flex-col pt-4 px-5 safe-top bg-white dark:bg-brand-bg-dark"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-8">

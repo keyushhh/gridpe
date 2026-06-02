@@ -1,13 +1,10 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 const WalletSkeleton = () => {
-  const isDarkMode = useIsDarkMode();
-
   return (
     <div
-      className={`h-full w-full flex flex-col pt-4 px-5 safe-top ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className="h-full w-full flex flex-col pt-4 px-5 safe-top bg-white dark:bg-brand-bg-dark"
     >
       {/* Header with Back Button and Logo */}
       <div className="flex flex-col items-center mb-10">
