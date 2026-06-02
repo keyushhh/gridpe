@@ -32,7 +32,7 @@ const OrderCashSummary = () => {
   console.log('[AUDIT] OrderCashSummary arrived. Params:', { isScheduledFlow, initialSlot });
   const [selectedSlot, setSelectedSlot] = useState<string | null>(initialSlot || null);
   const isDarkMode = useIsDarkMode();
-  const { profile, walletBalance, rewardPoints: rewardPointsData, refreshBalance } = useUser();
+  const { profile, walletBalance, rewardPoints: rewardPointsData, refreshBalance, activeAddress, setActiveAddress } = useUser();
   const userId = profile?.id;
   const currentUserId = profile?.id;
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
@@ -40,7 +40,6 @@ const OrderCashSummary = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
   // Address State
-  const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
 
   // Rewards State
@@ -64,29 +63,13 @@ const OrderCashSummary = () => {
   } | null>(null);
 
   const getAddressDisplay = () => {
-    if (!savedAddress) return 'Add Address';
-    const parts = [savedAddress.house, savedAddress.area, savedAddress.city];
+    if (!activeAddress) return 'Add Address';
+    const parts = [activeAddress.house, activeAddress.area, activeAddress.city];
     const base = parts.filter(Boolean).join(', ');
-    if (savedAddress.postcode) {
-      return `${base} - ${savedAddress.postcode}`;
+    if (activeAddress.postcode) {
+      return `${base} - ${activeAddress.postcode}`;
     }
     return base;
-  };
-  React.useEffect(() => {
-    const loadAddress = async () => {
-      await migrateAddressKey(ADDRESS_KEYS.USER_ADDRESS);
-      const address = await getAddress<SavedAddress>(ADDRESS_KEYS.USER_ADDRESS, null);
-      if (address) {
-        setSavedAddress(address);
-      }
-    };
-    loadAddress();
-  }, []);
-  const handleAddressSelect = (address: SavedAddress | null) => {
-    setSavedAddress(address);
-    if (address) {
-      setIsAddressSheetOpen(false);
-    }
   };
   // Calculations
   const parsedAmount = parseFloat((amount || '0').toString().replace(/,/g, '')) || 0;
@@ -98,12 +81,12 @@ const OrderCashSummary = () => {
       setQuoteLoading(true);
       try {
         let distance = 1.2; // Fallback
-        if (savedAddress?.latitude && savedAddress?.longitude) {
+        if (activeAddress?.latitude && activeAddress?.longitude) {
           distance = calculateDistance(
             HUB_COORDS.CASH.lat,
             HUB_COORDS.CASH.lng,
-            savedAddress.latitude,
-            savedAddress.longitude
+            activeAddress.latitude,
+            activeAddress.longitude
           );
         }
         const { data, error } = await supabase.rpc('get_order_quote', {
@@ -180,31 +163,31 @@ const OrderCashSummary = () => {
         showToaster('Insufficient funds in wallet.', 'error');
         return;
       }
-      if (!savedAddress) {
+      if (!activeAddress) {
         showToaster('Please select a valid address.', 'error');
         return;
       }
-      let addressId = savedAddress.id;
+      let addressId = activeAddress.id;
       // 1. Ensure address exists in DB if ID is missing from state
       if (!addressId) {
         try {
           const newAddress = await createAddress({
             user_id: userId,
-            label: savedAddress.tag,
-            apartment: savedAddress.house,
-            area: savedAddress.area,
-            landmark: savedAddress.landmark || '',
-            city: savedAddress.city,
-            state: savedAddress.state,
-            plus_code: savedAddress.plusCode || null,
-            latitude: Number(savedAddress.latitude) || 0,
-            longitude: Number(savedAddress.longitude) || 0,
-            contact_name: savedAddress.name,
-            contact_phone: savedAddress.phone,
+            label: activeAddress.tag,
+            apartment: activeAddress.house,
+            area: activeAddress.area,
+            landmark: activeAddress.landmark || '',
+            city: activeAddress.city,
+            state: activeAddress.state,
+            plus_code: activeAddress.plusCode || null,
+            latitude: Number(activeAddress.latitude) || 0,
+            longitude: Number(activeAddress.longitude) || 0,
+            contact_name: activeAddress.name,
+            contact_phone: activeAddress.phone,
           });
           addressId = newAddress.id;
-          const updatedAddr = { ...savedAddress, id: addressId };
-          setSavedAddress(updatedAddr);
+          const updatedAddr = { ...activeAddress, id: addressId };
+          setActiveAddress(updatedAddr);
           try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { console.warn('Failed to persist address', e); }
         } catch (addrErr: unknown) {
           console.error('Failed to save address before order', addrErr);
@@ -214,8 +197,8 @@ const OrderCashSummary = () => {
         }
       }
       const { data: zoneId, error: zoneError } = await supabase.rpc('check_service_availability', {
-        p_lat: Number(savedAddress.latitude) || 0,
-        p_lng: Number(savedAddress.longitude) || 0,
+        p_lat: Number(activeAddress.latitude) || 0,
+        p_lng: Number(activeAddress.longitude) || 0,
       });
       if (zoneError) {
         console.error('Zone check failed:', zoneError);
@@ -246,17 +229,17 @@ const OrderCashSummary = () => {
       let pickupAddress: string | null = null;
       try {
         let distance = 1.2;
-        if (savedAddress?.latitude && savedAddress?.longitude) {
+        if (activeAddress?.latitude && activeAddress?.longitude) {
           distance = calculateDistance(
             HUB_COORDS.CASH.lat,
             HUB_COORDS.CASH.lng,
-            savedAddress.latitude,
-            savedAddress.longitude
+            activeAddress.latitude,
+            activeAddress.longitude
           );
           const { data: hubs, error: hubsError } = await supabase
             .from('hubs')
             .select('id, location_name, city')
-            .eq('city', normalizeCity(savedAddress.city));
+            .eq('city', normalizeCity(activeAddress.city));
           if (hubs && hubs.length > 0) {
             const nearest = hubs[0];
             pickupLocation = nearest.id;
@@ -272,7 +255,7 @@ const OrderCashSummary = () => {
           throw new Error('Please add a phone number to your profile to proceed.');
         }
         const customerPhoneNumber = userProfile.phone;
-        const deliveryAddressText = savedAddress.displayAddress || getAddressDisplay();
+        const deliveryAddressText = activeAddress.displayAddress || getAddressDisplay();
         const { data: earnings, error: earningsError } = await supabase.rpc(
           'calculate_rider_earning',
           {
@@ -295,7 +278,7 @@ const OrderCashSummary = () => {
         user_id: userId,
         address_id: aid,
         zone_id: zoneId,
-        city: savedAddress?.city || null,
+        city: activeAddress?.city || null,
         amount: parsedAmount,
         total_amount: cleanedAmount,
         payment_mode: 'WALLET',
@@ -308,7 +291,7 @@ const OrderCashSummary = () => {
         pickup_location: pAddress,
         delivery_address_text: dAddressText,
         customer_phone_number: phone,
-        delivery_location: `POINT(${savedAddress.longitude || 0} ${savedAddress.latitude || 0})`,
+        delivery_location: `POINT(${activeAddress.longitude || 0} ${activeAddress.latitude || 0})`,
         otp_code: Math.floor(100000 + Math.random() * 900000).toString(),
         delivery_fee: deliveryFee,
         service_fee: platformFee,
@@ -349,7 +332,7 @@ const OrderCashSummary = () => {
           throw new Error('A valid phone number is required to place an order.');
         }
         const customerPhoneNumber = userProfile.phone;
-        const dAddressText = savedAddress.displayAddress || getAddressDisplay();
+        const dAddressText = activeAddress.displayAddress || getAddressDisplay();
         const payload = getOrderPayload(
           addressId!,
           customerPhoneNumber,
@@ -386,7 +369,7 @@ const OrderCashSummary = () => {
         navigate(ROUTES.ORDER_DETAILS.replace(':orderId', orderId), {
           state: {
             totalAmount: totalAmount,
-            savedAddress: savedAddress,
+            savedAddress: activeAddress,
             order: orderData,
           },
         });
@@ -434,7 +417,7 @@ const OrderCashSummary = () => {
     boxShadow: 'none',
   };
   const isConfirmDisabled =
-    !savedAddress ||
+    !activeAddress ||
     totalAmount > walletBalance ||
     quoteLoading ||
     isLoading ||
@@ -468,7 +451,7 @@ const OrderCashSummary = () => {
         {/* Address Container */}
         <div
           style={containerStyle}
-          className="w-full relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+          className={`w-full relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform ${!activeAddress ? 'ring-2 ring-brand-primary/80 shadow-[0_0_15px_rgba(82,96,254,0.3)]' : ''}`}
           onClick={() => setIsAddressSheetOpen(true)}
         >
           <div className="flex items-start py-[11px] px-[12px]">
@@ -495,7 +478,7 @@ const OrderCashSummary = () => {
                 <span
                   className={`text-[16px] font-medium font-sans capitalize ${isDarkMode ? 'text-white' : 'text-black'}`}
                 >
-                  {savedAddress ? savedAddress.tag : 'No Address'}
+                  {activeAddress ? activeAddress.tag : 'No Address'}
                 </span>
                 <img loading="lazy" decoding="async"                   src={ASSETS.CHEVRON_DOWN}
                   alt="Toggle"
@@ -742,7 +725,10 @@ const OrderCashSummary = () => {
       <AddressSelectionSheet
         isOpen={isAddressSheetOpen}
         onClose={() => setIsAddressSheetOpen(false)}
-        onAddressSelect={handleAddressSelect}
+        onAddressSelect={(address) => {
+          setActiveAddress(address);
+          if (address) setIsAddressSheetOpen(false);
+        }}
       />
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? 'bg-[#171717]/30 backdrop-blur-[24px]' : 'bg-white border-t border-x border-brand-border-light'}`}

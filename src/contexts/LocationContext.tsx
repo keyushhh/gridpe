@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { Preferences } from '@capacitor/preferences';
 import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
-import { reverseGeocode } from '@/utils/geoUtils';
+import { reverseGeocode, getDistance } from '@/utils/geoUtils';
+import { useUser } from '@/contexts/UserContext';
+import { fetchAddresses } from '@/lib/addresses';
 
 const CACHE_KEY = 'last_known_location';
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
@@ -28,6 +30,7 @@ interface LocationContextType extends LocationState {
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
+  const { profile, activeAddress, setActiveAddress, isManualAddressSelected } = useUser();
   const [state, setState] = useState<LocationState>({
     shortName: null,
     fullAddress: null,
@@ -43,6 +46,59 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
   const isInitializingRef = useRef(false);
   const isRefreshingRef = useRef(false);
+
+  // Smart Auto-Match Logic
+  useEffect(() => {
+    const autoMatchAddress = async () => {
+      if (!profile?.id || state.lat === null || state.lng === null || isManualAddressSelected) {
+        return;
+      }
+      try {
+        const addresses = await fetchAddresses(profile.id);
+        const safeData = Array.isArray(addresses) ? addresses : [];
+        if (safeData.length > 0) {
+          for (const d of safeData) {
+            if (d.latitude && d.longitude) {
+              const distanceMeters = getDistance(state.lat, state.lng, Number(d.latitude), Number(d.longitude));
+              if (distanceMeters <= 100) { // 100 meters
+                const mappedAddr = {
+                  id: d.id,
+                  user_id: d.user_id,
+                  created_at: d.created_at,
+                  label: d.label,
+                  apartment: d.apartment,
+                  contact_name: d.contact_name,
+                  contact_phone: d.contact_phone,
+                  plus_code: d.plus_code,
+                  tag: d.label || 'Home',
+                  house: d.apartment || '',
+                  area: d.area || '',
+                  landmark: d.landmark || '',
+                  name: d.contact_name || '',
+                  phone: d.contact_phone || '',
+                  displayAddress: `${d.apartment ? d.apartment + ', ' : ''}${d.area || ''}${d.city ? ', ' + d.city : ''}`,
+                  city: d.city || '',
+                  state: d.state || '',
+                  postcode: '', // Not stored
+                  plusCode: d.plus_code || '',
+                  latitude: d.latitude,
+                  longitude: d.longitude,
+                };
+                
+                if (activeAddress?.id !== mappedAddr.id) {
+                  setActiveAddress(mappedAddr, false);
+                }
+                break;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to auto-match address', e);
+      }
+    };
+    autoMatchAddress();
+  }, [state.lat, state.lng, profile?.id, isManualAddressSelected, activeAddress?.id, setActiveAddress]);
 
   const updateState = (updates: Partial<LocationState>) => {
     setState((prev) => ({ ...prev, ...updates }));

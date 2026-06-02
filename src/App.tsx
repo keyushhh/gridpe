@@ -401,58 +401,25 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
     return () => clearTimeout(timer);
   }, []);
 
-
-
+  // Custom Event Listeners for Dev Controls
+  useEffect(() => {
+    const handleForceUpdate = () => setUpdateStatus('force');
+    const handleSimulateOffline = () => setSimulateOffline(true);
+    
+    window.addEventListener('dev-force-update', handleForceUpdate);
+    window.addEventListener('dev-simulate-offline', handleSimulateOffline);
+    
+    return () => {
+      window.removeEventListener('dev-force-update', handleForceUpdate);
+      window.removeEventListener('dev-simulate-offline', handleSimulateOffline);
+    };
+  }, [setUpdateStatus]);
 
 
 
   return (
     <>
       <UpdatePrompt status={updateStatus} storeUrl={storeUrl} onDismiss={() => setUpdateStatus('none')} />
-      {isDev && (
-        <>
-          <button
-            onClick={() => setUpdateStatus('force')}
-            style={{
-              position: 'fixed',
-              bottom: '16px',
-              right: '180px',
-              zIndex: 9999,
-              backgroundColor: '#131313',
-              color: '#FFFFFF',
-              padding: '8px 16px',
-              borderRadius: '9999px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              fontSize: '14px',
-              fontWeight: 500,
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            🔴 Force Update
-          </button>
-          <button
-            onClick={() => setSimulateOffline(true)}
-            style={{
-              position: 'fixed',
-              bottom: '16px',
-              right: '16px',
-              zIndex: 9999,
-              backgroundColor: '#EF4444',
-              color: '#FFFFFF',
-              padding: '8px 16px',
-              borderRadius: '9999px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              fontSize: '14px',
-              fontWeight: 500,
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            Simulate Offline
-          </button>
-        </>
-      )}
 
       {isReloading && (
         <div 

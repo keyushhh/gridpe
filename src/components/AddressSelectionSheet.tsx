@@ -257,9 +257,19 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
   const handleUseCurrentLocation = async () => {
     try {
       await refreshLocation();
+      const position = await getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+      });
+      const { latitude, longitude } = position.coords;
       onClose();
+      setTimeout(() => {
+        handleOpenAddAddress({ lat: latitude, lng: longitude });
+      }, 300);
     } catch (e) {
       console.error('Location error', e);
+      onClose();
+      setTimeout(() => handleOpenAddAddress(), 300);
     }
   };
   const handleSelectAddress = (addr: SavedAddress) => {

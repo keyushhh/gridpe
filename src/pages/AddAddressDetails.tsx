@@ -18,6 +18,9 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
+import { Contact, Home, Briefcase, Navigation, MapPin, Phone as PhoneIcon } from 'lucide-react';
+import Map from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
 // Assets
 interface AddressState {
   id?: string; // Unique ID for editing
@@ -49,24 +52,40 @@ const AddAddressDetails = () => {
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const { showToaster } = useCustomToaster();
-  const { profile } = useUser();
+  const { profile, name: accountName, phoneNumber: accountPhone, setActiveAddress, fetchProfileData } = useUser();
   const currentUserId = profile?.id;
   const initialState = location.state as AddressState | null;
   const isEditMode = !!initialState?.id;
   // Form State
   const [house, setHouse] = useState(
-    initialState?.houseNumber || initialState?.house || initialState?.apartment || ''
+    isEditMode ? (initialState?.houseNumber || initialState?.house || initialState?.apartment || '') : ''
   );
-  const [area, setArea] = useState(initialState?.road || initialState?.area || '');
+  const [area, setArea] = useState(isEditMode ? (initialState?.road || initialState?.area || '') : '');
   const [landmark, setLandmark] = useState(initialState?.landmark || '');
   const [plusCode, setPlusCode] = useState(initialState?.plusCode || initialState?.plus_code || '');
   const [name, setName] = useState(initialState?.name || initialState?.contact_name || '');
   const [phone, setPhone] = useState(initialState?.phone || initialState?.contact_phone || '');
+  
+  const [useAccountDetails, setUseAccountDetails] = useState(false);
+  const [saveAddressAs, setSaveAddressAs] = useState('');
+  const [deliveryInstructions, setDeliveryInstructions] = useState('');
+
+  useEffect(() => {
+    if (useAccountDetails) {
+      setName(accountName || profile?.full_name || '');
+      const rawPhone = accountPhone || profile?.phone || '';
+      setPhone(rawPhone ? rawPhone.replace('+91', '').replace(/^91/, '').replace(/\D/g, '') : '');
+    } else if (!useAccountDetails && !isEditMode) {
+      setName('');
+      setPhone('');
+    }
+  }, [useAccountDetails, profile, accountName, accountPhone, isEditMode]);
   const [selectedTag, setSelectedTag] = useState<string>(
     initialState?.tag || initialState?.label || 'Home'
   );
   const [customLabel, setCustomLabel] = useState('');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   // UI State — header fade is driven directly by an IntersectionObserver into
   // a ref so we never re-render on scroll.
   const headerRef = useRef<HTMLDivElement | null>(null);
@@ -75,6 +94,10 @@ const AddAddressDetails = () => {
   const [displayAddress, setDisplayAddress] = useState(initialState?.addressLine || '');
   const isFormValid =
     house.trim() !== '' && area.trim() !== '' && name.trim() !== '' && phone.trim().length === 10;
+    
+  const locState = location.state as AddressState | null;
+  const mapLat = Number(locState?.lat) || 12.9716;
+  const mapLng = Number(locState?.lng) || 77.5946;
     
   useEffect(() => {
     if (!initialState) return;
@@ -117,7 +140,15 @@ const AddAddressDetails = () => {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, []);
-  const handleSaveAddress = async (overrideTag?: string) => {
+  const handleInitialSave = () => {
+    if (isFormValid) {
+      setShowConfirmModal(true);
+    } else {
+      showToaster('Please fill all required fields correctly.', 'error');
+    }
+  };
+
+  const handleFinalSave = async (overrideTag?: string) => {
     hapticMedium();
     // If saving via Sheet, we trust the caller (overrideTag)
     // But we still need to validate the main form
@@ -173,7 +204,25 @@ const AddAddressDetails = () => {
           contact_phone: phone,
           ...(lat !== 0 && lng !== 0 ? { latitude: lat, longitude: lng } : {}),
         };
-        await updateAddress(initialState.id, updatePayload);
+        const updatedAddr = await updateAddress(initialState.id, updatePayload);
+        
+        const uiAddr = {
+          ...updatedAddr,
+          tag: updatedAddr.label || 'Home',
+          house: updatedAddr.apartment || '',
+          area: updatedAddr.area || '',
+          landmark: updatedAddr.landmark || '',
+          name: name,
+          phone: phone,
+          displayAddress: displayAddress,
+          city: updatedAddr.city || '',
+          state: updatedAddr.state || '',
+          postcode: initialState?.postcode || '',
+          plusCode: updatedAddr.plus_code || '',
+        };
+        setActiveAddress(uiAddr as any, true);
+        try { writeStorage('user_address', uiAddr, userId); } catch (e) {}
+
       } else {
         const insertPayload = {
           user_id: userId,
@@ -193,7 +242,7 @@ const AddAddressDetails = () => {
         // For immediate UI update (Active Address), we construct a UI object
         // Save as current active address in local storage for session persistence
         const uiAddr = {
-          id: newAddr.id,
+          ...newAddr,
           tag: newAddr.label || 'Home',
           house: newAddr.apartment || '',
           area: newAddr.area || '',
@@ -206,12 +255,15 @@ const AddAddressDetails = () => {
           postcode: initialState?.postcode || '',
           plusCode: newAddr.plus_code || '',
         };
+        setActiveAddress(uiAddr as any, true);
         try {
           writeStorage('user_address', uiAddr, userId);
         } catch (e) {
           console.warn('Failed to persist address to namespaced storage', e);
         }
       }
+
+      await fetchProfileData(userId);
       showToaster(isEditMode ? 'Address updated!' : 'Address saved successfully!', 'success');
       navigate(ROUTES.HOME);
     } catch (err: unknown) {
@@ -225,20 +277,38 @@ const AddAddressDetails = () => {
     if (tagLabel !== 'Other') {
       setCustomLabel(''); // Clear custom label if switching back to standard
     }
-    // Note: We no longer open sheet immediately for "Other"
+    // Set "Save address as" dynamically
+    if (tagLabel === 'Office') {
+      setSaveAddressAs('Work');
+    } else {
+      setSaveAddressAs('');
+    }
   };
   const handleSheetSave = (label: string) => {
     setCustomLabel(label);
     setIsSheetOpen(false);
     // Automatically attempt to save when sheet validates
-    handleSaveAddress(label);
+    handleFinalSave(label);
   };
   const tags = [
-    { label: 'Home', icon: ASSETS.HOME_TAG },
-    { label: 'Work', icon: ASSETS.WORK },
-    { label: 'Friends & Family', icon: ASSETS.FRIENDS_FAMILY },
-    { label: 'Other', icon: ASSETS.OTHER },
+    { label: 'Home', icon: Home },
+    { label: 'Office', icon: Briefcase },
+    { label: 'Other', icon: Navigation },
   ];
+  // Dynamic placeholders per tag
+  const getHousePlaceholder = () => {
+    switch (selectedTag) {
+      case 'Office': return 'Office Name / Floor';
+      case 'Other': return 'Building / Floor';
+      default: return 'House / Flat / Floor';
+    }
+  };
+  const getAreaPlaceholder = () => {
+    switch (selectedTag) {
+      case 'Other': return 'Street (Recommended)';
+      default: return 'Building / Street (Recommended)';
+    }
+  };
   // Helper to get input font class
   const getInputClass = (val: string) =>
     `w-full h-full bg-transparent border-none outline-none ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'} transition-all ${
@@ -290,32 +360,13 @@ const AddAddressDetails = () => {
     <div
       className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} text-brand-bg-deep`}
     >
-      {/* Background - Applied to a container to avoid scroll issues if needed, but fixed attachment works on scrollable too */}
-      {isDarkMode && (
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: `url(${ASSETS.BG_DARK_MODE})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
-          }}
-        />
-      )}
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-scroll safe-bottom relative z-10 font-sans">
         <div className="px-5 pb-8">
-          {/* Sentinel: tracked by IO to drive header opacity */}
-          <div
-            ref={sentinelRef}
-            aria-hidden="true"
-            style={{ position: 'absolute', top: 0, height: 100, width: 1, pointerEvents: 'none' }}
-          />
           {/* Header */}
           <div
-            ref={headerRef}
-            className={`flex items-center sticky top-0 z-50 transition-colors pt-4 pb-2 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
-            style={{ willChange: 'opacity', transform: 'translateZ(0)', margin: '0 -20px', paddingLeft: '20px', paddingRight: '20px' }}
+            className={`flex items-center sticky top-0 z-50 pt-4 pb-2 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+            style={{ margin: '0 -20px', paddingLeft: '20px', paddingRight: '20px' }}
           >
             <BackButton onClick={() => navigate(-1)} className="mr-2" />
             <h1
@@ -324,212 +375,222 @@ const AddAddressDetails = () => {
               {isEditMode ? 'Edit Address' : 'Add New Address'}
             </h1>
           </div>
-          <div
-            className={`relative w-full rounded-[12px] p-[11px] mb-[12px] mt-[24px] ${!isDarkMode ? 'bg-white shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border border-brand-border-light' : ''}`}
-            style={{ height: '88px' }}
-          >
-            {/* Background Image - Only Dark Mode */}
-            {isDarkMode && (
-              <img
-                src={ASSETS.ADDRESS_CONTAINER}
-                alt="Background"
-                className="absolute inset-0 w-full h-full object-cover rounded-[12px] z-0 pointer-events-none"
-              />
-            )}
-            <div className="relative z-10 flex flex-col items-start h-full">
-              {/* Top Row: City/Country + Change Button */}
-              <div className="flex justify-between items-center w-full">
-                <span
-                  className={`font-bold text-[16px] truncate pr-2 font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
+
+          <div className="flex flex-col gap-5 mt-6">
+            {/* ── Receiver Details ── */}
+            <div className="flex flex-col">
+              <h2 className={`text-[14px] font-bold mb-3 px-1 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}>
+                Receiver Details
+              </h2>
+              <div className={`rounded-[16px] p-3 border ${isDarkMode ? 'bg-[#1A1A1A] border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
+                <label 
+                  className={`flex flex-col rounded-lg cursor-pointer ${useAccountDetails ? 'py-1 px-0.5' : 'px-2 py-1.5 mb-3'}`}
+                  style={!useAccountDetails ? {
+                    background: isDarkMode
+                      ? 'linear-gradient(to right, hsl(var(--primary) / 0.75), transparent)'
+                      : 'linear-gradient(to right, hsl(var(--primary) / 0.7), transparent)',
+                  } : undefined}
                 >
-                  {initialState ? `${initialState.city}, India` : 'Location Details'}
-                </span>
-                <button
-                  onClick={() => navigate(-1)}
-                  className="flex items-center justify-center transition-colors font-satoshi"
-                  style={{
-                    width: '67px',
-                    height: '22px',
-                    borderRadius: '100px',
-                    background: isDarkMode ? 'rgba(7, 7, 7, 0.84)' : '#5260FE',
-                    backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
-                    border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : 'none',
-                    padding: '4px 12px',
-                  }}
-                >
-                  <span
-                    className={`text-[12px] font-medium ${isDarkMode ? 'text-white' : 'text-white'}`}
-                  >
-                    Change
-                  </span>
-                </button>
-              </div>
-              {/* Bottom Row: Full Address - 8px below top row */}
-              <p
-                className={`text-[12px] font-regular font-satoshi mt-[8px] ${isDarkMode ? 'text-gray-300' : 'text-[#666666]'}`}
-                style={{ width: '287px' }}
-              >
-                {displayAddress}
-              </p>
-            </div>
-          </div>
-          {/* Helper Text */}
-          <p
-            className={`text-[12px] font-regular mb-[12px] font-satoshi ${isDarkMode ? 'text-white' : 'text-[#666666]'}`}
-          >
-            A detailed address will help our delivery partner reach your doorstep with ease
-          </p>
-          {/* Tags Section */}
-          <h2
-            className={`text-[14px] font-medium mb-[8px] mt-[22px] font-satoshi ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
-          >
-            Save address as<span className="text-brand-error ml-0.5">*</span>
-          </h2>
-          <div className="flex flex-wrap gap-2 mb-[32px]">
-            {tags.map(tag => {
-              const isSelected = selectedTag === tag.label;
-              // Tag Styling Logic
-              // Dark Mode: Selected (Transparent + Image), Unselected (White/5%)
-              // Light Mode: Selected (Purple + No Image), Unselected (White + Border)
-              const unselectedClass = isDarkMode
-                ? 'bg-[rgba(255,255,255,0.05)] border-white/20 text-white'
-                : 'bg-white border-brand-border-light text-brand-bg-deep shadow-sm';
-              const selectedClass = isDarkMode
-                ? 'border-transparent' // dark mode uses image bg
-                : 'bg-brand-primary border-transparent shadow-md'; // light mode uses purple bg
-              const selectedTextClass = 'text-white';
-              return (
-                <button
-                  key={tag.label}
-                  onClick={() => handleTagClick(tag.label)}
-                  className={`relative flex items-center justify-center px-4 h-[28px] rounded-full transition-all border font-satoshi ${isSelected ? selectedClass : unselectedClass}`}
-                  style={
-                    {
-                      // Specific overrides if needed
-                    }
-                  }
-                >
-                  {isSelected && isDarkMode && (
-                    <img
-                      src={ASSETS.SELECTED}
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-cover rounded-full z-0"
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={useAccountDetails}
+                      onChange={(e) => setUseAccountDetails(e.target.checked)}
+                      className="w-3.5 h-3.5 accent-brand-primary mr-2.5 rounded shrink-0"
                     />
-                  )}
-                  <div
-                    className={`relative z-10 flex items-center gap-2 ${isSelected ? selectedTextClass : isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
-                  >
-                    <img
-                      src={tag.icon}
-                      alt={tag.label}
-                      className="w-4 h-4"
-                      style={!isDarkMode && !isSelected ? { filter: 'invert(1)' } : undefined} // Invert white icons to black in light mode unselected
-                    />
-                    <span className="text-[12px] font-medium">{tag.label}</span>
+                    <span className={`text-[13px] font-medium leading-none ${!useAccountDetails ? 'text-white' : isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Use my account details
+                    </span>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-          {/* Input Fields Container */}
-          <div className="space-y-[10px] mb-[28px]">
-            {/* House / Flat */}
-            {renderInput('addr-house', house, setHouse, 'House / Flat / Floor', true)}
-            {/* Apartment / Road */}
-            {renderInput('addr-area', area, setArea, 'Apartment / Road / Area', true)}
-            {/* Landmark */}
-            {renderInput('addr-landmark', landmark, setLandmark, 'Landmark (Optional)', false)}
-            {/* Plus Code */}
-            <div
-              className={`h-[48px] rounded-full px-6 flex items-center justify-between transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
-            >
-              <input
-                type="text"
-                value={plusCode}
-                onChange={e => setPlusCode(e.target.value)}
-                onFocus={(e) => {
-                  setTimeout(() => {
-                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }, 300);
-                }}
-                className={`${getInputClass(plusCode)} flex-1 mr-2`}
-              />
-              <button onClick={handleCopyPlusCode}>
-                <img
-                  src={ASSETS.COPY}
-                  alt="Copy"
-                  className="w-5 h-5 opacity-70 hover:opacity-100"
-                  style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
-                />
-              </button>
-            </div>
-          </div>
-          {/* Contact Information */}
-          <h2
-            className={`text-[14px] font-medium mb-[12px] ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
-          >
-            Enter contact information<span className="text-brand-error ml-0.5">*</span>
-          </h2>
-          <div className="space-y-[12px] mb-[26px]">
-            {/* Name */}
-            {renderInput('addr-name', name, setName, 'Your Name', true)}
-            {/* Phone Number */}
-            <div
-              className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
-            >
-              <span
-                className={`text-[14px] font-medium pl-[30px] pr-[22px] ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}
-              >
-                +91
-              </span>
-              {/* Divider */}
-              <div
-                className={`h-[32px] w-[1px] ${isDarkMode ? 'bg-[#313131]' : 'bg-brand-border-light'}`}
-              ></div>
-              {/* Input */}
-              <div className="flex-1 ml-[22px] mr-[20px] relative h-full flex items-center">
-                <input
-                  type="tel"
-                  maxLength={10}
-                  value={phone}
-                  onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} // Numeric only
-                  onFocus={(e) => {
-                    setTimeout(() => {
-                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
-                  }}
-                  className={getInputClass(phone)}
-                  style={{ paddingRight: '30px' }}
-                />
+                  {useAccountDetails && (
+                    <span className={`text-[12px] leading-none mt-1 ml-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {name || '—'} , {phone || '—'}
+                    </span>
+                  )}
+                </label>
+
+                {!useAccountDetails && (
+                  <div className="space-y-[10px]">
+                    {renderInput('addr-name', name, setName, 'Receiver name', true)}
+                    <div
+                      className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
+                    >
+                      <button 
+                        onClick={() => showToaster('Contact selection requires native plugin installation.', 'error')}
+                        className={`pl-[24px] pr-[16px] h-full flex items-center justify-center ${isDarkMode ? 'text-white/70 hover:text-white' : 'text-gray-500 hover:text-brand-bg-deep'}`}
+                      >
+                        <Contact className="w-[18px] h-[18px]" />
+                      </button>
+                      <div className={`h-[32px] w-[1px] ${isDarkMode ? 'bg-[#313131]' : 'bg-brand-border-light'}`}></div>
+                      <div className="flex-1 ml-[22px] mr-[20px] relative h-full flex items-center">
+                        {!phone && (
+                          <div className="absolute inset-0 flex items-center pointer-events-none z-0">
+                            <span className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}>
+                              Receiver number
+                              <span className="text-brand-error ml-1">*</span>
+                            </span>
+                          </div>
+                        )}
+                        <input
+                          type="tel"
+                          maxLength={10}
+                          value={phone}
+                          onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+                          className={getInputClass(phone)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              {/* Phone Icon */}
-              <img
-                src={ASSETS.PHONE}
-                alt="Phone"
-                className="absolute right-[20px] w-5 h-5 pointer-events-none"
-                style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
-              />
             </div>
-          </div>
-          {/* Save Address CTA */}
-          <div className="flex flex-col gap-3">
-            <Button
-              onClick={() => handleSaveAddress()}
-              className="w-full rounded-full"
-              variant="gradient"
-              disabled={!isFormValid}
-            >
-              {isEditMode ? 'Save Changes' : 'Save Address'}
-            </Button>
-            {isEditMode && (
-              <Button
-                onClick={() => navigate(-1)}
-                className={`w-full rounded-full border ${isDarkMode ? 'bg-brand-card-dark hover:bg-[#252525] text-white border-white/20' : 'bg-white hover:bg-gray-50 text-brand-bg-deep border-brand-border-light'}`}
-                variant="secondary"
+
+            {/* ── Location Details ── */}
+            <div className="flex flex-col">
+              <h2 className={`text-[14px] font-bold mb-3 px-1 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}>
+                Location Details
+              </h2>
+              <div className={`rounded-2xl p-3 border ${isDarkMode ? 'bg-[#1A1A1A] border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
+                {/* Tab Switch */}
+                <div className={`flex rounded-full p-1 mb-4 ${isDarkMode ? 'bg-black/30' : 'bg-gray-100'}`}>
+                  {tags.map(tag => {
+                    const isSelected = selectedTag === tag.label;
+                    const TagIcon = tag.icon;
+                    return (
+                      <button
+                        key={tag.label}
+                        onClick={() => handleTagClick(tag.label)}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-[12px] font-medium font-satoshi transition-all ${
+                          isSelected
+                            ? isDarkMode
+                              ? 'bg-brand-primary text-white shadow-md'
+                              : 'bg-brand-bg-deep text-white shadow-md'
+                            : isDarkMode
+                              ? 'text-gray-400 hover:text-white'
+                              : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        <TagIcon className="w-3.5 h-3.5" />
+                        {tag.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Dynamic Inputs */}
+                <div className="space-y-[10px] mb-4">
+                  {renderInput('addr-house', house, setHouse, getHousePlaceholder(), true)}
+                  {renderInput('addr-area', area, setArea, getAreaPlaceholder(), false)}
+                  {renderInput('addr-landmark', landmark, setLandmark, 'Landmark (Optional)', false)}
+                </div>
+
+                {/* Area (read-only input) + Map Preview */}
+                <div className="flex items-stretch gap-3 mb-4">
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={`h-full min-h-[76px] rounded-xl px-4 py-3 flex flex-col justify-center transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
+                    >
+                      <span className={`text-[11px] font-medium font-satoshi ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                        Area
+                      </span>
+                      <span className={`text-[13px] font-satoshi line-clamp-3 mt-1 ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                        {displayAddress || 'Location not set'}
+                      </span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => navigate(-1)}
+                    className={`w-[76px] min-h-[76px] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shrink-0 border ${isDarkMode ? 'border-white/10 bg-[#222]' : 'border-gray-200 bg-blue-50'}`}
+                  >
+                    <div className="absolute inset-0 pointer-events-none z-0">
+                      <Map
+                        initialViewState={{
+                          longitude: mapLng,
+                          latitude: mapLat,
+                          zoom: 14,
+                        }}
+                        style={{ width: '100%', height: '100%' }}
+                        mapStyle={
+                          isDarkMode
+                            ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+                            : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+                        }
+                        interactive={false}
+                        attributionControl={false}
+                      />
+                      <div className="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+                    </div>
+                    
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pt-1">
+                      <img src={ASSETS.MAP_PIN_ICON} alt="Map Pin" className="w-5 h-6 drop-shadow-md" />
+                    </div>
+                    <span className="absolute bottom-1 left-0 right-0 text-brand-primary text-[10px] font-bold font-satoshi z-20 text-center drop-shadow-sm">
+                      Change
+                    </span>
+                  </button>
+                </div>
+
+                {/* Save address as */}
+                {renderInput('addr-save-as', saveAddressAs, setSaveAddressAs, 'Save address as', true)}
+              </div>
+            </div>
+
+            {/* ── Delivery Instructions ── */}
+            <div className="flex flex-col">
+              <h2 className={`text-[14px] font-bold mb-3 px-1 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}>
+                Delivery Instructions <span className={`font-normal text-[12px] ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(Optional)</span>
+              </h2>
+              <div
+                className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
               >
-                Cancel
+                <div className="flex-1 relative h-full flex items-center mr-2">
+                  {!deliveryInstructions && (
+                    <div className="absolute inset-0 flex items-center pointer-events-none z-0">
+                      <span className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}>
+                        Instructions to reach location
+                      </span>
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    value={deliveryInstructions}
+                    onChange={e => setDeliveryInstructions(e.target.value)}
+                    className={getInputClass(deliveryInstructions)}
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    if (deliveryInstructions.trim()) {
+                      showToaster('Delivery instruction added!', 'success');
+                    }
+                  }}
+                  className="text-brand-primary text-[13px] font-bold font-satoshi shrink-0"
+                >
+                  ADD
+                </button>
+              </div>
+            </div>
+
+            {/* Save Address CTA */}
+            <div className="flex flex-col gap-3 mt-1 mb-4">
+              <Button
+                onClick={() => handleInitialSave()}
+                className="w-full rounded-full"
+                variant="gradient"
+                disabled={!isFormValid}
+              >
+                {isEditMode ? 'Save Changes' : 'Save Address'}
               </Button>
-            )}
+              {isEditMode && (
+                <Button
+                  onClick={() => navigate(-1)}
+                  className={`w-full rounded-full border ${isDarkMode ? 'bg-brand-card-dark hover:bg-[#252525] text-white border-white/20' : 'bg-white hover:bg-gray-50 text-brand-bg-deep border-brand-border-light'}`}
+                  variant="secondary"
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -540,6 +601,79 @@ const AddAddressDetails = () => {
         onSave={handleSheetSave}
         icon={ASSETS.OTHER}
       />
+
+      {/* Confirm Details Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-[90%] max-w-sm bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-2xl relative overflow-hidden">
+            
+            {/* Map Pattern Background */}
+            <div className="absolute top-0 left-0 right-0 h-32 z-0 opacity-70 dark:opacity-30 pointer-events-none">
+              <Map
+                initialViewState={{
+                  longitude: mapLng,
+                  latitude: mapLat,
+                  zoom: 14,
+                }}
+                style={{ width: '100%', height: '100%' }}
+                mapStyle={
+                  isDarkMode
+                    ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+                    : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+                }
+                interactive={false}
+                attributionControl={false}
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-[#1A1A1A]/70 dark:to-[#1A1A1A]" />
+            </div>
+
+            <div className="relative z-10">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 pt-2">Confirm Details</h2>
+              
+              {/* Tag Row */}
+              <div className="flex items-center gap-2 mb-2">
+                {(() => {
+                  const ActiveIcon = tags.find(t => t.label === selectedTag)?.icon || MapPin;
+                  return <ActiveIcon className="w-4 h-4 text-brand-primary" />;
+                })()}
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {selectedTag === 'Other' && customLabel ? customLabel : selectedTag}
+                </span>
+              </div>
+              
+              {/* Address String */}
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                {[house, area, landmark, locState?.addressLine].filter(Boolean).join(', ')}
+              </p>
+              
+              {/* Receiver Row */}
+              <div className="mt-4 flex items-center gap-2 text-sm text-slate-800 dark:text-slate-200 font-medium">
+                <PhoneIcon className="w-4 h-4 text-brand-primary" />
+                <span>{name}, {phone}</span>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="mt-6 flex gap-3">
+                <button 
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 py-3 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 transition-colors font-semibold text-center"
+                >
+                  Edit Details
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowConfirmModal(false);
+                    handleFinalSave();
+                  }}
+                  className="flex-1 py-3 rounded-full bg-brand-primary text-white font-semibold text-center hover:bg-brand-primary/90 transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

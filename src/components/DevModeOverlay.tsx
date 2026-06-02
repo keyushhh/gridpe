@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { motion } from 'framer-motion';
 
 // ─── DevModeOverlay ───────────────────────────────────────────────────────────
 // A global floating dev-tools panel. Renders only in Vite dev server in browser.
@@ -54,9 +55,6 @@ const DevModeOverlay: React.FC = () => {
     return { x: fallbackX, y: fallbackY };
   });
 
-  const [dragging, setDragging] = useState(false);
-  const origin = useRef({ x: 0, y: 0, cx: 0, cy: 0 });
-
   // Re-clamp on window resize
   useEffect(() => {
     const onResize = () =>
@@ -67,34 +65,6 @@ const DevModeOverlay: React.FC = () => {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
-
-  const onDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    setDragging(true);
-    origin.current = { x: pos.x, y: pos.y, cx: e.clientX, cy: e.clientY };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const onMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!dragging) return;
-    const dx = e.clientX - origin.current.cx;
-    const dy = e.clientY - origin.current.cy;
-    const next = {
-      x: clamp(origin.current.x + dx, 0, window.innerWidth - BUTTON_SIZE),
-      y: clamp(origin.current.y + dy, 0, window.innerHeight - BUTTON_SIZE),
-    };
-    setPos(next);
-    localStorage.setItem('dev_overlay_pos', JSON.stringify(next));
-  };
-
-  const onUp = (e: React.PointerEvent<HTMLButtonElement>) => {
-    setDragging(false);
-    const dx = Math.abs(e.clientX - origin.current.cx);
-    const dy = Math.abs(e.clientY - origin.current.cy);
-    if (dx < 5 && dy < 5) {
-      setIsOpen(true);
-      setResult(null);
-    }
-  };
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -212,6 +182,8 @@ const DevModeOverlay: React.FC = () => {
     { label: 'Reset Terms', emoji: '📄', onClick: handleResetTerms },
     { label: 'Force Terms Gate', emoji: '🔓', onClick: handleForceTermsGate },
     { label: 'Seed Dev Data', emoji: '🌱', onClick: handleSeedDevData },
+    { label: 'Force Update', emoji: '🔴', onClick: () => window.dispatchEvent(new CustomEvent('dev-force-update')) },
+    { label: 'Simulate Offline', emoji: '🔌', onClick: () => window.dispatchEvent(new CustomEvent('dev-simulate-offline')), accent: '#ef4444' },
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -243,10 +215,21 @@ const DevModeOverlay: React.FC = () => {
     >
       {/* ── Floating button ─────────────────────────────────────────────── */}
       {!isOpen && (
-        <button
-          onPointerDown={onDown}
-          onPointerMove={onMove}
-          onPointerUp={onUp}
+        <motion.button
+          drag
+          dragMomentum={false}
+          onDragEnd={(e, info) => {
+            const next = {
+              x: clamp(pos.x + info.offset.x, 0, window.innerWidth - BUTTON_SIZE),
+              y: clamp(pos.y + info.offset.y, 0, window.innerHeight - BUTTON_SIZE),
+            };
+            setPos(next);
+            localStorage.setItem('dev_overlay_pos', JSON.stringify(next));
+          }}
+          onClick={() => {
+            setIsOpen(true);
+            setResult(null);
+          }}
           style={{
             width: BUTTON_SIZE,
             height: BUTTON_SIZE,
@@ -258,13 +241,12 @@ const DevModeOverlay: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 6px 20px rgba(99,102,241,0.45)',
             cursor: 'grab',
             touchAction: 'none',
           }}
         >
           🛠
-        </button>
+        </motion.button>
       )}
 
       {/* ── Panel ───────────────────────────────────────────────────────── */}

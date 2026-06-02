@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import Map, { ViewState, ViewStateChangeEvent, MapRef } from 'react-map-gl/maplibre';
+import Map, { ViewState, ViewStateChangeEvent, MapRef, Marker, Source, Layer } from 'react-map-gl/maplibre';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -134,7 +134,13 @@ const AddAddress = () => {
           addr.suburb ||
           'Pinned Location';
         setAddressTitle(title);
-        setAddressLine(geocodeResult.display_name);
+
+        const simplifiedAddress = geocodeResult.display_name
+          .split(',')
+          .slice(0, 3)
+          .map(part => part.trim())
+          .join(', ');
+        setAddressLine(simplifiedAddress);
       } else {
         setCurrentAddressComponents(null);
         setAddressTitle('Location not found');
@@ -296,6 +302,20 @@ const AddAddress = () => {
     observer.observe(bottomSheetRef.current);
     return () => observer.disconnect();
   }, []);
+  const lineData = userLocation
+    ? {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [userLocation.lng, userLocation.lat],
+            [viewState.longitude, viewState.latitude],
+          ],
+        },
+      }
+    : null;
+
   return (
     <div
       className={`h-full w-full relative bg-background ${isDarkMode ? 'text-white' : 'text-black'} ${containerOverflow}`}
@@ -315,7 +335,29 @@ const AddAddress = () => {
             : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
         }
         attributionControl={false}
-      />
+      >
+        {lineData && (
+          <Source id="connecting-line" type="geojson" data={lineData as any}>
+            <Layer
+              id="connecting-line-layer"
+              type="line"
+              paint={{
+                'line-color': '#5260FE',
+                'line-width': 2,
+                'line-dasharray': [3, 3],
+              }}
+            />
+          </Source>
+        )}
+        {userLocation && (
+          <Marker latitude={userLocation.lat} longitude={userLocation.lng} anchor="center">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-5 h-5 bg-[#5260FE] rounded-full animate-ping opacity-75"></div>
+              <div className="relative w-3.5 h-3.5 bg-[#5260FE] border-2 border-white rounded-full shadow-md"></div>
+            </div>
+          </Marker>
+        )}
+      </Map>
       {/* Top Container Layer */}
       <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none">
         <div

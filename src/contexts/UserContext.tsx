@@ -83,6 +83,7 @@ interface UserState {
   rewardPoints: number;
   activeAddressId?: string | null;
   activeAddress?: SavedAddress | null;
+  isManualAddressSelected: boolean;
 }
 
 interface UserContextType extends UserState {
@@ -111,7 +112,8 @@ interface UserContextType extends UserState {
   fetchProfileData: (userId?: string) => Promise<void>;
   activeAddressId?: string | null;
   activeAddress?: SavedAddress | null;
-  setActiveAddress: (addr: SavedAddress | null) => void;
+  setActiveAddress: (addr: SavedAddress | null, isManual?: boolean) => void;
+  isManualAddressSelected: boolean;
   addMoney: (
     amount: number
   ) => Promise<{ success: boolean; error?: Error | PostgrestError | string }>;
@@ -157,6 +159,7 @@ const defaultState: UserState = {
   isResetting: false,
   activeAddressId: null,
   activeAddress: null,
+  isManualAddressSelected: false,
 };
 
 /* -------------------- Context -------------------- */
@@ -856,7 +859,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, profile }));
   }, []);
 
-  const setActiveAddress = useCallback(async (addr: SavedAddress | null) => {
+  const setActiveAddress = useCallback(async (addr: SavedAddress | null, isManual: boolean = false) => {
     try {
       const {
         data: { session },
@@ -864,18 +867,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const userId = session?.user?.id || state.profile?.id;
 
       if (!userId) {
-        // Fallback: update in-memory only
-        if (addr) {
-          await setAddressPref(addr);
-        } else {
-          await removeAddressPref();
-        }
-        setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
-        return;
-      }
-
-      if (!addr) {
-        // Clear stored values
         try { removeStorage('user_address', userId); } catch (err) {
           if (import.meta.env.DEV) console.warn('[UserContext] cleanup error:', err);
         }
@@ -883,7 +874,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           if (import.meta.env.DEV) console.warn('[UserContext] cleanup error:', err);
         }
         await removeAddressPref();
-        setState(prev => ({ ...prev, activeAddress: null, activeAddressId: null }));
+        setState(prev => ({ ...prev, activeAddress: null, activeAddressId: null, isManualAddressSelected: isManual || prev.isManualAddressSelected }));
         return;
       }
 
@@ -899,7 +890,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       await setAddressPref(addr);
 
-      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? null }));
+      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr.id ?? null, isManualAddressSelected: isManual || prev.isManualAddressSelected }));
     } catch (err) {
       console.error('Failed to set active address:', err);
       if (addr) {
@@ -911,7 +902,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           if (import.meta.env.DEV) console.warn('[UserContext] non-critical error:', err);
         });
       }
-      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null }));
+      setState(prev => ({ ...prev, activeAddress: addr, activeAddressId: addr?.id ?? null, isManualAddressSelected: isManual || prev.isManualAddressSelected }));
     }
   }, [supabase, state.profile?.id]);
 
