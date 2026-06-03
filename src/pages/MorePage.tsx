@@ -88,17 +88,6 @@ const MorePage = () => {
         },
       ],
     },
-    {
-      title: 'APP PREFERENCES',
-      items: [
-        { icon: ASSETS.LOGOUT, label: 'Logout', onClick: () => setShowLogoutConfirmation(true) },
-        {
-          icon: ASSETS.DELETE_ACC,
-          label: 'Delete Account',
-          onClick: () => navigate(ROUTES.DELETE_ACCOUNT, { state: { originPath: ROUTES.MORE } }),
-        },
-      ],
-    },
   ];
   return (
     <div

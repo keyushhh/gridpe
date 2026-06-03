@@ -15,12 +15,38 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
+      let resolvedSession = false;
+      try {
+        const timeoutPromise = new Promise<{ data: { session: any } }>((resolve) =>
+          setTimeout(() => resolve({ data: { session: null } }), 4000)
+        );
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise
+        ]);
+        resolvedSession = !!session;
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.warn('ProtectedRoute auth check error:', err);
+        }
+      } finally {
+        setIsAuthenticated(resolvedSession);
+      }
     };
+    
     checkAuth();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAuth();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [location.pathname]); // Re-check on navigation
 
   if (isAuthenticated === null) {

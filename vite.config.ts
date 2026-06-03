@@ -13,6 +13,7 @@ const removeCrossorigin = () => ({
 
 export default defineConfig(({ mode }) => ({
   base: "./",
+  assetsInclude: ['**/*.lottie'],
   server: {
     host: "::",
     port: 8080,

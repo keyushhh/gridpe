@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 import BackButton from '@/components/ui/BackButton';
 import { cn } from '@/lib/utils';
 import Skeleton from 'react-loading-skeleton';
@@ -249,7 +250,7 @@ const Settings = () => {
 
   return (
     <div
-      className={`min-h-[100dvh] w-full ${containerOverflow} flex flex-col relative`}
+      className={`min-h-[100dvh] w-full ${containerOverflow} overflow-y-auto flex flex-col relative`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         // Only show mainBg image in Dark Mode as requested (User wanted White in Light Mode)
@@ -273,7 +274,7 @@ const Settings = () => {
       )}
 
       {/* Content Container */}
-      <div className="relative z-10 flex flex-col h-full w-full overflow-hidden">
+      <div className="relative z-10 flex flex-col w-full">
         {/* Header */}
         <div className="px-5 safe-top pt-4 flex items-center justify-between flex-none">
           <div className="flex items-center gap-3">
@@ -480,6 +481,74 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* MORE */}
+        <div className="px-5 mt-6">
+          <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+            MORE
+          </p>
+          <div className="space-y-4">
+            <div
+              className="flex justify-between cursor-pointer"
+              onClick={() => navigate(ROUTES.SAVED_ADDRESSES)}
+            >
+              <div className="flex items-start gap-3">
+                <img loading="lazy" decoding="async" src={ASSETS.ADDRESS} className="w-[18px] mt-[2px] filter brightness-0 dark:invert" />
+                <div>
+                  <p className="text-foreground text-[14px]">Saved Addresses</p>
+                </div>
+              </div>
+              <ChevronRight />
+            </div>
+
+            <div
+              className="flex justify-between cursor-pointer"
+              onClick={() => navigate(ROUTES.SUBSCRIPTIONS)}
+            >
+              <div className="flex items-start gap-3">
+                <img loading="lazy" decoding="async" src={ASSETS.SUBSCRIPTIONS} className="w-[18px] mt-[2px] filter brightness-0 dark:invert" />
+                <div>
+                  <p className="text-foreground text-[14px]">Subscriptions</p>
+                </div>
+              </div>
+              <ChevronRight />
+            </div>
+          </div>
+        </div>
+
+        {/* LEGAL */}
+        <div className="px-5 mt-6">
+          <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+            LEGAL
+          </p>
+          <div className="space-y-4">
+            <div
+              className="flex justify-between cursor-pointer"
+              onClick={() => navigate(ROUTES.LEGAL_TERMS)}
+            >
+              <div className="flex items-start gap-3">
+                <img loading="lazy" decoding="async" src={ASSETS.TERMS_PRIVACY} className="w-[18px] mt-[2px] filter brightness-0 dark:invert" />
+                <div>
+                  <p className="text-foreground text-[14px]">Terms & Conditions</p>
+                </div>
+              </div>
+              <ChevronRight />
+            </div>
+
+            <div
+              className="flex justify-between cursor-pointer"
+              onClick={() => navigate(ROUTES.LEGAL_PRIVACY)}
+            >
+              <div className="flex items-start gap-3">
+                <img loading="lazy" decoding="async" src={ASSETS.TERMS_PRIVACY} className="w-[18px] mt-[2px] filter brightness-0 dark:invert" />
+                <div>
+                  <p className="text-foreground text-[14px]">Privacy Policy</p>
+                </div>
+              </div>
+              <ChevronRight />
+            </div>
+          </div>
+        </div>
+
         {/* APP PREFERENCES & Footer Container */}
         <div className="flex-1 w-full bg-brand-bg-light dark:bg-transparent mt-6 pt-4 flex flex-col">
           <div className="px-5">
@@ -511,13 +580,29 @@ const Settings = () => {
                     <span
                       className={`text-[14px] ${transactionAlerts ? 'text-foreground' : 'text-black dark:text-muted-foreground'}`}
                     >
-                      Transaction Alerts
+                      Alerts
                     </span>
                     <Switch
                       checked={transactionAlerts}
-                      onCheckedChange={val => {
+                      onCheckedChange={async val => {
                         triggerHaptic();
-                        setTransactionAlerts(val);
+                        if (val) {
+                          try {
+                            const permission = await PushNotifications.requestPermissions();
+                            if (permission.receive !== 'granted') {
+                              setTransactionAlerts(false);
+                              showToaster('Enable notifications in your device settings to receive alerts.', 'error');
+                            } else {
+                              setTransactionAlerts(true);
+                            }
+                          } catch (e) {
+                            console.error('Push notification permission error:', e);
+                            setTransactionAlerts(false);
+                            showToaster('Enable notifications in your device settings to receive alerts.', 'error');
+                          }
+                        } else {
+                          setTransactionAlerts(false);
+                        }
                       }}
                     />
                   </div>

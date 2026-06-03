@@ -150,6 +150,9 @@ export interface Tables {
     kyc_id_url?: string | null;
     profile_url?: string | null;
     kyc_status: string;
+    average_stars?: number | null;
+    total_ratings?: number | null;
+    solo_delivery_score?: number | null;
   };
   wallet_tiers: {
     id: string;
@@ -176,6 +179,7 @@ export interface Tables {
     order_id?: string;
     stars: number;
     recommend_solo: boolean | null;
+    would_order_again?: boolean | null;
     feedback: string | null;
     tip_amount: number;
     created_at?: string;

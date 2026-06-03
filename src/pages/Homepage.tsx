@@ -330,10 +330,10 @@ const Homepage = () => {
   
   // Only show skeleton on INITIAL load (no data at all)
   const isInitialLoading = 
-    (activeOrderQuery.isPending && !activeOrderQuery.data) || 
-    (recentOrdersQuery.isPending && !recentOrdersQuery.data) || 
-    (addressesCountQuery.isPending && !addressesCountQuery.data) || 
-    (walletBalanceQuery.isPending && !walletBalanceQuery.data);
+    (activeOrderQuery.isLoading && !activeOrderQuery.data) || 
+    (recentOrdersQuery.isLoading && !recentOrdersQuery.data) || 
+    (addressesCountQuery.isLoading && !addressesCountQuery.data) || 
+    (walletBalanceQuery.isLoading && !walletBalanceQuery.data);
   const [isRiderAssigned, setIsRiderAssigned] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);

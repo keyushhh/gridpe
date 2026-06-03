@@ -14,6 +14,8 @@ import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import OrderDetailsSkeleton from '@/components/skeletons/OrderDetailsSkeleton';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 const OrderDetails = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -427,7 +429,7 @@ const OrderDetails = () => {
         <div className="w-full mb-[16px] flex flex-col">
           {/* Header Row (Top Container) */}
           <div
-            className={`w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px] bg-neutral-950 border border-border border-b-0`}
+            className={`w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px] ${isDarkMode ? 'bg-[#191919]/[0.31] backdrop-blur-[25px]' : 'bg-neutral-950'} border border-border border-b-0`}
           >
             <span className={`text-[12px] font-medium font-sans whitespace-nowrap mr-2 text-white`}>
               Delivering to -{' '}
@@ -441,7 +443,7 @@ const OrderDetails = () => {
           </div>
           {/* Status & Map Container (Bottom Container) */}
           <div
-            className={`w-full rounded-b-[14px] flex ${isDarkMode ? 'bg-muted/30' : 'bg-background'} border border-border border-t-0 p-[12px]`}
+            className={`w-full rounded-b-[14px] flex ${isDarkMode ? 'bg-[#191919]/[0.31] backdrop-blur-[25px]' : 'bg-background'} border border-border border-t-0 p-[12px]`}
           >
             {/* Left Text */}
             <div className="flex-1 flex flex-col justify-start pr-2">
@@ -494,7 +496,7 @@ const OrderDetails = () => {
         </div>
         {/* Transaction Details Container */}
         <div
-          className={`w-full rounded-[13px] p-[12px] mb-[29px] border border-border ${isDarkMode ? 'bg-muted/30' : 'bg-background'}`}
+          className={`w-full rounded-[13px] p-[12px] mb-[29px] border border-border ${isDarkMode ? 'bg-[#191919]/[0.31] backdrop-blur-[25px]' : 'bg-background'}`}
         >
           <h3
             className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -579,20 +581,24 @@ const OrderDetails = () => {
               </p>
             </div>
           ) : (
-            <button
+            <Button
               onClick={() => navigate(ROUTES.HOME)}
-              className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans flex items-center justify-center transition-transform active:scale-95"
-              style={{
-                backgroundImage: isDarkMode ? `url(${ASSETS.BUTTON_CANCEL})` : 'none',
-                backgroundColor: isDarkMode ? 'transparent' : '#EBEBEB',
-                color: isDarkMode ? '#FFFFFF' : '#000000',
-                backgroundSize: '100% 100%',
-                backgroundRepeat: 'no-repeat',
-                border: 'none',
-              }}
+              variant={isDarkMode ? 'glass' : 'default'}
+              className={cn(
+                'w-full h-[48px] shadow-xl transition-all',
+                !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full'
+              )}
+              style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
             >
-              Go Home
-            </button>
+              <span
+                className={cn(
+                  'text-[16px] font-medium font-sans',
+                  isDarkMode ? 'text-white dark:text-foreground' : 'text-white'
+                )}
+              >
+                Go Home
+              </span>
+            </Button>
           )}
         </div>
       </div>

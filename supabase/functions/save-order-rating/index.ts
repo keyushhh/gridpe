@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const config = { auth: false };
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
@@ -33,7 +34,7 @@ Deno.serve(async (req) => {
 
     // 2. Parse and Validate Body
     const body = await req.json();
-    const { order_id, rider_id, stars, recommend_solo, feedback, tip_amount = 0 } = body;
+    const { order_id, rider_id, stars, recommend_solo, would_order_again, feedback, tip_amount = 0 } = body;
 
     if (!order_id || !rider_id || stars === undefined) {
       throw new Error("order_id, rider_id, and stars are required");
@@ -82,6 +83,7 @@ Deno.serve(async (req) => {
         rider_id,
         stars,
         recommend_solo,
+        would_order_again,
         feedback,
         tip_amount
       });
