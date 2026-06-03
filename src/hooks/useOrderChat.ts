@@ -78,6 +78,7 @@ export function useOrderChat(orderId: string | null, isOpen: boolean = false) {
       await fetchMessages();
     } catch (err) {
       console.error('Error sending message:', err);
+      throw err;
     } finally {
       if (isMountedRef.current) setIsSending(false);
     }

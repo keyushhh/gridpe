@@ -223,7 +223,13 @@ const AddAddressDetails = () => {
           plusCode: updatedAddr.plus_code || '',
         };
         setActiveAddress(uiAddr as any, true);
-        try { writeStorage('user_address', uiAddr, userId); } catch (e) {}
+        try {
+          writeStorage('user_address', uiAddr, userId);
+        } catch (e) {
+          if (import.meta.env.DEV) {
+            console.warn('[AddAddressDetails] Storage write failed:', e);
+          }
+        }
 
       } else {
         const insertPayload = {

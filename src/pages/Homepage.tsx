@@ -834,6 +834,7 @@ const Homepage = () => {
       }
     } catch (e) {
       console.error('Failed to cancel order', e);
+      throw e;
     }
   };
   const getTagIcon = (tag: string) => {

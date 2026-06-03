@@ -38,6 +38,7 @@ const ManageSubscription = () => {
       navigate(ROUTES.SUBSCRIPTIONS);
     } catch (error: unknown) {
       console.error('Cancellation scheduling failed:', error);
+      throw error;
     }
   };
   const backgroundImage = isDarkMode

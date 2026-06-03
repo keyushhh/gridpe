@@ -283,6 +283,7 @@ const Wallet = () => {
               navigate(ROUTES.WALLET_CREATED, { replace: true });
             } catch (err) {
               console.error('[GetStarted] Failed:', err);
+              throw err;
             }
           }}
           className={`w-full h-[48px] flex items-center justify-center text-white text-[16px] font-medium font-sans transition-all active:scale-95 ${!isDarkMode ? 'bg-primary rounded-full' : ''}`}

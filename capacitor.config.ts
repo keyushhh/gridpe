@@ -26,7 +26,7 @@ const config: CapacitorConfig & {
     backgroundColor: "#0A0A12",
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: true
+    webContentsDebuggingEnabled: false
   },
   plugins: {
     Keyboard: {

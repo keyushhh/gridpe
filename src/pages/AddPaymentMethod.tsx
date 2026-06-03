@@ -83,6 +83,7 @@ const AddPaymentMethod = () => {
         setBankAccounts(accounts);
       } catch (error) {
         console.error('Error loading bank accounts:', error);
+        throw error;
       } finally {
         setLoading(false);
       }

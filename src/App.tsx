@@ -26,7 +26,7 @@ import { handleBackButtonGesture } from '@/hooks/useBackButtonHandler';
 import { useUser } from '@/contexts/UserContext';
 
 // Lazy-load page components
-const Index = lazy(() => import('./pages/Index'));
+import Index from './pages/Index';
 const Homepage = lazy(() => import('./pages/Homepage'));
 const Settings = lazy(() => import('./pages/Settings'));
 const KYCIntro = lazy(() => import('./pages/KYCIntro'));
@@ -450,12 +450,33 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
               <TermsAcceptanceGate />
               <Suspense
                 fallback={
-                  <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'var(--splash-bg, #0A0A12)',
-                    zIndex: 9999,
-                  }} />
+                  <div
+                    style={{
+                      position: 'fixed',
+                      inset: 0,
+                      background: 'var(--splash-bg, #0A0A12)',
+                      zIndex: 9999,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        border: '3px solid rgba(255,255,255,0.15)',
+                        borderTopColor: 'rgba(255,255,255,0.8)',
+                        animation: 'spin 0.7s linear infinite',
+                      }}
+                    />
+                    <style>{`
+                      @keyframes spin {
+                        to { transform: rotate(360deg); }
+                      }
+                    `}</style>
+                  </div>
                 }
               >
                 <Router>

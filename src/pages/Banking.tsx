@@ -446,6 +446,7 @@ const Banking = () => {
                                               navigate(ROUTES.BANK_REMOVE_SUCCESS, { state: { last4 } });
                                             } catch (error) {
                                               console.error('Error removing bank account:', error);
+                                              throw error;
                                             }
                                           }
                                         }}
@@ -493,6 +494,7 @@ const Banking = () => {
                                                 navigate(ROUTES.BANK_REMOVE_SUCCESS, { state: { last4 } });
                                               } catch (error) {
                                                 console.error('Error removing bank account:', error);
+                                                throw error;
                                               }
                                             }
                                           }}
@@ -617,6 +619,7 @@ const Banking = () => {
               closeConfirmation();
             } catch (error) {
               console.error('Error setting default bank account:', error);
+              throw error;
             }
           }
         }}

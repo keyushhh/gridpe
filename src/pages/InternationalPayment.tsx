@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { Browser } from '@capacitor/browser';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { useWalletStore } from '@/store/useWalletStore';
 
 const upiAppMethods = [
   { id: 'cred', name: 'CRED UPI', icon: ASSETS.CRED, type: 'upi', linked: true },
@@ -79,14 +80,16 @@ const loadStripe = async () => {
     });
   }
   // TODO: add VITE_STRIPE_PUBLISHABLE_KEY=pk_test_... to .env
-  return (window as any).Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'VITE_STRIPE_PUBLISHABLE_KEY_PLACEHOLDER');
+  return (window as any).Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 };
 
 const InternationalPayment = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
-  const { profile, fetchProfileData, refreshBalance, refreshTransactions } = useUser();
+  const { profile, fetchProfileData } = useUser();
+  const refreshBalance = useWalletStore((state) => state.refreshBalance);
+  const refreshTransactions = useWalletStore((state) => state.refreshTransactions);
   const { showToaster } = useCustomToaster();
   
   const [upiId, setUpiId] = useState('');
@@ -204,8 +207,8 @@ const InternationalPayment = () => {
           await fetchProfileData(currentUserId);
           
           if (flow === 'wallet_topup') {
-            await refreshBalance(currentUserId);
-            await refreshTransactions(currentUserId);
+            await refreshBalance();
+            await refreshTransactions();
             navigate(ROUTES.WALLET_TOPUP_SUCCESS, {
               state: {
                 totalAmount: amount,
@@ -316,9 +319,9 @@ const InternationalPayment = () => {
       }
 
       if (data.success) {
-        await refreshBalance(currentUserId);
+        await refreshBalance();
         await fetchProfileData(currentUserId);
-        await refreshTransactions(currentUserId);
+        await refreshTransactions();
 
         if (flow === 'wallet_topup') {
           navigate(ROUTES.WALLET_TOPUP_SUCCESS, {
