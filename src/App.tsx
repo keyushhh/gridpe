@@ -113,6 +113,7 @@ const ZingChat = lazy(() => import('./pages/ZingChat'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const DeliveryCaution = lazy(() => import('./pages/DeliveryCaution'));
 const NotAvailable = lazy(() => import('./pages/NotAvailable'));
+const RideAndEarn = lazy(() => import('./pages/RideAndEarn'));
 import { Button } from '@/components/ui/button';
 import { useNotificationNavigation } from './hooks/useNotificationNavigation';
 import { InAppNotificationBanner } from './components/InAppNotificationBanner';
@@ -492,6 +493,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                   <Routes>
                     <Route path="/dev/sheet-preview" element={<DevSheetPreview />} />
                     <Route path={ROUTES.INDEX} element={<Index />} />
+                    <Route path={ROUTES.RIDE_AND_EARN} element={<RideAndEarn />} />
                     <Route
                       path={ROUTES.HOME}
                       element={

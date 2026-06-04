@@ -232,6 +232,13 @@ export interface Tables {
     accepted_at: string;
     created_at?: string;
   };
+  rider_interest: {
+    id: string;
+    full_name: string;
+    phone: string;
+    city: string;
+    created_at?: string;
+  };
 }
 
 export interface Database {
@@ -337,6 +344,12 @@ export interface Database {
         Row: Tables['user_legal_consents'];
         Insert: Partial<Tables['user_legal_consents']>;
         Update: Partial<Tables['user_legal_consents']>;
+        Relationships: [];
+      };
+      rider_interest: {
+        Row: Tables['rider_interest'];
+        Insert: Partial<Tables['rider_interest']>;
+        Update: Partial<Tables['rider_interest']>;
         Relationships: [];
       };
     };

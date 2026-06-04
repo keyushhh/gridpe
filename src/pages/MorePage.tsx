@@ -1,137 +1,338 @@
 import { useState } from 'react';
-import { ASSETS } from '@/constants/assets';
-// MorePage Component
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-
-import BottomNavigation from '@/components/BottomNavigation';
-import { useAsset } from '@/hooks/useAsset';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
-// Assets
-interface MoreItemProps {
-  icon: string;
-  label: string;
-  onClick: () => void;
-  isDarkMode: boolean;
-}
-const MoreItem = ({ icon, label, onClick, isDarkMode }: MoreItemProps) => (
-  <button
-    onClick={onClick}
-    className="flex flex-col items-center group active:scale-95 transition-transform"
-  >
-    <div
-      className={`w-16 h-16 flex items-center justify-center relative mb-1 ${!isDarkMode ? 'bg-white/50 border border-white/33 rounded-[33px]' : ''}`}
-      style={
-        isDarkMode
-          ? {
-              backgroundImage: `url(${ASSETS.MORE_ICONSBG})`,
-              backgroundSize: '100% 100%',
-              backgroundRepeat: 'no-repeat',
-            }
-          : {}
-      }
-    >
-      <img
-        src={icon}
-        alt={label}
-        className="w-6 h-6 object-contain"
-        style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
-      />
-    </div>
-    <span className="text-foreground font-medium text-[12px] leading-tight w-16 text-center font-satoshi">
-      {label}
-    </span>
-  </button>
-);
+import { Share } from '@capacitor/share';
+import { ASSETS } from '@/constants/assets';
+import { 
+  ChevronRight, ChevronDown, Banknote, ArrowLeftRight, 
+  TrendingUp, Clock, Sparkles, ShieldCheck, UserCheck, 
+  Lock, Phone, Info, Users, Share2, FileText, Bike
+} from 'lucide-react';
+import BottomNavigation from '@/components/BottomNavigation';
+import { useAuth } from '@/hooks/useAuth';
+
 const MorePage = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const { logout } = useAuth();
+  
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
-  const categories = [
-    {
-      title: 'ACCOUNT',
-      items: [
-        {
-          icon: ASSETS.ADDRESS,
-          label: 'Saved Addresses',
-          onClick: () => navigate(ROUTES.SAVED_ADDRESSES),
-        },
-        { icon: ASSETS.HELP, label: 'Help & Support', onClick: () => navigate(ROUTES.HELP) },
-        {
-          icon: ASSETS.SECURITY,
-          label: 'Security Settings',
-          onClick: () =>
-            navigate(ROUTES.SECURITY_DASHBOARD, { state: { originPath: ROUTES.MORE } }),
-        },
-        {
-          icon: ASSETS.SUBSCRIPTIONS,
-          label: 'Subscriptions',
-          onClick: () => navigate(ROUTES.SUBSCRIPTIONS),
-        },
-      ],
-    },
-    {
-      title: 'LEGAL',
-      items: [
-        {
-          icon: ASSETS.TERMS_PRIVACY,
-          label: 'Terms & Conditions',
-          onClick: () => navigate(ROUTES.LEGAL_TERMS, { state: { fromMore: true } }),
-        },
-        {
-          icon: ASSETS.TERMS_PRIVACY,
-          label: 'Privacy Policy',
-          onClick: () => navigate(ROUTES.LEGAL_PRIVACY, { state: { fromMore: true } }),
-        },
-      ],
-    },
-  ];
+
   return (
-    <div
-      className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} scrollbar-hide`}
-      style={{
-        backgroundImage: `url(${mainBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'top center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
-      <div className="flex-1 px-5 safe-top pt-4 pb-[calc(120px+env(safe-area-inset-bottom))]">
-        {/* Header */}
-        <div className="mb-6 relative z-10">
+    <div className="absolute inset-0 flex flex-col bg-background overflow-hidden">
+      <div className="flex-1 overflow-y-auto px-5 pb-28 safe-top">
+        {/* HEADER */}
+        <div className="pt-8">
           <img
             src={ASSETS.GRIDPE_LOGO}
             alt="grid.pe"
-            className="h-10 mb-2"
+            className="h-7"
             style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
           />
+          <div className="mt-6">
+            <h1 className="text-3xl font-bold text-foreground block">Explore</h1>
+            <h1 
+              className="text-3xl font-bold block"
+              style={{
+                background: 'linear-gradient(90deg, #5260FE, #a78bfa)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
+              what's possible.
+            </h1>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            All of Grid.Pe's services, in one place.
+          </p>
         </div>
-        {/* Categories */}
-        <div className="flex flex-col gap-[66px]">
-          {categories.map(category => (
-            <div key={category.title} className="flex flex-col">
-              <h2 className="text-muted-foreground font-medium text-[14px] tracking-wider mb-[18px] font-satoshi uppercase">
-                {category.title}
-              </h2>
-              <div className="flex flex-wrap gap-x-[26px] gap-y-6">
-                {category.items.map(item => (
-                  <MoreItem
-                    key={item.label}
-                    icon={item.icon}
-                    label={item.label}
-                    onClick={item.onClick}
-                    isDarkMode={isDarkMode}
-                  />
-                ))}
-              </div>
+
+        {/* SECTION: SERVICES */}
+        <h2 className="mt-10 mb-4 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          SERVICES
+        </h2>
+        <div className="flex flex-col gap-3">
+          <div
+            onClick={() => navigate(ROUTES.ORDER_CASH)}
+            className={`rounded-2xl p-4 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform duration-150 ${isDarkMode ? 'bg-white/5 border border-white/[0.08]' : 'bg-black/[0.03] border border-black/[0.08]'}`}
+          >
+            <div 
+              className="rounded-xl p-2.5 shrink-0"
+              style={{ background: 'linear-gradient(135deg, #5260FE22, #5260FE44)' }}
+            >
+              <Banknote size={20} color="#5260FE" />
             </div>
-          ))}
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">Cash Delivery</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Get cash delivered to your doorstep</p>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+          </div>
+
+          <div
+            onClick={() => navigate(ROUTES.FX_INTRO)}
+            className={`rounded-2xl p-4 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform duration-150 ${isDarkMode ? 'bg-white/5 border border-white/[0.08]' : 'bg-black/[0.03] border border-black/[0.08]'}`}
+          >
+            <div 
+              className="rounded-xl p-2.5 shrink-0"
+              style={{ background: 'linear-gradient(135deg, #a78bfa22, #a78bfa44)' }}
+            >
+              <ArrowLeftRight size={20} color="#a78bfa" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">FX Exchange</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Convert foreign currency to INR cash</p>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+          </div>
+        </div>
+
+        {/* SECTION: DISCOVER */}
+        <h2 className="mt-10 mb-4 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          DISCOVER
+        </h2>
+        <div className="flex flex-col">
+          {/* Row 1 — expandable, key: 'how-it-works' */}
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={() => setExpandedItem(expandedItem === 'how-it-works' ? null : 'how-it-works')}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <Info size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">How Grid.Pe Works</span>
+              <ChevronDown 
+                size={16} 
+                className="text-muted-foreground shrink-0 transition-transform duration-200" 
+                style={{ transform: expandedItem === 'how-it-works' ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+              />
+            </div>
+            {expandedItem === 'how-it-works' && (
+              <div className="pb-4 text-sm text-muted-foreground leading-relaxed">
+                <div className="flex gap-3 mb-4">
+                  <div className="rounded-full bg-primary/10 text-primary text-xs font-bold w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">1</div>
+                  <div>
+                    <span className="font-bold text-foreground text-sm">Place Your Order</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">Request cash delivery or FX exchange in under a minute.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 mb-4">
+                  <div className="rounded-full bg-primary/10 text-primary text-xs font-bold w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">2</div>
+                  <div>
+                    <span className="font-bold text-foreground text-sm">Rider Gets Assigned</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">A verified Grid.Pe rider is matched to your order instantly.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 mb-4">
+                  <div className="rounded-full bg-primary/10 text-primary text-xs font-bold w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">3</div>
+                  <div>
+                    <span className="font-bold text-foreground text-sm">Delivered to You</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">Your order arrives at your doorstep, securely and on time.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Row 2 — expandable, key: 'safety' */}
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={() => setExpandedItem(expandedItem === 'safety' ? null : 'safety')}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <ShieldCheck size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">Safety Promise</span>
+              <ChevronDown 
+                size={16} 
+                className="text-muted-foreground shrink-0 transition-transform duration-200" 
+                style={{ transform: expandedItem === 'safety' ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+              />
+            </div>
+            {expandedItem === 'safety' && (
+              <div className="pb-4 text-sm text-muted-foreground leading-relaxed">
+                <div className="flex gap-3 mb-4">
+                  <div className="rounded-lg p-1.5 bg-primary/10 shrink-0 mt-0.5">
+                    <ShieldCheck size={14} color="#5260FE" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-foreground text-sm">Verified Riders Only</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">Every rider is KYC verified and background checked.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 mb-4">
+                  <div className="rounded-lg p-1.5 bg-primary/10 shrink-0 mt-0.5">
+                    <UserCheck size={14} color="#5260FE" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-foreground text-sm">Women-Safe Deliveries</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">Female customers can request women-only riders.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 mb-4">
+                  <div className="rounded-lg p-1.5 bg-primary/10 shrink-0 mt-0.5">
+                    <Lock size={14} color="#5260FE" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-foreground text-sm">Secure Transactions</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">All payments go through RBI-compliant gateways.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 mb-4">
+                  <div className="rounded-lg p-1.5 bg-primary/10 shrink-0 mt-0.5">
+                    <Phone size={14} color="#5260FE" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-foreground text-sm">Masked Calling</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">Your number is never shared with riders.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* SECTION: GROW WITH US */}
+        <h2 className="mt-10 mb-4 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          GROW WITH US
+        </h2>
+        <div className="flex flex-col">
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={() => navigate(ROUTES.REWARDS)}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <Users size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">Refer & Earn</span>
+              <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+            </div>
+          </div>
+
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={() => navigate(ROUTES.RIDE_AND_EARN)}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <Bike size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">Ride & Earn with Us</span>
+              <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+            </div>
+          </div>
+
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={async () => {
+                try {
+                  await Share.share({
+                    title: 'Grid.Pe',
+                    text: 'Get cash delivered to your doorstep with Grid.Pe!',
+                    url: 'https://grid.pe',
+                    dialogTitle: 'Share Grid.Pe'
+                  });
+                } catch (e) {
+                  // user cancelled share, do nothing
+                }
+              }}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <Share2 size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">Share App</span>
+              <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION: COMPANY */}
+        <h2 className="mt-10 mb-4 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          COMPANY
+        </h2>
+        <div className="flex flex-col">
+          {/* Row 1 — expandable, key: 'about' */}
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={() => setExpandedItem(expandedItem === 'about' ? null : 'about')}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <Info size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">About Us</span>
+              <ChevronDown 
+                size={16} 
+                className="text-muted-foreground shrink-0 transition-transform duration-200" 
+                style={{ transform: expandedItem === 'about' ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+              />
+            </div>
+            {expandedItem === 'about' && (
+              <div className="pb-4 text-sm text-muted-foreground leading-relaxed">
+                <p className="mb-3">
+                  Grid.Pe is India's first doorstep cash and FX delivery platform, built for Tier 2 and Tier 3 cities where access to financial services is limited.
+                </p>
+                <p className="mb-3">
+                  We believe everyone deserves fast, secure, and dignified access to their money — wherever they are.
+                </p>
+                <div className="mt-4 flex justify-between">
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-foreground">Tier 2 & 3</div>
+                    <div className="text-xs text-muted-foreground">Cities First</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-foreground">KYC Verified</div>
+                    <div className="text-xs text-muted-foreground">Every Rider</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-foreground">6AM–11PM</div>
+                    <div className="text-xs text-muted-foreground">Always On</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={() => navigate(ROUTES.LEGAL_TERMS)}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <FileText size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">Terms & Conditions</span>
+              <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+            </div>
+          </div>
+
+          <div className={`border-b ${isDarkMode ? 'border-white/[0.08]' : 'border-black/[0.08]'}`}>
+            <div 
+              className="flex items-center gap-3 py-3.5 cursor-pointer"
+              onClick={() => navigate(ROUTES.LEGAL_PRIVACY)}
+            >
+              <div className={`rounded-lg p-2 shrink-0 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <FileText size={16} className="text-muted-foreground" />
+              </div>
+              <span className="flex-1 text-sm text-foreground font-medium">Privacy Policy</span>
+              <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM STRIP */}
+        <div className={`mt-8 mb-2 rounded-2xl px-4 py-3.5 flex items-center gap-3 ${isDarkMode ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-black/[0.02] border border-black/[0.06]'}`}>
+          <Sparkles size={16} style={{ color: '#5260FE' }} className="shrink-0" />
+          <span className="text-xs text-muted-foreground">More features coming soon.</span>
         </div>
       </div>
-      {/* Bottom Navigation */}
+
       <BottomNavigation activeTab="more" />
 
       {/* Logout Confirmation Bottom Sheet */}
