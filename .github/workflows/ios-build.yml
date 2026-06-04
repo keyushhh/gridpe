@@ -110,3 +110,4 @@ jobs:
         with:
           name: GridPeProduction-IPA
           path: GridPeProduction.ipa
+          retention-days: 3
