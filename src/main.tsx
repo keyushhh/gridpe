@@ -51,13 +51,9 @@ window.onunhandledrejection = event => {
 };
 
 // Immediately apply theme to prevent flash
-(function() {
-  const theme = localStorage.getItem('theme');
-  if (theme === 'dark' || (!theme && true)) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+(function () {
+  document.documentElement.classList.add('dark');
+  localStorage.setItem('theme', 'dark');
 })();
 
 try {

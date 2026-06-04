@@ -123,8 +123,7 @@ const Settings = () => {
 
   const userId = profile?.id;
   const originPath = (location.state as LocationState)?.originPath || ROUTES.SETTINGS;
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [transactionAlerts, setTransactionAlerts] = useState(false);
+  const [pushNotifications, setPushNotifications] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
@@ -433,10 +432,10 @@ const Settings = () => {
           </div>
         )}
 
-        {/* PAYMENT SETTINGS */}
+        {/* PAYMENT METHODS */}
         <div className="px-5 mt-6">
           <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
-            PAYMENT SETTINGS
+            PAYMENT METHODS
           </p>
           <div className="space-y-4">
             <div
@@ -466,7 +465,7 @@ const Settings = () => {
               <div className="flex items-start gap-3">
                 <img loading="lazy" decoding="async" src={iconBankAcc} className="w-[18px] mt-[2px]" />
                 <div>
-                  <p className="text-foreground text-[14px]">Bank Account Info</p>
+                  <p className="text-foreground text-[14px]">Bank Accounts</p>
                   <p className="text-black dark:text-muted-foreground text-[12px]">
                     {bankAccountCount === 0
                       ? '0 bank accounts linked'
@@ -481,10 +480,10 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* MORE */}
+        {/* MANAGE */}
         <div className="px-5 mt-6">
           <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
-            MORE
+            MANAGE
           </p>
           <div className="space-y-4">
             <div
@@ -523,19 +522,6 @@ const Settings = () => {
           <div className="space-y-4">
             <div
               className="flex justify-between cursor-pointer"
-              onClick={() => navigate(ROUTES.LEGAL_TERMS)}
-            >
-              <div className="flex items-start gap-3">
-                <img loading="lazy" decoding="async" src={ASSETS.TERMS_PRIVACY} className="w-[18px] mt-[2px] filter brightness-0 dark:invert" />
-                <div>
-                  <p className="text-foreground text-[14px]">Terms & Conditions</p>
-                </div>
-              </div>
-              <ChevronRight />
-            </div>
-
-            <div
-              className="flex justify-between cursor-pointer"
               onClick={() => navigate(ROUTES.LEGAL_PRIVACY)}
             >
               <div className="flex items-start gap-3">
@@ -546,14 +532,27 @@ const Settings = () => {
               </div>
               <ChevronRight />
             </div>
+
+            <div
+              className="flex justify-between cursor-pointer"
+              onClick={() => navigate(ROUTES.LEGAL_TERMS)}
+            >
+              <div className="flex items-start gap-3">
+                <img loading="lazy" decoding="async" src={ASSETS.TERMS_PRIVACY} className="w-[18px] mt-[2px] filter brightness-0 dark:invert" />
+                <div>
+                  <p className="text-foreground text-[14px]">Terms & Conditions</p>
+                </div>
+              </div>
+              <ChevronRight />
+            </div>
           </div>
         </div>
 
-        {/* APP PREFERENCES & Footer Container */}
+        {/* PREFERENCES & Footer Container */}
         <div className="flex-1 w-full bg-brand-bg-light dark:bg-transparent mt-6 pt-4 flex flex-col">
           <div className="px-5">
             <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
-              APP PREFERENCES
+              PREFERENCES
             </p>
             <div className="space-y-6">
               <div>
@@ -570,85 +569,43 @@ const Settings = () => {
                     </span>
                     <Switch
                       checked={pushNotifications}
-                      onCheckedChange={val => {
-                        triggerHaptic();
-                        setPushNotifications(val);
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between">
-                    <span
-                      className={`text-[14px] ${transactionAlerts ? 'text-foreground' : 'text-black dark:text-muted-foreground'}`}
-                    >
-                      Alerts
-                    </span>
-                    <Switch
-                      checked={transactionAlerts}
                       onCheckedChange={async val => {
                         triggerHaptic();
                         if (val) {
                           try {
                             const permission = await PushNotifications.requestPermissions();
                             if (permission.receive !== 'granted') {
-                              setTransactionAlerts(false);
-                              showToaster('Enable notifications in your device settings to receive alerts.', 'error');
+                              setPushNotifications(false);
+                              showToaster('Enable notifications in your device settings to receive notifications.', 'error');
                             } else {
-                              setTransactionAlerts(true);
+                              setPushNotifications(true);
                             }
                           } catch (e) {
                             console.error('Push notification permission error:', e);
-                            setTransactionAlerts(false);
-                            showToaster('Enable notifications in your device settings to receive alerts.', 'error');
+                            setPushNotifications(false);
+                            showToaster('Enable notifications in your device settings to receive notifications.', 'error');
                           }
                         } else {
-                          setTransactionAlerts(false);
+                          setPushNotifications(false);
                         }
                       }}
                     />
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <img loading="lazy" decoding="async" src={iconDarkMode} className="w-[18px] filter brightness-0 dark:invert" />
-                  <span
-                    className={
-                      isDarkMode ? 'text-foreground' : 'text-black dark:text-muted-foreground'
-                    }
-                  >
-                    Dark Mode
-                  </span>
-                </div>
-                <Switch
-                  checked={isDarkMode}
-                  onCheckedChange={val => {
-                    triggerHaptic();
-                    // Handled by onClick for animation, but kept for accessibility/keyboard
-                  }}
-                  onClick={e => {
-                    const x = e.clientX;
-                    const y = e.clientY;
-                    // Set CSS variables for the expansion center
-                    document.documentElement.style.setProperty('--x', `${x}px`);
-                    document.documentElement.style.setProperty('--y', `${y}px`);
-                    // Use View Transition API if available
-                    if (document.startViewTransition) {
-                      document.startViewTransition(() => {
-                        setTheme(isDarkMode ? 'light' : 'dark');
-                      });
-                    } else {
-                      // Fallback for browsers that don't support View Transitions
-                      setTheme(isDarkMode ? 'light' : 'dark');
-                    }
-                  }}
-                />
-              </div>
-
+          {/* ACCOUNT */}
+          <div className="px-5 mt-6">
+            <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+              ACCOUNT
+            </p>
+            <div className="space-y-4">
               <div className="flex justify-between cursor-pointer" onClick={() => setShowLogoutConfirmation(true)}>
                 <div className="flex items-center gap-3">
                   <img loading="eager" decoding="async" src={iconLogout} className="w-[18px] filter brightness-0 dark:invert" />
-                  <span>Log Out</span>
+                  <span className="text-foreground text-[14px]">Log Out</span>
                 </div>
                 <ChevronRight />
               </div>
