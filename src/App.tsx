@@ -94,7 +94,8 @@ const NeedHelp = lazy(() => import('./pages/NeedHelp'));
 const HelpReportSuccess = lazy(() => import('./pages/HelpReportSuccess'));
 const Rewards = lazy(() => import('./pages/Rewards'));
 const LegalPage = lazy(() => import('./pages/LegalPage'));
-const MorePage = lazy(() => import('@/pages/MorePage'));
+const ExplorePage = lazy(() => import('@/pages/ExplorePage'));
+const SafetyPromisePage = lazy(() => import('./pages/SafetyPromisePage'));
 const FxExchange = lazy(() => import('./pages/FxExchange'));
 const FxExchangeSummary = lazy(() => import('./pages/FxExchangeSummary'));
 const FxSuccess = lazy(() => import('./pages/FxSuccess'));
@@ -445,7 +446,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
               transform: 'translateZ(0)',
             }}
           >
-              <div className="app-container h-full w-full flex flex-col overflow-y-auto relative">
+              <div className="app-container h-full w-full flex flex-col overflow-y-auto relative scrollbar-hide">
               <GlobalCustomToaster />
               <LiquidGlassFilters />
               <TermsAcceptanceGate />
@@ -1034,7 +1035,15 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                       path={ROUTES.MORE}
                       element={
                         <ProtectedRoute>
-                          <MorePage />
+                          <ExplorePage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.SAFETY_PROMISE}
+                      element={
+                        <ProtectedRoute>
+                          <SafetyPromisePage />
                         </ProtectedRoute>
                       }
                     />

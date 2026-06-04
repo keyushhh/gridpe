@@ -133,7 +133,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
             Rewards
           </span>
         </button>
-        {/* More */}
+        {/* Explore */}
         <button
           onClick={() => {
             hapticLight();
@@ -151,13 +151,13 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
                   ? ASSETS.MORE_FILLED
                   : ASSETS.MORE
             }
-            alt="More"
+            alt="Explore"
             className="w-6 h-6 object-contain"
           />
           <span
             className={`text-[10px] font-medium ${activeTab === 'more' ? (isDarkMode ? 'text-white' : 'text-black') : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
           >
-            More
+            Explore
           </span>
         </button>
       </div>

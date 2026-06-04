@@ -87,5 +87,6 @@ export const ROUTES = {
   DELETE_ACCOUNT_MOBILE: '/delete-account-mobile',
   DELETE_ACCOUNT_OTP: '/delete-account-otp',
   RIDE_AND_EARN: '/ride-and-earn',
+  SAFETY_PROMISE: '/safety-promise',
   NOT_FOUND: '*',
 } as const;
