@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
-import { useWalletStore } from '@/store/useWalletStore';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
@@ -13,9 +12,6 @@ const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const walletLimit = useWalletStore((state) => state.walletLimit);
-  const walletBalance = useWalletStore((state) => state.walletBalance);
-  const isWalletLimitReached = walletBalance >= walletLimit;
   const [amount, setAmount] = useState<string>('0.00');
   const isDarkMode = useIsDarkMode();
   const handleKeyPress = (key: string) => {
@@ -117,17 +113,8 @@ const OrderCash = () => {
         <div
           className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-brand-border-light'}`}
         />
-        <p
-          className={`text-[12px] font-sans font-normal mt-[8px] mb-[17px] text-center px-4 ${parseFloat(amount) > walletBalance ? 'text-brand-error' : isDarkMode ? 'text-white/60' : 'text-black/60'}`}
-        >
-          Total Available Balance ₹{' '}
-          {walletBalance.toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </p>
         {parseFloat(amount) > 0 && parseFloat(amount) < 500 && (
-          <p className="text-brand-error text-[12px] font-normal font-sans mb-[17px] -mt-[12px]">
+          <p className="text-brand-error text-[12px] font-normal font-sans mb-[17px] mt-[8px]">
             Amount needs to be ₹500 or more
           </p>
         )}
@@ -173,12 +160,12 @@ const OrderCash = () => {
             <p
               className={`text-[14px] font-medium font-sans mb-[4px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}
             >
-              Amount will be held from wallet
+              Pay securely via UPI, card, or net banking
             </p>
             <p
               className={`text-[13px] font-light font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black/60'}`}
             >
-              You won’t be charged unless the delivery is completed.
+              Funds held in escrow — released only when you verify delivery.
             </p>
           </div>
         </div>
@@ -245,10 +232,10 @@ const OrderCash = () => {
                       },
                     })
                   }
-                  disabled={parseFloat(amount) < 500 || parseFloat(amount) > walletBalance}
+                  disabled={parseFloat(amount) < 500}
                   className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {parseFloat(amount) > walletBalance ? 'Insufficient Balance' : 'Place Order'}
+                  {parseFloat(amount) < 500 ? 'Min. ₹500' : 'Continue to Pay'}
                 </Button>
               </div>
             </div>

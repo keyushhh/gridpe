@@ -19,8 +19,35 @@ import { cn } from '@/lib/utils';
 import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useLocationStore } from '@/store/useLocationStore';
-import { useWalletStore } from '@/store/useWalletStore';
 import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+
+// Module-level storage — survives React state resets within the session
+let pendingVerificationStore: {
+  cashfree_order_id: string;
+  addressId: string;
+  zoneId: string;
+  parsedAmount: number;
+  totalAmount: number;
+  deliveryFee: number;
+  platformFee: number;
+  gst: number;
+  tipAmount: number;
+  rewardPointsValue: number;
+  riderEarnings: number;
+  pickupLocation: string | null;
+  pickupAddress: string | null;
+  dAddressText: string;
+  customerPhoneNumber: string;
+  city: string;
+  lng: number;
+  lat: number;
+  scheduledAt: string | null;
+} | null = null;
+
+declare const Cashfree: any;
 const OrderCashSummary = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -36,8 +63,6 @@ const OrderCashSummary = () => {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(initialSlot || null);
   const isDarkMode = useIsDarkMode();
   const { profile, rewardPoints: rewardPointsData } = useUser();
-  const walletBalance = useWalletStore((state) => state.walletBalance);
-  const refreshBalance = useWalletStore((state) => state.refreshBalance);
   const activeAddress = useLocationStore((state) => state.activeAddress);
   const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
@@ -59,6 +84,122 @@ const OrderCashSummary = () => {
   const [selectedTipOption, setSelectedTipOption] = useState<string | null>(null);
   const [tipAmount, setTipAmount] = useState(0);
   const [customTipValue, setCustomTipValue] = useState('');
+  
+  const [pendingVerification, setPendingVerification] = useState<{
+    cashfree_order_id: string;
+    addressId: string;
+    zoneId: string;
+    parsedAmount: number;
+    totalAmount: number;
+    deliveryFee: number;
+    platformFee: number;
+    gst: number;
+    tipAmount: number;
+    rewardPointsValue: number;
+    riderEarnings: number;
+    pickupLocation: string | null;
+    pickupAddress: string | null;
+    dAddressText: string;
+    customerPhoneNumber: string;
+  } | null>(null);
+
+  useEffect(() => {
+    // If there's a pending verification from a previous 
+    // interrupted session, attempt it on mount
+    if (pendingVerificationStore) {
+      console.log('[verify] Found interrupted verification on mount, retrying...');
+      setTimeout(() => {
+        runVerification(pendingVerificationStore!);
+      }, 500);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleAppUrlOpen = App.addListener('appUrlOpen', async (data) => {
+      console.log('[appUrlOpen] Received URL:', data.url);
+      const isCashfreeReturn = 
+        data.url.includes('cashfree-return') ||
+        data.url.includes('gridpe://cashfree-return');
+      
+      if (isCashfreeReturn && pendingVerificationStore) {
+        console.log('[appUrlOpen] Cashfree return detected, running verification');
+        await runVerification(pendingVerificationStore);
+      }
+    });
+
+    const handleResume = App.addListener('resume', async () => {
+      if (pendingVerificationStore) {
+        // Small delay to let the WebView settle
+        setTimeout(async () => {
+          await runVerification(pendingVerificationStore);
+        }, 1500);
+      }
+    });
+
+    return () => {
+      handleAppUrlOpen.then(l => l.remove());
+      handleResume.then(l => l.remove());
+    };
+  }, []);
+
+  const runVerification = async (dataToVerify?: NonNullable<typeof pendingVerificationStore>) => {
+    const data = dataToVerify || pendingVerificationStore;
+    if (!data) {
+      console.log('[verify] No pending verification data found');
+      return;
+    }
+
+    try {
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-cash-order', {
+        body: {
+          cashfree_order_id: data.cashfree_order_id,
+          cashfree_payment_id: data.cashfree_order_id,
+          user_id: userId,
+          address_id: data.addressId,
+          zone_id: data.zoneId,
+          city: data.city,
+          cash_amount: data.parsedAmount,
+          total_amount: data.totalAmount,
+          delivery_fee: data.deliveryFee,
+          platform_fee: data.platformFee,
+          gst: data.gst,
+          tip: data.tipAmount,
+          reward_points: data.rewardPointsValue,
+          rider_earnings: data.riderEarnings,
+          hub_id: data.pickupLocation,
+          pickup_location: data.pickupAddress,
+          delivery_address_text: data.dAddressText,
+          customer_phone_number: data.customerPhoneNumber,
+          delivery_location_lng: data.lng,
+          delivery_location_lat: data.lat,
+          scheduled_at: data.scheduledAt
+        }
+      });
+
+      if (verifyError || !verifyData?.success) {
+        pendingVerificationStore = null;
+        setPendingVerification(null);
+        showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
+        return;
+      }
+
+      pendingVerificationStore = null;
+      setPendingVerification(null);
+      setBadge(1);
+      navigate(ROUTES.ORDER_DETAILS.replace(':orderId', verifyData.order_id), {
+        state: {
+          totalAmount: data.totalAmount,
+          savedAddress: activeAddress,
+          order: { id: verifyData.order_id, status: 'payment_captured' }
+        }
+      });
+    } catch (err) {
+      console.error('runVerification error:', err);
+      pendingVerificationStore = null;
+      setPendingVerification(null);
+      showToaster('Verification failed.', 'error');
+    }
+  };
   // Dynamic Quote State
   const [quoteLoading, setQuoteLoading] = useState(true);
   const [quoteData, setQuoteData] = useState<{
@@ -166,14 +307,11 @@ const OrderCashSummary = () => {
         showToaster('You must be logged in to place an order.', 'error');
         return;
       }
-      if (totalAmount > walletBalance) {
-        showToaster('Insufficient funds in wallet.', 'error');
-        return;
-      }
       if (!activeAddress) {
         showToaster('Please select a valid address.', 'error');
         return;
       }
+
       let addressId = activeAddress.id;
       // 1. Ensure address exists in DB if ID is missing from state
       if (!addressId) {
@@ -203,6 +341,8 @@ const OrderCashSummary = () => {
           return;
         }
       }
+
+      // Step 2: Zone check
       const { data: zoneId, error: zoneError } = await withTimeout(
         supabase.rpc('check_service_availability', {
           p_lat: Number(activeAddress.latitude) || 0,
@@ -225,30 +365,19 @@ const OrderCashSummary = () => {
         navigate(ROUTES.NOT_AVAILABLE);
         return;
       }
-      const { error: holdError } = await withTimeout(
-        supabase.rpc('wallet_hold', {
-          p_user_id: userId,
-          p_amount: totalAmount,
-          p_order_id: null,
-          p_description: 'Order Placement Hold',
-        }),
-        15_000,
-        'wallet-hold'
-      ).catch((err) => {
-        if (isTimeoutError(err)) {
-          showToaster(err.message, 'error');
-        }
-        throw err;
-      });
-      if (holdError) {
-        console.error('Wallet hold failed:', holdError);
-        showToaster(
-          holdError.message || 'Failed to secure funds. Please check your balance.',
-          'error'
-        );
-        return;
+
+      // Step 3: Fetch customer profile for phone
+      const { data: userProfile, error: userError } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('id', userId)
+        .single();
+      if (userError || !userProfile?.phone) {
+        throw new Error('Please add a phone number to your profile to proceed.');
       }
-      const cleanedAmount = Math.round(totalAmount * 100) / 100;
+      const customerPhoneNumber = userProfile.phone;
+
+      // Step 4: Calculate rider earnings and pickup location
       let riderEarnings = 0;
       let pickupLocation: string | null = null;
       let pickupAddress: string | null = null;
@@ -271,16 +400,6 @@ const OrderCashSummary = () => {
             pickupAddress = `${nearest.location_name}, ${nearest.city}`;
           }
         }
-        const { data: userProfile, error: userError } = await supabase
-          .from('profiles')
-          .select('phone')
-          .eq('id', userId)
-          .single();
-        if (userError || !userProfile?.phone) {
-          throw new Error('Please add a phone number to your profile to proceed.');
-        }
-        const customerPhoneNumber = userProfile.phone;
-        const deliveryAddressText = activeAddress.displayAddress || getAddressDisplay();
         const { data: earnings, error: earningsError } = await withTimeout(
           supabase.rpc('calculate_rider_earning', {
             dist_km: parseFloat(distance.toFixed(2)),
@@ -299,134 +418,163 @@ const OrderCashSummary = () => {
         }
         console.error('Failed to calculate dynamic data:', err);
       }
-      const getOrderPayload = (
-        aid: string,
-        phone: string | null,
-        pAddress: string | null,
-        dAddressText: string
-      ) => ({
-        user_id: userId,
-        address_id: aid,
-        zone_id: zoneId,
-        city: activeAddress?.city || null,
-        amount: parsedAmount,
-        total_amount: cleanedAmount,
-        payment_mode: 'WALLET',
-        order_type: 'CASH_ORDER',
-        currency: 'INR',
-        status: 'pending',
-        type: 'cash',
-        rider_earnings: riderEarnings,
-        hub_id: pickupLocation,
-        pickup_location: pAddress,
-        delivery_address_text: dAddressText,
-        customer_phone_number: phone,
-        delivery_location: `POINT(${activeAddress.longitude || 0} ${activeAddress.latitude || 0})`,
-        otp_code: Math.floor(100000 + Math.random() * 900000).toString(),
-        delivery_fee: deliveryFee,
-        service_fee: platformFee,
-        gst: gst,
-        delivery_tip: tipAmount,
-        reward_points: rewardPointsValue,
-        scheduled_at: selectedSlot || null,
-        meta_data: {
-          item_value: parsedAmount,
+
+      // Step 5: Resolve delivery address text
+      const dAddressText = activeAddress.displayAddress || getAddressDisplay();
+
+      // Step 6: Call create-cash-order edge function
+      const isNative = Capacitor.isNativePlatform();
+      const { data: orderData, error: orderError } = await supabase.functions.invoke('create-cash-order', {
+        body: {
+          user_id: userId,
+          amount: parsedAmount,
+          total_payable: totalAmount,
           delivery_fee: deliveryFee,
-          delivery_tip: tipAmount,
+          platform_fee: platformFee,
           gst: gst,
-          service_fee: platformFee,
-          reward_points: rewardPointsValue,
-          delivery_address: dAddressText,
-          quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK',
-          client_source: 'frontend_v1',
-        },
+          tip: tipAmount,
+          reward_discount: rewardDiscount,
+          address_id: addressId,
+          zone_id: zoneId,
+          city: activeAddress.city,
+          customer_phone: customerPhoneNumber,
+          customer_name: profile?.full_name || 'Customer',
+          customer_email: profile?.email || 'customer@gridpe.in',
+          scheduled_at: selectedSlot || null
+        }
       });
-      const createOrderDirectly = async (
-        aid: string,
-        phone: string | null,
-        pAddress: string | null,
-        dAddressText: string
-      ) => {
-        const payload = getOrderPayload(aid, phone, pAddress, dAddressText);
-        const { data, error } = await withTimeout(
-          supabase.from('orders').insert([payload]).select().single(),
-          15_000,
-          'create-order'
-        ).catch((err) => {
-          if (isTimeoutError(err)) {
-            showToaster(err.message, 'error');
-          }
-          throw err;
-        });
-        if (error) throw new Error(`Database error: ${error.message}`);
-        return data;
-      };
-      try {
-        const { data: userProfile, error: profileError } = await supabase
-          .from('profiles')
-          .select('phone')
-          .eq('id', userId)
-          .maybeSingle();
-        if (profileError || !userProfile?.phone) {
-          throw new Error('A valid phone number is required to place an order.');
-        }
-        const customerPhoneNumber = userProfile.phone;
-        const dAddressText = activeAddress.displayAddress || getAddressDisplay();
-        const payload = getOrderPayload(
-          addressId!,
-          customerPhoneNumber,
-          pickupAddress,
-          dAddressText
-        );
-        // Diagnostic Log for Audit Check #4
-        if (import.meta.env.DEV) console.log('[AUDIT] Final Order Payload:', { ...payload, user_id: '[REDACTED]', customer_phone_number: '[REDACTED]' });
-        const orderData = await createOrderDirectly(
-          addressId!,
-          customerPhoneNumber,
-          pickupAddress,
-          dAddressText
-        );
-        const orderId = orderData.id;
-        const { data: holdTx } = await supabase
-          .from('wallet_transactions')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('type', 'hold')
-          .eq('status', 'pending')
-          .is('order_id', null)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (holdTx) {
-          await withTimeout(
-            supabase
-              .from('wallet_transactions')
-              .update({ order_id: orderId })
-              .eq('id', holdTx.id),
-            10_000,
-            'link-wallet-transaction'
-          ).catch((err) => {
-            if (isTimeoutError(err)) {
-              showToaster(err.message, 'error');
-            }
-            throw err;
-          });
-        }
-        setBadge(1);
-        await refreshBalance();
-        navigate(ROUTES.ORDER_DETAILS.replace(':orderId', orderId), {
-          state: {
-            totalAmount: totalAmount,
-            savedAddress: activeAddress,
-            order: orderData,
-          },
-        });
-      } catch (orderError: unknown) {
-        console.error('Order attempt failed:', orderError);
-        throw orderError;
+
+      if (orderError || !orderData?.success) {
+        showToaster('Failed to initiate payment. Please try again.', 'error');
+        setIsLoading(false);
+        return;
       }
+
+      // Step 7: Initialize Cashfree SDK and open checkout
+      const cashfreeEnv = orderData.cashfree_env === 'sandbox' ? 'sandbox' : 'production';
+      const cashfree = Cashfree({ mode: cashfreeEnv });
+
+      if (isNative) {
+        const pObj = {
+          cashfree_order_id: orderData.cashfree_order_id,
+          addressId,
+          zoneId,
+          parsedAmount,
+          totalAmount,
+          deliveryFee,
+          platformFee,
+          gst,
+          tipAmount,
+          rewardPointsValue,
+          riderEarnings,
+          pickupLocation,
+          pickupAddress,
+          dAddressText,
+          customerPhoneNumber,
+          city: activeAddress?.city || '',
+          lng: activeAddress?.longitude || 0,
+          lat: activeAddress?.latitude || 0,
+          scheduledAt: selectedSlot || null
+        };
+        pendingVerificationStore = pObj;
+        setPendingVerification(pObj as any);
+
+        const checkoutBaseUrl = orderData.cashfree_env === 'sandbox'
+          ? 'https://payments-test.cashfree.com/order'
+          : 'https://payments.cashfree.com/order';
+        
+        const checkoutUrl = `${checkoutBaseUrl}/#${orderData.payment_session_id}`;
+        
+        // Open in Capacitor Browser (in-app browser, not external Chrome)
+        const platform = Capacitor.getPlatform();
+
+        await Browser.open({
+          url: checkoutUrl,
+          // iOS: 'popover' uses SFSafariViewController — stays in-app, 
+          //      never kills WebView process
+          // Android: 'popover' uses Chrome Custom Tabs
+          presentationStyle: 'popover',
+          toolbarColor: '#5260FE',
+          // iOS only: show done button so user can return to app
+          ...(platform === 'ios' ? {} : {})
+        });
+        
+        setIsLoading(false);
+        
+        // Browser close listener — triggers verification when user 
+        // closes browser or cashfree-return deep link fires
+        const browserFinishListener = await Browser.addListener(
+          'browserFinished', 
+          async () => {
+            await browserFinishListener.remove();
+            if (pendingVerificationStore) {
+              setTimeout(async () => {
+                await runVerification(pendingVerificationStore);
+              }, 1000);
+            }
+          }
+        );
+      } else {
+        const checkoutOptions = {
+          paymentSessionId: orderData.payment_session_id,
+          redirectTarget: '_modal',   // opens as modal overlay, not redirect
+        };
+
+        // Open Cashfree checkout modal
+        cashfree.checkout(checkoutOptions).then(async (result: any) => {
+          if (result.error) {
+            showToaster('Payment failed. Please try again.', 'error');
+            setIsLoading(false);
+            return;
+          }
+          if (result.paymentDetails) {
+            // Payment succeeded — verify server-side
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-cash-order', {
+              body: {
+                cashfree_order_id: orderData.cashfree_order_id,
+                cashfree_payment_id: result.paymentDetails.paymentMessage || orderData.cashfree_order_id,
+                user_id: userId,
+                address_id: addressId,
+                zone_id: zoneId,
+                city: activeAddress.city,
+                cash_amount: parsedAmount,
+                total_amount: totalAmount,
+                delivery_fee: deliveryFee,
+                platform_fee: platformFee,
+                gst: gst,
+                tip: tipAmount,
+                reward_points: rewardPointsValue,
+                rider_earnings: riderEarnings,
+                hub_id: pickupLocation,
+                pickup_location: pickupAddress,
+                delivery_address_text: dAddressText,
+                customer_phone_number: customerPhoneNumber,
+                delivery_location_lng: activeAddress.longitude || 0,
+                delivery_location_lat: activeAddress.latitude || 0,
+                scheduled_at: selectedSlot || null
+              }
+            });
+
+            if (verifyError || !verifyData?.success) {
+              showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
+              setIsLoading(false);
+              return;
+            }
+
+            setBadge(1);
+            navigate(ROUTES.ORDER_DETAILS.replace(':orderId', verifyData.order_id), {
+              state: {
+                totalAmount,
+                savedAddress: activeAddress,
+                order: { id: verifyData.order_id, status: 'payment_captured' }
+              }
+            });
+          }
+        });
+      }
+
     } catch (error: unknown) {
-      console.error('Final catch in handlePay:', error);
+      console.error('handlePay error:', error);
       showToaster('Order failed. Please try again or contact support.', 'error');
     } finally {
       setIsLoading(false);
@@ -466,9 +614,9 @@ const OrderCashSummary = () => {
   };
   const isConfirmDisabled =
     !activeAddress ||
-    totalAmount > walletBalance ||
     quoteLoading ||
     isLoading ||
+    pendingVerification !== null ||
     (isScheduledFlow && !selectedSlot);
   // Normal flow (not isScheduledFlow) should always be interactive unless balance/address issues
   const isVisualDisabled = isConfirmDisabled;
@@ -727,6 +875,51 @@ const OrderCashSummary = () => {
             </div>
           )}
         </div>
+        <div style={containerStyle} className="w-full py-[16px] px-[12px] flex flex-col gap-2">
+          {quoteLoading ? (
+            <div className="w-full flex flex-col gap-3">
+              <div className="h-4 w-full bg-gray-500/20 animate-pulse rounded"></div>
+              <div className="h-4 w-3/4 bg-gray-500/20 animate-pulse rounded"></div>
+              <div className="h-4 w-5/6 bg-gray-500/20 animate-pulse rounded"></div>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center">
+                <span className={`text-[14px] font-normal font-sans ${isDarkMode ? 'text-white/80' : 'text-black'}`}>Cash Amount</span>
+                <span className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{parsedAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className={`text-[14px] font-normal font-sans ${isDarkMode ? 'text-white/80' : 'text-black'}`}>Delivery Fee</span>
+                <span className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{deliveryFee.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className={`text-[14px] font-normal font-sans ${isDarkMode ? 'text-white/80' : 'text-black'}`}>Platform Fee</span>
+                <span className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{platformFee.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className={`text-[14px] font-normal font-sans ${isDarkMode ? 'text-white/80' : 'text-black'}`}>GST</span>
+                <span className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{gst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+              {tipAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className={`text-[14px] font-normal font-sans ${isDarkMode ? 'text-white/80' : 'text-black'}`}>Tip</span>
+                  <span className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{tipAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+              )}
+              {rewardApplied && (
+                <div className="flex justify-between items-center">
+                  <span className={`text-[14px] font-normal font-sans ${isDarkMode ? 'text-white/80' : 'text-black'}`}>Reward Discount</span>
+                  <span className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>-₹{rewardDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+              )}
+              <div className={`w-full h-[1px] my-1 ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'}`} />
+              <div className="flex justify-between items-center">
+                <span className={`text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>Total Payable</span>
+                <span className={`text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+            </>
+          )}
+        </div>
         {isTipContainerVisible && (
           <div style={containerStyle} className="w-full overflow-hidden">
             <div
@@ -791,16 +984,16 @@ const OrderCashSummary = () => {
         >
           {quoteLoading
             ? 'Calculating fees...'
-            : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} will be held from wallet`}
+            : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} — Pay via UPI, Card, or Net Banking`}
         </p>
         <p
-          className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-brand-error' : isDarkMode ? 'text-white' : 'text-black'}`}
+          className={`text-[16px] font-medium font-sans mb-[34px] ${!totalAmount ? 'text-brand-error' : isDarkMode ? 'text-white' : 'text-black'}`}
         >
           {quoteLoading
             ? 'Syncing pricing...'
-            : totalAmount > walletBalance
-              ? 'Insufficient funds in wallet'
-              : 'You won’t be charged unless the delivery is completed.'}
+            : !totalAmount
+              ? 'Please enter a valid amount'
+              : 'Funds held in escrow — released only when you verify delivery.'}
         </p>
         <div style={{ opacity: isVisualDisabled ? 0.5 : 1, transition: 'opacity 0.3s ease' }}>
           <SlideToPay
@@ -809,11 +1002,11 @@ const OrderCashSummary = () => {
             label={
               quoteLoading
                 ? 'Calculating...'
-                : totalAmount > walletBalance
-                  ? 'Low Balance'
+                : !totalAmount
+                  ? 'Enter Amount'
                   : isScheduledFlow && !selectedSlot
                     ? 'Select a Slot'
-                    : 'Slide to Pay'
+                    : 'Slide to Proceed'
             }
           />
         </div>

@@ -241,7 +241,21 @@ const Homepage = () => {
     queryFn: async () => {
       try {
         const orders = await fetchActiveOrders(userId);
-        const filtered = orders.filter(o => !['delivered', 'success'].includes(o.status.toLowerCase()));
+        const filtered = orders.filter(o => {
+          const status = o.status.toLowerCase();
+          // Exclude terminal statuses
+          if (['delivered', 'success', 'cancelled', 'failed', 'rejected'].includes(status)) {
+            return false;
+          }
+          // For 'pending' orders, only show if created within last 2 hours
+          // Old pending wallet orders should not block the banner
+          if (status === 'pending') {
+            const createdAt = new Date(o.created_at);
+            const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+            return createdAt > twoHoursAgo;
+          }
+          return true;
+        });
         return filtered.length > 0 ? filtered[0] : null;
       } catch (e) {
         console.error('activeOrderQuery unexpected error:', e);
@@ -925,6 +939,8 @@ const Homepage = () => {
   };
   const getStatusInfo = (status: string) => {
     switch (status) {
+      case 'payment_captured':
+        return { text: 'Confirming', textClass: 'text-blue-500 dark:text-blue-400' };
       case 'processing':
       case 'out_for_delivery':
       case 'arrived':
@@ -942,6 +958,7 @@ const Homepage = () => {
   };
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
+      case 'payment_captured':
       case 'processing':
       case 'out_for_delivery':
       case 'arrived':
@@ -1524,41 +1541,50 @@ const Homepage = () => {
                           </div>
                         </div>
                         <div className="flex flex-col gap-[16px]">
-                          {transactionHistory.map(tx => (
-                            <div
-                              key={tx.id}
-                              className="grid grid-cols-[1fr_100px_80px] gap-x-6 items-start cursor-pointer hover:opacity-80 transition-opacity"
-                              onClick={() => {
-                                const s = tx.status.toLowerCase();
-                                const isCompleted = s === 'success' || s === 'delivered';
-                                const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
-                                if (isCompleted || isFailedOrCancelled) {
-                                  setSelectedOrderForSheet(tx);
-                                  setIsSheetOpen(true);
-                                } else {
-                                  navigate(ROUTES.ORDER_DETAILS.replace(':orderId', tx.id), {
-                                    state: { order: tx },
-                                  });
-                                }
-                              }}
-                            >
-                              <div className="flex items-start">
-                                <img loading="lazy" decoding="async"                                   src={getStatusIcon(tx.status)}
-                                  alt="Status"
-                                  className="w-[26px] h-[26px]"
-                                />
-                                <div className="ml-[7px] flex flex-col">
-                                  <span
-                                    className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}
-                                  >
-                                    {tx.meta_data?.type === 'FX_EXCHANGE'
-                                      ? 'FX Exchange'
-                                      : tx.meta_data?.type === 'CASH_ORDER' && tx.meta_data.item_value
-                                        ? `Ordered ₹${tx.meta_data.item_value} Cash`
-                                        : tx.addresses?.label
-                                          ? `Order to ${tx.addresses.label}`
-                                          : 'Cash Order'}
-                                  </span>
+                          {transactionHistory.map(tx => {
+                            const addressLabel = tx.addresses?.label 
+                              || (tx.meta_data as any)?.delivery_address_label 
+                              || null;
+
+                            return (
+                              <div
+                                key={tx.id}
+                                className="grid grid-cols-[1fr_100px_80px] gap-x-6 items-start cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => {
+                                  const s = tx.status.toLowerCase();
+                                  const isCompleted = s === 'success' || s === 'delivered';
+                                  const isFailedOrCancelled = s === 'failed' || s === 'cancelled';
+                                  if (isCompleted || isFailedOrCancelled) {
+                                    setSelectedOrderForSheet(tx);
+                                    setIsSheetOpen(true);
+                                  } else {
+                                    navigate(ROUTES.ORDER_DETAILS.replace(':orderId', tx.id), {
+                                      state: { order: tx },
+                                    });
+                                  }
+                                }}
+                              >
+                                <div className="flex items-start">
+                                  <img loading="lazy" decoding="async"                                     src={getStatusIcon(tx.status)}
+                                    alt="Status"
+                                    className="w-[26px] h-[26px]"
+                                  />
+                                  <div className="ml-[7px] flex flex-col">
+                                    <span
+                                      className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}
+                                    >
+                                      {tx.meta_data?.type === 'FX_EXCHANGE'
+                                        ? 'FX Exchange'
+                                        : tx.order_type === 'CASH_ORDER' || (tx as any).type === 'cash'
+                                          ? addressLabel
+                                            ? `Order to ${addressLabel}`
+                                            : tx.delivery_address_text
+                                              ? `Order to ${tx.delivery_address_text.split(',')[0].trim()}`
+                                              : 'Cash Order'
+                                          : tx.addresses?.label
+                                            ? `Order to ${tx.addresses.label}`
+                                            : 'Cash Order'}
+                                    </span>
                                   <span className="text-brand-text-muted text-[12px] font-normal font-sans leading-none">
                                     {new Date(tx.created_at).toLocaleDateString('en-IN', {
                                       day: 'numeric',
@@ -1585,8 +1611,9 @@ const Homepage = () => {
                                   {getStatusInfo(tx.status).text}
                                 </span>
                               </div>
-                            </div>
-                          ))}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ) : (

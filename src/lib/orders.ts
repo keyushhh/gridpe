@@ -81,7 +81,7 @@ export const fetchActiveOrders = async (userId: string): Promise<Order[]> => {
       '*, rider:riders(id, full_name, email, phone_number, kyc_dob, kyc_gender, kyc_type, kyc_number, kyc_photo, kyc_id_url), order_ratings(id, stars, recommend_solo, feedback, tip_amount)'
     )
     .eq('user_id', userId)
-    .in('status', ['processing', 'out_for_delivery', 'arrived', 'pending', 'accepted', 'picked_up'])
+    .in('status', ['payment_captured', 'processing', 'out_for_delivery', 'arrived', 'pending', 'accepted', 'picked_up'])
     .order('updated_at', { ascending: false });
 
   if (error || !data) return [];
