@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req: Request) => {
+  console.log("[create-cash-order] invoked at:", new Date().toISOString());
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -101,7 +102,12 @@ Deno.serve(async (req: Request) => {
     }
 
     const cashfreeData = await cashfreeResponse.json();
+    console.log("[create-cash-order] Cashfree response status:", cashfreeResponse.status);
+    console.log("[create-cash-order] Cashfree response body:", JSON.stringify(cashfreeData));
+
     const paymentSessionId = cashfreeData.payment_session_id;
+    console.log("[create-cash-order] payment_session_id:", paymentSessionId);
+    console.log("[create-cash-order] order_id:", cashfreeOrderId);
 
     if (!paymentSessionId) {
       throw new Error("No payment_session_id returned from Cashfree");

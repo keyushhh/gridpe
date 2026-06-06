@@ -25,6 +25,7 @@ import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 
 // Module-level storage — survives React state resets within the session
+let isPaymentInProgress = false;
 let pendingVerificationStore: {
   cashfree_order_id: string;
   addressId: string;
@@ -146,6 +147,7 @@ const OrderCashSummary = () => {
     const data = dataToVerify || pendingVerificationStore;
     if (!data) {
       console.log('[verify] No pending verification data found');
+      isPaymentInProgress = false;
       return;
     }
 
@@ -198,6 +200,8 @@ const OrderCashSummary = () => {
       pendingVerificationStore = null;
       setPendingVerification(null);
       showToaster('Verification failed.', 'error');
+    } finally {
+      isPaymentInProgress = false;
     }
   };
   // Dynamic Quote State
@@ -301,6 +305,11 @@ const OrderCashSummary = () => {
     }
   };
   const handlePay = async () => {
+    if (isPaymentInProgress) {
+      console.log('[handlePay] Blocked duplicate invocation');
+      return;
+    }
+    isPaymentInProgress = true;
     setIsLoading(true);
     try {
       if (!userId) {
@@ -444,19 +453,35 @@ const OrderCashSummary = () => {
         }
       });
 
-      if (orderError || !orderData?.success) {
+      // Supabase functions.invoke can nest response differently on native
+      const resolvedOrderData = orderData?.payment_session_id 
+        ? orderData 
+        : orderData?.data?.payment_session_id 
+          ? orderData.data 
+          : orderData;
+
+      console.log('[create-order] resolvedOrderData:', JSON.stringify(resolvedOrderData));
+      console.log('[create-order] payment_session_id resolved:', resolvedOrderData?.payment_session_id);
+
+      console.log('[create-order] raw orderData:', JSON.stringify(orderData));
+      console.log('[create-order] orderError:', JSON.stringify(orderError));
+      console.log('[create-order] payment_session_id:', resolvedOrderData?.payment_session_id);
+      console.log('[create-order] cashfree_order_id:', resolvedOrderData?.cashfree_order_id);
+      console.log('[create-order] cashfree_env:', resolvedOrderData?.cashfree_env);
+
+      if (orderError || !resolvedOrderData?.success) {
         showToaster('Failed to initiate payment. Please try again.', 'error');
         setIsLoading(false);
         return;
       }
 
       // Step 7: Initialize Cashfree SDK and open checkout
-      const cashfreeEnv = orderData.cashfree_env === 'sandbox' ? 'sandbox' : 'production';
+      const cashfreeEnv = resolvedOrderData.cashfree_env === 'sandbox' ? 'sandbox' : 'production';
       const cashfree = Cashfree({ mode: cashfreeEnv });
 
       if (isNative) {
         const pObj = {
-          cashfree_order_id: orderData.cashfree_order_id,
+          cashfree_order_id: resolvedOrderData.cashfree_order_id,
           addressId,
           zoneId,
           parsedAmount,
@@ -479,14 +504,21 @@ const OrderCashSummary = () => {
         pendingVerificationStore = pObj;
         setPendingVerification(pObj as any);
 
-        const checkoutBaseUrl = orderData.cashfree_env === 'sandbox'
+        const checkoutBaseUrl = resolvedOrderData.cashfree_env === 'sandbox'
           ? 'https://payments-test.cashfree.com/order'
           : 'https://payments.cashfree.com/order';
         
-        const checkoutUrl = `${checkoutBaseUrl}/#${orderData.payment_session_id}`;
+        const checkoutUrl = `${checkoutBaseUrl}/#${resolvedOrderData.payment_session_id}`;
         
         // Open in Capacitor Browser (in-app browser, not external Chrome)
         const platform = Capacitor.getPlatform();
+
+        console.log('[cashfree] payment_session_id:', resolvedOrderData.payment_session_id);
+        console.log('[cashfree] cashfree_order_id:', resolvedOrderData.cashfree_order_id);
+        console.log('[cashfree] cashfree_env:', resolvedOrderData.cashfree_env);
+        console.log('[cashfree] checkout URL:', checkoutUrl);
+        console.log('[native] checkoutUrl:', checkoutUrl);
+        console.log('[native] session_id used:', resolvedOrderData.payment_session_id);
 
         await Browser.open({
           url: checkoutUrl,
@@ -516,7 +548,7 @@ const OrderCashSummary = () => {
         );
       } else {
         const checkoutOptions = {
-          paymentSessionId: orderData.payment_session_id,
+          paymentSessionId: resolvedOrderData.payment_session_id,
           redirectTarget: '_modal',   // opens as modal overlay, not redirect
         };
 
@@ -531,8 +563,8 @@ const OrderCashSummary = () => {
             // Payment succeeded — verify server-side
             const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-cash-order', {
               body: {
-                cashfree_order_id: orderData.cashfree_order_id,
-                cashfree_payment_id: result.paymentDetails.paymentMessage || orderData.cashfree_order_id,
+                cashfree_order_id: resolvedOrderData.cashfree_order_id,
+                cashfree_payment_id: result.paymentDetails.paymentMessage || resolvedOrderData.cashfree_order_id,
                 user_id: userId,
                 address_id: addressId,
                 zone_id: zoneId,
@@ -578,6 +610,11 @@ const OrderCashSummary = () => {
       showToaster('Order failed. Please try again or contact support.', 'error');
     } finally {
       setIsLoading(false);
+      // Only reset if NOT going to native browser
+      // (native flow needs the flag to stay true until verification)
+      if (!Capacitor.isNativePlatform()) {
+        isPaymentInProgress = false;
+      }
     }
   };
   const handleRewardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
