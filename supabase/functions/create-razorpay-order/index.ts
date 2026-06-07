@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(e => ({}));
     const { amount, userId: bodyUserId, type } = body;
     const effectiveUserId = bodyUserId || userId;
-    console.log(`[DEBUG] create-razorpay-order: Amount=${amount}, UserID=${effectiveUserId}, Type=${type}`);
 
     // 🛠️ EXTREMELY ROBUST ORDER TYPE LOGIC
     const incomingType = (type || "").toString().trim().toLowerCase();
@@ -32,7 +31,6 @@ Deno.serve(async (req) => {
     // 1️⃣ SECURITY GATE 0: Minimum Amount (ONLY for wallet_topup)
     if (incomingType === "wallet_topup") {
         if (!amount || Number(amount) < 500) {
-            console.log(`[DEBUG] 400: Minimum top-up limit hit. Type: ${incomingType}, Amount: ${amount}`);
             return new Response(JSON.stringify({ error: "Minimum add amount is ₹500" }), {
                 status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
@@ -44,7 +42,6 @@ Deno.serve(async (req) => {
         const validPrices = [0, 25, 50, 100];
         const numAmount = Number(amount) || 0;
         if (!validPrices.includes(numAmount)) {
-            console.log(`[DEBUG] 400: Invalid subscription price: ${amount}`);
             return new Response(JSON.stringify({ error: `Invalid subscription amount. Expected ₹0, ₹25, ₹50, or ₹100.` }), {
                 status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
@@ -75,7 +72,6 @@ Deno.serve(async (req) => {
       .single();
 
     if (walletError || !walletData) {
-      console.log(`[DEBUG] 404/Error: Wallet not found for user ${effectiveUserId}. Error:`, walletError);
       return new Response(JSON.stringify({ error: "Wallet not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -89,7 +85,6 @@ Deno.serve(async (req) => {
     }
 
     if (!tierData) {
-      console.log(`[DEBUG] 400: No wallet tier assigned for user ${effectiveUserId}. Data:`, walletData);
       return new Response(JSON.stringify({ error: "No wallet tier assigned to this user." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -101,19 +96,16 @@ Deno.serve(async (req) => {
     const maxWalletBalance = Math.floor(Number(tierData.max_wallet_balance));
     const maxAddPerTxn = Math.floor(Number(tierData.max_add_per_txn));
 
-    console.log(`[DEBUG] Hardened Limits check for user ${effectiveUserId}:`, { currentBalance, maxWalletBalance, maxAddPerTxn });
 
     // 3️⃣ SECURITY GATE 2: Transaction Limits (ONLY for top-ups)
     if (isStandardTopupOrder || isUnknownType) {
         if (amount > maxAddPerTxn) {
-           console.log(`[DEBUG] 400: Per-transaction limit hit. Amount: ${amount}, Limit: ${maxAddPerTxn}`);
            return new Response(JSON.stringify({ error: `Amount exceeds your per-transaction limit of ₹${maxAddPerTxn}` }), {
                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
            });
         }
 
         if (currentBalance + amount > maxWalletBalance) {
-          console.log(`[DEBUG] 400: Max wallet balance limit hit. Balance: ${currentBalance}, Adding: ${amount}, Max: ${maxWalletBalance}`);
           return new Response(JSON.stringify({ error: `Adding this amount exceeds your maximum wallet balance.` }), {
               status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
@@ -138,7 +130,6 @@ Deno.serve(async (req) => {
     const data = await razorpayRes.json();
 
     if (!razorpayRes.ok) {
-      console.log("Razorpay error response:", data);
       return new Response(
         JSON.stringify({ error: "Razorpay API failed", razorpay_error: data }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

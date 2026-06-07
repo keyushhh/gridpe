@@ -14,7 +14,6 @@ const DevModeOverlay: React.FC = () => {
   // Gate: only show in browser dev, never in native Capacitor builds
   const cap = (window as any).Capacitor;
   const isNative = !!(cap?.isNativePlatform?.()) || !!(cap?.platform && cap.platform !== 'web');
-  console.log('DevModeOverlay: Capacitor platform:', cap?.platform, 'isNativePlatform():', cap?.isNativePlatform?.(), '→ isNative:', isNative);
   if (!import.meta.env.DEV || isNative) return null;
 
   // ── State ──────────────────────────────────────────────────────────────────

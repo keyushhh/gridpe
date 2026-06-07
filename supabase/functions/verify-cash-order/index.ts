@@ -39,7 +39,6 @@ Deno.serve(async (req: Request) => {
       scheduled_at
     } = body;
 
-    console.log("[verify] Received:", { cashfree_order_id, user_id });
 
     if (!cashfree_order_id || !user_id) {
       return new Response(JSON.stringify({ success: false, message: "Missing required fields" }), {
@@ -80,7 +79,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const verifyData = await verifyResponse.json();
-    console.log("[verify] Cashfree order status:", verifyData?.order_status, "full response:", JSON.stringify(verifyData));
     
     if (verifyData.order_status !== "PAID") {
       return new Response(JSON.stringify({ success: false, message: "Payment not confirmed by Cashfree" }), {
@@ -102,7 +100,6 @@ Deno.serve(async (req: Request) => {
       .limit(1)
       .maybeSingle();
 
-    console.log("[verify] Existing order check:", existingOrder);
 
     if (existingError) {
       console.error("Database error checking existing order:", existingError);
@@ -122,7 +119,6 @@ Deno.serve(async (req: Request) => {
       .eq("gateway_order_id", cashfree_order_id)
       .single();
 
-    console.log("[verify] Pending payment:", pendingPayment);
 
     if (pendingError || !pendingPayment) {
       console.error("Pending payment not found for order:", cashfree_order_id);
@@ -192,7 +188,6 @@ Deno.serve(async (req: Request) => {
 
       if (insertError || !insertedOrder) {
         console.error("Failed to insert order:", insertError);
-        console.log("[verify] Full insertError:", JSON.stringify(insertError));
         throw insertError || new Error("Failed to insert order");
       }
     } catch (insertException) {

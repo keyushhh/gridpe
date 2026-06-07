@@ -10,7 +10,6 @@ Deno.serve(async (req: Request) => {
   let payload: any;
   try {
     payload = await req.json();
-    console.log('Webhook Received Payload:', JSON.stringify(payload, null, 2));
 
     // Point 4: Log raw payload to a dedicated table for visibility even if Supabase logs fail
     try {
@@ -49,7 +48,6 @@ Deno.serve(async (req: Request) => {
       const userType = metadata?.user_type || 'customer'; // Default to customer
       const table = userType === 'customer' ? 'profiles' : 'riders';
       
-      console.log(`Processing ${table} update for User: ${userId} with status: ${status}`);
 
       const updatePayload: any = { kyc_status: status };
 
@@ -63,7 +61,6 @@ Deno.serve(async (req: Request) => {
 
       if (userType === 'customer' && isPassportDetected && status === 'verified') {
         updatePayload.is_passport_verified = true;
-        console.log('Passport verification detected and flagged for user:', userId);
       }
 
       const { error: updateError } = await supabase
@@ -76,7 +73,6 @@ Deno.serve(async (req: Request) => {
         throw updateError;
       }
 
-      console.log(`Successfully updated ${table} for ${userId}`);
     }
 
     return new Response(JSON.stringify({ success: true }), { 

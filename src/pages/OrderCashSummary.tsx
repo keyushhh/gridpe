@@ -60,7 +60,6 @@ const OrderCashSummary = () => {
     selectedSlot: initialSlot,
   } = location.state || { amount: '0.00' };
   // Diagnostic Log for Audit Check #1
-  console.log('[AUDIT] OrderCashSummary arrived. Params:', { isScheduledFlow, initialSlot });
   const [selectedSlot, setSelectedSlot] = useState<string | null>(initialSlot || null);
   const isDarkMode = useIsDarkMode();
   const { profile, rewardPoints: rewardPointsData } = useUser();
@@ -108,7 +107,6 @@ const OrderCashSummary = () => {
     // If there's a pending verification from a previous 
     // interrupted session, attempt it on mount
     if (pendingVerificationStore) {
-      console.log('[verify] Found interrupted verification on mount, retrying...');
       setTimeout(() => {
         runVerification(pendingVerificationStore!);
       }, 500);
@@ -117,13 +115,11 @@ const OrderCashSummary = () => {
 
   useEffect(() => {
     const handleAppUrlOpen = App.addListener('appUrlOpen', async (data) => {
-      console.log('[appUrlOpen] Received URL:', data.url);
       const isCashfreeReturn = 
         data.url.includes('cashfree-return') ||
         data.url.includes('gridpe://cashfree-return');
       
       if (isCashfreeReturn && pendingVerificationStore) {
-        console.log('[appUrlOpen] Cashfree return detected, running verification');
         await runVerification(pendingVerificationStore);
       }
     });
@@ -146,7 +142,6 @@ const OrderCashSummary = () => {
   const runVerification = async (dataToVerify?: NonNullable<typeof pendingVerificationStore>) => {
     const data = dataToVerify || pendingVerificationStore;
     if (!data) {
-      console.log('[verify] No pending verification data found');
       isPaymentInProgress = false;
       return;
     }
@@ -306,7 +301,6 @@ const OrderCashSummary = () => {
   };
   const handlePay = async () => {
     if (isPaymentInProgress) {
-      console.log('[handlePay] Blocked duplicate invocation');
       return;
     }
     isPaymentInProgress = true;
@@ -460,14 +454,7 @@ const OrderCashSummary = () => {
           ? orderData.data 
           : orderData;
 
-      console.log('[create-order] resolvedOrderData:', JSON.stringify(resolvedOrderData));
-      console.log('[create-order] payment_session_id resolved:', resolvedOrderData?.payment_session_id);
 
-      console.log('[create-order] raw orderData:', JSON.stringify(orderData));
-      console.log('[create-order] orderError:', JSON.stringify(orderError));
-      console.log('[create-order] payment_session_id:', resolvedOrderData?.payment_session_id);
-      console.log('[create-order] cashfree_order_id:', resolvedOrderData?.cashfree_order_id);
-      console.log('[create-order] cashfree_env:', resolvedOrderData?.cashfree_env);
 
       if (orderError || !resolvedOrderData?.success) {
         showToaster('Failed to initiate payment. Please try again.', 'error');
@@ -513,12 +500,6 @@ const OrderCashSummary = () => {
         // Open in Capacitor Browser (in-app browser, not external Chrome)
         const platform = Capacitor.getPlatform();
 
-        console.log('[cashfree] payment_session_id:', resolvedOrderData.payment_session_id);
-        console.log('[cashfree] cashfree_order_id:', resolvedOrderData.cashfree_order_id);
-        console.log('[cashfree] cashfree_env:', resolvedOrderData.cashfree_env);
-        console.log('[cashfree] checkout URL:', checkoutUrl);
-        console.log('[native] checkoutUrl:', checkoutUrl);
-        console.log('[native] session_id used:', resolvedOrderData.payment_session_id);
 
         await Browser.open({
           url: checkoutUrl,

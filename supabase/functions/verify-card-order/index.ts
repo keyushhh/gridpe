@@ -56,7 +56,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const verifyData = await verifyResponse.json();
-    console.log("[verify-card-order] order_status:", verifyData?.order_status);
 
     if (verifyData.order_status !== "PAID") {
       return new Response(JSON.stringify({ success: false, message: "Payment not confirmed by Cashfree" }), {
@@ -77,7 +76,6 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (existing) {
-      console.log("[verify-card-order] Card already saved for order:", cashfree_order_id);
       return new Response(JSON.stringify({ success: true, card_id: existing.id, already_exists: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
@@ -120,7 +118,6 @@ Deno.serve(async (req: Request) => {
 
     if (paymentsResponse.ok) {
       const paymentsData = await paymentsResponse.json();
-      console.log("[verify-card-order] payments:", JSON.stringify(paymentsData));
       const payment = Array.isArray(paymentsData) ? paymentsData[0] : paymentsData;
       cashfree_instrument_id = payment?.payment_method?.card?.instrument_id || null;
     } else {
@@ -195,7 +192,6 @@ Deno.serve(async (req: Request) => {
       .update({ status: "completed" })
       .eq("gateway_order_id", cashfree_order_id);
 
-    console.log("[verify-card-order] Card saved successfully:", card.id);
 
     return new Response(JSON.stringify({ success: true, card_id: card.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }

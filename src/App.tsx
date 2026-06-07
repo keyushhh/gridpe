@@ -196,7 +196,6 @@ const BackNavigationHandler = ({
       if (!session) {
         // If logged out, we don't allow any "back" navigation into history.
         // We either stay on the onboarding or exit the app.
-        console.log('No session detected. Exiting app on back gesture.');
         CapacitorApp.exitApp();
         return;
       }
@@ -316,7 +315,6 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
     // Sync Supabase session from OAuth deep links
     const listener = CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
       if (url.startsWith('gridpe://')) {
-        if (import.meta.env.DEV) console.log('App opened with URL'); // Debug logging
 
         // Handle PKCE/Implicit flow tokens from URL fragments or queries
         if (url.includes('access_token') && url.includes('refresh_token')) {
@@ -331,22 +329,16 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
               refresh_token,
             });
             if (error) console.error('Set session error:', error);
-            else console.log('Session set from tokens');
           }
         } else {
           // Alternative: exchange code for session
           const codeMatch = url.match(/[?#&]code=([^&]+)/);
           if (codeMatch && codeMatch[1]) {
             const code = codeMatch[1];
-            console.log('Exchanging code for session...');
             const { data, error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) {
               console.error('Auth exchange error:', error);
-            } else {
-              console.log('Session exchanged successfully', data.session ? 'Active' : 'No Session');
             }
-          } else {
-            console.log('No code or tokens found in URL');
           }
         }
       }

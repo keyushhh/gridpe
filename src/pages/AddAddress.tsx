@@ -193,7 +193,6 @@ const AddAddress = () => {
         return;
       }
       // Permission granted, fetch location
-      console.log('Permission granted. Requesting fresh user location...');
       const position = await getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 10000,

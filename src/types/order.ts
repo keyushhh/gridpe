@@ -11,7 +11,8 @@ export type OrderStatus =
   | 'failed'
   | 'processing'
   | 'success'
-  | 'out_for_delivery';
+  | 'out_for_delivery'
+  | 'payment_captured';
 
 export interface Rider {
   id: string;

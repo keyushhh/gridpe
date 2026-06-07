@@ -12,9 +12,6 @@ export function useNetworkStatus() {
     let listenerHandle: any
 
     const handleStatusChange = (connected: boolean) => {
-      if (import.meta.env.DEV) {
-        console.log('[Network] connected:', connected)
-      }
 
       if (connected) {
         if (!wasConnected.current) {
@@ -41,9 +38,6 @@ export function useNetworkStatus() {
     const init = async () => {
       try {
         const status = await Network.getStatus()
-        if (import.meta.env.DEV) {
-          console.log('[Network] Initial status:', status)
-        }
         
         // Set initial state IMMEDIATELY from real device status
         setIsConnected(status.connected)

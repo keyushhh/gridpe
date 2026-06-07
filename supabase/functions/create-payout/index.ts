@@ -91,7 +91,6 @@ Deno.serve(async (req) => {
     });
 
     const contact = await contactResponse.json();
-    if (contact.error) console.log("Contact error (possibly exists):", contact.error);
     const contactId = contact.id || contact.error?.metadata?.contact_id; // Handle already exists
 
     if (!contactId) throw new Error("Failed to create/retrieve RazorpayX contact");

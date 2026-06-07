@@ -251,17 +251,29 @@ const OrderDetails = () => {
     let config = {
       bgImage: ASSETS.SUCCESS_BG,
       mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
-      headerTitle: 'Order Successful',
+      headerTitle: 'Order Placed',
       statusTitle: 'Your order is being processed!',
       statusAmount: currentOrder.total_amount || currentOrder.amount,
       showMap: true,
       deliveryText: 'We’re assigning a delivery\npartner soon!',
       deliverySubText: 'Assigning a delivery partner in the next 2 minutes.',
-      transactionNote:
-        'No charges yet — your wallet will only be debited after you confirm the delivery.',
+      transactionNote: 'Payment confirmed. Your cash will be delivered shortly.',
       canCancel: true,
     };
-    if (currentOrder.status === 'success' || currentOrder.status === 'delivered') {
+    if (currentOrder.status === 'payment_captured') {
+      config = {
+        bgImage: ASSETS.SUCCESS_BG,
+        mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
+        headerTitle: 'Payment Confirmed',
+        statusTitle: 'Payment received!',
+        statusAmount: currentOrder.total_amount || currentOrder.amount,
+        showMap: true,
+        deliveryText: 'Finding your rider',
+        deliverySubText: 'We\'re assigning a delivery partner right now.',
+        transactionNote: 'Payment captured successfully. Your cash is on its way.',
+        canCancel: true,
+      };
+    } else if (currentOrder.status === 'success' || currentOrder.status === 'delivered') {
       config = {
         bgImage: ASSETS.SUCCESS_BG,
         mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
@@ -271,7 +283,33 @@ const OrderDetails = () => {
         showMap: true,
         deliveryText: 'Order Delivered',
         deliverySubText: 'Your package has arrived.',
-        transactionNote: 'Amount deducted from your wallet.',
+        transactionNote: 'Payment was captured via Cashfree at order placement.',
+        canCancel: false,
+      };
+    } else if (currentOrder.status === 'out_for_delivery') {
+      config = {
+        bgImage: ASSETS.SUCCESS_BG,
+        mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
+        headerTitle: 'On The Way',
+        statusTitle: 'Rider is on the way!',
+        statusAmount: currentOrder.total_amount || currentOrder.amount,
+        showMap: true,
+        deliveryText: 'Out for delivery',
+        deliverySubText: 'Your rider is heading to your location.',
+        transactionNote: 'Payment was captured via Cashfree at order placement.',
+        canCancel: false,
+      };
+    } else if (currentOrder.status === 'arrived') {
+      config = {
+        bgImage: ASSETS.SUCCESS_BG,
+        mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
+        headerTitle: 'Rider Arrived',
+        statusTitle: 'Your rider is here!',
+        statusAmount: currentOrder.total_amount || currentOrder.amount,
+        showMap: true,
+        deliveryText: 'Rider has arrived',
+        deliverySubText: 'Please collect your cash from the rider.',
+        transactionNote: 'Payment was captured via Cashfree at order placement.',
         canCancel: false,
       };
     } else if (currentOrder.status === 'failed') {
@@ -325,7 +363,7 @@ const OrderDetails = () => {
       {/* Dynamic theme glow */}
       {!isDarkMode && (
         <div
-          className={`absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0 ${['success', 'delivered', 'processing', 'pending', 'out_for_delivery', 'arrived', 'accepted', 'picked_up'].includes(order?.status || '') ? 'bg-green-600' : 'bg-destructive'}`}
+          className={`absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] rounded-full blur-[100px] opacity-30 pointer-events-none z-0 ${['success', 'delivered', 'processing', 'pending', 'payment_captured', 'out_for_delivery', 'arrived', 'accepted', 'picked_up'].includes(order?.status || '') ? 'bg-green-600' : 'bg-destructive'}`}
         />
       )}
       <div className="flex-none px-5 safe-top pt-4 flex items-center justify-between z-10 mb-[21px] relative">
@@ -542,7 +580,11 @@ const OrderDetails = () => {
             <span
               className={`text-[13px] font-medium font-sans ${isDarkMode ? 'text-white font-bold' : 'text-black'}`}
             >
-              grid.pe Wallet
+              {order.payment_mode === 'CASHFREE'
+                ? 'Cashfree'
+                : order.payment_mode === 'WALLET'
+                  ? 'Grid.Pe Wallet'
+                  : order.payment_mode || 'Cashfree'}
             </span>
           </div>
           <p

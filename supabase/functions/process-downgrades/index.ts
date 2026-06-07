@@ -105,7 +105,6 @@ Deno.serve(async (req) => {
           .update({ available_balance: limit })
           .eq('user_id', profile.id);
 
-        console.log(`Clipped ${excess} from user ${profile.id} for downgrade to ${tierData.name || profile.scheduled_tier_id}`);
       }
 
       // 5. Apply the final switch

@@ -59,7 +59,6 @@ Deno.serve(async (req: Request) => {
       .eq("razorpay_order_id", razorpay_order_id)
       .single();
 
-    console.log("[DEBUG] Pending Payment Data:", JSON.stringify(pendingData, null, 2));
 
     if (pendingError || !pendingData) {
       console.error("Pending record not found for order:", razorpay_order_id);
@@ -72,10 +71,8 @@ Deno.serve(async (req: Request) => {
     const amount = pendingData.amount;
     const effectiveUserId = pendingData.user_id || userId; // Fallback to hardcoded for legacy
 
-    console.log(`[DEBUG] Verifying payment for effectiveUserId: ${effectiveUserId}, amount: ${amount}`);
 
     // 5️⃣ Atomic deposit: updates wallets.available_balance + inserts transaction in one DB transaction
-    console.log(`[DEBUG] Calling wallet_deposit with p_user_id: ${effectiveUserId}, p_amount: ${amount}`);
     const { error: depositError } = await supabase.rpc("wallet_deposit", {
       p_user_id: effectiveUserId,
       p_amount: amount,
@@ -83,7 +80,6 @@ Deno.serve(async (req: Request) => {
       p_reference_id: razorpay_payment_id,
     });
 
-    console.log(`[DEBUG] wallet_deposit response error:`, depositError);
 
     if (depositError) {
       console.error("wallet_deposit RPC failed:", depositError);

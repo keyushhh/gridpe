@@ -16,7 +16,6 @@ export function clearPendingNotificationData() {
 
 export const registerPushNotifications = async (navigate?: (path: string) => void) => {
   if (!Capacitor.isNativePlatform()) {
-    console.log('Skipping push notification registration on non-native platform');
     return;
   }
 
@@ -43,7 +42,6 @@ export const registerPushNotifications = async (navigate?: (path: string) => voi
 
     // Notification received while app is in FOREGROUND — show in-app banner (handled separately)
     PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-      console.log('[Push] Received in foreground:', notification);
       window.dispatchEvent(new CustomEvent('notification-received', { 
         detail: {
           title: notification.title,
@@ -56,7 +54,6 @@ export const registerPushNotifications = async (navigate?: (path: string) => voi
     // Notification tapped while app is OPEN (foreground/background)
     PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
       const data = action.notification.data;
-      console.log('[Push] Notification tapped:', data);
       
       // Store for router to consume
       pendingNotificationData = data;

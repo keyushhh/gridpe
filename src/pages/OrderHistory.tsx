@@ -288,7 +288,6 @@ const OrderHistory = () => {
       const active = await fetchActiveOrders(user.id);
       // Fetch Past Orders
       const past = await fetchPastOrders(user.id);
-      console.log('OrderHistory: active fetched:', active.length, 'past fetched:', past.length);
 
       if (showOnlyRewards) {
         const { data: rewardData, error: rewardErr } = await supabase
@@ -298,7 +297,6 @@ const OrderHistory = () => {
           .eq('type', 'earned')
           .order('created_at', { ascending: false });
 
-        console.log('OrderHistory: rewardData fetched:', rewardData?.length, 'error:', rewardErr);
 
         if (rewardData && rewardData.length > 0) {
           const sortedOrders = rewardData.map(rt => {
@@ -316,7 +314,6 @@ const OrderHistory = () => {
             } as unknown as Order;
           });
 
-          console.log('OrderHistory: sortedOrders count:', sortedOrders.length);
           return { active: [] as Order[], past: sortedOrders };
         }
         return { active: [] as Order[], past: [] as Order[] };

@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature, tier_name, user_id } = await req.json();
     const SECRET = Deno.env.get("RAZORPAY_KEY_SECRET")!;
 
-    console.log("[DEBUG] verify-subscription payload:", { razorpay_order_id, razorpay_payment_id, razorpay_signature, tier_name, user_id });
     
     // 1. Signature Verification
     // Orders use: razorpay_order_id + "|" + razorpay_payment_id
@@ -28,7 +27,6 @@ Deno.serve(async (req) => {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    console.log("[DEBUG] verify-subscription signature check:", { expected: expectedSignature, received: razorpay_signature });
 
     if (expectedSignature !== razorpay_signature) {
       console.error("[ERROR] Signature mismatch detected!");

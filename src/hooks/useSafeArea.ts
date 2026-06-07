@@ -35,7 +35,6 @@ export const useSafeArea = (): SafeAreaInsets => {
       const newInsets = computeInsets();
       setInsets(newInsets);
       // Optional debug logging to verify the plugin's polyfill is working
-      console.log('Safe Area Insets (env polyfill):', newInsets);
     };
 
     update();

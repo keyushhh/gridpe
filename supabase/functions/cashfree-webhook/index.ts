@@ -69,7 +69,6 @@ Deno.serve(async (req: Request) => {
 
     // 4. Only process PAYMENT_SUCCESS_WEBHOOK
     if (type !== "PAYMENT_SUCCESS_WEBHOOK") {
-      console.log(`Ignoring webhook type: ${type}`);
       return new Response(JSON.stringify({ message: "Webhook received" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
@@ -107,7 +106,6 @@ Deno.serve(async (req: Request) => {
     }
 
     if (existingOrder) {
-      console.log(`Order ${order_id} already processed.`);
       return new Response(JSON.stringify({ message: "Already processed" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
@@ -138,11 +136,7 @@ Deno.serve(async (req: Request) => {
 
       if (updateError) {
         console.error("Failed to update pending payment status:", updateError);
-      } else {
-        console.log(`Webhook captured for order: ${order_id} — awaiting client verify or manual review`);
       }
-    } else {
-      console.log(`Pending payment not found or not in pending status for order: ${order_id}`);
     }
 
     // 6. Always return 200 to Cashfree regardless of processing outcome

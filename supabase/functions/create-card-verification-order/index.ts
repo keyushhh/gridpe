@@ -9,7 +9,6 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req: Request) => {
-  console.log("[create-card-verification-order] invoked at:", new Date().toISOString());
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -96,8 +95,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const cashfreeData = await cashfreeResponse.json();
-    console.log("[create-card-verification-order] Cashfree response status:", cashfreeResponse.status);
-    console.log("[create-card-verification-order] Cashfree response body:", JSON.stringify(cashfreeData));
 
     const paymentSessionId = cashfreeData.payment_session_id;
 
