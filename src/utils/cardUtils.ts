@@ -1,134 +1,54 @@
-import { SecureStorage } from '@aparajita/capacitor-secure-storage';
-import { Capacitor } from '@capacitor/core';
-import { storageKey, readStorage, writeStorage } from '@/utils/storage';
 import { supabase } from '@/lib/supabase';
 
 export interface Card {
   id: string;
-  number: string;
-  holder: string;
-  expiry: string;
-  type: 'visa' | 'mastercard' | 'rupay' | null;
-  isDefault: boolean;
-  backgroundIndex: number;
+  card_holder_name: string;
+  last_four: string;
+  expiry_month: string;
+  expiry_year: string;
+  card_type: string;
+  gateway_token_id: string | null;
+  cashfree_instrument_id: string | null;
+  cashfree_customer_id: string | null;
+  is_default: boolean;
+  gateway: string;
+  created_at: string;
 }
 
-const LEGACY_KEY = 'gridpe_user_cards';
-
-export const getCards = async (): Promise<Card[]> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id || 'anon';
-    const namespaced = storageKey('user_cards', userId);
-
-    // 1. Try SecureStorage (native) with namespaced key
-    if (Capacitor.isNativePlatform()) {
-      const secureStored = await SecureStorage.get(namespaced);
-      if (secureStored) return JSON.parse(secureStored as string);
-
-      // Fallback to legacy key and migrate
-      const legacy = await SecureStorage.get(LEGACY_KEY);
-      if (legacy) {
-        const cards: Card[] = JSON.parse(legacy as string);
-        const cleanedCards = cards.map(({ cvv, ...rest }: any) => rest);
-        await SecureStorage.set(namespaced, JSON.stringify(cleanedCards));
-        await SecureStorage.remove(LEGACY_KEY).catch(() => {});
-        return cleanedCards;
-      }
-    }
-
-    // 2. Web: try namespaced localStorage
-    const webStored = readStorage<Card[]>('user_cards', userId);
-    if (webStored) return webStored;
-
-    // 3. Legacy web key migrate
-    const legacyWeb = localStorage.getItem(LEGACY_KEY);
-    if (legacyWeb) {
-      const cards: Card[] = JSON.parse(legacyWeb);
-      const cleanedCards = cards.map(({ cvv, ...rest }: any) => rest);
-      writeStorage('user_cards', cleanedCards, userId);
-      localStorage.removeItem(LEGACY_KEY);
-      return cleanedCards;
-    }
-
-    return [];
-  } catch (e) {
-    console.error('Failed to load cards', e);
-    return [];
-  }
+export const getCards = async (userId: string): Promise<Card[]> => {
+  const { data, error } = await supabase
+    .from('bank_cards')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data as any[]) as Card[];
 };
 
-const maskPan = (pan: string) => {
-  const last4 = pan.slice(-4);
-  return `XXXX-XXXX-XXXX-${last4}`;
+export const setDefaultCard = async (
+  cardId: string, 
+  userId: string
+): Promise<void> => {
+  // First unset all defaults for this user
+  await supabase
+    .from('bank_cards')
+    .update({ is_default: false } as any)
+    .eq('user_id', userId);
+  // Then set the new default
+  await supabase
+    .from('bank_cards')
+    .update({ is_default: true } as any)
+    .eq('id', cardId)
+    .eq('user_id', userId);
 };
 
-export const addCard = async (card: Omit<Card, 'id' | 'isDefault' | 'backgroundIndex'>): Promise<Card> => {
-  const currentCards = await getCards();
-
-  const newCard: Card = {
-    ...card,
-    id: Date.now().toString(),
-    isDefault: currentCards.length === 0,
-    backgroundIndex: (currentCards.length % 6) + 1,
-  };
-
-  const updatedCards = [...currentCards, newCard];
-  
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id || 'anon';
-  const ns = storageKey('user_cards', userId);
-  if (Capacitor.isNativePlatform()) {
-    await SecureStorage.set(ns, JSON.stringify(updatedCards));
-  } else {
-    const maskedCards = updatedCards.map(c => ({ ...c, number: maskPan(c.number) }));
-    writeStorage('user_cards', maskedCards, userId);
-  }
-  return newCard;
-};
-
-export const removeCard = async (id: string): Promise<void> => {
-  const currentCards = await getCards();
-  const cardToRemove = currentCards.find(c => c.id === id);
-  if (!cardToRemove) return;
-
-  const remainingCards = currentCards.filter(c => c.id !== id);
-
-  if (cardToRemove.isDefault && remainingCards.length > 0) {
-    remainingCards[0].isDefault = true;
-  }
-
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id || 'anon';
-  const ns = storageKey('user_cards', userId);
-  if (Capacitor.isNativePlatform()) {
-    await SecureStorage.set(ns, JSON.stringify(remainingCards));
-  } else {
-    const maskedCards = remainingCards.map(c => ({
-      ...c,
-      number: c.number.startsWith('XXXX') ? c.number : maskPan(c.number),
-    }));
-    writeStorage('user_cards', maskedCards, userId);
-  }
-};
-
-export const setDefaultCard = async (id: string): Promise<void> => {
-  const currentCards = await getCards();
-  const updatedCards = currentCards.map(card => ({
-    ...card,
-    isDefault: card.id === id,
-  }));
-  
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id || 'anon';
-  const ns = storageKey('user_cards', userId);
-  if (Capacitor.isNativePlatform()) {
-    await SecureStorage.set(ns, JSON.stringify(updatedCards));
-  } else {
-    const maskedCards = updatedCards.map(c => ({
-      ...c,
-      number: c.number.startsWith('XXXX') ? c.number : maskPan(c.number),
-    }));
-    writeStorage('user_cards', maskedCards, userId);
-  }
+export const removeCard = async (
+  cardId: string,
+  userId: string
+): Promise<void> => {
+  await supabase
+    .from('bank_cards')
+    .delete()
+    .eq('id', cardId)
+    .eq('user_id', userId);
 };

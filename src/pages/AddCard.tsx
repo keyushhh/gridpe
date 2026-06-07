@@ -8,12 +8,17 @@ import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
 import { useSensitiveInput } from '@/hooks/useSensitiveInput';
-import { addCard } from '@/utils/cardUtils';
 import { luhnCheck, validateExpiry, validateCVV } from '@/utils/validationUtils';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'sonner';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
+
+declare const Cashfree: any;
+let pendingCardVerificationOrderId: string | null = null;
 const AddCard = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -144,30 +149,7 @@ const AddCard = () => {
     return isValid;
   };
   const saveCardToDatabase = async (token: string) => {
-    try {
-      const [month, year] = expiry.split('/');
-      const lastFour = cardNumberProps.value.slice(-4);
-      const { data, error } = await supabase
-        .from('bank_cards')
-        .insert([
-          {
-            user_id: userId,
-            card_holder_name: cardHolder, // Use user-entered name
-            last_four: lastFour,
-            expiry_month: month,
-            expiry_year: '20' + year,
-            card_type: cardType?.charAt(0).toUpperCase() + cardType?.slice(1) || 'Visa',
-            razorpay_token_id: token,
-          },
-        ])
-        .select();
-      if (error) throw error;
-      toast.success('Card saved successfully!');
-      navigate(ROUTES.CARDS, { state: { cardAdded: true } });
-    } catch (err) {
-      setErrors(prev => ({ ...prev, general: 'Failed to save card. Please try again.' }));
-      toast.error('Failed to save card');
-    }
+    // No longer needed as webhook handles insertion
   };
 
   const handleSaveCard = async () => {
@@ -177,92 +159,93 @@ const AddCard = () => {
       toast.error('Authentication error. Please log in again.');
       return;
     }
-
-    if (import.meta.env.DEV && !window.Razorpay) {
-      console.warn('[DEV ONLY] Razorpay not loaded — using mock token for local testing');
-      const mockToken = 'mock_tok_dev_' + Date.now();
-      await saveCardToDatabase(mockToken);
-      return;
-    }
-
-    if (!window.Razorpay) {
-      toast.error('Payment service not available. Please check your connection and try again.');
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      // Get user phone from profile
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('phone, name, email')
+        .eq('id', userId)
+        .single();
       
-      const orderResponse = await fetch(
-        `${supabaseUrl}/functions/v1/razorpay-create-order`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': supabaseAnonKey,
-          },
-          body: JSON.stringify({
-            amount: 100, // ₹1 in paise — minimum authorization
-            currency: 'INR',
-            receipt: `card_save_${Date.now()}`,
-          }),
-        }
-      );
-
-      if (!orderResponse.ok) {
-        const err = await orderResponse.json();
-        throw new Error(err.error || 'Failed to initialize card saving');
-      }
-
-      const order = await orderResponse.json();
-
-      const paymentToken = await new Promise<string>((resolve, reject) => {
-        const options: import('@/types/razorpay').RazorpayOptions = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-          amount: 100,
-          currency: 'INR',
-          name: 'Grid.Pe',
-          description: 'Card verification (₹1 refundable)',
-          order_id: order.id,
-          theme: { color: '#5260FE' },
-          prefill: {
-            name: cardHolder,
-          },
-          handler: (response: import('@/types/razorpay').RazorpayPaymentResponse) => {
-            if (response.razorpay_payment_id) {
-              resolve(response.razorpay_payment_id);
-            } else {
-              reject(new Error('Card verification failed'));
-            }
-          },
-          modal: {
-            escape: false,
-            backdropclose: false,
-            ondismiss: () => {
-              reject(new Error('DISMISSED'));
-            },
-          },
-        };
-
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', (response: import('@/types/razorpay').RazorpayPaymentResponse) => {
-          reject(new Error(response.error?.description || 'Card verification failed'));
-        });
-        rzp.open();
-      });
-
-      await saveCardToDatabase(paymentToken);
-    } catch (err: unknown) {
-      if (err instanceof Error && err.message === 'DISMISSED') {
-        setIsLoading(false);
+      if (!userProfile?.phone) {
+        toast.error('Please add a phone number to your profile first.');
         return;
       }
-      const message = err instanceof Error 
-        ? err.message 
-        : 'Failed to save card. Please try again.';
-      toast.error(message);
+
+      // Create a ₹1 Cashfree order for card verification
+      const { data: orderData, error: orderError } = await supabase
+        .functions.invoke('create-card-verification-order', {
+          body: {
+            user_id: userId,
+            customer_phone: userProfile.phone,
+            customer_name: cardHolder || userProfile.name,
+            customer_email: userProfile.email || 'customer@gridpe.in',
+            card_last_four: cardNumberProps.value.slice(-4),
+            card_holder_name: cardHolder || userProfile.name,
+            card_type: cardType || 'visa',
+            expiry_month: expiry.split('/')[0],
+            expiry_year: '20' + expiry.split('/')[1],
+          }
+        });
+
+      if (orderError || !orderData?.success) {
+        toast.error('Failed to initialize card verification.');
+        return;
+      }
+
+      // Open Cashfree checkout
+      const isNative = Capacitor.isNativePlatform();
+      
+      if (isNative) {
+        const checkoutBaseUrl = orderData.cashfree_env === 'sandbox'
+          ? 'https://payments-test.cashfree.com/order'
+          : 'https://payments.cashfree.com/order';
+        const checkoutUrl = `${checkoutBaseUrl}/#${orderData.payment_session_id}`;
+        // Store order_id at module level so deep link handler can access it
+        pendingCardVerificationOrderId = orderData.cashfree_order_id;
+        await Browser.open({
+          url: checkoutUrl,
+          presentationStyle: 'popover',
+          toolbarColor: '#5260FE'
+        });
+      } else {
+        const cashfree = Cashfree({ mode: orderData.cashfree_env });
+        const capturedOrderId = orderData.cashfree_order_id;
+        const capturedUserId = userId;
+        cashfree.checkout({
+          paymentSessionId: orderData.payment_session_id,
+          redirectTarget: '_modal',
+        }).then(async (result: any) => {
+          if (result.paymentDetails) {
+            toast.loading('Saving your card...');
+            try {
+              const { data: verifyData, error } = await supabase
+                .functions.invoke('verify-card-order', {
+                  body: {
+                    cashfree_order_id: capturedOrderId,
+                    user_id: capturedUserId,
+                  }
+                });
+              toast.dismiss();
+              if (error || !verifyData?.success) {
+                toast.error('Card verification failed. Please try again.');
+                return;
+              }
+              navigate(ROUTES.CARDS, { state: { cardAdded: true } });
+            } catch (err) {
+              toast.dismiss();
+              toast.error('Card verification failed. Please try again.');
+              console.error('[AddCard] verify-card-order web error:', err);
+            }
+          } else if (result.error) {
+            toast.error('Card verification failed. Please try again.');
+          }
+        });
+      }
+    } catch (err) {
+      toast.error('Failed to save card. Please try again.');
+      console.error('AddCard error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -278,6 +261,58 @@ const AddCard = () => {
     clearError(field);
     requestAnimationFrame(() => ref.current?.focus());
   };
+
+  // Deep link listener for Cashfree card verification return (native only)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listener = App.addListener('appUrlOpen', async (data) => {
+      const url = data.url;
+      const isCashfreeReturn =
+        url.includes('cashfree-return') ||
+        url.includes('com.gridpe.customer://cashfree-return');
+      if (!isCashfreeReturn) return;
+
+      // Extract order_id from URL params
+      const urlParams = new URL(url.replace('com.gridpe.customer://', 'https://app/'));
+      const orderIdFromUrl = urlParams.searchParams.get('order_id');
+      const orderId = orderIdFromUrl || pendingCardVerificationOrderId;
+
+      if (!orderId || !userId) {
+        toast.error('Could not verify card. Please try again.');
+        return;
+      }
+
+      toast.loading('Saving your card...');
+
+      try {
+        const { data: verifyData, error } = await supabase
+          .functions.invoke('verify-card-order', {
+            body: {
+              cashfree_order_id: orderId,
+              user_id: userId,
+            }
+          });
+
+        if (error || !verifyData?.success) {
+          toast.dismiss();
+          toast.error('Card verification failed. Please try again.');
+          return;
+        }
+
+        pendingCardVerificationOrderId = null;
+        toast.dismiss();
+        navigate(ROUTES.CARDS, { state: { cardAdded: true } });
+      } catch (err) {
+        toast.dismiss();
+        toast.error('Card verification failed. Please try again.');
+        console.error('[AddCard] verify-card-order error:', err);
+      }
+    });
+    return () => {
+      listener.then(h => h.remove());
+    };
+  }, [userId, navigate]);
+
   return (
     <div
       className={`h-full w-full ${containerOverflow} flex flex-col safe-top relative`}
@@ -500,7 +535,7 @@ const AddCard = () => {
           <p
             className={`${isDarkMode ? 'text-white/60' : 'text-black'} text-[14px] font-medium leading-relaxed`}
           >
-            Your card info is encrypted and stored like it’s top-tier gossip – never shared.
+            A ₹1 verification charge confirms your card. It will be refunded within 7 days.
           </p>
         </div>
         {/* Scan Card Section */}

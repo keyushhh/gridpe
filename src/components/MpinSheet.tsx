@@ -18,8 +18,9 @@ interface MpinSheetProps {
   onClose: () => void;
   mode?: 'verify' | 'change' | 'reset';
   onSuccess?: (mpin?: string) => void;
+  hideClose?: boolean;
 }
-const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
+const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: MpinSheetProps) => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
   const { profile, resetForDemo } = useUser();
@@ -355,12 +356,16 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess }: MpinSheetProps) => {
             >
               {title}
             </h1>
-            <button
-              onClick={onClose}
-              className={`w-[40px] h-[40px] flex items-center justify-center rounded-full transition-colors ${isDarkMode ? 'bg-[#1C1C1E] active:bg-[#2C2C2E]' : 'bg-[#F2F2F7] active:bg-[#E5E5EA]'}`}
-            >
-              <X className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
-            </button>
+            {!hideClose ? (
+              <button
+                onClick={onClose}
+                className={`w-[40px] h-[40px] flex items-center justify-center rounded-full transition-colors ${isDarkMode ? 'bg-[#1C1C1E] active:bg-[#2C2C2E]' : 'bg-[#F2F2F7] active:bg-[#E5E5EA]'}`}
+              >
+                <X className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
+              </button>
+            ) : (
+              <div className="w-[40px]" />
+            )}
           </div>
           {/* Content Area */}
           <div className="flex-1 flex flex-col items-center pt-[60px] gap-8 overflow-x-hidden overflow-y-auto overscroll-contain" style={{ touchAction: 'pan-y' }}>

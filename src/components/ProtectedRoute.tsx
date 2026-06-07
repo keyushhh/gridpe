@@ -1,69 +1,133 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { ROUTES } from '@/routes';
+import { Capacitor } from '@capacitor/core';
+import { useUser } from '@/contexts/UserContext';
+import MpinSheet from '@/components/MpinSheet';
+
+// Module-level flag — gate only triggers after tab has been hidden at least once
+let hasBeenHidden = false;
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
-    // Synchronous hint: If localStorage is empty or missing the auth token,
-    // we can immediately assume unauthenticated to prevent flicker.
-    // Replace 'sb-' with your actual prefix if known, or just check for common indicators.
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     return hasSession ? null : false;
   });
+  const [showMpinGate, setShowMpinGate] = useState(false);
   const location = useLocation();
+  const isWeb = Capacitor.getPlatform() === 'web';
+  const { profile, setProfile } = useUser();
+  // Store fetched mpin_hash separately — never replace the full profile object
+  const mpinHashRef = useRef<string | null>(null);
+
+  const checkAuth = useCallback(async () => {
+    let resolvedSession = false;
+    try {
+      const timeoutPromise = new Promise<{ data: { session: any } }>((resolve) =>
+        setTimeout(() => resolve({ data: { session: null } }), 4000)
+      );
+      const { data: { session } } = await Promise.race([
+        supabase.auth.getSession(),
+        timeoutPromise
+      ]);
+      resolvedSession = !!session;
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('ProtectedRoute auth check error:', err);
+      }
+    } finally {
+      setIsAuthenticated(resolvedSession);
+    }
+  }, []);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      let resolvedSession = false;
-      try {
-        const timeoutPromise = new Promise<{ data: { session: any } }>((resolve) =>
-          setTimeout(() => resolve({ data: { session: null } }), 4000)
-        );
-        const { data: { session } } = await Promise.race([
-          supabase.auth.getSession(),
-          timeoutPromise
-        ]);
-        resolvedSession = !!session;
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('ProtectedRoute auth check error:', err);
-        }
-      } finally {
-        setIsAuthenticated(resolvedSession);
-      }
-    };
-    
     checkAuth();
+  }, [location.pathname, checkAuth]);
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkAuth();
+  // Web-only: visibilitychange → MPIN gate or full logout
+  useEffect(() => {
+    if (!isWeb) return;
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'hidden') {
+        hasBeenHidden = true;
+        return;
+      }
+
+      if (document.visibilityState === 'visible' && hasBeenHidden) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+
+          if (!session) {
+            await supabase.auth.signOut();
+            setIsAuthenticated(false);
+            return;
+          }
+
+          // Fetch ONLY mpin_hash — do not touch profile context
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('mpin_hash')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileData?.mpin_hash) {
+            mpinHashRef.current = profileData.mpin_hash;
+
+            // Patch ONLY mpin_hash onto existing profile so MpinSheet can read it
+            // This preserves all other profile fields including terms_accepted_at
+            if (profile) {
+              setProfile({ ...profile, mpin_hash: profileData.mpin_hash } as any);
+            } else {
+              // Profile not loaded yet — set minimal object with just what MpinSheet needs
+              setProfile({ mpin_hash: profileData.mpin_hash, id: session.user.id } as any);
+            }
+            setShowMpinGate(true);
+          }
+          // If no mpin_hash, let them through without gate
+        } catch (err) {
+          if (import.meta.env.DEV) console.warn('[ProtectedRoute] visibility check error:', err);
+        }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [location.pathname]); // Re-check on navigation
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isWeb, setProfile, profile]);
 
   if (isAuthenticated === null) {
     const savedTheme = localStorage.getItem('theme');
     const isDark = savedTheme !== 'light';
     return (
-      <div 
-        className="fixed inset-0" 
-        style={{ backgroundColor: isDark ? '#0a0a12' : '#FFFFFF' }} 
+      <div
+        className="fixed inset-0"
+        style={{ backgroundColor: isDark ? '#0a0a12' : '#FFFFFF' }}
       />
     );
   }
 
   if (!isAuthenticated) {
-    // If not authenticated, redirect to login
-    // Using replace: true so the "unauthorized" page isn't in history
     return <Navigate to={ROUTES.INDEX} state={{ from: location }} replace />;
+  }
+
+  if (showMpinGate && isWeb) {
+    return (
+      <>
+        {children}
+        <MpinSheet
+          mode="verify"
+          hideClose={true}
+          onClose={() => {
+            // No-op — cannot dismiss without verifying
+          }}
+          onSuccess={() => {
+            setShowMpinGate(false);
+            hasBeenHidden = false;
+          }}
+        />
+      </>
+    );
   }
 
   return <>{children}</>;

@@ -10,17 +10,6 @@ import ConfirmationModal from '@/components/ConfirmationModal';
 import { getCards, Card, removeCard, setDefaultCard } from '@/utils/cardUtils';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 // Import all saved card backgrounds
 import { useWebScroll } from '@/hooks/useWebScroll';
 const cardBackgrounds = [
@@ -36,7 +25,8 @@ const MyCards = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile } = useUser();
-  const userId = profile?.id;
+  const [sessionUserId, setSessionUserId] = useState<string | undefined>(undefined);
+  const userId = profile?.id || sessionUserId;
   const isDarkMode = useIsDarkMode();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [cards, setCards] = useState<Card[]>([]);
@@ -48,39 +38,19 @@ const MyCards = () => {
   const [revealedCardId, setRevealedCardId] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fetchAllCards = async () => {
-    const localCards = await getCards();
-    if (!userId) {
-      setCards(localCards);
-      setIsStacked(localCards.length > 1);
-      return;
-    }
+    if (!userId) return;
+    setIsLoading(true);
     try {
-      const { data: dbCards, error } = await supabase
-        .from('bank_cards')
-        .select('*')
-        .eq('user_id', userId);
-      if (error) throw error;
-      if (dbCards) {
-        const mappedDbCards: Card[] = dbCards.map((db, index) => ({
-          id: db.id.toString(),
-          number: `**** **** **** ${db.last_four}`,
-          holder: db.card_holder_name,
-          expiry: `${db.expiry_month}/${db.expiry_year.toString().slice(-2)}`,
-          type: db.card_type.toLowerCase() as Card['type'],
-          isDefault: localCards.length === 0 && index === 0, // Fallback logic
-          backgroundIndex: localCards.length + (index % 6) + 1,
-        }));
-        setCards([...localCards, ...mappedDbCards]);
-        setIsStacked(localCards.length + mappedDbCards.length > 1);
-      } else {
-        setCards(localCards);
-        setIsStacked(localCards.length > 1);
-      }
+      const fetchedCards = await getCards(userId);
+      setCards(fetchedCards);
+      setIsStacked(fetchedCards.length > 1);
     } catch (err) {
-      console.error('Error fetching cards:', err);
-      setCards(localCards);
-      setIsStacked(localCards.length > 1);
+      console.error('Failed to fetch cards:', err);
+      // toast.error('Failed to load cards');
+    } finally {
+      setIsLoading(false);
     }
   };
   useEffect(() => {
@@ -90,6 +60,14 @@ const MyCards = () => {
     if (location.state?.cardAdded) {
       setShowSuccessModal(true);
       window.history.replaceState({}, document.title);
+      // Poll with retries — edge function may still be writing when we navigate back
+      const poll = async (attempts: number) => {
+        await fetchAllCards();
+        if (attempts > 1) {
+          setTimeout(() => poll(attempts - 1), 1500);
+        }
+      };
+      poll(3);
     }
   }, [location.state]);
   const handleTutorialClick = () => {
@@ -140,12 +118,9 @@ const MyCards = () => {
   const closeConfirmation = () => {
     setConfirmAction(null);
   };
-  const formatCardNumber = (number: string) => {
-    if (!number) return '';
-    const cleanNumber = number.replace(/\s/g, '');
-    // Always return masked format since we only store/fetch last 4 digits for security
-    const last4 = cleanNumber.slice(-4);
-    return `**** **** **** ${last4}`;
+  const formatCardNumber = (lastFour: string) => {
+    if (!lastFour) return '';
+    return `**** **** **** ${lastFour}`;
   };
   const startPress = (id: string) => {
     if (isStacked) return;
@@ -185,9 +160,19 @@ const MyCards = () => {
       setSelectedCardId(null);
     }
   }, [isStacked]);
+
+  useEffect(() => {
+    if (!profile?.id) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session?.user?.id) {
+          setSessionUserId(data.session.user.id);
+        }
+      });
+    }
+  }, [profile?.id]);
   const sortedCards = [...cards].sort((a, b) => {
-    if (a.isDefault === b.isDefault) return 0;
-    return a.isDefault ? -1 : 1;
+    if (a.is_default === b.is_default) return 0;
+    return a.is_default ? -1 : 1;
   });
   const contentBlurClass = showSuccessModal || tutorialStep > 0 ? 'blur-sm brightness-50' : '';
   return (
@@ -259,8 +244,8 @@ const MyCards = () => {
                 className={`transition-all duration-500 ease-in-out ${isStacked ? 'mt-4 relative h-[320px] w-full mx-auto' : 'flex flex-col gap-4'}`}
               >
                 {sortedCards.map((card, index) => {
-                  const bgSrc = cardBackgrounds[(card.backgroundIndex - 1) % 6];
-                  const isDefault = card.isDefault;
+                  const bgSrc = cardBackgrounds[index % 6];
+                  const isDefault = card.is_default;
                   const isVisible = revealedCardId === card.id;
                   const isSelected = selectedCardId === card.id;
                   const chipTop = isDefault ? 34 : 21;
@@ -339,7 +324,7 @@ const MyCards = () => {
                             style={{ top: `${nameTop}px` }}
                           >
                             <p className="text-white text-[16px] font-medium uppercase font-satoshi truncate">
-                              {card.holder || 'NO NAME'}
+                              {card.card_holder_name || 'NO NAME'}
                             </p>
                           </div>
                           <div
@@ -355,7 +340,7 @@ const MyCards = () => {
                             style={{ top: `${numberTop}px` }}
                           >
                             <p className="text-white text-[20px] font-bold font-satoshi tracking-widest h-[24px]">
-                              {formatCardNumber(card.number)}
+                              {formatCardNumber(card.last_four)}
                             </p>
                           </div>
                           <div
@@ -367,7 +352,7 @@ const MyCards = () => {
                                 Expiry Date
                               </label>
                               <p className="text-white text-[13px] font-bold font-satoshi leading-none">
-                                {card.expiry}
+                                {card.expiry_month}/{card.expiry_year?.slice(-2)}
                               </p>
                             </div>
                             <div className="flex flex-col gap-[5px]">
@@ -395,19 +380,19 @@ const MyCards = () => {
                             className="absolute right-[26px] h-[24px] transition-all"
                             style={{ bottom: `${logoBottom}px` }}
                           >
-                            {card.type === 'visa' && (
+                            {card.card_type?.toLowerCase() === 'visa' && (
                               <img loading="eager" decoding="async"                                 src={ASSETS.VISA_LOGO}
                                 alt="Visa"
                                 className="h-full object-contain"
                               />
                             )}
-                            {card.type === 'mastercard' && (
+                            {card.card_type?.toLowerCase() === 'mastercard' && (
                               <img loading="eager" decoding="async"                                 src={ASSETS.MASTERCARD_LOGO}
                                 alt="Mastercard"
                                 className="h-full object-contain"
                               />
                             )}
-                            {card.type === 'rupay' && (
+                            {(card.card_type?.toLowerCase() === 'rupay' || card.card_type?.toLowerCase() === 'rupay ') && (
                               <img loading="eager" decoding="async"                                 src={ASSETS.RUPAY_LOGO}
                                 alt="Rupay"
                                 className="h-full object-contain"
@@ -480,91 +465,38 @@ const MyCards = () => {
                           )}
                           <div className="w-full h-full flex items-end justify-center pb-[14px] relative z-10">
                             {isDefault ? (
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <button
-                                      onClick={e => e.stopPropagation()}
-                                      className="flex items-center gap-2 px-4 w-full justify-center opacity-80 hover:opacity-100 transition-opacity"
-                                    >
-                                      <img loading="lazy" decoding="async"                                         src={ASSETS.DELETE_ICON}
-                                        alt="Remove"
-                                        className="w-[18px] h-[18px] object-contain"
-                                      />
-                                      <span className="text-brand-error text-[14px] font-medium">
-                                        Remove Card
-                                      </span>
-                                    </button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className={`${isDarkMode ? 'bg-[#12121a] border-white/10 text-white' : 'bg-white'}`}>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Remove Card?</AlertDialogTitle>
-                                      <AlertDialogDescription className={`${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
-                                        This card will be removed from your account. You can always add it back later.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel className={`${isDarkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : ''}`}>Keep it</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={async () => {
-                                          const card = cards.find(c => c.id === selectedCardId);
-                                          const last4 = card ? card.number.slice(-4) : 'XXXX';
-                                          await removeCard(selectedCardId!);
-                                          navigate(ROUTES.CARD_REMOVE_SUCCESS, { state: { last4 } });
-                                        }}
-                                        className="bg-red-500 hover:bg-red-600 text-white border-none"
-                                      >
-                                        Remove
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
+                                <>
+                                  <button
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setConfirmAction('remove');
+                                    }}
+                                    className="flex items-center gap-2 px-4 w-full justify-center opacity-80 hover:opacity-100 transition-opacity"
+                                  >
+                                    <img loading="lazy" decoding="async" src={ASSETS.DELETE_ICON} alt="Remove" className="w-[18px] h-[18px] object-contain" />
+                                    <span className="text-brand-error text-[14px] font-medium">Remove Card</span>
+                                  </button>
+                                </>
                             ) : (
                               <div className="w-full flex items-center h-[24px]">
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <button
-                                        onClick={e => e.stopPropagation()}
-                                        className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-                                      >
-                                        <img loading="lazy" decoding="async"                                           src={ASSETS.DELETE_ICON}
-                                          alt="Remove"
-                                          className="w-[18px] h-[18px] object-contain"
-                                        />
-                                        <span className="text-brand-error text-[14px] font-medium">
-                                          Remove Card
-                                        </span>
-                                      </button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent className={`${isDarkMode ? 'bg-[#12121a] border-white/10 text-white' : 'bg-white'}`}>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Remove Card?</AlertDialogTitle>
-                                        <AlertDialogDescription className={`${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
-                                          This card will be removed from your account. You can always add it back later.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel className={`${isDarkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : ''}`}>Keep it</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={async () => {
-                                            const card = cards.find(c => c.id === selectedCardId);
-                                            const last4 = card ? card.number.slice(-4) : 'XXXX';
-                                            await removeCard(selectedCardId!);
-                                            navigate(ROUTES.CARD_REMOVE_SUCCESS, { state: { last4 } });
-                                          }}
-                                          className="bg-red-500 hover:bg-red-600 text-white border-none"
-                                        >
-                                          Remove
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
+                                  <button
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setConfirmAction('remove');
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                                  >
+                                    <img loading="lazy" decoding="async" src={ASSETS.DELETE_ICON} alt="Remove" className="w-[18px] h-[18px] object-contain" />
+                                    <span className="text-brand-error text-[14px] font-medium">Remove Card</span>
+                                  </button>
                                 <div
                                   className={`w-[1.5px] ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-white/20'} self-stretch`}
                                 />
                                 <button
-                                  onClick={e => {
+                                  onClick={async e => {
                                     e.stopPropagation();
-                                    handleDefaultClick();
+                                    await setDefaultCard(selectedCardId!, userId!);
+                                    await fetchAllCards();
                                   }}
                                   className="flex-1 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
                                 >
@@ -670,8 +602,8 @@ const MyCards = () => {
         primaryText="Set as Default"
         onPrimaryClick={async () => {
           if (confirmAction === 'default' && selectedCardId) {
-            await setDefaultCard(selectedCardId);
-            const updated = await getCards();
+            await setDefaultCard(selectedCardId, userId!);
+            const updated = await getCards(userId!);
             setCards(updated);
             setSelectedCardId(null);
             closeConfirmation();
@@ -679,6 +611,25 @@ const MyCards = () => {
         }}
         secondaryButtonSrc={ASSETS.BUTTON_CANCEL_WIDE}
         secondaryText="Cancel"
+      />
+      <ConfirmationModal
+        isOpen={confirmAction === 'remove'}
+        onClose={closeConfirmation}
+        title="Remove Card?"
+        description="This card will be removed from your account. You can always add it back later."
+        primaryButtonSrc={ASSETS.BUTTON_SET_DEFAULT}
+        primaryText="Remove Card"
+        onPrimaryClick={async () => {
+          if (selectedCardId) {
+            const card = cards.find(c => c.id === selectedCardId);
+            const last4 = card ? card.last_four : 'XXXX';
+            await removeCard(selectedCardId, userId!);
+            closeConfirmation();
+            navigate(ROUTES.CARD_REMOVE_SUCCESS, { state: { last4 } });
+          }
+        }}
+        secondaryButtonSrc={ASSETS.BUTTON_CANCEL_WIDE}
+        secondaryText="Keep it"
       />
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6">
