@@ -278,6 +278,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
           setState(prev => ({
             ...prev,
+            profile: profileData as any,
             name: profileData.name || prev.name,
             profileImage: profileData.avatar_url || prev.profileImage,
             kycStatus: profileData.kyc_status as
@@ -289,7 +290,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             phoneNumber: profileData.phone || prev.phoneNumber,
             isFxEnabled: !!profileData.is_fx_enabled,
             biometricEnabled: !!profileData.biometric_on,
-
             isPassportVerified: !!profileData.is_passport_verified,
           }));
         } else {
