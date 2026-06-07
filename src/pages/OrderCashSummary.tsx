@@ -23,6 +23,7 @@ import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { toast } from 'sonner';
 
 // Module-level storage — survives React state resets within the session
 let isPaymentInProgress = false;
@@ -120,7 +121,12 @@ const OrderCashSummary = () => {
         data.url.includes('gridpe://cashfree-return');
       
       if (isCashfreeReturn && pendingVerificationStore) {
-        await runVerification(pendingVerificationStore);
+        try {
+          await runVerification(pendingVerificationStore);
+        } catch (err) {
+          console.error('[appUrlOpen] runVerification failed:', err);
+          toast.error('Payment verification failed. Please check your order history.');
+        }
       }
     });
 
@@ -128,7 +134,12 @@ const OrderCashSummary = () => {
       if (pendingVerificationStore) {
         // Small delay to let the WebView settle
         setTimeout(async () => {
-          await runVerification(pendingVerificationStore);
+          try {
+            await runVerification(pendingVerificationStore);
+          } catch (err) {
+            console.error('[resume] runVerification failed:', err);
+            toast.error('Payment verification failed. Please check your order history.');
+          }
         }, 1500);
       }
     });
@@ -522,7 +533,12 @@ const OrderCashSummary = () => {
             await browserFinishListener.remove();
             if (pendingVerificationStore) {
               setTimeout(async () => {
-                await runVerification(pendingVerificationStore);
+                try {
+                  await runVerification(pendingVerificationStore);
+                } catch (err) {
+                  console.error('[browserFinished] runVerification failed:', err);
+                  toast.error('Payment verification failed. Please check your order history.');
+                }
               }, 1000);
             }
           }
@@ -542,46 +558,51 @@ const OrderCashSummary = () => {
           }
           if (result.paymentDetails) {
             // Payment succeeded — verify server-side
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-cash-order', {
-              body: {
-                cashfree_order_id: resolvedOrderData.cashfree_order_id,
-                cashfree_payment_id: result.paymentDetails.paymentMessage || resolvedOrderData.cashfree_order_id,
-                user_id: userId,
-                address_id: addressId,
-                zone_id: zoneId,
-                city: activeAddress.city,
-                cash_amount: parsedAmount,
-                total_amount: totalAmount,
-                delivery_fee: deliveryFee,
-                platform_fee: platformFee,
-                gst: gst,
-                tip: tipAmount,
-                reward_points: rewardPointsValue,
-                rider_earnings: riderEarnings,
-                hub_id: pickupLocation,
-                pickup_location: pickupAddress,
-                delivery_address_text: dAddressText,
-                customer_phone_number: customerPhoneNumber,
-                delivery_location_lng: activeAddress.longitude || 0,
-                delivery_location_lat: activeAddress.latitude || 0,
-                scheduled_at: selectedSlot || null
-              }
-            });
+            try {
+              const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-cash-order', {
+                body: {
+                  cashfree_order_id: resolvedOrderData.cashfree_order_id,
+                  cashfree_payment_id: result.paymentDetails.paymentMessage || resolvedOrderData.cashfree_order_id,
+                  user_id: userId,
+                  address_id: addressId,
+                  zone_id: zoneId,
+                  city: activeAddress.city,
+                  cash_amount: parsedAmount,
+                  total_amount: totalAmount,
+                  delivery_fee: deliveryFee,
+                  platform_fee: platformFee,
+                  gst: gst,
+                  tip: tipAmount,
+                  reward_points: rewardPointsValue,
+                  rider_earnings: riderEarnings,
+                  hub_id: pickupLocation,
+                  pickup_location: pickupAddress,
+                  delivery_address_text: dAddressText,
+                  customer_phone_number: customerPhoneNumber,
+                  delivery_location_lng: activeAddress.longitude || 0,
+                  delivery_location_lat: activeAddress.latitude || 0,
+                  scheduled_at: selectedSlot || null
+                }
+              });
 
-            if (verifyError || !verifyData?.success) {
-              showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
-              setIsLoading(false);
-              return;
+              if (verifyError || !verifyData?.success) {
+                showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
+                setIsLoading(false);
+                return;
+              }
+
+              setBadge(1);
+              navigate(ROUTES.ORDER_DETAILS.replace(':orderId', verifyData.order_id), {
+                state: {
+                  totalAmount,
+                  savedAddress: activeAddress,
+                  order: { id: verifyData.order_id, status: 'payment_captured' }
+                }
+              });
+            } catch (err) {
+              console.error('[verify-cash-order] invocation failed:', err);
+              toast.error('Payment verification failed. Please check your order history.');
             }
-
-            setBadge(1);
-            navigate(ROUTES.ORDER_DETAILS.replace(':orderId', verifyData.order_id), {
-              state: {
-                totalAmount,
-                savedAddress: activeAddress,
-                order: { id: verifyData.order_id, status: 'payment_captured' }
-              }
-            });
           }
         });
       }

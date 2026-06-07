@@ -166,7 +166,7 @@ const Settings = () => {
       try {
         const [accounts, localCards, dbCountResponse] = await Promise.all([
           fetchBankAccounts(userId || ''),
-          getCards(),
+          getCards(userId || ''),
           supabase
             .from('bank_cards')
             .select('*', { count: 'exact', head: true })
@@ -181,8 +181,10 @@ const Settings = () => {
         console.error('Error loading settings counts:', error);
         // Robust fallback: try getting at least local cards if everything failed
         try {
-          const fallbackCards = await getCards();
-          cardCount = fallbackCards.length;
+          if (userId) {
+            const fallbackCards = await getCards(userId);
+            cardCount = fallbackCards.length;
+          }
         } catch (e) {
           // ignore error
         }
