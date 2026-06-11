@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
+import { useQuery } from '@tanstack/react-query';
+import { fetchRecentOrders } from '@/lib/orders';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/button';
@@ -12,8 +14,61 @@ const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
-  const [amount, setAmount] = useState<string>('0.00');
+  const [amount, setAmount] = useState<string>(() => {
+    const initialAmount = location.state?.amount;
+    return initialAmount ? Number(initialAmount).toFixed(2) : '0.00';
+  });
   const isDarkMode = useIsDarkMode();
+
+  const { profile } = useUser();
+  const userId = profile?.id;
+  const tierName = (profile as any)?.wallet_tiers?.name || 'Basic';
+  const dailyLimit = tierName.toLowerCase() === 'pro' ? 25000 : 5000;
+  const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
+
+  const recentOrdersQuery = useQuery({
+    queryKey: ['recent-orders', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      try {
+        return await fetchRecentOrders(userId);
+      } catch (e) {
+        console.error('recentOrdersQuery unexpected error:', e);
+        return [];
+      }
+    },
+    enabled: !!userId,
+  });
+
+  const transactionHistory = recentOrdersQuery.data ?? [];
+
+  const { todayCashSum, monthCashSum } = React.useMemo(() => {
+    let todaySum = 0;
+    let monthSum = 0;
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const excludedStatuses = ['cancelled', 'failed', 'rejected'];
+
+    transactionHistory.forEach((tx: any) => {
+      if (excludedStatuses.includes(tx.status)) return;
+      
+      const txDate = new Date(tx.created_at);
+      const txAmount = Number(tx.amount) || 0;
+
+      if (txDate.toDateString() === todayStr) {
+        todaySum += txAmount;
+      }
+      
+      if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+        monthSum += txAmount;
+      }
+    });
+
+    return { todayCashSum: todaySum, monthCashSum: monthSum };
+  }, [transactionHistory]);
   const handleKeyPress = (key: string) => {
     setAmount(prev => {
       if (prev === '0.00') {
@@ -71,6 +126,20 @@ const OrderCash = () => {
     </button>
   );
   const isZero = amount === '0.00';
+
+  const numericAmount = parseFloat(amount) || 0;
+  const isDailyLimitExceeded = todayCashSum + numericAmount > dailyLimit;
+  const isMonthlyLimitExceeded = monthCashSum + numericAmount > monthlyLimit;
+
+  let errorMessage = '';
+  if (numericAmount > 0 && numericAmount < 500) {
+    errorMessage = 'Amount needs to be ₹500 or more';
+  } else if (numericAmount > 0 && isDailyLimitExceeded) {
+    errorMessage = `Daily limit exceeded. You can only order ₹${Math.max(0, dailyLimit - todayCashSum).toLocaleString('en-IN')} more today.`;
+  } else if (numericAmount > 0 && isMonthlyLimitExceeded) {
+    errorMessage = `Monthly limit exceeded. You can only order ₹${Math.max(0, monthlyLimit - monthCashSum).toLocaleString('en-IN')} more this month.`;
+  }
+
   return (
     <div
       className={`h-full w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
@@ -113,9 +182,9 @@ const OrderCash = () => {
         <div
           className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-brand-border-light'}`}
         />
-        {parseFloat(amount) > 0 && parseFloat(amount) < 500 && (
+        {errorMessage && (
           <p className="text-brand-error text-[12px] font-normal font-sans mb-[17px] mt-[8px]">
-            Amount needs to be ₹500 or more
+            {errorMessage}
           </p>
         )}
         <div className="flex gap-4 mb-2">
@@ -232,10 +301,10 @@ const OrderCash = () => {
                       },
                     })
                   }
-                  disabled={parseFloat(amount) < 500}
+                  disabled={numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded}
                   className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {parseFloat(amount) < 500 ? 'Min. ₹500' : 'Continue to Pay'}
+                  {numericAmount < 500 ? 'Min. ₹500' : isDailyLimitExceeded || isMonthlyLimitExceeded ? 'Limit Exceeded' : 'Continue to Pay'}
                 </Button>
               </div>
             </div>

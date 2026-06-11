@@ -15,11 +15,12 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { order_id, user_id } = body;
+    
+    // Accept Cashfree order_id or incoming webhook payloads securely
+    const order_id = body.order_id || body.data?.order?.order_id;
 
-    // Validate inputs
-    if (!order_id || !user_id) {
-      return new Response(JSON.stringify({ error: "Invalid request data: order_id and user_id are required" }), {
+    if (!order_id) {
+      return new Response(JSON.stringify({ error: "Invalid request data: order_id is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
@@ -37,7 +38,7 @@ Deno.serve(async (req: Request) => {
       throw new Error("Cashfree credentials missing");
     }
 
-    // Verify payment with Cashfree
+    // Proactively call the Cashfree verification endpoint to check if the status is strictly "PAID"
     const cashfreeResponse = await fetch(`${baseUrl}/orders/${order_id}`, {
       method: "GET",
       headers: {
@@ -74,7 +75,6 @@ Deno.serve(async (req: Request) => {
       .from('pending_payments')
       .select('*')
       .eq('gateway_order_id', order_id)
-      .eq('user_id', user_id)
       .eq('type', 'pro_subscription')
       .maybeSingle();
 
@@ -90,7 +90,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (pendingPayment.status === 'completed') {
+    if (pendingPayment.status === 'success' || pendingPayment.status === 'completed') {
        return new Response(JSON.stringify({
         success: true,
         plan_tier: pendingPayment.metadata?.plan_tier || 'pro',
@@ -101,11 +101,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Extract billing cycle and amount
+    const user_id = pendingPayment.user_id;
     const billing_cycle = pendingPayment.metadata?.billing_cycle || 'monthly';
     const amount_paid = pendingPayment.amount;
 
-    // Calculate expires_at
     const expiresAt = new Date();
     if (billing_cycle === 'monthly') {
       expiresAt.setDate(expiresAt.getDate() + 30);
@@ -123,7 +122,7 @@ Deno.serve(async (req: Request) => {
       started_at: new Date().toISOString(),
       expires_at: expiresAt.toISOString(),
       gateway_order_id: order_id,
-      gateway_payment_id: cashfreeData.order_id // Note: could be payment ID if fetching payments, but we have order data
+      gateway_payment_id: cashfreeData.order_id 
     };
 
     const { error: upsertError } = await supabase
@@ -135,21 +134,32 @@ Deno.serve(async (req: Request) => {
       throw upsertError;
     }
 
-    // Update profiles table
+    // Update the user's row in the profiles table to assign the Pro tier mapping
+    // We try to fetch the ID for the 'pro' wallet tier
+    const { data: proTier } = await supabase
+      .from('wallet_tiers')
+      .select('id')
+      .ilike('name', 'pro')
+      .maybeSingle();
+
+    const profileUpdateData: any = { plan_tier: 'pro' };
+    if (proTier && proTier.id) {
+      profileUpdateData.wallet_tier_id = proTier.id;
+    }
+
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ plan_tier: 'pro' })
+      .update(profileUpdateData)
       .eq('id', user_id);
 
     if (profileError) {
-      console.error("Database error updating profile plan_tier:", profileError);
-      // We continue as the subscription table holds the source of truth, though we should probably rollback or retry.
+      console.error("Database error updating profile plan_tier/wallet_tier_id:", profileError);
     }
 
-    // Update pending_payments status to 'completed'
+    // Mark the transaction inside pending_payments as 'success'
     const { error: updatePendingError } = await supabase
       .from('pending_payments')
-      .update({ status: 'completed' })
+      .update({ status: 'success' })
       .eq('id', pendingPayment.id);
 
     if (updatePendingError) {

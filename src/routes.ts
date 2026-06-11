@@ -58,6 +58,7 @@ export const ROUTES = {
   HELP_SUCCESS: '/help/success',
   REWARDS: '/rewards',
   MORE: '/more',
+  SUBSCRIPTIONS: '/subscriptions',
   FX_EXCHANGE: '/fx-exchange',
   FX_EXCHANGE_SUMMARY: '/fx-exchange-summary',
   INTERNATIONAL_PAYMENT: '/international-payment',

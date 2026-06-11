@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Zap, BadgePercent, CalendarClock, BadgeDollarSign, Sparkles } from 'lucide-react';
+import { TrendingUp, Zap, BadgePercent, CalendarClock, BadgeDollarSign, Sparkles, Loader2 } from 'lucide-react';
+import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase';
+import { useUser } from '@/contexts/UserContext';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+
+declare const Cashfree: any;
 import proPageBg from '@/assets/pro-page-bg.webp';
 import gridpeProSvg from '@/assets/gridpe-pro.svg';
 
@@ -42,6 +50,93 @@ const benefits = [
 const ProUpgrade = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [isLoading, setIsLoading] = useState(false);
+  const { profile, fetchProfileData } = useUser();
+  const userId = profile?.id;
+
+  const handleUpgradeClick = async () => {
+    if (!userId) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-pro-subscription', {
+        body: { userId, billingCycle }
+      });
+      
+      if (error || !data) {
+        console.error('Failed to initiate payment', error);
+        setIsLoading(false);
+        return;
+      }
+      
+      const { payment_session_id, order_id } = data;
+      const isNative = Capacitor.isNativePlatform();
+      
+      const cashfreeEnv = import.meta.env.VITE_CASHFREE_ENV === 'sandbox' ? 'sandbox' : 'production';
+      const cashfree = typeof Cashfree !== 'undefined' ? Cashfree({ mode: cashfreeEnv }) : null;
+      
+      if (isNative) {
+        const checkoutBaseUrl = cashfreeEnv === 'sandbox'
+          ? 'https://payments-test.cashfree.com/order'
+          : 'https://payments.cashfree.com/order';
+        const checkoutUrl = `${checkoutBaseUrl}/#${payment_session_id}`;
+        
+        const browserFinishListener = await Browser.addListener(
+          'browserFinished',
+          async () => {
+            browserFinishListener.remove();
+            await verifyPayment(order_id);
+          }
+        );
+        
+        await Browser.open({ url: checkoutUrl, windowName: '_blank' });
+        setIsLoading(false);
+      } else {
+        if (!cashfree) {
+          throw new Error('Cashfree SDK not loaded');
+        }
+        
+        const checkoutOptions = {
+          paymentSessionId: payment_session_id,
+          redirectTarget: '_modal',
+        };
+        
+        cashfree.checkout(checkoutOptions).then(async (result: any) => {
+          if (result.error) {
+            console.error('Payment failed or cancelled.');
+            setIsLoading(false);
+          } else {
+            await verifyPayment(order_id);
+          }
+        });
+      }
+    } catch (err: any) {
+      console.error(err);
+      setIsLoading(false);
+    }
+  };
+
+  const verifyPayment = async (order_id: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-pro-subscription', {
+        body: { order_id }
+      });
+      if (error) {
+         console.error('Payment verification failed.', error);
+      } else if (data?.success) {
+         await fetchProfileData?.();
+         navigate(ROUTES.HOME);
+      } else {
+         console.error('Payment not completed.', data?.error);
+      }
+    } catch (err) {
+      console.error('Verification error', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div 
@@ -152,14 +247,19 @@ const ProUpgrade = () => {
 
         {/* CTA */}
         <Button
-          onClick={() => {}}
+          onClick={handleUpgradeClick}
+          disabled={isLoading}
           variant="glass"
           className="w-full h-[48px] shadow-xl transition-all mt-[18px]"
           style={{ '--glass-specular-intensity': '0.2' } as React.CSSProperties}
         >
-          <span className="text-white font-satoshi font-semibold text-[16px]">
-            Upgrade to Grid.Pe Pro
-          </span>
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 text-white animate-spin" />
+          ) : (
+            <span className="text-white font-satoshi font-semibold text-[16px]">
+              Upgrade to Grid.Pe Pro
+            </span>
+          )}
         </Button>
 
         {/* Disclaimer */}

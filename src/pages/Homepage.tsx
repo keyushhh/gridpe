@@ -1,5 +1,5 @@
 import { ASSETS } from '@/constants/assets';
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -100,6 +100,8 @@ const Homepage = () => {
   const isDarkMode = useIsDarkMode();
   const [showBalance, setShowBalance] = useState(false);
   const [showDeliveryLimitsModal, setShowDeliveryLimitsModal] = useState(false);
+  const [amount, setAmount] = useState<string>('0.00');
+  const [showInlineKeypad, setShowInlineKeypad] = useState<boolean>(false);
   const {
     name,
     profile,
@@ -112,6 +114,9 @@ const Homepage = () => {
   const activeAddress = useLocationStore((state) => state.activeAddress);
   const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
+  const tierName = (profile as any)?.wallet_tiers?.name || 'Basic';
+  const dailyLimit = tierName.toLowerCase() === 'pro' ? 25000 : 5000;
+  const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
   const [balanceAlert, setBalanceAlert] = useState<{
     days: number;
     excess: number;
@@ -347,8 +352,100 @@ const Homepage = () => {
 
   const activeOrder = activeOrderQuery.data ?? null;
   const transactionHistory = recentOrdersQuery.data ?? [];
+
+  const { todayCashSum, monthCashSum } = useMemo(() => {
+    let todaySum = 0;
+    let monthSum = 0;
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const excludedStatuses = ['cancelled', 'failed', 'rejected'];
+
+    transactionHistory.forEach((tx: any) => {
+      if (excludedStatuses.includes(tx.status)) return;
+      
+      const txDate = new Date(tx.created_at);
+      const amount = Number(tx.amount) || 0;
+
+      if (txDate.toDateString() === todayStr) {
+        todaySum += amount;
+      }
+      
+      if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+        monthSum += amount;
+      }
+    });
+
+    return { todayCashSum: todaySum, monthCashSum: monthSum };
+  }, [transactionHistory]);
   const hasSavedAddresses = (addressesCountQuery.data ?? 0) > 0;
   const liveWalletBalance = 0; // WALLET_HIDDEN placeholder
+
+  const numericAmount = parseFloat(amount) || 0;
+  const isDailyLimitExceeded = todayCashSum + numericAmount > dailyLimit;
+  const isMonthlyLimitExceeded = monthCashSum + numericAmount > monthlyLimit;
+
+  const handleKeyPress = (key: string) => {
+    setAmount(prev => {
+      if (prev === '0.00') {
+        return key === '.' ? '0.' : key;
+      }
+      if (key === '.' && prev.includes('.')) {
+        return prev;
+      }
+      if (prev.includes('.')) {
+        const [whole, decimal] = prev.split('.');
+        if (decimal && decimal.length >= 2) {
+          return prev;
+        }
+      }
+      return prev + key;
+    });
+  };
+
+  const handleBackspace = () => {
+    setAmount(prev => {
+      if (prev.length <= 1) return '0.00';
+      if (prev === '0.00') return '0.00';
+      return prev.slice(0, -1);
+    });
+  };
+
+  const handlePillClick = (val: string) => {
+    setAmount(val);
+  };
+
+  const KeypadButton = ({
+    label,
+    onClick,
+    icon,
+  }: {
+    label?: string;
+    onClick?: () => void;
+    icon?: React.ReactNode;
+  }) => (
+    <button
+      onClick={onClick}
+      className={`w-[113px] h-[65px] rounded-xl flex items-center justify-center active:bg-brand-primary active:text-white transition-colors group shadow-sm ${
+        isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
+      }`}
+    >
+      {icon ? (
+        <div className="group-active:brightness-200">
+          {React.cloneElement(icon as React.ReactElement, {
+            style: { filter: isDarkMode ? 'brightness(0) saturate(100%) invert(1)' : 'brightness(0)' },
+            className: `${(icon as React.ReactElement).props.className} group-active:filter-none`,
+          })}
+        </div>
+      ) : (
+        <span className={`font-bold font-sans text-[32px] group-active:text-white ${isDarkMode ? 'text-white' : 'text-black'}`}>
+          {label}
+        </span>
+      )}
+    </button>
+  );
   
   // Only show skeleton on INITIAL load (no data at all)
   const isInitialLoading = 
@@ -1132,12 +1229,15 @@ const Homepage = () => {
                     </span>
                     
                     <div 
-                      className="mt-[18px] flex items-center justify-center cursor-default"
-                      onClick={(e) => e.stopPropagation()}
+                      className="mt-[18px] flex items-center justify-center cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowInlineKeypad(true);
+                      }}
                     >
                       <span className="text-[32px] font-bold font-sans mr-1 text-white">₹</span>
-                      <span className="text-[32px] font-light font-sans text-white/50 mr-1 mt-[-4px]">|</span>
-                      <span className="text-[32px] font-bold font-sans text-white/50">0.00</span>
+                      <span className={`text-[32px] font-light font-sans ${amount === '0.00' ? 'text-white/50' : 'text-white'} mr-1 mt-[-4px]`}>|</span>
+                      <span className={`text-[32px] font-bold font-sans ${amount === '0.00' ? 'text-white/50' : 'text-white'}`}>{amount}</span>
                     </div>
 
                     <div 
@@ -1147,7 +1247,12 @@ const Homepage = () => {
                       {['500', '1000', '1500'].map(val => (
                         <div
                           key={val}
-                          className="relative h-[30px] flex items-center justify-center px-3 py-[6px]"
+                          className="relative h-[30px] flex items-center justify-center px-3 py-[6px] cursor-pointer active:scale-95 transition-transform"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePillClick(val);
+                            setShowInlineKeypad(true);
+                          }}
                         >
                           <div
                             className="absolute inset-0 w-full h-full"
@@ -1165,15 +1270,34 @@ const Homepage = () => {
                     </div>
                 </div>
                 
-                <div className="mt-[12px] flex justify-center w-full px-[9px]">
+                <div className="mt-[12px] flex flex-col justify-center items-center w-full px-[9px]">
+                  {(numericAmount > 0 && isDailyLimitExceeded) && (
+                    <p className="text-[#FF4248] text-[12px] font-medium text-center mb-2">
+                      Daily limit exceeded. You can only order ₹{Math.max(0, dailyLimit - todayCashSum).toLocaleString('en-IN')} more today.
+                    </p>
+                  )}
+                  {(numericAmount > 0 && isMonthlyLimitExceeded) && (
+                    <p className="text-[#FF4248] text-[12px] font-medium text-center mb-2">
+                      Monthly limit exceeded. You can only order ₹{Math.max(0, monthlyLimit - monthCashSum).toLocaleString('en-IN')} more this month.
+                    </p>
+                  )}
                   <Button
-                    onClick={() => {}}
-                    variant={isDarkMode ? 'glass' : 'default'}
+                    onClick={() => {
+                      if (numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) {
+                        navigate(ROUTES.ORDER_CASH_SUMMARY, { state: { amount, isScheduledFlow: false } });
+                      } else {
+                        setShowInlineKeypad(true);
+                      }
+                    }}
+                    disabled={numericAmount > 0 && (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded)}
+                    variant={(numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) ? 'default' : (isDarkMode ? 'glass' : 'default')}
                     className={cn(
-                      'w-full h-[44px] shadow-xl transition-all',
-                      !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full border border-white/20'
+                      'w-full h-[44px] shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed',
+                      (numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded)
+                        ? 'bg-[#5260FE] hover:bg-[#5260FE]/90 active:scale-[0.98] border-none text-white rounded-full'
+                        : (!isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full border border-white/20')
                     )}
-                    style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
+                    style={isDarkMode && !(numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
                   >
                     <img loading="lazy" decoding="async" src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
                     <span
@@ -1182,7 +1306,13 @@ const Homepage = () => {
                         isDarkMode ? 'text-white dark:text-foreground' : 'text-white'
                       )}
                     >
-                      Order Cash
+                      {numericAmount === 0 
+                        ? 'Order Cash' 
+                        : (isDailyLimitExceeded || isMonthlyLimitExceeded) 
+                          ? 'Limit Exceeded' 
+                          : numericAmount < 500 
+                            ? 'Min. ₹500' 
+                            : 'Proceed to Pay'}
                     </span>
                   </Button>
                 </div>
@@ -1209,11 +1339,11 @@ const Homepage = () => {
                       />
                     </div>
                     <div className="w-full h-[6px] bg-[#2A2A2A] rounded-full overflow-hidden mb-[8px]">
-                      <div className="h-full bg-gradient-to-r from-[#2DD4BF] to-[#4ADE80] rounded-full" style={{ width: '0%' }}></div>
+                      <div className="h-full bg-gradient-to-r from-[#2DD4BF] to-[#4ADE80] rounded-full" style={{ width: `${Math.min((todayCashSum / dailyLimit) * 100, 100)}%` }}></div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-satoshi font-medium text-[15px] text-white">₹0</span>
-                      <span className="font-satoshi font-medium text-[15px] text-white">₹5000/day</span>
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹{todayCashSum.toLocaleString('en-IN')}</span>
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹{dailyLimit.toLocaleString('en-IN')}/day</span>
                     </div>
                   </div>
 
@@ -1221,14 +1351,14 @@ const Homepage = () => {
                   <div className="flex flex-col">
                     <div className="flex justify-between items-center mb-[8px]">
                       <span className="font-satoshi font-normal text-[16px] text-white">Current Tier</span>
-                      <span className="font-satoshi font-medium text-[16px] text-[#5260FE]">Basic</span>
+                      <span className="font-satoshi font-medium text-[16px] text-[#5260FE]">{tierName.charAt(0).toUpperCase() + tierName.slice(1)}</span>
                     </div>
                     <div className="w-full h-[6px] bg-[#2A2A2A] rounded-full overflow-hidden mb-[8px]">
-                      <div className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] rounded-full" style={{ width: '0%' }}></div>
+                      <div className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] rounded-full" style={{ width: `${Math.min((monthCashSum / monthlyLimit) * 100, 100)}%` }}></div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-satoshi font-medium text-[15px] text-white">₹0</span>
-                      <span className="font-satoshi font-medium text-[15px] text-white">₹25,000/month</span>
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹{monthCashSum.toLocaleString('en-IN')}</span>
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹{monthlyLimit.toLocaleString('en-IN')}/month</span>
                     </div>
                   </div>
                 </div>
@@ -1784,7 +1914,86 @@ const Homepage = () => {
           )}
         </div>
       </div>
-      <BottomNavigation activeTab="home" isHidden={isAddressModalOpen || isAddressSheetOpen} />
+      <BottomNavigation activeTab="home" isHidden={isAddressModalOpen || isAddressSheetOpen || showInlineKeypad} />
+      
+      <AnimatePresence>
+        {showInlineKeypad && (
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed bottom-0 left-0 right-0 z-[60] flex flex-col justify-end"
+          >
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black/20 dark:bg-black/40 -z-10"
+              onClick={() => setShowInlineKeypad(false)}
+            />
+            <div
+              className={`w-full relative rounded-t-[32px] overflow-hidden shrink-0 ${!isDarkMode ? 'border-t border-brand-border-light' : ''}`}
+            >
+              {isDarkMode && (
+                <div
+                  className="absolute inset-0 rounded-t-[32px] pointer-events-none"
+                  style={{
+                    padding: '0.63px',
+                    background:
+                      'linear-gradient(to bottom right, rgba(255,255,255,0.12), rgba(0,0,0,0.20))',
+                    mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    maskComposite: 'exclude',
+                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    WebkitMaskComposite: 'xor',
+                  }}
+                />
+              )}
+              <div
+                className="w-full h-full p-[20px] pb-[40px] backdrop-blur-[25px]"
+                style={{
+                  backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.95)' : '#F1F5F9',
+                }}
+              >
+                {/* Close handle */}
+                <div className="flex justify-center w-full mb-4">
+                  <div className="w-[40px] h-[4px] rounded-full bg-black/20 dark:bg-white/20" />
+                </div>
+                <div className="flex flex-col gap-[10px] items-center relative z-10">
+                  <div className="flex gap-[10px]">
+                    <KeypadButton label="1" onClick={() => handleKeyPress('1')} />
+                    <KeypadButton label="2" onClick={() => handleKeyPress('2')} />
+                    <KeypadButton label="3" onClick={() => handleKeyPress('3')} />
+                  </div>
+                  <div className="flex gap-[10px]">
+                    <KeypadButton label="4" onClick={() => handleKeyPress('4')} />
+                    <KeypadButton label="5" onClick={() => handleKeyPress('5')} />
+                    <KeypadButton label="6" onClick={() => handleKeyPress('6')} />
+                  </div>
+                  <div className="flex gap-[10px]">
+                    <KeypadButton label="7" onClick={() => handleKeyPress('7')} />
+                    <KeypadButton label="8" onClick={() => handleKeyPress('8')} />
+                    <KeypadButton label="9" onClick={() => handleKeyPress('9')} />
+                  </div>
+                  <div className="flex gap-[10px]">
+                    <KeypadButton label="." onClick={() => handleKeyPress('.')} />
+                    <KeypadButton label="0" onClick={() => handleKeyPress('0')} />
+                    <KeypadButton
+                      onClick={handleBackspace}
+                      icon={
+                        <img
+                          src={ASSETS.BACKSPACE}
+                          alt="Backspace"
+                          className="w-[18px] h-[18px] object-contain"
+                        />
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <OrderDetailsSheet
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
@@ -1823,7 +2032,7 @@ const Homepage = () => {
               <div className="flex flex-col items-start text-left">
                 <h3 className="text-white font-satoshi font-bold text-[18px] tracking-tight mb-[4px]">Delivery Limits</h3>
                 <p className="text-white/90 font-satoshi font-[400] text-[16px] leading-snug mb-[3px]">
-                  Your current Basic plan allows up to ₹5,000/day and ₹25,000/month in cash orders.
+                  Your current {tierName.charAt(0).toUpperCase() + tierName.slice(1)} plan allows up to ₹{dailyLimit.toLocaleString('en-IN')}/day and ₹{monthlyLimit.toLocaleString('en-IN')}/month in cash orders.
                 </p>
                 <p className="text-white/90 font-satoshi font-[400] text-[16px] leading-snug">
                   Upgrade to Grid.Pe Pro to unlock higher limits and exclusive benefits.
@@ -1833,7 +2042,10 @@ const Homepage = () => {
               <div className="mt-[22px] flex flex-col items-center">
                 <button
                   className="w-full max-w-[328px] h-[48px] bg-[#5260FE] rounded-full active:scale-95 transition-transform flex items-center justify-center mb-[14px]"
-                  onClick={() => {}}
+                  onClick={() => {
+                    setShowDeliveryLimitsModal(false);
+                    navigate(ROUTES.PRO_UPGRADE);
+                  }}
                 >
                   <span className="text-white text-[16px] font-medium font-satoshi">
                     Explore Grid.Pe Pro

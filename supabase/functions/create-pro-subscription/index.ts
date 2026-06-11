@@ -15,57 +15,28 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { user_id, billing_cycle } = body;
+    const { userId, billingCycle } = body;
 
     // Validate inputs
-    if (!user_id || !billing_cycle || !['monthly', 'annual'].includes(billing_cycle)) {
-      return new Response(JSON.stringify({ error: "Invalid request data: user_id and valid billing_cycle ('monthly' or 'annual') are required" }), {
+    if (!userId || !billingCycle || !['monthly', 'annual'].includes(billingCycle)) {
+      return new Response(JSON.stringify({ error: "Invalid request data: userId and valid billingCycle ('monthly' or 'annual') are required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
-    // Determine amount
-    const amount = billing_cycle === 'monthly' ? 99.00 : 999.00;
+    // Determine amount dynamically based on the cycle (processed as decimal strings)
+    const amount = billingCycle === 'monthly' ? "99.00" : "990.00";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check if user already has active Pro subscription
-    const { data: existingSub, error: subError } = await supabase
-      .from('user_subscriptions')
-      .select('id')
-      .eq('user_id', user_id)
-      .eq('status', 'active')
-      .eq('plan_tier', 'pro')
-      .gt('expires_at', new Date().toISOString())
-      .limit(1)
-      .maybeSingle();
-
-    if (subError) {
-      console.error("Error checking existing subscription:", subError);
-      return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
-    if (existingSub) {
-      return new Response(JSON.stringify({ 
-        error: 'already_subscribed', 
-        message: 'User already has an active Pro subscription' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
     // Fetch customer details from profiles table
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, name, phone, email')
-      .eq('id', user_id)
+      .eq('id', userId)
       .single();
 
     if (profileError || !profile) {
@@ -94,10 +65,10 @@ Deno.serve(async (req: Request) => {
 
     const cashfreePayload = {
       order_id: cashfreeOrderId,
-      order_amount: amount,
+      order_amount: amount, // Passed as decimal string
       order_currency: "INR",
       customer_details: {
-        customer_id: user_id,
+        customer_id: userId,
         customer_phone: profile.phone || "9999999999",
         customer_name: profile.name || "Customer",
         customer_email: profile.email || "customer@gridpe.in"
@@ -105,7 +76,13 @@ Deno.serve(async (req: Request) => {
       order_meta: {
         return_url: returnUrl
       },
-      order_note: `Grid.Pe Pro - ${billing_cycle}`
+      // In Cashfree metadata, securely include user_id, requested_tier: "pro", and billing_cycle
+      order_tags: {
+        user_id: userId,
+        requested_tier: "pro",
+        billing_cycle: billingCycle
+      },
+      order_note: `Grid.Pe Pro - ${billingCycle}`
     };
 
     const cashfreeResponse = await fetch(`${baseUrl}/orders`, {
@@ -135,15 +112,15 @@ Deno.serve(async (req: Request) => {
       throw new Error("No payment_session_id returned from Cashfree");
     }
 
-    // Insert into pending_payments table
+    // Insert a tracking row into the pending_payments table with status 'pending'
     const pendingPaymentInsert = {
-      user_id: user_id,
+      user_id: userId,
       amount: amount,
       type: 'pro_subscription',
       status: 'pending',
       gateway_order_id: cashfreeOrderId,
       metadata: {
-        billing_cycle,
+        billing_cycle: billingCycle,
         plan_tier: 'pro',
         amount_paid: amount
       }
@@ -158,11 +135,12 @@ Deno.serve(async (req: Request) => {
       throw dbError;
     }
 
+    // Returning payment details to the client
     return new Response(JSON.stringify({
       payment_session_id: paymentSessionId,
       order_id: cashfreeOrderId,
-      amount,
-      billing_cycle
+      amount: amount,
+      billing_cycle: billingCycle
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
