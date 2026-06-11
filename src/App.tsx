@@ -64,24 +64,43 @@ const AddAddressDetails = lazy(() => import('./pages/AddAddressDetails'));
 const OrderCancelled = lazy(() => import('./pages/OrderCancelled'));
 const OrderTracking = lazy(() => import('./pages/OrderTracking'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const Wallet = lazy(() => import('./pages/Wallet'));
+*/
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletCreated = lazy(() => import('./pages/WalletCreated'));
+*/
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletTransactionHistory = lazy(() => import('./pages/WalletTransactionHistory'));
+*/
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletAddMoney = lazy(() => import('./pages/WalletAddMoney'));
+*/
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletSettings = lazy(() => import('./pages/WalletSettings'));
-const WalletTierDetails = lazy(() => import('./pages/WalletTierDetails'));
+*/
+
 const AddPaymentMethod = lazy(() => import('./pages/AddPaymentMethod'));
 const OrderSummary = lazy(() => import('./pages/OrderSummary'));
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletTopUpSuccess = lazy(() => import('./pages/WalletTopUpSuccess'));
+*/
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletTopUpFailed = lazy(() => import('./pages/WalletTopUpFailed'));
-const SubscriptionSummary = lazy(() => import('./pages/SubscriptionSummary'));
-const WalletUpgradeSuccess = lazy(() => import('./pages/WalletUpgradeSuccess'));
+*/
+
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletWithdraw = lazy(() => import('./pages/WalletWithdraw'));
+*/
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletWithdrawSuccess = lazy(() => import('./pages/WalletWithdrawSuccess'));
+*/
 const PaymentMissing = lazy(() => import('./pages/PaymentMissing'));
 const SelectPaymentMethod = lazy(() => import('./pages/SelectPaymentMethod'));
 const WithdrawOTP = lazy(() => import('./pages/WithdrawOTP'));
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
 const WalletWithdrawFailed = lazy(() => import('./pages/WalletWithdrawFailed'));
+*/
 const ViewRiderKyc = lazy(() => import('./pages/ViewRiderKyc'));
 const VerifyRiderKyc = lazy(() => import('./pages/VerifyRiderKyc'));
 const ReportRiderKyc = lazy(() => import('./pages/ReportRiderKyc'));
@@ -105,9 +124,7 @@ const FxPassportKYC = lazy(() => import('./pages/FxPassportKYC'));
 const FxKYCSuccess = lazy(() => import('./pages/FxKYCSuccess'));
 const InternationalPayment = lazy(() => import('./pages/InternationalPayment'));
 const LiveRates = lazy(() => import('@/pages/LiveRates'));
-const Subscriptions = lazy(() => import('@/pages/Subscriptions'));
-const ManageSubscription = lazy(() => import('@/pages/ManageSubscription'));
-const DowngradePlan = lazy(() => import('./pages/DowngradePlan'));
+
 const DowngradeSummary = lazy(() => import('./pages/DowngradeSummary'));
 const HelpCategoryPage = lazy(() => import('./pages/HelpCategoryPage'));
 const ZingChat = lazy(() => import('./pages/ZingChat'));
@@ -115,6 +132,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const DeliveryCaution = lazy(() => import('./pages/DeliveryCaution'));
 const NotAvailable = lazy(() => import('./pages/NotAvailable'));
 const RideAndEarn = lazy(() => import('./pages/RideAndEarn'));
+const ProUpgrade = lazy(() => import('./pages/ProUpgrade'));
 import { Button } from '@/components/ui/button';
 import { useNotificationNavigation } from './hooks/useNotificationNavigation';
 import { InAppNotificationBanner } from './components/InAppNotificationBanner';
@@ -488,6 +506,14 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                     <Route path={ROUTES.INDEX} element={<Index />} />
                     <Route path={ROUTES.RIDE_AND_EARN} element={<RideAndEarn />} />
                     <Route
+                      path={ROUTES.PRO_UPGRADE}
+                      element={
+                        <ProtectedRoute>
+                          <ProUpgrade />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
                       path={ROUTES.HOME}
                       element={
                         <ProtectedRoute>
@@ -767,6 +793,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET}
                       element={
@@ -775,6 +802,8 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_CREATED}
                       element={
@@ -783,6 +812,8 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_TRANSACTION_HISTORY}
                       element={
@@ -791,6 +822,8 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_SETTINGS}
                       element={
@@ -799,14 +832,9 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path={ROUTES.WALLET_TIER}
-                      element={
-                        <ProtectedRoute>
-                          <WalletTierDetails />
-                        </ProtectedRoute>
-                      }
-                    />
+*/}
+
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_ADD_MONEY}
                       element={
@@ -815,6 +843,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
                     <Route
                       path={ROUTES.ADD_PAYMENT_METHOD}
                       element={
@@ -831,6 +860,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_TOPUP_SUCCESS}
                       element={
@@ -839,6 +869,8 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_TOPUP_FAILED}
                       element={
@@ -847,22 +879,9 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path={ROUTES.SUBSCRIPTION_DETAILS}
-                      element={
-                        <ProtectedRoute>
-                          <SubscriptionSummary />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path={ROUTES.WALLET_UPGRADE_SUCCESS}
-                      element={
-                        <ProtectedRoute>
-                          <WalletUpgradeSuccess />
-                        </ProtectedRoute>
-                      }
-                    />
+*/}
+
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_WITHDRAW}
                       element={
@@ -871,6 +890,8 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_WITHDRAW_SUCCESS}
                       element={
@@ -879,6 +900,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
                     <Route
                       path={ROUTES.PAYMENT_MISSING}
                       element={
@@ -903,6 +925,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+{/* WALLET_HIDDEN: Re-enable when PPI license obtained
                     <Route
                       path={ROUTES.WALLET_WITHDRAW_FAILED}
                       element={
@@ -911,6 +934,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
+*/}
                     <Route
                       path={ROUTES.VIEW_RIDER_KYC}
                       element={
@@ -1119,30 +1143,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path={ROUTES.SUBSCRIPTIONS}
-                      element={
-                        <ProtectedRoute>
-                          <Subscriptions />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path={ROUTES.MANAGE_SUBSCRIPTION}
-                      element={
-                        <ProtectedRoute>
-                          <ManageSubscription />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path={ROUTES.DOWNGRADE_PLAN}
-                      element={
-                        <ProtectedRoute>
-                          <DowngradePlan />
-                        </ProtectedRoute>
-                      }
-                    />
+
                     <Route
                       path={ROUTES.DOWNGRADE_SUMMARY}
                       element={

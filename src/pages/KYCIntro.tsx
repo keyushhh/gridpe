@@ -25,10 +25,6 @@ const KYCIntro = () => {
       title: 'Secure, Verified Transactions',
       description: 'Enjoy safer transactions and faster refunds with verified identity.',
     },
-    {
-      title: 'Faster Upgrades & Processing',
-      description: 'Get quicker top-ups, seamless upgrades, and wallet priority access.',
-    },
   ];
   return (
     <div
@@ -146,7 +142,7 @@ const KYCIntro = () => {
                 >
                   In accordance with the Reserve Bank of India (RBI) regulations, completion of eKYC
                   is mandatory to enable wallet functionalities such as fund transfers, cash
-                  withdrawals, and account upgrades. This ensures compliance, enhances security, and
+                  withdrawals. This ensures compliance, enhances security, and
                   enables uninterrupted access to regulated financial services.
                 </p>
               </div>

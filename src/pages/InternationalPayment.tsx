@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase';
 import { Browser } from '@capacitor/browser';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import { useWalletStore } from '@/store/useWalletStore';
 
 const upiAppMethods = [
   { id: 'cred', name: 'CRED UPI', icon: ASSETS.CRED, type: 'upi', linked: true },
@@ -88,8 +87,8 @@ const InternationalPayment = () => {
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const { profile, fetchProfileData } = useUser();
-  const refreshBalance = useWalletStore((state) => state.refreshBalance);
-  const refreshTransactions = useWalletStore((state) => state.refreshTransactions);
+  const refreshBalance: any = (() => {}) as any;
+  const refreshTransactions: any = (() => {}) as any;
   const { showToaster } = useCustomToaster();
   
   const [upiId, setUpiId] = useState('');
@@ -167,10 +166,8 @@ const InternationalPayment = () => {
       setIsLoading(true);
       const currentUserId = profile.id;
       
-      const functionName = flow === 'tier_upgrade' ? 'create-paypal-order' : 'create-paypal-order';
-      const body = flow === 'tier_upgrade' 
-        ? { amount, userId: currentUserId, type: 'tier_upgrade', tier_name: tier, currency: 'USD' }
-        : { amount, userId: currentUserId, type: 'wallet_topup', currency: 'USD' };
+      const functionName = 'create-paypal-order';
+      const body = { amount, userId: currentUserId, type: 'wallet_topup', currency: 'USD' };
 
       const { data, error } = await supabase.functions.invoke(functionName, { body });
       
@@ -215,14 +212,6 @@ const InternationalPayment = () => {
                 creditAmount: amount,
                 paymentMethod: 'paypal',
                 transactionId: verifyData.captureID,
-              },
-            });
-          } else if (flow === 'tier_upgrade') {
-            navigate(ROUTES.WALLET_UPGRADE_SUCCESS, {
-              state: {
-                tier,
-                flow: 'upgrade',
-                message: `Subscription Renewed for ${tier}`,
               },
             });
           }
@@ -330,14 +319,6 @@ const InternationalPayment = () => {
               creditAmount: amount,
               paymentMethod: 'card',
               transactionId: data.paymentIntentId,
-            },
-          });
-        } else if (flow === 'tier_upgrade') {
-          navigate(ROUTES.WALLET_UPGRADE_SUCCESS, {
-            state: {
-              tier,
-              flow: 'upgrade',
-              message: `Subscription Renewed for ${tier}`,
             },
           });
         }
@@ -711,3 +692,4 @@ const InternationalPayment = () => {
 };
 
 export default InternationalPayment;
+

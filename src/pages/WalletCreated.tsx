@@ -8,7 +8,6 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { WalletTier } from '@/types';
-import { useWalletStore } from '@/store/useWalletStore';
 import { tierIconMap, tierCardMap, tierCardMapLight } from '@/lib/walletTiers';
 import { useAsset } from '@/hooks/useAsset';
 import { supabase } from '@/lib/supabase';
@@ -48,18 +47,18 @@ const WalletCreated = () => {
   const isDarkMode = useIsDarkMode();
   const queryClient = useQueryClient();
   const { profile, isInitializing } = useUser();
-  const walletTier = useWalletStore((state) => state.walletTier);
-  const walletBalance = useWalletStore((state) => state.walletBalance);
-  const heldBalance = useWalletStore((state) => state.heldBalance);
-  const walletLimit = useWalletStore((state) => state.walletLimit);
-  const dailyLimit = useWalletStore((state) => state.dailyLimit);
-  const wallet_tiers = useWalletStore((state) => state.wallet_tiers);
-  const isRenewalPending = useWalletStore((state) => state.isRenewalPending);
-  const scheduledDowngrade = useWalletStore((state) => state.scheduledDowngrade);
-  const isWalletInitializing = useWalletStore((state) => state.isWalletInitializing);
-  const deactivateWallet = useWalletStore((state) => state.deactivateWallet);
-  const isWalletActivated = useWalletStore((state) => state.isWalletActivated);
-  const upgradeTimestamp = useWalletStore((state) => state.upgradeTimestamp);
+  const walletTier: any = (() => {}) as any;
+  const walletBalance: any = (() => {}) as any;
+  const heldBalance: any = (() => {}) as any;
+  const walletLimit: any = (() => {}) as any;
+  const dailyLimit: any = (() => {}) as any;
+  const wallet_tiers: any = (() => {}) as any;
+  const isRenewalPending: any = (() => {}) as any;
+  const scheduledDowngrade: any = (() => {}) as any;
+  const isWalletInitializing: any = (() => {}) as any;
+  const deactivateWallet: any = (() => {}) as any;
+  const isWalletActivated: any = (() => {}) as any;
+  const upgradeTimestamp: any = (() => {}) as any;
   const userId = profile?.id;
   const { data: realWalletData, isLoading: isRealWalletLoading } = useQuery({
     queryKey: ['real_wallet', userId],
@@ -711,3 +710,4 @@ const WalletCreated = () => {
   );
 };
 export default WalletCreated;
+

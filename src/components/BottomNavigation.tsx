@@ -1,36 +1,44 @@
+import React, { useState } from 'react';
 import { ASSETS } from '@/constants/assets';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { hapticLight } from '@/utils/haptics';
 import { ROUTES } from '@/routes';
+import gridpeGlyph from '../assets/gridpe-glyph.svg';
+
 interface BottomNavigationProps {
   activeTab?: 'home' | 'cards' | 'rewards' | 'more' | '';
   isHidden?: boolean;
 }
 const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
+  const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme !== 'light';
   if (isHidden) return null;
   return (
     <footer
-      className={`fixed bottom-0 left-0 right-0 w-full z-50 ${isDarkMode ? 'bg-brand-bg-dark border-t border-white/5' : 'bg-white border-t border-brand-border-light'}`}
+      className={`fixed bottom-0 left-0 right-0 w-full z-50 overflow-visible ${isDarkMode ? 'bg-black/90 border-t-0' : 'bg-white border-t border-brand-border-light'}`}
       style={{
         paddingBottom: 'env(safe-area-inset-bottom)',
         boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
       }}
     >
-      {/* Background Overlay */}
       <div
-        className="absolute inset-0 pointer-events-none z-[-1]"
+        className="absolute -top-12 left-0 right-0 h-12 pointer-events-none z-10"
         style={{
-          backgroundImage: `url(${isDarkMode ? ASSETS.NAVBAR_OVERLAY : ASSETS.NAVBAR_LIGHT})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'bottom center',
-          opacity: isDarkMode ? 0.08 : 0.9,
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.95) 100%)'
         }}
       />
-      <div className="h-[64px] flex items-center justify-between px-6 pt-2">
+      {isDarkMode && (
+        <div 
+          className="h-px w-full" 
+          style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(180,180,200,0.35) 30%, rgba(220,220,240,0.55) 50%, rgba(180,180,200,0.35) 70%, transparent 100%)' }} 
+        />
+      )}
+      <div className="h-[92px] flex items-center justify-between px-6 pt-2">
         {/* Home */}
         <button
           onClick={() => {
@@ -86,23 +94,54 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
           </span>
         </button>
         {/* Center FAB Space */}
-        <div className="flex items-center justify-center -mt-8">
+        <div className="flex items-center justify-center relative">
+          {isFabMenuOpen && (
+            <div 
+              className="absolute bottom-[80px] z-50 p-[1px] rounded-[20px]"
+              style={{
+                width: '168px',
+                height: '100px',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.2) 100%)',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
+              }}
+            >
+              <div className="w-full h-full bg-[#0A0A0A] rounded-[19px] flex flex-col justify-center gap-[14px] px-[22px] overflow-hidden relative z-10">
+                <button 
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => {
+                    hapticLight();
+                    setIsFabMenuOpen(false);
+                    navigate(ROUTES.ORDER_CASH);
+                  }}
+                >
+                  <img src={ASSETS.CASH_ORDER_ICON} alt="Order Cash" className="w-[22px] h-[22px] object-contain shrink-0" />
+                  <span className="text-white font-['Satoshi'] font-normal text-[15px] leading-none whitespace-nowrap">Order Cash</span>
+                </button>
+                <button 
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => {}}
+                >
+                  <img src={ASSETS.FX_CONVERT} alt="FX Convert" className="w-[22px] h-[22px] object-contain shrink-0" />
+                  <span className="text-white font-['Satoshi'] font-normal text-[15px] leading-none whitespace-nowrap">FX Convert</span>
+                </button>
+              </div>
+            </div>
+          )}
           <button
             onClick={() => {
               hapticLight();
-              navigate(ROUTES.WALLET_ADD_MONEY);
+              setIsFabMenuOpen(!isFabMenuOpen);
             }}
             className="w-[68px] h-[68px] rounded-full flex items-center justify-center transition-transform active:scale-90 z-20"
             style={{
-              boxShadow: isDarkMode
-                ? '0 8px 16px rgba(0, 0, 0, 0.4)'
-                : '0 4px 12px rgba(0,0,0,0.15)',
+              background: 'linear-gradient(180deg, #302655 0%, rgba(40,29,80,0.20) 100%)',
+              border: '1px solid rgba(255,255,255,0.12)'
             }}
           >
             <img
-              src={!isDarkMode ? ASSETS.FAB_LIGHT : ASSETS.ADD_NAV}
-              alt="Add Money"
-              className="w-full h-full object-contain pointer-events-none"
+              src={gridpeGlyph}
+              alt="Grid.Pe"
+              className="w-8 h-8 object-contain pointer-events-none"
             />
           </button>
         </div>

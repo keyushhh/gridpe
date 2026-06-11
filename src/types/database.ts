@@ -32,6 +32,7 @@ export interface Tables {
     mpin_set?: boolean;
     mpin_hash?: string | null;
     kyc_status: string;
+    plan_tier?: string | null;
     wallet_tier?: string;
     current_tier_id?: string | null;
     scheduled_tier_id?: string | null;
@@ -198,9 +199,35 @@ export interface Tables {
   user_subscriptions: {
     id: string;
     user_id: string;
+    plan_tier: string;
     status: string;
-    current_period_end: string;
+    billing_cycle?: string | null;
+    amount_paid?: number | null;
+    started_at?: string;
+    expires_at?: string | null;
+    gateway_order_id?: string | null;
+    gateway_payment_id?: string | null;
     created_at?: string;
+    updated_at?: string;
+  };
+  withdrawal_limits: {
+    id: string;
+    plan_tier: string;
+    daily_limit: number;
+    monthly_limit: number;
+    is_active?: boolean;
+    created_at?: string;
+  };
+  fee_slabs: {
+    id: string;
+    order_type: string;
+    plan_tier: string;
+    min_amount: number;
+    max_amount?: number | null;
+    delivery_fee: number;
+    platform_fee: number;
+    gst_rate: number;
+    is_active?: boolean;
   };
   wallets: {
     id: string;
@@ -320,6 +347,18 @@ export interface Database {
         Row: Tables['user_subscriptions'];
         Insert: Partial<Tables['user_subscriptions']>;
         Update: Partial<Tables['user_subscriptions']>;
+        Relationships: [];
+      };
+      withdrawal_limits: {
+        Row: Tables['withdrawal_limits'];
+        Insert: Partial<Tables['withdrawal_limits']>;
+        Update: Partial<Tables['withdrawal_limits']>;
+        Relationships: [];
+      };
+      fee_slabs: {
+        Row: Tables['fee_slabs'];
+        Insert: Partial<Tables['fee_slabs']>;
+        Update: Partial<Tables['fee_slabs']>;
         Relationships: [];
       };
       wallets: {

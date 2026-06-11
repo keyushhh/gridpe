@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
       const isPassportDetected = 
         rawVendorData.includes('_passport') || 
         rawVendorData.includes('_p_') || 
-        ['fx_passport', 'fx_upgrade'].includes(metadata?.flow) ||
+        ['fx_passport'].includes(metadata?.flow) ||
         data.extraction?.document_type?.toLowerCase() === 'passport' ||
         data.document_type?.toLowerCase() === 'passport';
 

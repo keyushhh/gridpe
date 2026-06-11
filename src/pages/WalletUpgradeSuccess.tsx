@@ -7,7 +7,6 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUser, WalletTier } from '@/contexts/UserContext';
-import { useWalletStore } from '@/store/useWalletStore';
 import { supabase } from '@/lib/supabase';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const WalletUpgradeSuccess = () => {
@@ -18,7 +17,7 @@ const WalletUpgradeSuccess = () => {
   const isDarkMode = useIsDarkMode();
   const queryClient = useQueryClient();
   const { fetchProfileData } = useUser();
-  const setWalletTier = useWalletStore((state) => state.setWalletTier);
+  const setWalletTier: any = (() => {}) as any;
   const [tierDetails, setTierDetails] = useState<{
     name: string;
     max_wallet_balance: number;
@@ -174,3 +173,4 @@ const WalletUpgradeSuccess = () => {
   );
 };
 export default WalletUpgradeSuccess;
+

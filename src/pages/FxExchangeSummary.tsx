@@ -8,7 +8,6 @@ import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
-import { useWalletStore } from '@/store/useWalletStore';
 import { writeStorage } from '@/utils/storage';
 import { supabase } from '@/lib/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -31,8 +30,8 @@ const FxExchangeSummary = () => {
   const { showToaster } = useCustomToaster();
   const isDarkMode = useIsDarkMode();
   const { profile, rewardPoints: availableRewardPoints } = useUser();
-  const walletBalance = useWalletStore((state) => state.walletBalance);
-  const refreshBalance = useWalletStore((state) => state.refreshBalance);
+  const walletBalance: any = (() => {}) as any;
+  const refreshBalance: any = (() => {}) as any;
   const currentUserId = profile?.id;
   // Accept full FX state
   const {
@@ -1329,3 +1328,4 @@ const FxExchangeSummary = () => {
   );
 };
 export default FxExchangeSummary;
+

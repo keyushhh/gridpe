@@ -5,7 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { ChevronDown, Home, Briefcase, Users, MapPin, Eye, EyeOff } from 'lucide-react';
+import { ChevronDown, Home, Briefcase, Users, MapPin /*, Eye, EyeOff */ } from 'lucide-react';
 import { olc } from '@/utils/olc';
 import { fetchRecentOrders, fetchActiveOrders } from '@/lib/orders';
 import { Order, SavedAddress, Rider } from '@/types';
@@ -13,13 +13,13 @@ import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useAsset } from '@/hooks/useAsset';
 import useEmblaCarousel from 'embla-carousel-react';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+// REDESIGN_REMOVED: import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import BottomNavigation from '@/components/BottomNavigation';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
 import RatingSheet from '@/components/RatingSheet';
 import { useUser } from '@/contexts/UserContext';
-import { formatINR } from '@/utils/format';
+// REDESIGN_REMOVED: import { formatINR } from '@/utils/format';
 import { cancelOrder } from '@/lib/orders';
 import { useTheme } from 'next-themes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
@@ -44,7 +44,12 @@ import {
 } from '@/utils/addressStorage';
 import LocationDisplay from '@/components/LocationDisplay';
 import { useLocationStore } from '@/store/useLocationStore';
-import { useWalletStore } from '@/store/useWalletStore';
+import inputContainerImg from '@/assets/input-container.webp';
+import infoIcon from '@/assets/info.svg';
+import deliveryLimitBg from '@/assets/delivery-limit.webp';
+import proBannerImg from '@/assets/pro-banner.webp';
+import proIcon from '@/assets/pro-icon.svg';
+import arrowUpIcon from '@/assets/arrow-up.svg';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -94,15 +99,16 @@ const Homepage = () => {
   const { setTheme } = useTheme();
   const isDarkMode = useIsDarkMode();
   const [showBalance, setShowBalance] = useState(false);
+  const [showDeliveryLimitsModal, setShowDeliveryLimitsModal] = useState(false);
   const {
     name,
     profile,
     isPassportVerified,
     profileImage,
   } = useUser();
-  const walletBalance = useWalletStore((state) => state.walletBalance);
-  const walletTier = useWalletStore((state) => state.walletTier);
-  const scheduledDowngrade = useWalletStore((state) => state.scheduledDowngrade);
+  const walletBalance: any = (() => {}) as any;
+  const walletTier: any = (() => {}) as any;
+  const scheduledDowngrade: any = (() => {}) as any;
   const activeAddress = useLocationStore((state) => state.activeAddress);
   const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
@@ -311,6 +317,7 @@ const Homepage = () => {
     throwOnError: false,
   });
 
+/* WALLET_HIDDEN: Re-enable when PPI license obtained
   const walletBalanceQuery = useQuery({
     queryKey: ['wallet-balance', userId],
     queryFn: async () => {
@@ -336,18 +343,19 @@ const Homepage = () => {
     retry: false,
     throwOnError: false,
   });
+*/
 
   const activeOrder = activeOrderQuery.data ?? null;
   const transactionHistory = recentOrdersQuery.data ?? [];
   const hasSavedAddresses = (addressesCountQuery.data ?? 0) > 0;
-  const liveWalletBalance = walletBalanceQuery.data ?? walletBalance;
+  const liveWalletBalance = 0; // WALLET_HIDDEN placeholder
   
   // Only show skeleton on INITIAL load (no data at all)
   const isInitialLoading = 
     (activeOrderQuery.isLoading && !activeOrderQuery.data) || 
     (recentOrdersQuery.isLoading && !recentOrdersQuery.data) || 
-    (addressesCountQuery.isLoading && !addressesCountQuery.data) || 
-    (walletBalanceQuery.isLoading && !walletBalanceQuery.data);
+    (addressesCountQuery.isLoading && !addressesCountQuery.data);
+    // WALLET_HIDDEN: || (walletBalanceQuery.isLoading && !walletBalanceQuery.data);
   const [isRiderAssigned, setIsRiderAssigned] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
@@ -1112,7 +1120,142 @@ const Homepage = () => {
           {/* Conditional Content: Main Homepage Content */}
           {!isUnserviceable && (
             <>
+              {/* Order Cash Input Container */}
+              <div className="mx-5 mt-[14px] bg-black rounded-[33px] h-auto p-[6px] pb-[23px] flex flex-col items-center">
+                <div 
+                  className="w-full h-[187px] bg-cover bg-center rounded-[27px] cursor-pointer flex flex-col items-center pt-[16px] shrink-0"
+                  style={{ backgroundImage: `url(${inputContainerImg})` }}
+                  onClick={() => navigate(ROUTES.ORDER_CASH)}
+                >
+                    <span className="font-satoshi font-normal text-[14px] text-white">
+                      How much cash do you need?
+                    </span>
+                    
+                    <div 
+                      className="mt-[18px] flex items-center justify-center cursor-default"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="text-[32px] font-bold font-sans mr-1 text-white">₹</span>
+                      <span className="text-[32px] font-light font-sans text-white/50 mr-1 mt-[-4px]">|</span>
+                      <span className="text-[32px] font-bold font-sans text-white/50">0.00</span>
+                    </div>
+
+                    <div 
+                      className="flex gap-4 mt-auto mb-[16px]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {['500', '1000', '1500'].map(val => (
+                        <div
+                          key={val}
+                          className="relative h-[30px] flex items-center justify-center px-3 py-[6px]"
+                        >
+                          <div
+                            className="absolute inset-0 w-full h-full"
+                            style={{
+                              backgroundImage: `url(${ASSETS.PILL_CONTAINER_BG})`,
+                              backgroundSize: '100% 100%',
+                              backgroundRepeat: 'no-repeat',
+                            }}
+                          />
+                          <span className="relative z-10 text-[12px] font-medium font-sans text-white">
+                            +₹{val}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                </div>
+                
+                <div className="mt-[12px] flex justify-center w-full px-[9px]">
+                  <Button
+                    onClick={() => {}}
+                    variant={isDarkMode ? 'glass' : 'default'}
+                    className={cn(
+                      'w-full h-[44px] shadow-xl transition-all',
+                      !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full border border-white/20'
+                    )}
+                    style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
+                  >
+                    <img loading="lazy" decoding="async" src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
+                    <span
+                      className={cn(
+                        'font-medium',
+                        isDarkMode ? 'text-white dark:text-foreground' : 'text-white'
+                      )}
+                    >
+                      Order Cash
+                    </span>
+                  </Button>
+                </div>
+
+                <div className="mt-[15px] flex flex-col items-center justify-center text-center">
+                  <span className="font-satoshi font-normal text-[12px] text-white/60 leading-none">
+                    Your money stays protected.
+                  </span>
+                  <span className="font-satoshi font-normal text-[12px] text-white/60 leading-none mt-[1px]">
+                    Delivered safely by a verified Grid.Pe rider.
+                  </span>
+                </div>
+
+                <div className="mt-[33px] w-full px-[14px]">
+                  {/* Delivery Limit Section */}
+                  <div className="flex flex-col mb-[13px]">
+                    <div className="flex justify-between items-center mb-[8px]">
+                      <span className="font-satoshi font-normal text-[16px] text-white">Delivery Limit</span>
+                      <img 
+                        src={infoIcon} 
+                        alt="info" 
+                        className="w-[14px] h-[14px] cursor-pointer" 
+                        onClick={() => setShowDeliveryLimitsModal(true)}
+                      />
+                    </div>
+                    <div className="w-full h-[6px] bg-[#2A2A2A] rounded-full overflow-hidden mb-[8px]">
+                      <div className="h-full bg-gradient-to-r from-[#2DD4BF] to-[#4ADE80] rounded-full" style={{ width: '0%' }}></div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹0</span>
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹5000/day</span>
+                    </div>
+                  </div>
+
+                  {/* Current Tier Section */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between items-center mb-[8px]">
+                      <span className="font-satoshi font-normal text-[16px] text-white">Current Tier</span>
+                      <span className="font-satoshi font-medium text-[16px] text-[#5260FE]">Basic</span>
+                    </div>
+                    <div className="w-full h-[6px] bg-[#2A2A2A] rounded-full overflow-hidden mb-[8px]">
+                      <div className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] rounded-full" style={{ width: '0%' }}></div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹0</span>
+                      <span className="font-satoshi font-medium text-[15px] text-white">₹25,000/month</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pro Banner */}
+              <div 
+                className="mx-5 mt-[16px] h-[66px] rounded-[14px] bg-cover bg-center flex items-center justify-between pl-[12px] pr-[19px] cursor-pointer active:scale-[0.98] transition-transform"
+                style={{ backgroundImage: `url(${proBannerImg})` }}
+                onClick={() => navigate(ROUTES.PRO_UPGRADE)}
+              >
+                <div className="flex items-center">
+                  <img src={proIcon} alt="Pro Icon" className="w-[42px] h-[42px]" />
+                  <div className="flex flex-col ml-[9px]">
+                    <span className="font-satoshi font-medium text-[15px] text-white leading-none">
+                      Grid.Pe Pro
+                    </span>
+                    <span className="font-satoshi italic text-[12px] text-white leading-none mt-[1px]">
+                      Upgrade now to unlock more benefits!
+                    </span>
+                  </div>
+                </div>
+                <img src={arrowUpIcon} alt="Arrow Up" className="w-[28px] h-[28px]" />
+              </div>
+{/* REDESIGN_REMOVED
               <div className="flex flex-col items-center mt-8 space-y-4">
+{//  WALLET_HIDDEN: Re-enable when PPI license obtained
                 <div className="flex items-center gap-2">
                   <p className="text-black dark:text-muted-foreground text-[14px]">
                     Available Balance
@@ -1135,6 +1278,7 @@ const Homepage = () => {
                 >
                   {showBalance ? formatINR(liveWalletBalance) : '******'}
                 </p>
+// }
                 <Button
                   onClick={() => navigate(ROUTES.ORDER_CASH)}
                   variant={isDarkMode ? 'glass' : 'default'}
@@ -1155,6 +1299,7 @@ const Homepage = () => {
                   </span>
                 </Button>
               </div>
+*/}
               {/* Balance Alert Banner */}
               {/* Location Changed Banner */}
               {showLocationChangedBanner && (
@@ -1183,6 +1328,7 @@ const Homepage = () => {
                   </button>
                 </div>
               )}
+{/* REDESIGN_REMOVED
               {balanceAlert && (
                 <div className="mx-5 mt-6 p-4 rounded-[13px] bg-brand-error/10 border border-brand-error/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
                   <div className="w-10 h-10 rounded-full bg-brand-error/20 flex items-center justify-center shrink-0">
@@ -1200,7 +1346,9 @@ const Homepage = () => {
                   </div>
                 </div>
               )}
-              {/* Quick Actions */}
+*/}
+{/* REDESIGN_REMOVED
+              {//  Quick Actions // }
               <div className="flex justify-center gap-6 mt-8 px-5">
                 <button
                   onClick={() => navigate(ROUTES.WALLET_ADD_MONEY)}
@@ -1222,11 +1370,13 @@ const Homepage = () => {
                   </span>
                 </button>
                 {[
+//  WALLET_HIDDEN: Re-enable when PPI license obtained
                   {
                     icon: isDarkMode ? ASSETS.WALLET_DARK : iconWallet,
                     label: 'Wallet',
                     action: () => navigate(ROUTES.WALLET),
                   },
+// 
                   {
                     icon: iconFxConvert,
                     label: 'FX Convert',
@@ -1263,6 +1413,7 @@ const Homepage = () => {
                   </button>
                 ))}
               </div>
+*/}
               {/* Active Order OR Referral Banner */}
               {activeOrder ? (
                 <div className="mx-5 mt-6 mb-[16px] flex flex-col gap-0 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -1350,7 +1501,9 @@ const Homepage = () => {
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : null}
+{/* REDESIGN_REMOVED
+              // ) : (
                 <div className="mx-5 mt-6">
                   <div className="overflow-hidden" ref={emblaRef}>
                     <div className="flex gap-3">
@@ -1504,6 +1657,8 @@ const Homepage = () => {
                   </div>
                 </div>
               )}
+*/}
+{/* REDESIGN_REMOVED
               <div className="flex flex-col w-full">
                 <div className="mx-5 mt-6 shrink-0 flex items-center justify-between mb-4">
                   <h3 className="text-foreground text-[16px] font-medium">Recent Transactions</h3>
@@ -1624,6 +1779,7 @@ const Homepage = () => {
                   </div>
                 </div>
               </div>
+*/}
             </>
           )}
         </div>
@@ -1640,7 +1796,65 @@ const Homepage = () => {
         onClose={() => setCompletedOrder(null)}
         order={completedOrder}
       />
+
+      {/* Delivery Limits Modal */}
+      <AnimatePresence>
+        {showDeliveryLimitsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-5 bg-black/50 backdrop-blur-md"
+            onClick={() => setShowDeliveryLimitsModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="relative w-[362px] h-auto max-w-[90vw] overflow-hidden rounded-[32px] p-[17px] flex flex-col"
+              style={{
+                backgroundImage: `url(${deliveryLimitBg})`,
+                backgroundSize: '100% 100%',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col items-start text-left">
+                <h3 className="text-white font-satoshi font-bold text-[18px] tracking-tight mb-[4px]">Delivery Limits</h3>
+                <p className="text-white/90 font-satoshi font-[400] text-[16px] leading-snug mb-[3px]">
+                  Your current Basic plan allows up to ₹5,000/day and ₹25,000/month in cash orders.
+                </p>
+                <p className="text-white/90 font-satoshi font-[400] text-[16px] leading-snug">
+                  Upgrade to Grid.Pe Pro to unlock higher limits and exclusive benefits.
+                </p>
+              </div>
+              
+              <div className="mt-[22px] flex flex-col items-center">
+                <button
+                  className="w-full max-w-[328px] h-[48px] bg-[#5260FE] rounded-full active:scale-95 transition-transform flex items-center justify-center mb-[14px]"
+                  onClick={() => {}}
+                >
+                  <span className="text-white text-[16px] font-medium font-satoshi">
+                    Explore Grid.Pe Pro
+                  </span>
+                </button>
+                
+                <button
+                  className="active:opacity-70 transition-opacity"
+                  onClick={() => setShowDeliveryLimitsModal(false)}
+                >
+                  <span className="text-white text-[16px] font-medium font-satoshi">
+                    Skip
+                  </span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 export default Homepage;
+

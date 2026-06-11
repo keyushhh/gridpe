@@ -5,11 +5,10 @@ import { ROUTES } from '@/routes';
 import { hapticSuccess } from '@/utils/haptics';
 import { formatINR } from '@/utils/format';
 import { useUser } from '@/contexts/UserContext';
-import { useWalletStore } from '@/store/useWalletStore';
 const WalletTopUpSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const activateWallet = useWalletStore((state) => state.activateWallet);
+  const activateWallet: any = (() => {}) as any;
   const processedRef = useRef(false);
   // creditAmount is the actual amount added to wallet. totalAmount includes fees.
   const { totalAmount, creditAmount, paymentMethod } = location.state || {
@@ -108,3 +107,4 @@ const WalletTopUpSuccess = () => {
   );
 };
 export default WalletTopUpSuccess;
+

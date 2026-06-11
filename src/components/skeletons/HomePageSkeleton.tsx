@@ -4,7 +4,7 @@ import Skeleton from 'react-loading-skeleton';
 const HomePageSkeleton = () => {
   return (
     <div
-      className="h-full w-full flex flex-col pt-4 px-5 safe-top pb-24 bg-white dark:bg-brand-bg-dark"
+      className="h-full w-full flex flex-col pt-4 px-5 safe-top pb-28 bg-white dark:bg-brand-bg-dark"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-8">

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback,
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
 import { WalletTier, Profile as UserProfile, Tables } from '@/types';
-import { useWalletStore } from '@/store/useWalletStore';
+
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
@@ -197,7 +197,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const sessionPromise = supabase.auth.getSession();
         let timer: any;
         const timeoutPromise = new Promise((_, reject) => 
-          timer = setTimeout(() => reject(new Error('Session check timeout')), 4000)
+          timer = setTimeout(() => reject(new Error('Session check timeout')), 10000)
         );
         let session: any;
         try {
@@ -232,7 +232,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         `
           )
           .eq('id', userId)
-          .abortSignal(AbortSignal.timeout(4000))
+          .abortSignal(AbortSignal.timeout(10000))
           .maybeSingle();
 
         // Defensive fallback: If database columns do not exist yet (code 42703), fallback to query without terms columns
@@ -250,7 +250,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           `
             )
             .eq('id', userId)
-            .abortSignal(AbortSignal.timeout(4000))
+            .abortSignal(AbortSignal.timeout(10000))
             .maybeSingle();
         }
 
@@ -329,7 +329,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   /* Initial Load */
   useEffect(() => {
-    const INIT_TIMEOUT_MS = 5000 // 5 seconds max
+    const INIT_TIMEOUT_MS = 12000 // 12 seconds max
 
     let initTimer: any;
     const initWithTimeout = Promise.race([
@@ -374,7 +374,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           console.warn('Failed to purge other user storage on sign-in:', e);
         }
         fetchProfileData();
-        useWalletStore.getState().initializeWallet();
       }
     });
 

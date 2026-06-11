@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
-import { useWalletStore } from '@/store/useWalletStore';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
@@ -32,9 +31,9 @@ interface Withdrawal {
 const WalletWithdraw = () => {
   const navigate = useNavigate();
   const { profile } = useUser();
-  const walletTier = useWalletStore((state) => state.walletTier);
-  const walletBalance = useWalletStore((state) => state.walletBalance);
-  const isRenewalPending = useWalletStore((state) => state.isRenewalPending);
+  const walletTier: any = (() => {}) as any;
+  const walletBalance: any = (() => {}) as any;
+  const isRenewalPending: any = (() => {}) as any;
   const userId = profile?.id;
   const isDarkMode = useIsDarkMode();
   const { amount, handleKeyPress, handleBackspace, setPillAmount, amountVal, isZero, setAmount } =
@@ -405,3 +404,4 @@ const WalletWithdraw = () => {
   );
 };
 export default WalletWithdraw;
+

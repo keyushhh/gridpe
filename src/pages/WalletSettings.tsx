@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
-import { useWalletStore } from '@/store/useWalletStore';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import {
   tiers,
@@ -20,8 +19,8 @@ const WalletSettings = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const { resetForDemo } = useUser();
-  const walletTier = useWalletStore((state) => state.walletTier);
-  const scheduledDowngrade = useWalletStore((state) => state.scheduledDowngrade);
+  const walletTier: any = (() => {}) as any;
+  const scheduledDowngrade: any = (() => {}) as any;
   const isDarkMode = useIsDarkMode();
   const currentTier = tiers.find(tier => tier.name === walletTier) || tiers[0];
   const handleUpgrade = () => {
@@ -338,3 +337,4 @@ const WalletSettings = () => {
   );
 };
 export default WalletSettings;
+

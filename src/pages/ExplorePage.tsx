@@ -37,7 +37,7 @@ const ExplorePage = () => {
       className="absolute inset-0 flex flex-col overflow-hidden bg-cover bg-center"
       style={{ backgroundImage: `url(${mainBg})` }}
     >
-      <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-28 safe-top">
+      <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-32 safe-top">
         {/* HEADER */}
         <div className="pt-8 flex flex-col gap-[2px]">
           <h1 className="font-satoshi font-black text-[40px] leading-none text-foreground">
