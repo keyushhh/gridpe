@@ -32,20 +32,6 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Fetch customer details from profiles table
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, name, phone, email')
-      .eq('id', userId)
-      .single();
-
-    if (profileError || !profile) {
-      return new Response(JSON.stringify({ error: "User profile not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
     // Create Cashfree order
     const cashfreeOrderId = `PRO-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
     
@@ -69,9 +55,9 @@ Deno.serve(async (req: Request) => {
       order_currency: "INR",
       customer_details: {
         customer_id: userId,
-        customer_phone: profile.phone || "9999999999",
-        customer_name: profile.name || "Customer",
-        customer_email: profile.email || "customer@gridpe.in"
+        customer_phone: "9999999999",
+        customer_name: "Customer",
+        customer_email: "customer@gridpe.in"
       },
       order_meta: {
         return_url: returnUrl
@@ -115,15 +101,10 @@ Deno.serve(async (req: Request) => {
     // Insert a tracking row into the pending_payments table with status 'pending'
     const pendingPaymentInsert = {
       user_id: userId,
-      amount: amount,
-      type: 'pro_subscription',
-      status: 'pending',
       gateway_order_id: cashfreeOrderId,
-      metadata: {
-        billing_cycle: billingCycle,
-        plan_tier: 'pro',
-        amount_paid: amount
-      }
+      amount: amount,
+      status: 'pending',
+      metadata: { billing_cycle: billingCycle }
     };
 
     const { error: dbError } = await supabase
@@ -145,10 +126,10 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating pro subscription order:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
+    return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }

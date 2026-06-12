@@ -1,6 +1,7 @@
 export const ROUTES = {
   INDEX: '/',
   PRO_UPGRADE: '/pro-upgrade',
+  PRO_SUCCESS: '/pro-success',
   HOME: '/home',
   SETTINGS: '/settings',
   KYC_INTRO: '/kyc-intro',

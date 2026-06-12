@@ -114,7 +114,7 @@ const Homepage = () => {
   const activeAddress = useLocationStore((state) => state.activeAddress);
   const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
-  const tierName = (profile as any)?.wallet_tiers?.name || 'Basic';
+  const tierName = profile?.plan_tier || 'basic';
   const dailyLimit = tierName.toLowerCase() === 'pro' ? 25000 : 5000;
   const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
   const [balanceAlert, setBalanceAlert] = useState<{
@@ -1146,6 +1146,7 @@ const Homepage = () => {
                     savedAddress={savedAddress}
                     profileImage={profileImage}
                     name={name}
+                    planTier={tierName.toLowerCase()}
                     onAddressClick={() => {
                       if (hasSavedAddresses) {
                         setIsAddressSheetOpen(true);
@@ -1154,9 +1155,6 @@ const Homepage = () => {
                       }
                     }}
                     onProfileClick={() => navigate(ROUTES.SETTINGS)}
-                    onScheduleClick={() =>
-                      navigate(ROUTES.ORDER_CASH, { state: { isScheduledFlow: true } })
-                    }
                   />
                 </div>
               </motion.div>
@@ -1283,13 +1281,25 @@ const Homepage = () => {
                   )}
                   <Button
                     onClick={() => {
-                      if (numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) {
-                        navigate(ROUTES.ORDER_CASH_SUMMARY, { state: { amount, isScheduledFlow: false } });
+                      if (displayNightMode) {
+                        if (tierName.toLowerCase() === 'pro') {
+                          navigate(ROUTES.ORDER_CASH, { state: { amount: numericAmount >= 500 ? amount : undefined, isScheduledFlow: true } });
+                        } else {
+                          navigate(ROUTES.PRO_UPGRADE);
+                        }
                       } else {
-                        setShowInlineKeypad(true);
+                        if (numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) {
+                          navigate(ROUTES.ORDER_CASH_SUMMARY, { state: { amount, isScheduledFlow: false } });
+                        } else {
+                          setShowInlineKeypad(true);
+                        }
                       }
                     }}
-                    disabled={numericAmount > 0 && (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded)}
+                    disabled={
+                      displayNightMode 
+                        ? (tierName.toLowerCase() === 'pro' && numericAmount > 0 && (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded))
+                        : (numericAmount > 0 && (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded))
+                    }
                     variant={(numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) ? 'default' : (isDarkMode ? 'glass' : 'default')}
                     className={cn(
                       'w-full h-[44px] shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed',
@@ -1306,13 +1316,17 @@ const Homepage = () => {
                         isDarkMode ? 'text-white dark:text-foreground' : 'text-white'
                       )}
                     >
-                      {numericAmount === 0 
-                        ? 'Order Cash' 
-                        : (isDailyLimitExceeded || isMonthlyLimitExceeded) 
-                          ? 'Limit Exceeded' 
-                          : numericAmount < 500 
-                            ? 'Min. ₹500' 
-                            : 'Proceed to Pay'}
+                      {displayNightMode 
+                        ? (tierName.toLowerCase() === 'pro' 
+                            ? (numericAmount === 0 ? 'Pre-Order for 6:00 AM' : (isDailyLimitExceeded || isMonthlyLimitExceeded) ? 'Limit Exceeded' : numericAmount < 500 ? 'Min. ₹500' : 'Pre-Order for 6:00 AM') 
+                            : 'Upgrade to Pro to Pre-Order')
+                        : (numericAmount === 0 
+                            ? 'Order Cash' 
+                            : (isDailyLimitExceeded || isMonthlyLimitExceeded) 
+                              ? 'Limit Exceeded' 
+                              : numericAmount < 500 
+                                ? 'Min. ₹500' 
+                                : 'Proceed to Pay')}
                     </span>
                   </Button>
                 </div>
@@ -1365,24 +1379,26 @@ const Homepage = () => {
               </div>
 
               {/* Pro Banner */}
-              <div 
-                className="mx-5 mt-[16px] h-[66px] rounded-[14px] bg-cover bg-center flex items-center justify-between pl-[12px] pr-[19px] cursor-pointer active:scale-[0.98] transition-transform"
-                style={{ backgroundImage: `url(${proBannerImg})` }}
-                onClick={() => navigate(ROUTES.PRO_UPGRADE)}
-              >
-                <div className="flex items-center">
-                  <img src={proIcon} alt="Pro Icon" className="w-[42px] h-[42px]" />
-                  <div className="flex flex-col ml-[9px]">
-                    <span className="font-satoshi font-medium text-[15px] text-white leading-none">
-                      Grid.Pe Pro
-                    </span>
-                    <span className="font-satoshi italic text-[12px] text-white leading-none mt-[1px]">
-                      Upgrade now to unlock more benefits!
-                    </span>
+              {tierName.toLowerCase() !== 'pro' && (
+                <div 
+                  className="mx-5 mt-[16px] h-[66px] rounded-[14px] bg-cover bg-center flex items-center justify-between pl-[12px] pr-[19px] cursor-pointer active:scale-[0.98] transition-transform"
+                  style={{ backgroundImage: `url(${proBannerImg})` }}
+                  onClick={() => navigate(ROUTES.PRO_UPGRADE)}
+                >
+                  <div className="flex items-center">
+                    <img src={proIcon} alt="Pro Icon" className="w-[42px] h-[42px]" />
+                    <div className="flex flex-col ml-[9px]">
+                      <span className="font-satoshi font-medium text-[15px] text-white leading-none">
+                        Grid.Pe Pro
+                      </span>
+                      <span className="font-satoshi italic text-[12px] text-white leading-none mt-[1px]">
+                        Upgrade now to unlock more benefits!
+                      </span>
+                    </div>
                   </div>
+                  <img src={arrowUpIcon} alt="Arrow Up" className="w-[28px] h-[28px]" />
                 </div>
-                <img src={arrowUpIcon} alt="Arrow Up" className="w-[28px] h-[28px]" />
-              </div>
+              )}
 {/* REDESIGN_REMOVED
               <div className="flex flex-col items-center mt-8 space-y-4">
 {//  WALLET_HIDDEN: Re-enable when PPI license obtained

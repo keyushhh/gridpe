@@ -33,10 +33,7 @@ export interface Tables {
     mpin_hash?: string | null;
     kyc_status: string;
     plan_tier?: string | null;
-    wallet_tier?: string;
-    current_tier_id?: string | null;
-    scheduled_tier_id?: string | null;
-    tier_change_date?: string | null;
+
     payment_status?: string | null;
     subscription_status?: string | null;
     reward_points?: number;

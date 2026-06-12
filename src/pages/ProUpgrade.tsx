@@ -18,32 +18,32 @@ const benefits = [
   {
     icon: TrendingUp,
     title: 'Higher Cash Limits',
-    description: 'Order up to ₹25,000/day and ₹1,00,000/month.'
+    description: '₹25,000/day • ₹1,00,000/month'
   },
   {
     icon: Zap,
     title: 'Priority Deliveries',
-    description: 'Get your orders prioritized during busy hours.'
+    description: 'Prioritized during peak hours'
   },
   {
     icon: BadgePercent,
     title: 'Lower Service Fees',
-    description: 'Save more on every cash delivery.'
+    description: 'Save on every cash order'
   },
   {
     icon: CalendarClock,
     title: 'Schedule Deliveries',
-    description: 'Choose preferred delivery windows when available.'
+    description: 'Choose preferred delivery windows'
   },
   {
     icon: BadgeDollarSign,
     title: 'FX Access',
-    description: 'Enjoy better FX rates and reduced exchange charges.'
+    description: 'Better rates, lower fees'
   },
   {
     icon: Sparkles,
     title: 'Early Access Features',
-    description: 'Try new Grid.Pe features before everyone else.'
+    description: 'Try new Grid.Pe features first'
   }
 ];
 
@@ -70,7 +70,12 @@ const ProUpgrade = () => {
         return;
       }
       
-      const { payment_session_id, order_id } = data;
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+      const payment_session_id = parsedData?.payment_session_id || parsedData?.data?.payment_session_id;
+      const order_id = parsedData?.order_id || parsedData?.data?.order_id;
+      
+      console.log("Initializing Cashfree with Session ID:", payment_session_id);
+
       const isNative = Capacitor.isNativePlatform();
       
       const cashfreeEnv = import.meta.env.VITE_CASHFREE_ENV === 'sandbox' ? 'sandbox' : 'production';
@@ -127,7 +132,12 @@ const ProUpgrade = () => {
          console.error('Payment verification failed.', error);
       } else if (data?.success) {
          await fetchProfileData?.();
-         navigate(ROUTES.HOME);
+         navigate(ROUTES.PRO_SUCCESS, { 
+           state: { 
+             billingCycle: data.billing_cycle, 
+             expiresAt: data.expires_at 
+           } 
+         });
       } else {
          console.error('Payment not completed.', data?.error);
       }
@@ -159,7 +169,7 @@ const ProUpgrade = () => {
             <img 
               src={gridpeProSvg} 
               alt="Grid.Pe Pro" 
-              className="w-[168px] h-[72px] object-contain"
+              className="w-[114px] h-[50px] object-contain"
             />
           </div>
         </div>
@@ -168,13 +178,13 @@ const ProUpgrade = () => {
       <div className="flex flex-col items-center px-[22px] pb-[40px]">
 
         {/* Subheading */}
-        <p className="text-white font-satoshi font-normal text-[16px] mt-[16px] text-center">
+        <p className="text-white font-satoshi font-normal text-[16px] mt-[40px] text-center">
           Higher limits. Faster deliveries. More flexibility.
         </p>
 
         {/* Benefits Container */}
-        <div className="mt-[14px] w-full bg-black rounded-[28px] p-[24px]">
-          <div className="flex flex-col space-y-[13px]">
+        <div className="mt-[18px] w-full bg-black rounded-[28px] p-[24px]">
+          <div className="flex flex-col space-y-[16px]">
             {benefits.map((benefit, idx) => {
               const Icon = benefit.icon;
               return (

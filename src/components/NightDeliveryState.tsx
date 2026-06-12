@@ -10,18 +10,18 @@ interface NightDeliveryStateProps {
   savedAddress: SavedAddress | null;
   profileImage: string | null;
   name: string | null;
+  planTier: string;
   onAddressClick: () => void;
   onProfileClick: () => void;
-  onScheduleClick: () => void;
 }
 const NightDeliveryState: React.FC<NightDeliveryStateProps> = ({
   isDarkMode,
   savedAddress,
   profileImage,
   name,
+  planTier,
   onAddressClick,
   onProfileClick,
-  onScheduleClick,
 }) => {
   const getAddressDisplay = () => {
     if (!savedAddress) return 'Add Address';
@@ -52,7 +52,7 @@ const NightDeliveryState: React.FC<NightDeliveryStateProps> = ({
     <div
       id="DeliveryStatusContainer"
       className={cn(
-        'w-full rounded-b-[32px] flex flex-col relative overflow-hidden shrink-0 pb-[24px]',
+        'w-full rounded-b-[32px] flex flex-col relative overflow-hidden shrink-0 pb-[8px]',
         isDarkMode ? 'bg-black/50' : 'bg-white/80'
       )}
       style={{
@@ -97,32 +97,21 @@ const NightDeliveryState: React.FC<NightDeliveryStateProps> = ({
         </button>
       </div>
       {/* Middle Content */}
-      <div className="px-5 flex items-start justify-between" style={{ marginTop: '25px' }}>
+      <div className="px-5 flex items-start justify-between" style={{ marginTop: '25px', marginBottom: '2px' }}>
         <div className="flex flex-col items-start max-w-[65%]">
           <h2 className="text-[20px] font-bold font-satoshi text-foreground leading-tight">
             You want cash now? Bold.
           </h2>
           <p className="text-[14px] font-normal font-satoshi text-foreground/80 mt-[6px] leading-snug">
-            We respect the ambition. But we’re back at 6:00 AM.
+            {planTier === 'pro'
+              ? "We're back at 6 AM. Pro members can schedule now."
+              : "Pro members can schedule now to skip the morning queue."}
           </p>
-          <Button
-            onClick={onScheduleClick}
-            variant={isDarkMode ? 'glass' : 'default'}
-            className={cn(
-              'w-[188px] h-[44px] mt-[26px] shadow-xl transition-all rounded-full',
-              !isDarkMode && 'bg-black hover:bg-black/90 text-white'
-            )}
-            style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
-          >
-            <span className="text-[16px] font-normal font-satoshi text-white dark:text-foreground">
-              Schedule a Delivery?
-            </span>
-          </Button>
         </div>
         {/* Right side Illustration: Lottie Animation */}
         <div
           className="w-[140px] h-[140px] flex items-center justify-center mr-2"
-          style={{ marginTop: '-35px' }}
+          style={{ marginTop: '-35px', marginBottom: '-20px' }}
         >
           <DotLottieReact
             src="https://lottie.host/421c2864-0fa9-4840-b130-3d06580e97a6/aGb0cAR9AZ.lottie"

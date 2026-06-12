@@ -75,7 +75,6 @@ Deno.serve(async (req: Request) => {
       .from('pending_payments')
       .select('*')
       .eq('gateway_order_id', order_id)
-      .eq('type', 'pro_subscription')
       .maybeSingle();
 
     if (pendingError) {
@@ -114,7 +113,6 @@ Deno.serve(async (req: Request) => {
 
     // Upsert into user_subscriptions
     const subscriptionData = {
-      user_id,
       plan_tier: 'pro',
       status: 'active',
       billing_cycle,
@@ -127,7 +125,8 @@ Deno.serve(async (req: Request) => {
 
     const { error: upsertError } = await supabase
       .from('user_subscriptions')
-      .upsert(subscriptionData, { onConflict: 'user_id' });
+      .update(subscriptionData)
+      .eq('user_id', user_id);
 
     if (upsertError) {
       console.error("Database error upserting subscription:", upsertError);
@@ -135,17 +134,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Update the user's row in the profiles table to assign the Pro tier mapping
-    // We try to fetch the ID for the 'pro' wallet tier
-    const { data: proTier } = await supabase
-      .from('wallet_tiers')
-      .select('id')
-      .ilike('name', 'pro')
-      .maybeSingle();
-
     const profileUpdateData: any = { plan_tier: 'pro' };
-    if (proTier && proTier.id) {
-      profileUpdateData.wallet_tier_id = proTier.id;
-    }
 
     const { error: profileError } = await supabase
       .from('profiles')
@@ -153,7 +142,7 @@ Deno.serve(async (req: Request) => {
       .eq('id', user_id);
 
     if (profileError) {
-      console.error("Database error updating profile plan_tier/wallet_tier_id:", profileError);
+      console.error("Database error updating profile plan_tier:", profileError);
     }
 
     // Mark the transaction inside pending_payments as 'success'
@@ -176,10 +165,10 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error verifying pro subscription:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
+    return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }

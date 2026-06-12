@@ -224,11 +224,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           .select(
             `
           id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
-          current_tier_id, scheduled_tier_id, tier_change_date,
+          plan_tier,
           payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
-          terms_accepted_at, terms_version,
-          wallet_tiers!current_tier_id(*, subscription_price),
-          scheduled_tier:wallet_tiers!scheduled_tier_id(name)
+          terms_accepted_at, terms_version
         `
           )
           .eq('id', userId)
@@ -243,10 +241,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             .select(
               `
             id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
-            current_tier_id, scheduled_tier_id, tier_change_date,
-            payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
-            wallet_tiers!current_tier_id(*, subscription_price),
-            scheduled_tier:wallet_tiers!scheduled_tier_id(name)
+            plan_tier,
+            payment_status, subscription_status, reward_points, mpin_hash, biometric_on
           `
             )
             .eq('id', userId)
@@ -258,23 +254,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         if (profileError) throw profileError;
 
         if (profileData) {
-          let tierData = profileData.wallet_tiers as unknown as
-            | Tables['wallet_tiers']
-            | Tables['wallet_tiers'][]
-            | null;
-          if (Array.isArray(tierData)) {
-            tierData = tierData[0];
-          }
 
-          let schedData = profileData.scheduled_tier as unknown as
-            | { name: string }
-            | { name: string }[]
-            | null;
-          if (Array.isArray(schedData)) schedData = schedData[0];
-          let schedParsedName: string | null = null;
-          if (schedData && schedData.name) {
-            schedParsedName = schedData.name.charAt(0).toUpperCase() + schedData.name.slice(1);
-          }
 
           setState(prev => ({
             ...prev,

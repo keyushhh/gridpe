@@ -133,6 +133,7 @@ const DeliveryCaution = lazy(() => import('./pages/DeliveryCaution'));
 const NotAvailable = lazy(() => import('./pages/NotAvailable'));
 const RideAndEarn = lazy(() => import('./pages/RideAndEarn'));
 const ProUpgrade = lazy(() => import('./pages/ProUpgrade'));
+const ProSuccess = lazy(() => import('./pages/ProSuccess'));
 import { Button } from '@/components/ui/button';
 import { useNotificationNavigation } from './hooks/useNotificationNavigation';
 import { InAppNotificationBanner } from './components/InAppNotificationBanner';
@@ -510,6 +511,14 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                       element={
                         <ProtectedRoute>
                           <ProUpgrade />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.PRO_SUCCESS}
+                      element={
+                        <ProtectedRoute>
+                          <ProSuccess />
                         </ProtectedRoute>
                       }
                     />

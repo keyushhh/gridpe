@@ -7,12 +7,23 @@ import GlassCalendar from '@/components/GlassCalendar';
 import { SlideToPay } from '@/components/SlideToPay';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { useUser } from '@/contexts/UserContext';
 const ScheduleDelivery = () => {
   const { containerOverflow } = useWebScroll();
   const isDarkMode = useIsDarkMode();
   const navigate = useNavigate();
   const location = useLocation();
   const { amount, isScheduledFlow } = location.state || {};
+  
+  const { profile } = useUser();
+  const isProMember = profile?.plan_tier?.toLowerCase() === 'pro';
+
+  useEffect(() => {
+    if (isScheduledFlow && !isProMember) {
+      navigate(ROUTES.PRO_UPGRADE, { replace: true });
+    }
+  }, [isScheduledFlow, isProMember, navigate]);
+
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   // Time state
   const [selectedTime, setSelectedTime] = useState('7:00 am');
