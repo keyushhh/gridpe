@@ -248,9 +248,11 @@ const OrderCashSummary = () => {
           );
         }
         const { data, error } = await supabase.rpc('get_order_quote', {
-          p_amount: parsedAmount,
+          p_amount: Number(parsedAmount),
           p_order_type: 'cash',
-          p_distance_km: parseFloat(distance.toFixed(2)),
+          p_distance_km: Number(distance.toFixed(2)),
+          p_service_amount: 0,
+          p_user_id: userId || null,
         });
         if (error) throw error;
         setQuoteData(data);

@@ -422,7 +422,7 @@ const ScheduleDelivery = () => {
         <SlideToPay
           onComplete={handleConfirmSlot}
           disabled={isInvalidTime}
-          label={isScheduledFlow ? 'Confirm Slot' : 'Slide to Pay'}
+          label={isScheduledFlow ? 'Confirm and Place Order' : 'Slide to Pay'}
         />
       </div>
     </div>

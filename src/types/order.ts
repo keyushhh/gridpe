@@ -106,6 +106,7 @@ export interface Order {
   meta_data: OrderMetadata | null;
   created_at: string;
   updated_at: string;
+  scheduled_at?: string;
 
   // UI Extensions
   addresses?: Address;

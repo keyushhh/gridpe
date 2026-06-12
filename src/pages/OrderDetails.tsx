@@ -261,16 +261,17 @@ const OrderDetails = () => {
       canCancel: true,
     };
     if (currentOrder.status === 'payment_captured') {
+      const isScheduled = !!currentOrder.scheduled_at;
       config = {
         bgImage: ASSETS.SUCCESS_BG,
         mainIcon: isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT,
-        headerTitle: 'Payment Confirmed',
+        headerTitle: isScheduled ? 'Delivery Scheduled' : 'Payment Confirmed',
         statusTitle: 'Payment received!',
         statusAmount: currentOrder.total_amount || currentOrder.amount,
         showMap: true,
-        deliveryText: 'Finding your rider',
-        deliverySubText: 'We\'re assigning a delivery partner right now.',
-        transactionNote: 'Payment captured successfully. Your cash is on its way.',
+        deliveryText: isScheduled ? 'Delivery Scheduled' : 'Finding your rider',
+        deliverySubText: isScheduled ? 'Your priority morning slot is secured.' : 'We\'re assigning a delivery partner right now.',
+        transactionNote: isScheduled ? 'Your cash will be delivered at your scheduled time.' : 'Payment captured successfully. Your cash is on its way.',
         canCancel: true,
       };
     } else if (currentOrder.status === 'success' || currentOrder.status === 'delivered') {

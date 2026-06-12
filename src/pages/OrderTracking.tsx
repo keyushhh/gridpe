@@ -239,6 +239,7 @@ const OrderTracking = () => {
   };
   const getStatusText = () => {
     if (!order) return 'Processing...';
+    if (order.scheduled_at && !order.rider_id) return 'Scheduled Slot';
     switch (order.status) {
       case 'pending':
         return 'Looking for a rider...';
@@ -255,6 +256,24 @@ const OrderTracking = () => {
         return 'Processing...';
     }
   };
+  const getHoursToOpen = () => {
+    const now = new Date();
+    let target = new Date(now);
+    target.setHours(6, 0, 0, 0);
+    if (now.getHours() >= 6) {
+      target.setDate(target.getDate() + 1);
+    }
+    const diffMs = target.getTime() - now.getTime();
+    return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+  };
+
+  const getSearchCountdown = () => {
+    if (!order?.created_at) return '2 Min';
+    const elapsed = Date.now() - new Date(order.created_at).getTime();
+    const remainingMs = Math.max(60000, 120000 - elapsed);
+    return `${Math.ceil(remainingMs / 60000)} Min`;
+  };
+
   const isDelivered = order?.status === 'success' || order?.status === 'delivered';
   return (
     <div
@@ -314,9 +333,21 @@ const OrderTracking = () => {
             scrollZoom={false}
             dragPan={true}
           >
-            <Source id="route" type="geojson" data={routeGeoJson}>
-              <Layer {...routeLayer} />
-            </Source>
+            {!(order?.scheduled_at || !order?.rider_id) && (
+              <>
+                <Source id="route" type="geojson" data={routeGeoJson}>
+                  <Layer {...routeLayer} />
+                </Source>
+                <Marker latitude={riderLat} longitude={riderLng}>
+                  <img loading="lazy" decoding="async"                 src={ASSETS.RIDER}
+                    alt="Rider"
+                    className="w-8 h-8 drop-shadow-md"
+                    width={32}
+                    height={32}
+                  />
+                </Marker>
+              </>
+            )}
             <Marker latitude={currentLat} longitude={currentLng}>
               <div className="animate-pulse">
                 <img loading="eager" decoding="async"                   src={ASSETS.CURRENT_LOCATION}
@@ -327,288 +358,314 @@ const OrderTracking = () => {
                 />
               </div>
             </Marker>
-            <Marker latitude={riderLat} longitude={riderLng}>
-              <img loading="lazy" decoding="async"                 src={ASSETS.RIDER}
-                alt="Rider"
-                className="w-8 h-8 drop-shadow-md"
-                width={32}
-                height={32}
-              />
-            </Marker>
           </Map>
         )}
       </div>
       <div className="flex-1 overflow-y-auto pb-safe">
-        <div className="px-5 mt-4 shrink-0 relative z-0">
-          <div
-          className={`w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
-          style={{
-            height: '135px',
-            backgroundImage: isDarkMode ? `url(${ASSETS.ARRIVING_CONTAINER})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            border: isDelivered
-              ? '1px solid #16B751'
-              : isDarkMode
-                ? '1px solid rgba(255,255,255,0.1)'
-                : '1px solid #E9EAEB',
-          }}
-        >
-          <div className="flex justify-between items-start mb-[8px]">
-            <div className="flex flex-col">
-              <p className="text-brand-text-muted text-[12px] font-bold font-satoshi tracking-widest uppercase leading-none">
-                {isDelivered ? 'ORDER STATUS' : 'ARRIVING IN'}
-              </p>
-              <p
-                className={`text-[20px] font-bold font-satoshi mt-[1px] ${isDarkMode ? 'text-white' : 'text-black'}`}
-                style={{ lineHeight: '140%', color: isDelivered ? '#1CB956' : undefined }}
-              >
-                {isDelivered ? 'Delivered' : order?.status === 'arrived' ? 'Arrived' : '1 Min'}
-              </p>
-            </div>
+        {order?.scheduled_at && !order?.rider_id ? (
+          <div className="px-[15px] mt-4 shrink-0 relative z-0">
             <div
-              className="absolute"
+              className={`w-full mx-auto rounded-[13px] relative pt-[15px] px-[15px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
               style={{
-                top: '11px',
-                right: '15px',
-                width: '31px',
-                height: '31px',
+                backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
+                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
               }}
             >
-              <img loading="lazy" decoding="async"                 src={isDelivered ? ASSETS.VERIFIED_CIRCLE : ASSETS.ARRIVING}
-                alt="StatusIcon"
-                className="w-full h-full"
-                style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined}
-                width={31}
-                height={31}
-              />
-            </div>
-          </div>
-          {/* Loader */}
-          <div
-            className={`h-[9px] rounded-full overflow-hidden mb-[14px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}
-          >
-            <div
-              className="h-full rounded-full transition-all duration-300 ease-linear"
-              style={{
-                width: isDelivered ? '100%' : `${progress}%`,
-                backgroundColor: isDelivered ? '#16B751' : '#5260FE',
-                boxShadow: isDelivered
-                  ? '0 0 10px rgba(22, 183, 81, 0.5)'
-                  : '0 0 10px rgba(82,96,254,0.5)',
-              }}
-            />
-          </div>
-          <div>
-            <p
-              className={`text-[12px] font-medium font-satoshi mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}
-            >
-              {isLoading ? <Skeleton width="40%" /> : getStatusText()}
-            </p>
-            <p
-              className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
-            >
-              {isLoading ? (
-                <Skeleton count={2} />
-              ) : isDelivered ? (
-                'Your package has been handed over successfully.'
-              ) : order?.status === 'accepted' ? (
-                'Your rider is heading to the pickup hub'
-              ) : order?.status === 'picked_up' ? (
-                'Your rider is on the way to you!'
-              ) : order?.status === 'processing' ? (
-                "We're assigning a partner to your request."
-              ) : (
-                'Your delivery partner and order are tracked in real-time.'
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
-      {/* Rider Details Container */}
-      <div className="px-[15px] mt-2.5 shrink-0 relative z-0">
-        <div
-          className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px]"
-          style={{
-            height: 'auto',
-            maxWidth: '362px',
-            backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
-            border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
-          }}
-        >
-          {order?.rider_id ? (
-            <div className="flex items-start gap-[12px] mb-4">
-              {/* Photo Frame */}
-              <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
-                <img loading="lazy" decoding="async"                   src={(() => {
-                    const rider = order?.rider;
-                    const photo = rider?.kyc_photo || rider?.profile_url;
-                    if (!photo) return ASSETS.AVATAR;
-                    if (photo.startsWith('http')) return photo;
-                    return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;
-                  })()}
-                  alt={`${riderName || order?.rider?.full_name || 'Rider'}'s photo`}
-                  className="w-full h-full object-cover"
-                />
-                {/* Verified Tag Bar */}
-                <div className="absolute bottom-0 left-0 right-0 bg-brand-success-vibrant h-[18px] flex items-center justify-center gap-[6px] z-10">
-                  <img loading="lazy" decoding="async" src={ASSETS.VERIFIED} alt="V" className="w-[12px] h-[12px]" />
-                  <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
+              <div className="flex justify-between items-start mb-[12px]">
+                <div className="flex flex-col">
+                  <p className="text-brand-text-muted text-[12px] font-bold font-satoshi leading-none">
+                    We'll assign a Rider when we're open again
+                  </p>
+                  <p
+                    className={`text-[20px] font-bold font-satoshi mt-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    style={{ lineHeight: '140%' }}
+                  >
+                    {getHoursToOpen()} hours to open
+                  </p>
+                </div>
+                <div className="w-[31px] h-[31px] relative top-1">
+                  <img loading="lazy" decoding="async" src={ASSETS.ARRIVING} alt="StatusIcon" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
                 </div>
               </div>
-              {/* Rider Info */}
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p
-                      className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}
-                    >
-                      Hi, I’m {riderName || order?.rider?.full_name || 'Partner'},<br />
-                      your delivery partner
+              <div className={`h-[9px] rounded-full overflow-hidden mb-[16px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+                <div className="h-full rounded-full transition-all duration-300 ease-linear bg-[#5260FE]" style={{ width: `${progress}%`, boxShadow: '0 0 10px rgba(82,96,254,0.5)' }} />
+              </div>
+              <div>
+                <p className={`text-[16px] font-bold font-satoshi leading-snug mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                  Your order is locked in.
+                </p>
+                <p className={`text-[14px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}>
+                  A verified rider will be assigned right before your delivery slot.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : !order?.rider_id && !isDelivered ? (
+          <div className="px-[15px] mt-4 shrink-0 relative z-0">
+            <div
+              className={`w-full mx-auto rounded-[13px] relative pt-[15px] px-[15px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
+              style={{
+                backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
+                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
+              }}
+            >
+              <div className="flex justify-between items-start mb-[12px]">
+                <div className="flex flex-col">
+                  <p className="text-brand-text-muted text-[12px] font-bold font-satoshi leading-none">
+                    Finding a nearby Rider...
+                  </p>
+                  <p
+                    className={`text-[20px] font-bold font-satoshi mt-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    style={{ lineHeight: '140%' }}
+                  >
+                    {getSearchCountdown()}
+                  </p>
+                </div>
+                <div className="w-[31px] h-[31px] relative top-1">
+                  <img loading="lazy" decoding="async" src={ASSETS.ARRIVING} alt="StatusIcon" className="w-full h-full" style={!isDarkMode ? { filter: 'invert(1)' } : undefined} />
+                </div>
+              </div>
+              <div className={`h-[9px] rounded-full overflow-hidden mb-[16px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+                <div className="h-full rounded-full transition-all duration-300 ease-linear bg-[#5260FE]" style={{ width: `${progress}%`, boxShadow: '0 0 10px rgba(82,96,254,0.5)' }} />
+              </div>
+              <div>
+                <p className={`text-[16px] font-bold font-satoshi leading-snug mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                  Hi, please wait while we connect your order to a nearby rider.
+                </p>
+                <p className={`text-[14px] font-normal font-satoshi leading-snug ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}>
+                  Average assignment time: &lt; 2 mins
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="px-5 mt-4 shrink-0 relative z-0">
+              <div
+                className={`w-full rounded-[12px] relative px-[15px] pt-[10px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
+                style={{
+                  height: '135px',
+                  backgroundImage: isDarkMode ? `url(${ASSETS.ARRIVING_CONTAINER})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  border: isDelivered ? '1px solid #16B751' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid #E9EAEB',
+                }}
+              >
+                <div className="flex justify-between items-start mb-[8px]">
+                  <div className="flex flex-col">
+                    <p className={`text-brand-text-muted text-[12px] font-bold font-satoshi leading-none tracking-widest uppercase`}>
+                      {isDelivered ? 'ORDER STATUS' : 'ARRIVING IN'}
+                    </p>
+                    <p className={`text-[20px] font-bold font-satoshi mt-[1px] ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ lineHeight: '140%', color: isDelivered ? '#1CB956' : undefined }}>
+                      {isDelivered ? 'Delivered' : order?.status === 'arrived' ? 'Arrived' : '1 Min'}
                     </p>
                   </div>
-                  <button className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20">
-                    <img loading="lazy" decoding="async"                       src={ASSETS.CALL}
-                      alt="Call"
-                      className="w-full h-full"
-                      style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
-                    />
-                  </button>
-                </div>
-                <button
-                  onClick={() => setShowChatSheet(true)}
-                  className="relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-primary/30 bg-primary/5 text-primary text-sm font-medium mt-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  Chat with Rider
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </button>
-                <button
-                  onClick={() =>
-                    navigate(ROUTES.VIEW_RIDER_KYC.replace(':orderId', order.id), {
-                      state: { order },
-                    })
-                  }
-                  className="mt-2 rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
-                  style={{
-                    width: '248px',
-                    height: '36px',
-                    backgroundColor: '#1CB956',
-                  }}
-                >
-                  View KYC
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="mb-4">
-              <p
-                className={`text-[16px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}
-              >
-                Hi, please wait while we connect your order to a nearby rider.
-              </p>
-            </div>
-          )}
-          <p
-            className={`text-[14px] font-normal font-satoshi leading-snug mb-1 ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
-          >
-            {order?.rider_id
-              ? 'Your delivery partner is KYC Verified. Please check the KYC details while accepting the order.'
-              : 'Average assignment time: < 2 mins'}
-          </p>
-          <div
-            className={`h-[1px] w-full mb-2.5 ${isDarkMode ? 'bg-brand-border-dark' : 'bg-brand-border-light'}`}
-          />
-          {/* OTP Section */}
-          <div>
-            <p
-              className={`text-[15px] font-bold font-satoshi mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
-            >
-              Please provide this OTP to confirm the delivery
-            </p>
-            {order?.status === 'picked_up' && (
-              <p className="text-brand-primary text-[12px] font-medium mb-2">
-                Share this OTP with your rider only at the time of delivery
-              </p>
-            )}
-            <div className="w-full flex justify-center mb-3">
-              <div className="flex gap-2">
-                {(order?.otp_code || '000000').split('').map((digit, index) => (
-                  <div
-                    key={`otp-${index}`}
-                    className={`w-[48px] h-[64px] rounded-[7px] flex items-center justify-center text-[32px] font-bold font-satoshi relative overflow-hidden ${isDarkMode ? 'text-white' : 'text-black'}`}
-                    style={{
-                      backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#F7F8FA',
-                      backdropFilter: isDarkMode ? 'blur(23.51px)' : 'none',
-                      WebkitBackdropFilter: isDarkMode ? 'blur(23.51px)' : 'none',
-                      border: isDarkMode ? 'none' : '1px solid #E6E8EB',
-                    }}
-                  >
-                    {/* Gradient Border Overlay - 0.59px */}
-                    {isDarkMode && (
-                      <div
-                        className="absolute inset-0 pointer-events-none rounded-[7px]"
-                        style={{
-                          padding: '0.59px',
-                          background:
-                            'linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))',
-                          WebkitMask:
-                            'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                          WebkitMaskComposite: 'xor',
-                          maskComposite: 'exclude',
-                        }}
-                      />
-                    )}
-                    {digit}
+                  <div className="absolute" style={{ top: '11px', right: '15px', width: '31px', height: '31px' }}>
+                    <img loading="lazy" decoding="async" src={isDelivered ? ASSETS.VERIFIED_CIRCLE : ASSETS.ARRIVING} alt="StatusIcon" className="w-full h-full" style={!isDarkMode && !isDelivered ? { filter: 'invert(1)' } : undefined} width={31} height={31} />
                   </div>
-                ))}
+                </div>
+                <div className={`h-[9px] rounded-full overflow-hidden mb-[14px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+                  <div className="h-full rounded-full transition-all duration-300 ease-linear" style={{ width: isDelivered ? '100%' : `${progress}%`, backgroundColor: isDelivered ? '#16B751' : '#5260FE', boxShadow: isDelivered ? '0 0 10px rgba(22, 183, 81, 0.5)' : '0 0 10px rgba(82,96,254,0.5)' }} />
+                </div>
+                <div>
+                  <p className={`text-[12px] font-medium font-satoshi mb-[4px] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    {isLoading ? <Skeleton width="40%" /> : getStatusText()}
+                  </p>
+                  <p className={`text-[12px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}>
+                    {isLoading ? (
+                      <Skeleton count={2} />
+                    ) : isDelivered ? (
+                      'Your package has been handed over successfully.'
+                    ) : order?.status === 'accepted' ? (
+                      'Your rider is heading to the pickup hub'
+                    ) : order?.status === 'picked_up' ? (
+                      'Your rider is on the way to you!'
+                    ) : order?.status === 'processing' ? (
+                      "We're assigning a partner to your request."
+                    ) : (
+                      'Your delivery partner and order are tracked in real-time.'
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          {/* OTP Status Row */}
-          <div className="flex items-center w-full mt-[12px]">
-            <div className="flex items-center gap-3">
-              <img loading="lazy" decoding="async"                 src={isOtpVerified ? ASSETS.VERIFIED_CIRCLE : ASSETS.AWAITING}
-                alt="Status"
-                className="w-[20px] h-[20px]"
-              />
-              <span
-                className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
+
+            <div className="px-[15px] mt-2.5 shrink-0 relative z-0">
+              <div
+                className="w-full mx-auto rounded-[13px] relative pt-[9px] px-[9px] pb-[14px]"
+                style={{
+                  height: 'auto',
+                  maxWidth: '362px',
+                  backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
+                  backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                  border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
+                }}
               >
-                {isOtpVerified ? 'OTP Verified' : 'Awaiting OTP verification'}
-              </span>
+                {order?.rider_id && (
+                  <div className="flex items-start gap-[12px] mb-4">
+                    {/* Photo Frame */}
+                    <div className="w-[81px] h-[89px] relative shrink-0 rounded-[6px] overflow-hidden">
+                      <img loading="lazy" decoding="async"                   src={(() => {
+                          const rider = order?.rider;
+                          const photo = rider?.kyc_photo || rider?.profile_url;
+                          if (!photo) return ASSETS.AVATAR;
+                          if (photo.startsWith('http')) return photo;
+                          return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${photo}`;
+                        })()}
+                        alt={`${riderName || order?.rider?.full_name || 'Rider'}'s photo`}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Verified Tag Bar */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-brand-success-vibrant h-[18px] flex items-center justify-center gap-[6px] z-10">
+                        <img loading="lazy" decoding="async" src={ASSETS.VERIFIED} alt="V" className="w-[12px] h-[12px]" />
+                        <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
+                      </div>
+                    </div>
+                    {/* Rider Info */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p
+                            className={`text-[15px] font-bold font-satoshi leading-snug ${isDarkMode ? 'text-white' : 'text-black'}`}
+                          >
+                            Hi, I’m {riderName || order?.rider?.full_name || 'Partner'},<br />
+                            your delivery partner
+                          </p>
+                        </div>
+                        <button className="absolute top-[9px] right-[9px] w-[31px] h-[31px] flex items-center justify-center active:scale-95 transition-transform z-20">
+                          <img loading="lazy" decoding="async"                       src={ASSETS.CALL}
+                            alt="Call"
+                            className="w-full h-full"
+                            style={!isDarkMode ? { filter: 'invert(1)' } : undefined}
+                          />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => setShowChatSheet(true)}
+                        className="relative flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-primary/30 bg-primary/5 text-primary text-sm font-medium mt-2"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Chat with Rider
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        onClick={() =>
+                          navigate(ROUTES.VIEW_RIDER_KYC.replace(':orderId', order.id), {
+                            state: { order },
+                          })
+                        }
+                        className="mt-2 rounded-full text-white text-[14px] font-medium font-satoshi tracking-wider flex items-center justify-center active:scale-95 transition-transform"
+                        style={{
+                          width: '248px',
+                          height: '36px',
+                          backgroundColor: '#1CB956',
+                        }}
+                      >
+                        View KYC
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <p
+                  className={`text-[14px] font-normal font-satoshi leading-snug mb-1 ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}
+                >
+                  Your delivery partner is KYC Verified. Please check the KYC details while accepting the order.
+                </p>
+                {/* OTP Section */}
+                {order?.status === 'out_for_delivery' && (
+                  <>
+                    <div>
+                      <p
+                        className={`text-[15px] font-bold font-satoshi mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
+                      >
+                        Please provide this OTP to confirm the delivery
+                      </p>
+                      <p className="text-brand-primary text-[12px] font-medium mb-2">
+                        Share this OTP with your rider only at the time of delivery
+                      </p>
+                      <div className="w-full flex justify-center mb-3">
+                        <div className="flex gap-2">
+                          {(order?.otp_code || '000000').split('').map((digit, index) => (
+                            <div
+                              key={`otp-${index}`}
+                              className={`w-[48px] h-[64px] rounded-[7px] flex items-center justify-center text-[32px] font-bold font-satoshi relative overflow-hidden ${isDarkMode ? 'text-white' : 'text-black'}`}
+                              style={{
+                                backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#F7F8FA',
+                                backdropFilter: isDarkMode ? 'blur(23.51px)' : 'none',
+                                WebkitBackdropFilter: isDarkMode ? 'blur(23.51px)' : 'none',
+                                border: isDarkMode ? 'none' : '1px solid #E6E8EB',
+                              }}
+                            >
+                              {/* Gradient Border Overlay - 0.59px */}
+                              {isDarkMode && (
+                                <div
+                                  className="absolute inset-0 pointer-events-none rounded-[7px]"
+                                  style={{
+                                    padding: '0.59px',
+                                    background:
+                                      'linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02))',
+                                    WebkitMask:
+                                      'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                                    WebkitMaskComposite: 'xor',
+                                    maskComposite: 'exclude',
+                                  }}
+                                />
+                              )}
+                              {digit}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {/* OTP Status Row */}
+                    <div className="flex items-center w-full mt-[12px]">
+                      <div className="flex items-center gap-3">
+                        <img loading="lazy" decoding="async"                 src={isOtpVerified ? ASSETS.VERIFIED_CIRCLE : ASSETS.AWAITING}
+                          alt="Status"
+                          className="w-[20px] h-[20px]"
+                        />
+                        <span
+                          className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
+                        >
+                          {isOtpVerified ? 'OTP Verified' : 'Awaiting OTP verification'}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-      {/* Need Help CTA - Positioned exactly 15px below the 3rd card in a natural flex column flow */}
-      <div className="px-5 mt-[15px] pb-4 safe-bottom shrink-0 relative z-0">
-        <Button
-          onClick={() => navigate(ROUTES.HELP_REPORT, { state: { order } })}
-          variant={isDarkMode ? 'glass' : 'default'}
-          className={cn(
-            'w-full h-[48px] shadow-xl transition-all',
-            !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full'
-          )}
-          style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
-        >
-          <span
+          </>
+        )}
+        {/* Need Help CTA - Positioned directly below the card naturally */}
+        <div className="px-[15px] mt-4 pb-4 shrink-0 relative z-0">
+          <Button
+            onClick={() => navigate(ROUTES.HELP_REPORT, { state: { order } })}
+            variant={isDarkMode ? 'glass' : 'default'}
             className={cn(
-              'font-medium text-[16px]',
-              isDarkMode ? 'text-white dark:text-foreground' : 'text-white'
+              'w-full h-[48px] shadow-xl transition-all',
+              !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full'
             )}
+            style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
           >
-            Need Help?
-          </span>
-        </Button>
-      </div>
+            <span
+              className={cn(
+                'font-medium text-[16px]',
+                isDarkMode ? 'text-white dark:text-foreground' : 'text-white'
+              )}
+            >
+              Need Help?
+            </span>
+          </Button>
+        </div>
       </div>
       <CustomerChatSheet
         isOpen={showChatSheet}

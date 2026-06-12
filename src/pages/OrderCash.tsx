@@ -180,7 +180,7 @@ const OrderCash = () => {
           </span>
         </div>
         <div
-          className={`w-[238px] h-[1px] mt-[4.5px] ${isDarkMode ? 'bg-[#373737]' : 'bg-brand-border-light'}`}
+          className={`w-[238px] h-[1px] my-6 ${isDarkMode ? 'bg-[#373737]' : 'bg-brand-border-light'}`}
         />
         {errorMessage && (
           <p className="text-brand-error text-[12px] font-normal font-sans mb-[17px] mt-[8px]">

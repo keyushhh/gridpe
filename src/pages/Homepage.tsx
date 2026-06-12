@@ -983,6 +983,21 @@ const Homepage = () => {
   };
   const getActiveOrderBannerContent = () => {
     if (!activeOrder) return { title: '', sub: '' };
+
+    if (activeOrder.scheduled_at && !activeOrder.rider_id) {
+      const date = new Date(activeOrder.scheduled_at);
+      const formattedDate = date.toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      return {
+        title: <>Your order is scheduled</>,
+        sub: `Scheduled for ${formattedDate}`,
+      };
+    }
+
     switch (activeOrder.status.toLowerCase()) {
       case 'pending':
         return {
@@ -1296,9 +1311,11 @@ const Homepage = () => {
                       }
                     }}
                     disabled={
-                      displayNightMode 
-                        ? (tierName.toLowerCase() === 'pro' && numericAmount > 0 && (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded))
-                        : (numericAmount > 0 && (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded))
+                      numericAmount === 0 || (
+                        displayNightMode 
+                          ? (tierName.toLowerCase() === 'pro' && (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded))
+                          : (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded)
+                      )
                     }
                     variant={(numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) ? 'default' : (isDarkMode ? 'glass' : 'default')}
                     className={cn(
