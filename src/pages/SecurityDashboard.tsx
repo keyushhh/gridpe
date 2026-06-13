@@ -11,7 +11,7 @@ import { useAsset } from '@/hooks/useAsset';
 import MpinSheet from '@/components/MpinSheet';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
-import { toast } from 'sonner';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Switch } from '@/components/ui/switch';
 import { hapticLight } from '@/utils/haptics';
 import { Capacitor } from '@capacitor/core';
@@ -21,6 +21,7 @@ interface LocationState { originPath?: string }
 const SecurityDashboard = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
+  const { showToaster } = useCustomToaster();
   const location = useLocation();
   const originPath = (location.state as LocationState)?.originPath || '/settings';
   const isDarkMode = useIsDarkMode();
@@ -139,7 +140,7 @@ const SecurityDashboard = () => {
       if (!availability.isAvailable) {
         const reason =
           availability.reason || 'Biometric authentication is not available on this device';
-        toast.error(reason);
+        showToaster(reason, 'error');
         return;
       }
       setBiometricAction('enable');
@@ -147,7 +148,7 @@ const SecurityDashboard = () => {
     } catch (error: unknown) {
       console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
       const errorMessage = error instanceof Error ? error.message : 'Failed to check biometric availability';
-      toast.error(errorMessage);
+      showToaster(errorMessage, 'error');
     }
   };
   const onMpinVerifySuccess = async (mpin?: string) => {
@@ -162,10 +163,10 @@ const SecurityDashboard = () => {
         if (Capacitor.isNativePlatform()) {
           await SecureStorage.remove('mpin');
         }
-        toast.success('Biometric unlock disabled on this device');
+        showToaster('Biometric unlock disabled on this device', 'success');
       } catch (error: unknown) {
         console.error('Failed to disable biometrics:', error);
-        toast.error('Failed to disable biometrics. Please try again.');
+        showToaster('Failed to disable biometrics. Please try again.', 'error');
       } finally {
         setShowMpinForBiometric(false);
       }
@@ -193,11 +194,11 @@ const SecurityDashboard = () => {
       if (Capacitor.isNativePlatform()) {
         await SecureStorage.set('mpin', mpin);
       }
-      toast.success('Biometric unlock enabled!');
+      showToaster('Biometric unlock enabled!', 'success');
     } catch (error: unknown) {
       console.error('Biometric authentication failed:', JSON.stringify(error, null, 2));
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed or cancelled';
-      toast.error(errorMessage);
+      showToaster(errorMessage, 'error');
     } finally {
       setShowMpinForBiometric(false);
     }

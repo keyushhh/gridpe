@@ -243,7 +243,8 @@ html.font-pending body {
 
   .glass-surface {
     background: hsl(var(--surface-elevated) / 0.6);
-    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
     border: 1px solid hsl(var(--border) / 0.5);
   }
 

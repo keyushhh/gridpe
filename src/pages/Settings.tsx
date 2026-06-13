@@ -501,18 +501,7 @@ const Settings = () => {
               <ChevronRight />
             </div>
 
-            <div
-              className="flex justify-between cursor-pointer"
-              onClick={() => navigate(ROUTES.SUBSCRIPTIONS)}
-            >
-              <div className="flex items-start gap-3">
-                <img loading="lazy" decoding="async" src={ASSETS.SUBSCRIPTIONS} className="w-[18px] mt-[2px] filter brightness-0 dark:invert" />
-                <div>
-                  <p className="text-foreground text-[14px]">Subscriptions</p>
-                </div>
-              </div>
-              <ChevronRight />
-            </div>
+
           </div>
         </div>
 

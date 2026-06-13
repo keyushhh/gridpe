@@ -67,18 +67,12 @@ const FAQ_DB = [
     },
 
     // Wallet & Payments
-    {
-        keywords: ["wallet", "balance", "money", "cash"],
-        answer: "Your wallet is your digital stash. You can add money via UPI or card. It's safe, instant, and honestly, way cooler than physical cash."
-    },
+
     {
         keywords: ["refund", "money back", "return"],
         answer: "Refunds usually take 2-5 business days. Your money is safe, it just likes to take the scenic route back to your bank."
     },
-    {
-        keywords: ["withdraw", "bank", "transfer"],
-        answer: "Yes, you can withdraw your wallet balance to your bank account. Go to Wallet -> Withdraw and follow the steps. Easy peasy."
-    },
+
     {
         keywords: ["fail", "payment failed", "transaction"],
         answer: "Payment failed? Don't panic. If money was deducted, it'll be auto-refunded in 2-5 days. We aren't thieves!"

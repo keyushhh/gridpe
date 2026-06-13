@@ -23,7 +23,7 @@ import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
-import { toast } from 'sonner';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 
 // Module-level storage — survives React state resets within the session
 let isPaymentInProgress = false;
@@ -125,7 +125,7 @@ const OrderCashSummary = () => {
           await runVerification(pendingVerificationStore);
         } catch (err) {
           console.error('[appUrlOpen] runVerification failed:', err);
-          toast.error('Payment verification failed. Please check your order history.');
+          showToaster('Payment verification failed. Please check your order history.', 'error');
         }
       }
     });
@@ -138,7 +138,7 @@ const OrderCashSummary = () => {
             await runVerification(pendingVerificationStore);
           } catch (err) {
             console.error('[resume] runVerification failed:', err);
-            toast.error('Payment verification failed. Please check your order history.');
+            showToaster('Payment verification failed. Please check your order history.', 'error');
           }
         }, 1500);
       }
@@ -539,7 +539,7 @@ const OrderCashSummary = () => {
                   await runVerification(pendingVerificationStore);
                 } catch (err) {
                   console.error('[browserFinished] runVerification failed:', err);
-                  toast.error('Payment verification failed. Please check your order history.');
+                  showToaster('Payment verification failed. Please check your order history.', 'error');
                 }
               }, 1000);
             }
@@ -603,7 +603,7 @@ const OrderCashSummary = () => {
               });
             } catch (err) {
               console.error('[verify-cash-order] invocation failed:', err);
-              toast.error('Payment verification failed. Please check your order history.');
+              showToaster('Payment verification failed. Please check your order history.', 'error');
             }
           }
         });

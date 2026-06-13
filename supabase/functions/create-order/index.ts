@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Atomically create the Order and place the HOLD on the wallet
+    // 1. Atomically create the Order
     const rpcName = order_type === 'FX_EXCHANGE' ? 'create_fx_order' : 'create_cash_order';
     
     // Use passed user_id or a strictly validated fallback if the app architecture allows it.

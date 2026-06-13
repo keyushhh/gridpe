@@ -9,7 +9,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatINR, formatFxAmount } from '@/utils/format';
 import { CURRENCY_NAMES, CURRENCY_MAP, currencySymbols } from '@/constants/currencies';
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 
 interface CurrencyModalProps {
   isOpen: boolean;
@@ -147,6 +147,7 @@ const CurrencyModal = ({
 };
 const PassportUpgradeModal = ({ isOpen }: { isOpen: boolean }) => {
   const navigate = useNavigate();
+  const { showToaster } = useCustomToaster();
   const isDarkMode = useIsDarkMode();
   if (!isOpen) return null;
   return (
@@ -191,8 +192,7 @@ const FxExchange = () => {
   const { profile, isPassportVerified, kycStatus } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
-  const { walletTier, walletLimit, walletBalance } = useUser();
-  const isWalletLimitReached = walletBalance >= walletLimit;
+
   // Initial State from navigation
   const { amount: initialAmount, from: initialFrom } = location.state || {};
   const initialFromCurrency = initialFrom === 'INR' ? 'USD' : initialFrom || 'USD';
@@ -328,7 +328,7 @@ const FxExchange = () => {
         }
       } catch (error) {
         console.error('Failed to fetch FX data:', error);
-        toast.error('Failed to fetch live exchange rates. Using fallback rates.');
+        showToaster('Failed to fetch live exchange rates. Using fallback rates.', 'error');
         if (isSameCurrency) {
           setFxRate(1);
         } else if (fromCurrency === 'USD' && toCurrency === 'INR') {
@@ -385,19 +385,6 @@ const FxExchange = () => {
   // Guard: never show a negative final amount
   const isBelowMinimum = rawFinalAmount <= 0;
   const finalAmount = isBelowMinimum ? 0 : rawFinalAmount;
-  const hasInsufficientFunds = walletBalance < finalAmount;
-  const tierBackgrounds = {
-    Starter: ASSETS.FX_WALLET_STARTER,
-    Pro: ASSETS.FX_WALLET_PRO,
-    Elite: ASSETS.FX_WALLET_ELITE,
-    Supreme: ASSETS.FX_WALLET_SUPREME,
-  };
-  const tierBackgroundsLight = {
-    Starter: ASSETS.FX_WALLET_STARTER_LIGHT,
-    Pro: ASSETS.FX_WALLET_PRO_LIGHT,
-    Elite: ASSETS.FX_WALLET_ELITE_LIGHT,
-    Supreme: ASSETS.FX_WALLET_SUPREME_LIGHT,
-  };
   return (
     <div
       className={`h-screen ${isDarkMode ? 'text-white' : 'text-black'} font-satoshi flex flex-col relative overflow-y-auto scroll-smooth no-scrollbar bg-background`}
@@ -678,33 +665,7 @@ const FxExchange = () => {
             </div>
           </div>
         </div>
-        {/* Wallet Section */}
-        <div
-          className={`${!isDarkMode ? 'border border-border' : ''} mt-4 min-h-[101px] rounded-[20px] relative overflow-hidden`}
-          style={{
-            backgroundImage: `url(${isDarkMode ? tierBackgrounds[walletTier] || ASSETS.FX_WALLET_STARTER : tierBackgroundsLight[walletTier] || ASSETS.FX_WALLET_STARTER_LIGHT})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <span
-            className={`absolute top-[16px] left-[56px] text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
-          >
-            Wallet Balance
-          </span>
-          <span
-            className={`absolute top-[13px] right-[22px] text-[20px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
-          >
-            {formatINR(walletBalance)}
-          </span>
-          <p
-            className={`absolute left-[16px] top-[51px] text-[13px] font-regular font-satoshi w-[85%] leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}
-          >
-            {hasInsufficientFunds
-              ? 'Note: Your wallet has insufficient funds for this transaction. Please add money to continue.'
-              : 'Note: Your wallet balance must cover the converted amount to proceed.'}
-          </p>
-        </div>
+
       </div>
       {/* Footer / CTA */}
       <div className="px-5 safe-bottom pb-4 mt-auto flex flex-col items-center gap-[18px]">
@@ -720,27 +681,23 @@ const FxExchange = () => {
           className={`w-full h-[48px] bg-primary rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? 'shadow-primary/20 text-white' : 'shadow-primary/30 text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
           disabled={isBelowMinimum || isSameCurrency}
           onClick={() => {
-            if (hasInsufficientFunds) {
-              navigate(ROUTES.WALLET_ADD_MONEY);
-            } else {
-              navigate(ROUTES.FX_EXCHANGE_SUMMARY, {
-                state: {
-                  amount: amount,
-                  fxRate: fxRate,
-                  fromCurrency: currentFrom,
-                  toCurrency: currentTo,
-                  convertedAmount: convertedAmount,
-                  markupAmount: markupAmount,
-                  flatFee: flatFeeInToCurrency,
-                  finalAmount: finalAmount,
-                  markupPercent: markupPercent,
-                  currencySymbols: currencySymbols,
-                },
-              });
-            }
+            navigate(ROUTES.FX_EXCHANGE_SUMMARY, {
+              state: {
+                amount: amount,
+                fxRate: fxRate,
+                fromCurrency: currentFrom,
+                toCurrency: currentTo,
+                convertedAmount: convertedAmount,
+                markupAmount: markupAmount,
+                flatFee: flatFeeInToCurrency,
+                finalAmount: finalAmount,
+                markupPercent: markupPercent,
+                currencySymbols: currencySymbols,
+              },
+            });
           }}
         >
-          {hasInsufficientFunds ? 'Add Money to Wallet' : 'Proceed to Order'}
+          Proceed to Order
         </button>
       </div>
       {/* Modals */}

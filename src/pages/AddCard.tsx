@@ -11,7 +11,7 @@ import { useSensitiveInput } from '@/hooks/useSensitiveInput';
 import { luhnCheck, validateExpiry, validateCVV } from '@/utils/validationUtils';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
-import { toast } from 'sonner';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
@@ -22,6 +22,7 @@ let pendingCardVerificationOrderId: string | null = null;
 const AddCard = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
+  const { showToaster } = useCustomToaster();
   const location = useLocation();
   const { profile } = useUser();
   const userId = profile?.id;
@@ -156,7 +157,7 @@ const AddCard = () => {
     hapticMedium();
     if (!validateForm()) return;
     if (!userId) {
-      toast.error('Authentication error. Please log in again.');
+      showToaster('Authentication error. Please log in again.', 'error');
       return;
     }
     setIsLoading(true);
@@ -169,7 +170,7 @@ const AddCard = () => {
         .single();
       
       if (!userProfile?.phone) {
-        toast.error('Please add a phone number to your profile first.');
+        showToaster('Please add a phone number to your profile first.', 'error');
         return;
       }
 
@@ -190,7 +191,7 @@ const AddCard = () => {
         });
 
       if (orderError || !orderData?.success) {
-        toast.error('Failed to initialize card verification.');
+        showToaster('Failed to initialize card verification.', 'error');
         return;
       }
 
@@ -218,7 +219,7 @@ const AddCard = () => {
           redirectTarget: '_modal',
         }).then(async (result: any) => {
           if (result.paymentDetails) {
-            toast.loading('Saving your card...');
+            showToaster('Saving your card...', 'success');
             try {
               const { data: verifyData, error } = await supabase
                 .functions.invoke('verify-card-order', {
@@ -227,24 +228,24 @@ const AddCard = () => {
                     user_id: capturedUserId,
                   }
                 });
-              toast.dismiss();
+              
               if (error || !verifyData?.success) {
-                toast.error('Card verification failed. Please try again.');
+                showToaster('Card verification failed. Please try again.', 'error');
                 return;
               }
               navigate(ROUTES.CARDS, { state: { cardAdded: true } });
             } catch (err) {
-              toast.dismiss();
-              toast.error('Card verification failed. Please try again.');
+              
+              showToaster('Card verification failed. Please try again.', 'error');
               console.error('[AddCard] verify-card-order web error:', err);
             }
           } else if (result.error) {
-            toast.error('Card verification failed. Please try again.');
+            showToaster('Card verification failed. Please try again.', 'error');
           }
         });
       }
     } catch (err) {
-      toast.error('Failed to save card. Please try again.');
+      showToaster('Failed to save card. Please try again.', 'error');
       console.error('AddCard error:', err);
     } finally {
       setIsLoading(false);
@@ -278,11 +279,11 @@ const AddCard = () => {
       const orderId = orderIdFromUrl || pendingCardVerificationOrderId;
 
       if (!orderId || !userId) {
-        toast.error('Could not verify card. Please try again.');
+        showToaster('Could not verify card. Please try again.', 'error');
         return;
       }
 
-      toast.loading('Saving your card...');
+      showToaster('Saving your card...', 'success');
 
       try {
         const { data: verifyData, error } = await supabase
@@ -294,17 +295,17 @@ const AddCard = () => {
           });
 
         if (error || !verifyData?.success) {
-          toast.dismiss();
-          toast.error('Card verification failed. Please try again.');
+          
+          showToaster('Card verification failed. Please try again.', 'error');
           return;
         }
 
         pendingCardVerificationOrderId = null;
-        toast.dismiss();
+        
         navigate(ROUTES.CARDS, { state: { cardAdded: true } });
       } catch (err) {
-        toast.dismiss();
-        toast.error('Card verification failed. Please try again.');
+        
+        showToaster('Card verification failed. Please try again.', 'error');
         console.error('[AddCard] verify-card-order error:', err);
       }
     });

@@ -583,9 +583,7 @@ const OrderDetails = () => {
             >
               {order.payment_mode === 'CASHFREE'
                 ? 'Cashfree'
-                : order.payment_mode === 'WALLET'
-                  ? 'Grid.Pe Wallet'
-                  : order.payment_mode || 'Cashfree'}
+                : order.payment_mode || 'Cashfree'}
             </span>
           </div>
           <p

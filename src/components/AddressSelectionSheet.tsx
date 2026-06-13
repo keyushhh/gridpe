@@ -225,7 +225,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     
     // Step 2: Wait for sheet close animation then navigate
     const t = setTimeout(() => {
-      navigate('/add-address')
+      navigate(ROUTES.ADD_ADDRESS)
     }, 300);
     if (false) clearTimeout(t); // 300ms matches typical sheet close animation
   };

@@ -64,7 +64,7 @@ const ReportRiderConfirm = () => {
           className={`mt-8 p-4 rounded-[12px] border relative z-10 ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <p
@@ -79,7 +79,7 @@ const ReportRiderConfirm = () => {
           className={`w-full mt-[9px] rounded-[12px] border overflow-hidden relative z-10 ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <div

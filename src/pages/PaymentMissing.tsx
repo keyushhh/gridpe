@@ -71,7 +71,7 @@ const PaymentMissing = () => {
             width: '362px',
             height: '158px',
             backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <h2

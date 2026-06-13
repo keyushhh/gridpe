@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
-import { WalletTier, Profile as UserProfile, Tables } from '@/types';
+import { Profile as UserProfile, Tables } from '@/types';
 
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
@@ -11,7 +11,7 @@ import { purgeOtherUsersStorage, readStorage, writeStorage, removeStorage } from
 import { SavedAddress } from '@/types';
 import { useNetworkStatus } from '@/utils/useNetworkStatus';
 
-export type { WalletTier };
+
 
 interface UserState {
   phoneNumber: string;

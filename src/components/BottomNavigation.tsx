@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ASSETS } from '@/constants/assets';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
+import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticLight } from '@/utils/haptics';
 import { ROUTES } from '@/routes';
 import gridpeGlyph from '../assets/gridpe-glyph.svg';
@@ -13,8 +13,7 @@ interface BottomNavigationProps {
 const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
-  const isDarkMode = resolvedTheme !== 'light';
+  const isDarkMode = useIsDarkMode();
   if (isHidden) return null;
   return (
     <footer

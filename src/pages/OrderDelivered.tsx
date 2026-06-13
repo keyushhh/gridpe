@@ -214,7 +214,7 @@ const OrderDelivered = () => {
           style={{
             width: '362px',
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
             borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E9EAEB',
             padding: '15px'
           }}
@@ -482,7 +482,7 @@ const OrderDelivered = () => {
           className="w-[362px] mt-[12px] rounded-[13px] border relative flex flex-col"
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
             borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E9EAEB',
             padding: '15px'
           }}
@@ -509,7 +509,7 @@ const OrderDelivered = () => {
           className="w-[362px] mt-[12px] rounded-[13px] border relative flex flex-col"
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
             borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#E9EAEB',
             padding: '15px'
           }}

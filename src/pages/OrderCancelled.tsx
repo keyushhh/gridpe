@@ -64,7 +64,7 @@ const OrderCancelled = () => {
         {/* Info Box - 32px below sub-text */}
         <div
           className={`mt-[32px] p-4 rounded-[12px] border ${isDarkMode ? 'border-white/10 bg-white/[0.06]' : 'border-brand-border-light bg-brand-bg-light'}`}
-          style={{ width: '362px', backdropFilter: isDarkMode ? 'blur(25px)' : 'none' }}
+          style={{ width: '362px', backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none' }}
         >
           <p
             className={`text-[16px] font-medium font-satoshi mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}

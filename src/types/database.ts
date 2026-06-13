@@ -81,18 +81,7 @@ export interface Tables {
     created_at: string;
     updated_at: string;
   };
-  wallet_transactions: {
-    id: string;
-    user_id: string;
-    type: 'credit' | 'debit' | 'held' | 'deposit' | 'hold';
-    amount: number;
-    status: string;
-    description: string;
-    reference_id: string | null;
-    metadata: Record<string, unknown> | null;
-    order_id?: string | null;
-    created_at: string;
-  };
+
   addresses: {
     id: string;
     user_id: string;
@@ -152,15 +141,7 @@ export interface Tables {
     total_ratings?: number | null;
     solo_delivery_score?: number | null;
   };
-  wallet_tiers: {
-    id: string;
-    name: string;
-    max_wallet_balance: number;
-    daily_withdraw_limit: number;
-    daily_topup_limit?: number;
-    subscription_price: number;
-    created_at: string;
-  };
+
   reward_transactions: {
     id: string;
     user_id: string;
@@ -226,15 +207,7 @@ export interface Tables {
     gst_rate: number;
     is_active?: boolean;
   };
-  wallets: {
-    id: string;
-    user_id: string;
-    balance?: number;
-    available_balance?: number;
-    held_balance?: number;
-    tier_id?: string | null;
-    created_at?: string;
-  };
+
   withdrawals: {
     id: string;
     user_id: string;
@@ -286,12 +259,7 @@ export interface Database {
         Update: Partial<Tables['orders']>;
         Relationships: [];
       };
-      wallet_transactions: {
-        Row: Tables['wallet_transactions'];
-        Insert: Partial<Tables['wallet_transactions']>;
-        Update: Partial<Tables['wallet_transactions']>;
-        Relationships: [];
-      };
+
       addresses: {
         Row: Tables['addresses'];
         Insert: Partial<Tables['addresses']>;
@@ -316,12 +284,7 @@ export interface Database {
         Update: Partial<Tables['riders']>;
         Relationships: [];
       };
-      wallet_tiers: {
-        Row: Tables['wallet_tiers'];
-        Insert: Partial<Tables['wallet_tiers']>;
-        Update: Partial<Tables['wallet_tiers']>;
-        Relationships: [];
-      };
+
       reward_transactions: {
         Row: Tables['reward_transactions'];
         Insert: Partial<Tables['reward_transactions']>;
@@ -358,12 +321,7 @@ export interface Database {
         Update: Partial<Tables['fee_slabs']>;
         Relationships: [];
       };
-      wallets: {
-        Row: Tables['wallets'];
-        Insert: Partial<Tables['wallets']>;
-        Update: Partial<Tables['wallets']>;
-        Relationships: [];
-      };
+
       withdrawals: {
         Row: Tables['withdrawals'];
         Insert: Partial<Tables['withdrawals']>;

@@ -49,6 +49,7 @@ const VerifyRiderKyc = () => {
             height: '120px',
             backgroundColor: 'rgba(25, 25, 25, 0.31)',
             backdropFilter: 'blur(25.02px)',
+            WebkitBackdropFilter: 'blur(25.02px)',
             border: '0.63px solid rgba(255, 255, 255, 0.12)',
           }}
         >

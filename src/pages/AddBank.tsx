@@ -17,7 +17,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 type Selection = 'auto' | 'manual';
-interface RazorpayBankDetails {
+interface IFSCBankDetails {
   BANK: string;
   BRANCH: string;
   CITY: string;
@@ -60,7 +60,7 @@ const AddBank = () => {
   const [ifscCode, setIfscCode] = useState('');
   const [bankName, setBankName] = useState('');
   const [accountType, setAccountType] = useState('Savings Account');
-  const [bankDetails, setBankDetails] = useState<RazorpayBankDetails | null>(null); // To store fetched details
+  const [bankDetails, setBankDetails] = useState<IFSCBankDetails | null>(null); // To store fetched details
   const otpFocusRef = useRef<HTMLDivElement>(null);
 
   // Delayed focus for OTP input

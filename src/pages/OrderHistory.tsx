@@ -10,7 +10,7 @@ import { fetchActiveOrders, fetchPastOrders, cancelOrder, dev_seedMockOrders } f
 import { Order } from '@/types';
 import { ROUTES } from '@/routes';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
-import { toast } from '@/components/ui/use-toast';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 
 const OrderCard = React.memo(
@@ -118,7 +118,7 @@ const OrderCard = React.memo(
         }}
         onClick={() => {
           if (showOnlyPast) {
-            navigate('/help/report', { state: { order } });
+            navigate(ROUTES.HELP_REPORT, { state: { order } });
             return;
           }
           const s = order.status.toLowerCase();
@@ -127,14 +127,14 @@ const OrderCard = React.memo(
           if (isActive || isCompleted || isFailedOrCancelled) {
             onSelect(order);
           } else {
-            navigate(`/order-details/${order.id}`, { state: { order } });
+            navigate(`${ROUTES.ORDER_DETAILS}/${order.id}`, { state: { order } });
           }
         }}
         onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             if (showOnlyPast) {
-              navigate('/help/report', { state: { order } });
+              navigate(ROUTES.HELP_REPORT, { state: { order } });
               return;
             }
             const s = order.status.toLowerCase();
@@ -143,7 +143,7 @@ const OrderCard = React.memo(
             if (isActive || isCompleted || isFailedOrCancelled) {
               onSelect(order);
             } else {
-              navigate(`/order-details/${order.id}`, { state: { order } });
+              navigate(`${ROUTES.ORDER_DETAILS}/${order.id}`, { state: { order } });
             }
           }
         }}
@@ -262,6 +262,7 @@ const EMPTY_ARRAY: Order[] = [];
 
 const OrderHistory = () => {
   const navigate = useNavigate();
+  const { showToaster } = useCustomToaster();
   const location = useLocation();
   const { profile } = useUser();
   const userId = profile?.id;
@@ -388,12 +389,7 @@ const OrderHistory = () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (e: unknown) {
       console.error('Failed to cancel order', e);
-      const errorMessage = e instanceof Error ? e.message : 'Please try again later.';
-      toast({
-        variant: 'destructive',
-        title: 'Cancellation Failed',
-        description: errorMessage,
-      });
+      showToaster('Cancellation Failed', 'error');
     }
   };
   // Helper to group orders while preserving order
@@ -472,25 +468,13 @@ const OrderHistory = () => {
                 if (userId) {
                   await dev_seedMockOrders(userId);
                   await refetch();
-                  toast({
-                    title: 'Mock Data Seeded',
-                    description: '3 orders added to history.',
-                  });
+                  showToaster('Mock Data Seeded', 'success');
                 } else {
-                  toast({
-                    variant: 'destructive',
-                    title: 'Seeding Failed',
-                    description: 'No active session found.',
-                  });
+                  showToaster('Seeding Failed', 'error');
                 }
               } catch (error: unknown) {
                 console.error('Seeding error:', error);
-                const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-                toast({
-                  variant: 'destructive',
-                  title: 'Seeding Failed',
-                  description: errorMessage,
-                });
+                showToaster('Seeding Failed', 'error');
               }
             }}
             className="w-full h-8 bg-red-600/20 border border-red-500/50 rounded-lg text-red-500 text-[10px] font-bold uppercase tracking-widest hover:bg-red-600/30 transition-colors"

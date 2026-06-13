@@ -26,7 +26,7 @@ import { handleBackButtonGesture } from '@/hooks/useBackButtonHandler';
 import { useUser } from '@/contexts/UserContext';
 
 // Lazy-load page components
-import Index from './pages/Index';
+const Index = lazy(() => import('./pages/Index'));
 const Homepage = lazy(() => import('./pages/Homepage'));
 const Settings = lazy(() => import('./pages/Settings'));
 const KYCIntro = lazy(() => import('./pages/KYCIntro'));
@@ -64,43 +64,13 @@ const AddAddressDetails = lazy(() => import('./pages/AddAddressDetails'));
 const OrderCancelled = lazy(() => import('./pages/OrderCancelled'));
 const OrderTracking = lazy(() => import('./pages/OrderTracking'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const Wallet = lazy(() => import('./pages/Wallet'));
-*/
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletCreated = lazy(() => import('./pages/WalletCreated'));
-*/
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletTransactionHistory = lazy(() => import('./pages/WalletTransactionHistory'));
-*/
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletAddMoney = lazy(() => import('./pages/WalletAddMoney'));
-*/
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletSettings = lazy(() => import('./pages/WalletSettings'));
-*/
 
 const AddPaymentMethod = lazy(() => import('./pages/AddPaymentMethod'));
 const OrderSummary = lazy(() => import('./pages/OrderSummary'));
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletTopUpSuccess = lazy(() => import('./pages/WalletTopUpSuccess'));
-*/
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletTopUpFailed = lazy(() => import('./pages/WalletTopUpFailed'));
-*/
 
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletWithdraw = lazy(() => import('./pages/WalletWithdraw'));
-*/
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletWithdrawSuccess = lazy(() => import('./pages/WalletWithdrawSuccess'));
-*/
 const PaymentMissing = lazy(() => import('./pages/PaymentMissing'));
 const SelectPaymentMethod = lazy(() => import('./pages/SelectPaymentMethod'));
 const WithdrawOTP = lazy(() => import('./pages/WithdrawOTP'));
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-const WalletWithdrawFailed = lazy(() => import('./pages/WalletWithdrawFailed'));
-*/
 const ViewRiderKyc = lazy(() => import('./pages/ViewRiderKyc'));
 const VerifyRiderKyc = lazy(() => import('./pages/VerifyRiderKyc'));
 const ReportRiderKyc = lazy(() => import('./pages/ReportRiderKyc'));
@@ -125,7 +95,6 @@ const FxKYCSuccess = lazy(() => import('./pages/FxKYCSuccess'));
 const InternationalPayment = lazy(() => import('./pages/InternationalPayment'));
 const LiveRates = lazy(() => import('@/pages/LiveRates'));
 
-const DowngradeSummary = lazy(() => import('./pages/DowngradeSummary'));
 const HelpCategoryPage = lazy(() => import('./pages/HelpCategoryPage'));
 const ZingChat = lazy(() => import('./pages/ZingChat'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -802,57 +771,6 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET}
-                      element={
-                        <ProtectedRoute>
-                          <Wallet />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_CREATED}
-                      element={
-                        <ProtectedRoute>
-                          <WalletCreated />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_TRANSACTION_HISTORY}
-                      element={
-                        <ProtectedRoute>
-                          <WalletTransactionHistory />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_SETTINGS}
-                      element={
-                        <ProtectedRoute>
-                          <WalletSettings />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
-
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_ADD_MONEY}
-                      element={
-                        <ProtectedRoute>
-                          <WalletAddMoney />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
                     <Route
                       path={ROUTES.ADD_PAYMENT_METHOD}
                       element={
@@ -869,47 +787,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_TOPUP_SUCCESS}
-                      element={
-                        <ProtectedRoute>
-                          <WalletTopUpSuccess />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_TOPUP_FAILED}
-                      element={
-                        <ProtectedRoute>
-                          <WalletTopUpFailed />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
 
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_WITHDRAW}
-                      element={
-                        <ProtectedRoute>
-                          <WalletWithdraw />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_WITHDRAW_SUCCESS}
-                      element={
-                        <ProtectedRoute>
-                          <WalletWithdrawSuccess />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
                     <Route
                       path={ROUTES.PAYMENT_MISSING}
                       element={
@@ -934,16 +812,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
-{/* WALLET_HIDDEN: Re-enable when PPI license obtained
-                    <Route
-                      path={ROUTES.WALLET_WITHDRAW_FAILED}
-                      element={
-                        <ProtectedRoute>
-                          <WalletWithdrawFailed />
-                        </ProtectedRoute>
-                      }
-                    />
-*/}
+
                     <Route
                       path={ROUTES.VIEW_RIDER_KYC}
                       element={
@@ -1153,14 +1022,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                       }
                     />
 
-                    <Route
-                      path={ROUTES.DOWNGRADE_SUMMARY}
-                      element={
-                        <ProtectedRoute>
-                          <DowngradeSummary />
-                        </ProtectedRoute>
-                      }
-                    />
+
                     <Route
                       path={ROUTES.DELIVERY_CAUTION}
                       element={

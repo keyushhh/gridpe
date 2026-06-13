@@ -67,7 +67,7 @@ const ReportRiderKyc = () => {
           className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <div
@@ -107,7 +107,7 @@ const ReportRiderKyc = () => {
           className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <div
@@ -133,7 +133,7 @@ const ReportRiderKyc = () => {
           className={`w-full rounded-[12px] border overflow-hidden ${isDarkMode ? 'border-white/10' : 'border-brand-border-light'}`}
           style={{
             backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-            backdropFilter: isDarkMode ? 'blur(25px)' : 'none',
+            backdropFilter: isDarkMode ? 'blur(25px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25px)' : 'none',
           }}
         >
           <button

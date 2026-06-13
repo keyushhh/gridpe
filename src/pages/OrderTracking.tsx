@@ -368,7 +368,7 @@ const OrderTracking = () => {
               className={`w-full mx-auto rounded-[13px] relative pt-[15px] px-[15px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
               style={{
                 backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                 border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
               }}
             >
@@ -407,7 +407,7 @@ const OrderTracking = () => {
               className={`w-full mx-auto rounded-[13px] relative pt-[15px] px-[15px] pb-[16px] overflow-hidden ${isDarkMode ? '' : 'bg-white'}`}
               style={{
                 backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                 border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
               }}
             >
@@ -499,7 +499,7 @@ const OrderTracking = () => {
                   height: 'auto',
                   maxWidth: '362px',
                   backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.31)' : '#FFFFFF',
-                  backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                  backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                   border: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '1px solid #E9EAEB',
                 }}
               >

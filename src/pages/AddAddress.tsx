@@ -480,6 +480,7 @@ const AddAddress = () => {
               borderRadius: '9999px',
               backgroundColor: isDarkMode ? 'rgba(0,0,0,0.6)' : 'hsl(var(--primary) / 0.1)',
               backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               border: isDarkMode
                 ? '1px solid rgba(255,255,255,0.1)'
                 : '1px solid hsl(var(--primary) / 0.1)',

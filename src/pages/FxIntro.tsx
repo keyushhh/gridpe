@@ -3,20 +3,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { useUser } from '@/contexts/UserContext';
+
 import { useAsset } from '@/hooks/useAsset';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 const FxIntro = () => {
   const navigate = useNavigate();
-  const { walletTier } = useUser();
+
   const isDarkMode = useIsDarkMode();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
-  // Redirect if already upgraded
-  React.useEffect(() => {
-    if (walletTier !== 'Starter') {
-      navigate(ROUTES.FX_EXCHANGE);
-    }
-  }, [walletTier, navigate]);
+
   return (
     <div
       className="min-h-screen w-full flex flex-col relative animate-in fade-in duration-500"
@@ -105,10 +100,10 @@ const FxIntro = () => {
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 20px), 20px)' }}
       >
         <button
-          onClick={() => navigate(ROUTES.WALLET_SETTINGS)}
+          onClick={() => navigate(ROUTES.FX_EXCHANGE)}
           className="w-full h-[52px] bg-brand-primary rounded-full text-white text-[16px] font-medium font-satoshi active:scale-95 transition-transform shadow-xl shadow-brand-primary/20 flex items-center justify-center"
         >
-          Upgrade Wallet & Verify KYC
+          Continue
         </button>
       </div>
     </div>

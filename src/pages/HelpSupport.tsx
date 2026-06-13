@@ -112,7 +112,7 @@ const HelpSupport = () => {
                 height: '100px',
                 background: isDarkMode ? 'rgba(28, 185, 86, 0.21)' : '#1CB95636', // ~21% opacity
                 borderRadius: '12px',
-                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
+                backdropFilter: isDarkMode ? 'blur(25.02px)' : 'none', WebkitBackdropFilter: isDarkMode ? 'blur(25.02px)' : 'none',
                 border: isDarkMode ? '0.63px solid transparent' : '1px solid #E9EAEB',
                 backgroundImage: isDarkMode
                   ? 'linear-gradient(rgba(28, 185, 86, 0.21), rgba(28, 185, 86, 0.21)), linear-gradient(to bottom, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.20))'

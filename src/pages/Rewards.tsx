@@ -4,6 +4,7 @@ STEP 1 — SQL INVESTIGATION RESULTS
 Since `reference_id` failed to join against both `orders` and `wallet_transactions`, it indicates that the UUIDs stored in `reference_id` are either orphaned from a previous mock data wipe, or point to a hierarchical structure (e.g. referral IDs or another table). 
 Because the parent records don't exist, we must rely solely on the `reward_transactions` table natively.
 */
+import { ROUTES } from '@/routes';
 import { ASSETS } from '@/constants/assets';
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -254,7 +255,7 @@ const Rewards = () => {
               Rewards History
             </h3>
             <button
-              onClick={() => navigate('/order-history?rewards=true')}
+              onClick={() => navigate(`${ROUTES.ORDER_HISTORY}?rewards=true`)}
               className="text-brand-primary text-[14px]"
             >
               View All

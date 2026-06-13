@@ -1,4 +1,5 @@
 import { NavigateFunction } from 'react-router-dom'
+import { ROUTES } from '@/routes'
 
 export type NotificationPayload = {
   type?: string
@@ -13,65 +14,60 @@ export type NotificationPayload = {
 // { "type": "transaction", "id": "test-123" }
 // Tap the notification → should navigate to /order/test-123
 export function routeFromNotification(
-  data: NotificationPayload,
+  payload: NotificationPayload,
   navigate: NavigateFunction
 ): void {
-  if (!data || !data.type) {
-    // No type — go to home
-    navigate('/home')
+  if (!payload || !payload.type) {
+    // Default fallback if payload is malformed
+    navigate(ROUTES.HOME)
     return
   }
 
-  switch (data.type) {
+  switch (payload.type) {
     // Transaction & Payments
     case 'transaction':
     case 'payment_received':
     case 'payment_sent':
-      navigate(data.id ? `/order/${data.id}` : '/orders')
+      navigate(payload.id ? `/order/${payload.id}` : '/orders')
       break
 
     // Order flow
     case 'order_placed':
     case 'order_confirmed':
     case 'order_update':
-      navigate(data.orderId ? `/order/${data.orderId}` : '/orders')
+      navigate(payload.orderId ? `/order/${payload.orderId}` : '/orders')
       break
-
-    case 'order_tracking':
-      navigate('/tracking')
-      break
-
-    // Wallet
-    case 'wallet_credit':
-    case 'wallet_debit':
-    case 'withdrawal':
-      navigate('/wallet')
+    // Tracking
+    case 'tracking_update':
+      navigate(ROUTES.ORDER_TRACKING)
       break
 
     // KYC
-    case 'kyc_approved':
+    case 'kyc_update':
+    case 'kyc_verified':
     case 'kyc_rejected':
-    case 'kyc_pending':
-      navigate('/settings')
+      navigate(ROUTES.SETTINGS)
       break
 
     // Promotional
     case 'promo':
     case 'offer':
-      navigate(data.screen || '/home')
+      navigate(payload.screen || '/home')
       break
 
     // Generic screen override — backend can pass any route directly
     case 'screen':
-      if (data.screen && data.screen.startsWith('/')) {
-        navigate(data.screen)
+      if (payload.screen && payload.screen.startsWith('/')) {
+        navigate(payload.screen)
       } else {
-        navigate('/home')
+        navigate(ROUTES.HOME)
       }
       break
 
+    case 'system_alert':
     default:
-      navigate('/home')
+      // By default, just go home
+      navigate(ROUTES.HOME)
       break
   }
 }

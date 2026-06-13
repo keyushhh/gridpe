@@ -55,6 +55,7 @@ export const AVAILABLE_BANKS: BankAccount[] = [
 ];
 export const fetchBankDetails = async (ifsc: string) => {
   try {
+    // NOTE: Using Razorpay's public IFSC API (free, no auth required). Not a payment dependency.
     const response = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
     if (!response.ok) throw new Error('Invalid IFSC');
     return await response.json();
