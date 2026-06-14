@@ -10,6 +10,34 @@ export interface OrderMessage {
   read_at: string | null;
 }
 
+export interface Badge {
+  id: string;
+  slug: string;
+  name: string;
+  icon_name: string;
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  description: string;
+  points_reward: number;
+  criteria_type: string;
+  criteria_value: number;
+}
+
+export interface UserBadge {
+  id: string;
+  user_id: string;
+  badge_id: string;
+  earned_at: string;
+  badges?: Badge;
+}
+
+export interface Achievement {
+  id: string;
+  user_id: string;
+  achievement_type: string;
+  earned_at: string;
+  points_awarded: number;
+}
+
 export const CUSTOMER_QUICK_REPLIES = [
   'Ok, thank you!',
   'Please hurry',
@@ -37,6 +65,8 @@ export interface Tables {
     payment_status?: string | null;
     subscription_status?: string | null;
     reward_points?: number;
+    streak_days?: number;
+    referred_by?: string | null;
     is_passport_verified?: boolean;
     biometric_on?: boolean;
     push_token?: string | null;
@@ -236,6 +266,9 @@ export interface Tables {
     city: string;
     created_at?: string;
   };
+  badges: Badge;
+  user_badges: UserBadge;
+  achievements: Achievement;
 }
 
 export interface Database {
@@ -344,6 +377,24 @@ export interface Database {
         Row: Tables['rider_interest'];
         Insert: Partial<Tables['rider_interest']>;
         Update: Partial<Tables['rider_interest']>;
+        Relationships: [];
+      };
+      badges: {
+        Row: Tables['badges'];
+        Insert: Partial<Tables['badges']>;
+        Update: Partial<Tables['badges']>;
+        Relationships: [];
+      };
+      user_badges: {
+        Row: Tables['user_badges'];
+        Insert: Partial<Tables['user_badges']>;
+        Update: Partial<Tables['user_badges']>;
+        Relationships: [];
+      };
+      achievements: {
+        Row: Tables['achievements'];
+        Insert: Partial<Tables['achievements']>;
+        Update: Partial<Tables['achievements']>;
         Relationships: [];
       };
     };

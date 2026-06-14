@@ -35,7 +35,11 @@ const ExplorePage = () => {
   return (
     <div
       className="absolute inset-0 flex flex-col overflow-hidden bg-cover bg-center"
-      style={{ backgroundImage: `url(${mainBg})` }}
+      style={{
+        backgroundImage: `url(${mainBg})`,
+        overscrollBehavior: 'none',
+        WebkitOverflowScrolling: 'auto',
+      }}
     >
       <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-32 safe-top">
         {/* HEADER */}

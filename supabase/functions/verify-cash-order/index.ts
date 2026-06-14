@@ -206,6 +206,21 @@ Deno.serve(async (req: Request) => {
       // We don't fail the response here since the order itself was successfully created
     }
 
+    // Award reward points — fire and forget, never block payment confirmation
+    const awardPointsUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/award-reward-points`;
+    fetch(awardPointsUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({
+        order_id: insertedOrder.id,
+        user_id: user_id,
+        order_amount: cash_amount,
+      }),
+    }).catch(() => {});
+
     // 7. Return success
     return new Response(JSON.stringify({ success: true, order_id: insertedOrder.id, status: 'payment_captured' }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }

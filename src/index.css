@@ -124,7 +124,7 @@ html.font-pending body {
     background-color: inherit;
     /* Kill the cheap-looking glow/rubber-band on Android. */
     overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
+    -webkit-overflow-scrolling: auto;
   }
 
   #root {
@@ -146,8 +146,8 @@ html.font-pending body {
 
   body {
     @apply text-foreground;
-    overscroll-behavior-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
     /* `manipulation` kills the 300ms double-tap zoom delay on iOS WKWebView. */
     touch-action: manipulation;
     -webkit-text-size-adjust: 100%;

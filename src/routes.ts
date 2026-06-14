@@ -48,6 +48,7 @@ export const ROUTES = {
   HELP_CHAT: '/help/chat',
   HELP_SUCCESS: '/help/success',
   REWARDS: '/rewards',
+  REWARDS_HISTORY: '/rewards/history',
   MORE: '/more',
   FX_EXCHANGE: '/fx-exchange',
   FX_EXCHANGE_SUMMARY: '/fx-exchange-summary',

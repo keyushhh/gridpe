@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public.webhook_logs (
 ALTER TABLE public.webhook_logs ENABLE ROW LEVEL SECURITY;
 
 -- Allow service role to insert/select
+DROP POLICY IF EXISTS "Service role can do everything" ON public.webhook_logs;
 CREATE POLICY "Service role can do everything" ON public.webhook_logs
     USING (true)
     WITH CHECK (true);

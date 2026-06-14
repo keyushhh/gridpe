@@ -6,16 +6,18 @@ Because the parent records don't exist, we must rely solely on the `reward_trans
 */
 import { ROUTES } from '@/routes';
 import { ASSETS } from '@/constants/assets';
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, ChevronRight } from 'lucide-react';
+import { Copy, ChevronRight, Flame, Star, History } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
-import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
+
 import { OrderMetadata } from '@/types';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
@@ -42,15 +44,56 @@ const POINTS_PER_RUPEE = 40;
 const Rewards = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const { profile, fetchProfileData, rewardPoints } = useUser();
+  const { profile, fetchProfileData, rewardPoints, streakDays, referredBy } = useUser();
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<any>(null);
   
-  useBodyScrollLock(showHowItWorks);
+  useBodyScrollLock(showHowItWorks || !!selectedBadge);
   
   const referralLink = 'http://sdp.apl/?ref=' + (profile?.referral_code || '');
-  const { data: rewardTransactions = [], isLoading } = useQuery({
+
+  const [userBadges, setUserBadges] = useState<any[]>([]);
+  const [allBadges, setAllBadges] = useState<any[]>([]);
+  const [badgesLoading, setBadgesLoading] = useState(true);
+
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [achievementsLoading, setAchievementsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchGamification = async () => {
+      setBadgesLoading(true);
+      setAchievementsLoading(true);
+
+      const [userBadgesRes, allBadgesRes, achievementsRes] = await Promise.all([
+        supabase
+          .from("user_badges")
+          .select("badge_id, earned_at, badges(slug, name, icon_name, tier, description)")
+          .eq("user_id", userId),
+        supabase
+          .from("badges")
+          .select("id, slug, name, icon_name, tier, description, points_reward"),
+        supabase
+          .from("achievements")
+          .select("achievement_type, earned_at")
+          .eq("user_id", userId)
+          .order("earned_at", { ascending: false })
+      ]);
+
+      if (userBadgesRes.data) setUserBadges(userBadgesRes.data);
+      if (allBadgesRes.data) setAllBadges(allBadgesRes.data);
+      if (achievementsRes.data) setAchievements(achievementsRes.data);
+
+      setBadgesLoading(false);
+      setAchievementsLoading(false);
+    };
+
+    fetchGamification();
+  }, [userId]);
+  const { data: rewardTransactions = [] } = useQuery({
     queryKey: ['rewards', userId || 'auth_pending'],
     staleTime: 0,
     gcTime: 0,
@@ -70,7 +113,7 @@ const Rewards = () => {
         .limit(10);
       if (rewardError) throw rewardError;
       if (rewardData && rewardData.length > 0) {
-        return rewardData.map(rt => ({
+        return rewardData.map((rt: any) => ({
           ...rt,
           transaction_type: (rt.type === 'spent' ? 'debit' : 'credit') as 'credit' | 'debit',
           order_details: undefined, // Removed join dependency entirely
@@ -114,46 +157,33 @@ const Rewards = () => {
     navigator.clipboard.writeText(referralLink);
     showToaster('Referral link copied!', 'success');
   };
-  const getStatusInfo = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'processing':
-      case 'out_for_delivery':
-      case 'arrived':
-        return { text: 'Ongoing', textClass: 'text-yellow-700 dark:text-yellow-600' };
-      case 'delivered':
-      case 'success':
-        return { text: 'Completed', textClass: 'text-green-700 dark:text-green-500' };
-      case 'cancelled':
-      case 'failed':
-      case 'rejected':
-        return { text: 'Rejected', textClass: 'text-red-600 dark:text-red-400' };
-      default:
-        return { text: status || 'Pending', textClass: 'text-yellow-700 dark:text-yellow-600' };
-    }
+
+  const getTierGradient = (tier: string) => {
+    if (tier === 'bronze') return 'from-amber-900/60 to-amber-700/30';
+    if (tier === 'gold') return 'from-yellow-700/60 to-yellow-500/30';
+    if (tier === 'platinum') return 'from-purple-800/60 to-purple-500/30';
+    return 'from-slate-600/60 to-slate-400/30'; // silver
   };
-  const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'processing':
-      case 'out_for_delivery':
-      case 'arrived':
-        return ASSETS.PROCESSING;
-      case 'delivered':
-      case 'success':
-        return ASSETS.SUCCESS;
-      case 'cancelled':
-      case 'failed':
-      case 'rejected':
-        return ASSETS.FAILED;
-      default:
-        return ASSETS.PROCESSING;
-    }
+  const getTierPillStyle = (tier: string) => {
+    if (tier === 'bronze') return 'bg-amber-900/40 text-amber-400';
+    if (tier === 'gold') return 'bg-yellow-700/40 text-yellow-400';
+    if (tier === 'platinum') return 'bg-purple-800/40 text-purple-400';
+    return 'bg-slate-600/40 text-slate-300';
   };
-  const currencySymbols: Record<string, string> = {
-    INR: '₹',
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
+
+  const achievementMeta: Record<string, { label: string; icon: string; color: string }> = {
+    first_order:  { label: 'First Order',          icon: 'ShoppingBag', color: '#22c55e' },
+    order_5:      { label: '5 Orders Completed',   icon: 'Package',     color: '#5260FE' },
+    order_10:     { label: '10 Orders Completed',  icon: 'Star',        color: '#5260FE' },
+    order_25:     { label: '25 Orders Completed',  icon: 'Zap',         color: '#a78bfa' },
+    order_50:     { label: '50 Orders Completed',  icon: 'Crown',       color: '#f59e0b' },
+    streak_7:     { label: '7-Day Streak',         icon: 'Flame',       color: '#f97316' },
+    streak_30:    { label: '30-Day Streak',        icon: 'Trophy',      color: '#f59e0b' },
+    referral_1:   { label: 'First Referral',       icon: 'Users',       color: '#06b6d4' },
+    referral_5:   { label: '5 Referrals',          icon: 'Network',     color: '#a78bfa' },
+    pro_member:   { label: 'Pro Member',           icon: 'Crown',       color: '#f59e0b' },
   };
+
   return (
     <div
       className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} scrollbar-hide`}
@@ -162,6 +192,8 @@ const Rewards = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat',
+        overscrollBehavior: 'none',
+        WebkitOverflowScrolling: 'auto',
       }}
     >
       {/* Light Mode Purple Glow */}
@@ -170,17 +202,27 @@ const Rewards = () => {
       )}
       <div className="flex-1 px-5 safe-top pt-4 pb-[calc(120px+env(safe-area-inset-bottom))]">
         {/* Header */}
-        <div className="mb-6 relative z-10">
-          <img loading="eager" decoding="async"             src={ASSETS.GRIDPE_LOGO}
-            alt="grid.pe"
-            className="h-10 mb-2"
-            style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
-          />
-          <p
-            className={`text-[12px] font-bold ${isDarkMode ? 'text-white/40' : 'text-black/40'} font-satoshi tracking-wider uppercase`}
+        <div className="mb-6 relative z-10 flex items-start justify-between">
+          <div>
+            <img loading="eager" decoding="async"             src={ASSETS.GRIDPE_LOGO}
+              alt="grid.pe"
+              className="h-10 mb-2"
+              style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
+            />
+            <p
+              className={`text-[12px] font-bold ${isDarkMode ? 'text-white/40' : 'text-black/40'} font-satoshi tracking-wider uppercase`}
+            >
+              REFERRALS & REWARDS
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(ROUTES.REWARDS_HISTORY)}
+            className="ml-auto p-2 rounded-full mt-1"
+            style={{ background: 'rgba(255,255,255,0.06)' }}
+            aria-label="Rewards History"
           >
-            REFERRALS & REWARDS
-          </p>
+            <History size={20} className={isDarkMode ? 'text-white' : 'text-black'} />
+          </button>
         </div>
         {/* Rewards Card */}
         <div
@@ -241,6 +283,225 @@ const Rewards = () => {
             </div>
           </div>
         </div>
+
+        {/* Section A — Streak Banner */}
+        <div
+          className="relative w-full rounded-[20px] flex items-center mb-[24px] overflow-hidden"
+          style={{
+            height: '80px',
+            backgroundImage: `url(${ASSETS.REWARDS_CARD})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            paddingLeft: '21px',
+            paddingRight: '21px',
+          }}
+        >
+          <div className="flex items-center gap-4">
+            {/* Flame icon */}
+            <Flame
+              size={36}
+              className="text-orange-400 shrink-0"
+              style={{ filter: 'drop-shadow(0 0 8px rgba(251,146,60,0.7))' }}
+            />
+
+            {/* Text stack */}
+            <div className="flex flex-col">
+              <span className="text-white font-bold text-[22px] leading-tight">
+                {streakDays} day streak
+              </span>
+              <span className="text-white/70 text-[13px] font-normal leading-snug mt-0.5">
+                {streakDays === 0
+                  ? 'Place an order today to start your streak!'
+                  : streakDays >= 30
+                  ? '🏆 Legendary streak! +50 bonus points per order'
+                  : streakDays >= 7
+                  ? '🔥🔥 On fire! +50 bonus points per order'
+                  : streakDays >= 3
+                  ? '🔥 Heating up! +20 bonus points per order'
+                  : "You're on a roll. Keep going!"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Section B — Badges Showcase */}
+        <div className="mb-[24px] relative z-10">
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>
+              Badges
+            </h3>
+            <span className="text-brand-text-muted text-[12px] font-normal">(tap to view)</span>
+          </div>
+          
+          <div className="flex overflow-x-auto gap-3 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {badgesLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="w-[88px] h-[108px] shrink-0 rounded-[12px] bg-white/5 animate-pulse" />
+              ))
+            ) : (
+              <>
+                {userBadges.map((ub) => {
+                  const badge = ub.badges || {};
+                  const IconComponent = (LucideIcons as any)[badge.icon_name] || Star;
+                  
+                  let bgGradient = 'from-slate-600/40 to-slate-400/20';
+                  let dotColor = 'bg-slate-400';
+                  if (badge.tier === 'bronze') {
+                    bgGradient = 'from-amber-900/40 to-amber-700/20';
+                    dotColor = 'bg-amber-700';
+                  } else if (badge.tier === 'gold') {
+                    bgGradient = 'from-yellow-700/40 to-yellow-500/20';
+                    dotColor = 'bg-yellow-500';
+                  } else if (badge.tier === 'platinum') {
+                    bgGradient = 'from-purple-800/40 to-purple-500/20';
+                    dotColor = 'bg-purple-500';
+                  }
+
+                  return (
+                    <div 
+                      key={ub.badge_id} 
+                      className={`w-[88px] h-[108px] shrink-0 rounded-[12px] bg-gradient-to-b ${bgGradient} flex flex-col items-center justify-center relative border border-white/10 cursor-pointer`}
+                      onClick={() => setSelectedBadge({ ...badge, earned: true, earned_at: ub.earned_at })}
+                    >
+                      <div className="flex flex-col items-center justify-center gap-1.5 w-full px-2">
+                        <IconComponent size={22} className="text-white shrink-0" />
+                        <span className="text-[10px] text-white text-center font-medium leading-tight line-clamp-2 w-full">{badge.name}</span>
+                      </div>
+                      <div className={`absolute bottom-2 w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                    </div>
+                  );
+                })}
+                
+                {allBadges
+                  .filter((b: any) => !userBadges.some(ub => ub.badge_id === b.id))
+                  .slice(0, 3)
+                  .map((badge: any) => {
+                    const IconComponent = (LucideIcons as any)[badge.icon_name] || Star;
+                    return (
+                      <div 
+                        key={badge.id} 
+                        className="w-[88px] h-[108px] shrink-0 rounded-[12px] bg-white/5 flex flex-col items-center justify-center relative border border-white/5 opacity-40 grayscale cursor-pointer"
+                        onClick={() => setSelectedBadge({ ...badge, earned: false })}
+                      >
+                        <div className="flex flex-col items-center justify-center gap-1.5 w-full px-2">
+                          <IconComponent size={22} className="text-white shrink-0" />
+                          <span className="text-[10px] text-white text-center font-medium leading-tight line-clamp-2 w-full">{badge.name}</span>
+                        </div>
+                      </div>
+                    );
+                })}
+              </>
+            )}
+          </div>
+          {/* Badge Detail Bottom Sheet */}
+          {selectedBadge && createPortal(
+            <div
+              className="fixed inset-0 z-[9999] flex items-end justify-center"
+              onClick={() => setSelectedBadge(null)}
+              style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+            >
+              <div
+                className="w-full rounded-t-[24px] p-6 pb-10 mx-auto"
+                style={{ background: '#13131F', border: '1px solid rgba(255,255,255,0.08)', maxWidth: '480px' }}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Drag handle */}
+                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-6" />
+                
+                {/* Icon large */}
+                <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center bg-gradient-to-b ${getTierGradient(selectedBadge.tier)}`}>
+                  {(() => {
+                    const Icon = (LucideIcons as any)[selectedBadge.icon_name] || LucideIcons.Star;
+                    return <Icon size={32} className="text-white" />;
+                  })()}
+                </div>
+
+                {/* Tier pill */}
+                <div className="flex justify-center mb-3">
+                  <span className={`text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full ${getTierPillStyle(selectedBadge.tier)}`}>
+                    {selectedBadge.tier}
+                  </span>
+                </div>
+
+                {/* Name + description */}
+                <h3 className="text-white text-[20px] font-bold text-center mb-2">{selectedBadge.name}</h3>
+                <p className="text-brand-text-muted text-[14px] text-center mb-6">{selectedBadge.description}</p>
+
+                {/* Earned / Locked status */}
+                {selectedBadge.earned ? (
+                  <div className="flex items-center justify-center gap-2 text-green-400 text-[13px]">
+                    <LucideIcons.CheckCircle size={16} />
+                    <span>Earned on {new Date(selectedBadge.earned_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-2 text-brand-text-muted text-[13px]">
+                      <LucideIcons.Lock size={16} />
+                      <span>Not yet earned</span>
+                    </div>
+                    {selectedBadge.points_reward > 0 && (
+                      <span className="text-[12px] text-[#5260FE] mt-1">+{selectedBadge.points_reward} pts on unlock</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>,
+            document.body
+          )}
+        </div>
+
+        {/* Section C — Achievements Timeline */}
+        <div className="mb-[32px] relative z-10">
+          <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'} mb-4`}>
+            Milestones
+          </h3>
+          <div className="flex flex-col">
+            {achievementsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0">
+                  <div className="w-9 h-9 rounded-full bg-white/20 animate-pulse shrink-0" />
+                  <div className="flex-1">
+                    <div className="h-3 w-32 bg-white/10 rounded animate-pulse mb-1" />
+                    <div className="h-2 w-20 bg-white/10 rounded animate-pulse" />
+                  </div>
+                </div>
+              ))
+            ) : achievements.length > 0 ? (
+              achievements.map((ach) => {
+                const meta = achievementMeta[ach.achievement_type] || { label: ach.achievement_type, icon: 'Award', color: '#5260FE' };
+                const Icon = (LucideIcons as any)[meta.icon] || LucideIcons.Award;
+                return (
+                  <div key={ach.achievement_type} className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0">
+                    {/* Icon circle */}
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color + '22', border: `1px solid ${meta.color}44` }}>
+                      <Icon size={16} style={{ color: meta.color }} />
+                    </div>
+                    {/* Label + date */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[13px] font-medium leading-none mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>{meta.label}</p>
+                      <p className="text-brand-text-muted text-[11px]">
+                        {new Date(ach.earned_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                    {/* Checkmark */}
+                    <LucideIcons.CheckCircle size={16} className="text-green-400 shrink-0" />
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center py-6 gap-3">
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                  <LucideIcons.Trophy size={20} className="text-white/30" />
+                </div>
+                <p className="text-brand-text-muted text-[13px] text-center">
+                  Complete your first order<br/>to unlock milestones
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+
         {/* How does this work? */}
         <button
           onClick={() => setShowHowItWorks(true)}
@@ -248,102 +509,12 @@ const Rewards = () => {
         >
           How does this work?
         </button>
-        {/* Transaction History */}
-        <div className="flex flex-col min-h-[300px] relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>
-              Rewards History
-            </h3>
-            <button
-              onClick={() => navigate(`${ROUTES.ORDER_HISTORY}?rewards=true`)}
-              className="text-brand-primary text-[14px]"
-            >
-              View All
-            </button>
-          </div>
-          <div
-            className={`w-full h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-brand-border-light'} mb-[15px]`}
-          />
-          {isLoading ? (
-            <div className="py-2">
-              <BaseListSkeleton rows={4} />
-            </div>
-          ) : rewardTransactions.length > 0 ? (
-            <div className="flex flex-col">
-              {/* Headers - Homepage Style */}
-              <div className="grid grid-cols-[1fr_100px_80px] gap-x-6 mb-[12px] px-0">
-                <div>
-                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Details</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Points</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-brand-text-muted text-[12px] font-normal font-sans">Status</span>
-                </div>
-              </div>
-              <div className="flex flex-col space-y-[16px]">
-                {rewardTransactions.map(tx => {
-                  const order = tx.order_details;
-                  const status = order?.status || 'delivered';
-                  return (
-                    <div
-                      key={tx.id}
-                      className="grid grid-cols-[1fr_100px_80px] gap-x-6 items-start"
-                    >
-                      {/* Details Column */}
-                      <div className="flex items-start">
-                        <img loading="lazy" decoding="async"                           src={getStatusIcon(status)}
-                          alt="Status"
-                          className="w-[26px] h-[26px]"
-                        />
-                        <div className="ml-[7px] flex flex-col">
-                          <span
-                            className={`${isDarkMode ? 'text-white' : 'text-black'} text-[13px] font-normal font-sans leading-none mb-[2px]`}
-                          >
-                            {tx.description || 'Reward'}
-                          </span>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-brand-text-muted text-[12px] font-normal font-sans leading-none">
-                              {new Date(tx.created_at).toLocaleDateString('en-IN', {
-                                day: 'numeric',
-                                month: 'short',
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Price / Points Column */}
-                      <div className="text-right flex flex-col justify-center">
-                        <span className="text-[14px] font-bold font-sans text-green-600 leading-none">
-                          +{tx.amount || tx.points_amount || 0} pts
-                        </span>
-                      </div>
-                      {/* Status Column */}
-                      <div className="text-right flex flex-col justify-center">
-                        <span className="text-[13px] font-normal font-sans capitalize text-green-600">
-                          Completed
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center text-center pt-8">
-              <p className="text-brand-text-muted text-[14px] font-medium w-[219px] leading-relaxed">
-                This screen’s more empty than your promises to go to the gym.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
       {!showHowItWorks && <BottomNavigation activeTab="rewards" />}
       {/* How It Works Pop-up */}
-      {showHowItWorks && (
+      {showHowItWorks && createPortal(
         <div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-5 animate-in fade-in duration-200 pointer-events-none"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-5 animate-in fade-in duration-200 pointer-events-none"
           onClick={() => setShowHowItWorks(false)}
         >
           {/* Full page blur backdrop */}
@@ -424,7 +595,8 @@ const Rewards = () => {
               Close
             </span>
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

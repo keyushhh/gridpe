@@ -82,6 +82,7 @@ const HelpSupport = lazy(() => import('./pages/HelpSupport'));
 const NeedHelp = lazy(() => import('./pages/NeedHelp'));
 const HelpReportSuccess = lazy(() => import('./pages/HelpReportSuccess'));
 const Rewards = lazy(() => import('./pages/Rewards'));
+const RewardsHistory = lazy(() => import('./pages/RewardsHistory'));
 const LegalPage = lazy(() => import('./pages/LegalPage'));
 const ExplorePage = lazy(() => import('@/pages/ExplorePage'));
 const SafetyPromisePage = lazy(() => import('./pages/SafetyPromisePage'));
@@ -784,6 +785,22 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                       element={
                         <ProtectedRoute>
                           <OrderSummary />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.REWARDS}
+                      element={
+                        <ProtectedRoute>
+                          <Rewards />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={ROUTES.REWARDS_HISTORY}
+                      element={
+                        <ProtectedRoute>
+                          <RewardsHistory />
                         </ProtectedRoute>
                       }
                     />

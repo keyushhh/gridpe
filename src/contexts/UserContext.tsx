@@ -29,6 +29,8 @@ interface UserState {
   isFxEnabled: boolean;
 
   rewardPoints: number;
+  streakDays: number;
+  referredBy: string | null;
   isPassportVerified: boolean;
   isInitializing: boolean;
   isSecureStorageReady: boolean;
@@ -71,6 +73,8 @@ const defaultState: UserState = {
   isFxEnabled: false,
 
   rewardPoints: 0,
+  streakDays: 0,
+  referredBy: null,
   isInitializing: true,
   isSecureStorageReady: false,
   isResetting: false,
@@ -226,7 +230,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
           plan_tier,
           payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
-          terms_accepted_at, terms_version
+          terms_accepted_at, terms_version, streak_days, referred_by
         `
           )
           .eq('id', userId)
@@ -242,7 +246,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               `
             id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
             plan_tier,
-            payment_status, subscription_status, reward_points, mpin_hash, biometric_on
+            payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
+            streak_days, referred_by
           `
             )
             .eq('id', userId)
@@ -268,6 +273,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               | 'verified',
             email: profileData.email || prev.email,
             phoneNumber: profileData.phone || prev.phoneNumber,
+            streakDays: profileData.streak_days ?? 0,
+            referredBy: profileData.referred_by ?? null,
             isFxEnabled: !!profileData.is_fx_enabled,
             biometricEnabled: !!profileData.biometric_on,
             isPassportVerified: !!profileData.is_passport_verified,
