@@ -511,8 +511,12 @@ import warningBackground from '@/assets/warning-background.png';
 import warningEllipse from '@/assets/warning-ellipse.png';
 import yearDropdownBg from '@/assets/year-dropdown-bg.png';
 import zingSmall from '@/assets/zing-small.png';
+import badgeIcon from '@/assets/Badge.svg';
+import fireIcon from '@/assets/fire.svg';
 
 export const ASSETS = {
+  BADGE_ICON: badgeIcon,
+  FIRE_ICON: fireIcon,
   ARROW_DOWN_UP: arrowDownUp,
   ARROW_DOWN_UP_LIGHT: arrowDownUpLight,
   CLOCK_LIGHT: clockLight,

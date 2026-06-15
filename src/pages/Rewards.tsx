@@ -9,8 +9,19 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, Share2, Flame, Star, History } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Copy, Share2, Flame, Star, History,
+  ShoppingBag, Package, Zap, Crown, Trophy,
+  Users, Award, Lock, CheckCircle, MapPin,
+  Network, Target
+} from 'lucide-react';
+
+const ICON_MAP: Record<string, any> = {
+  ShoppingBag, Package, Star, Zap, Crown,
+  Flame, Trophy, Users, Award, Lock,
+  CheckCircle, MapPin, Network, Target,
+};
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
@@ -51,46 +62,36 @@ const Rewards = () => {
   const { showToaster } = useCustomToaster();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<any>(null);
-  
+  const [inviteExpanded, setInviteExpanded] = useState(false);
+
   useBodyScrollLock(showHowItWorks || !!selectedBadge);
-  
+
   const referralLink = `https://gridpe.in/refer?ref=${profile?.referral_code || ''}`;
 
   const [userBadges, setUserBadges] = useState<any[]>([]);
   const [allBadges, setAllBadges] = useState<any[]>([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
 
-  const [achievements, setAchievements] = useState<any[]>([]);
-  const [achievementsLoading, setAchievementsLoading] = useState(true);
-
   useEffect(() => {
     if (!userId) return;
 
     const fetchGamification = async () => {
       setBadgesLoading(true);
-      setAchievementsLoading(true);
 
-      const [userBadgesRes, allBadgesRes, achievementsRes] = await Promise.all([
+      const [userBadgesRes, allBadgesRes] = await Promise.all([
         supabase
           .from("user_badges")
           .select("badge_id, earned_at, badges(slug, name, icon_name, tier, description)")
           .eq("user_id", userId),
         supabase
           .from("badges")
-          .select("id, slug, name, icon_name, tier, description, points_reward"),
-        supabase
-          .from("achievements")
-          .select("achievement_type, earned_at")
-          .eq("user_id", userId)
-          .order("earned_at", { ascending: false })
+          .select("id, slug, name, icon_name, tier, description, points_reward")
       ]);
 
       if (userBadgesRes.data) setUserBadges(userBadgesRes.data);
       if (allBadgesRes.data) setAllBadges(allBadgesRes.data);
-      if (achievementsRes.data) setAchievements(achievementsRes.data);
 
       setBadgesLoading(false);
-      setAchievementsLoading(false);
     };
 
     fetchGamification();
@@ -190,19 +191,6 @@ const Rewards = () => {
     return 'bg-slate-600/40 text-slate-300';
   };
 
-  const achievementMeta: Record<string, { label: string; icon: string; color: string }> = {
-    first_order:  { label: 'First Order',          icon: 'ShoppingBag', color: '#22c55e' },
-    order_5:      { label: '5 Orders Completed',   icon: 'Package',     color: '#5260FE' },
-    order_10:     { label: '10 Orders Completed',  icon: 'Star',        color: '#5260FE' },
-    order_25:     { label: '25 Orders Completed',  icon: 'Zap',         color: '#a78bfa' },
-    order_50:     { label: '50 Orders Completed',  icon: 'Crown',       color: '#f59e0b' },
-    streak_7:     { label: '7-Day Streak',         icon: 'Flame',       color: '#f97316' },
-    streak_30:    { label: '30-Day Streak',        icon: 'Trophy',      color: '#f59e0b' },
-    referral_1:   { label: 'First Referral',       icon: 'Users',       color: '#06b6d4' },
-    referral_5:   { label: '5 Referrals',          icon: 'Network',     color: '#a78bfa' },
-    pro_member:   { label: 'Pro Member',           icon: 'Crown',       color: '#f59e0b' },
-  };
-
   return (
     <div
       className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} scrollbar-hide`}
@@ -223,7 +211,7 @@ const Rewards = () => {
         {/* Header */}
         <div className="mb-6 relative z-10 flex items-start justify-between">
           <div>
-            <img loading="eager" decoding="async"             src={ASSETS.GRIDPE_LOGO}
+            <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO}
               alt="grid.pe"
               className="h-10 mb-2"
               style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -243,290 +231,307 @@ const Rewards = () => {
             <History size={20} className={isDarkMode ? 'text-white' : 'text-black'} />
           </button>
         </div>
-        {/* Rewards Card */}
-        <div
-          className="relative w-full rounded-[20px] flex flex-col overflow-hidden mb-[12px]"
-          style={{
-            height: '209px',
-            backgroundImage: `url(${ASSETS.REWARDS_CARD})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            paddingLeft: '21px',
-            paddingRight: '21px',
-            paddingTop: '21px',
-            paddingBottom: '21px',
-          }}
+        {/* Top Invite Card — tap to expand referral */}
+        {/* Top Invite Card — tap to expand referral */}
+        <div 
+          className="mb-[16px] relative z-10 flex justify-center cursor-pointer" 
+          onClick={() => setInviteExpanded(!inviteExpanded)}
+          style={{ perspective: '1000px' }}
         >
-          {/* Expiry Date Section */}
-          <div className="absolute top-[21px] right-[21px] text-right">
-            <p className="font-satoshi font-medium text-[12px] text-[#C4C4C4] leading-none">
-              Next Expiry
-            </p>
-            <p className="font-satoshi font-bold text-[12px] text-white leading-none mt-[5px]">
-              {latestExpiry}
-            </p>
-          </div>
-          {/* Points Section */}
-          <div className="flex flex-col">
-            <p className="font-satoshi text-[12px] text-[#C4C4C4] leading-none">Total Points</p>
-            <p className="font-satoshi font-bold text-[20px] text-white leading-none mt-[6px]">
-              {totalPoints.toLocaleString()}
-            </p>
-          </div>
-          <div className="mt-[16px] flex items-center gap-3">
-            <div
-              className="flex items-center justify-center"
-              style={{
-                width: '174px',
-                height: '25px',
-                backgroundImage: `url(${ASSETS.REWARD_INFO})`,
-                backgroundSize: '100% 100%',
-                backgroundPosition: 'center',
-              }}
-            >
-              <span className="text-white text-[11px] font-satoshi">Min. 500 points to redeem</span>
+          <div
+            className="rounded-[20px] overflow-hidden relative transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+            style={{
+              width: '320px',
+              height: '210px',
+              backgroundImage: `url(${ASSETS.REWARDS_CARD})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              transform: inviteExpanded ? 'rotateY(360deg)' : 'rotateY(0deg)',
+              backfaceVisibility: 'hidden',
+              WebkitFontSmoothing: 'antialiased',
+            }}
+          >
+            {/* Always visible: Invite header */}
+            <div className="pt-[22px] flex flex-col items-center px-4">
+              <p className="font-satoshi font-bold text-[24px] text-white leading-tight text-center">
+                Tap to invite friends!
+              </p>
+              <p className="font-satoshi font-normal text-[12px] text-white/70 leading-none mt-[2px] text-center">
+                and get 10,000 points every referral (₹250)
+              </p>
             </div>
-          </div>
-          <div className="mt-auto">
-            <p className="font-satoshi font-medium text-[14px] text-white leading-none">
-              Invite Friends
-            </p>
-            <p className="font-satoshi text-[12px] text-white leading-none mt-[6px]">
-              and get 10,000 points every referral (₹250)
-            </p>
-            <div className="flex items-center mt-[14px]">
-              <p className="font-satoshi font-medium text-[14px] text-[#848EFF]">{referralLink}</p>
-              <button onClick={handleCopyLink} className="ml-[12px] p-0 text-[#848EFF] flex items-center justify-center">
-                {Capacitor.isNativePlatform() ? <Share2 size={16} /> : <Copy size={16} />}
+
+            {/* Referral link + button — always visible */}
+            <div
+              className="absolute bottom-[21px] w-full px-[18px] flex flex-col gap-[10px]"
+            >
+              {/* Referral link row */}
+              <div
+                className="flex items-center justify-between px-[14px] h-[38px] rounded-full bg-black border border-white/10"
+              >
+                <p
+                  className="font-satoshi text-[12px] text-[#5260FE] truncate flex-1 mr-2"
+                  style={{ maxWidth: '80%' }}
+                >
+                  {referralLink}
+                </p>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
+                  className="text-white flex items-center justify-center shrink-0"
+                >
+                  {Capacitor.isNativePlatform() ? <Share2 size={15} /> : <Copy size={15} />}
+                </button>
+              </div>
+
+              {/* Send Invite button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
+                className="w-full h-[38px] shadow-xl transition-all bg-[#5260FE] hover:bg-[#5260FE]/90 active:scale-[0.98] text-white rounded-full font-satoshi font-medium text-[14px] flex items-center justify-center border-none"
+              >
+                Send Invite
               </button>
             </div>
           </div>
         </div>
 
-        {/* Section A — Streak Banner */}
-        <div
-          className="relative w-full rounded-[20px] flex items-center mb-[24px] overflow-hidden"
-          style={{
-            height: '80px',
-            backgroundImage: `url(${ASSETS.REWARDS_CARD})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            paddingLeft: '21px',
-            paddingRight: '21px',
-          }}
+        {/* Wrap rewards container and button to shift them together */}
+        <div 
+          className="relative w-full flex flex-col transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]" 
+          style={{ top: inviteExpanded ? '2px' : '-130px', marginBottom: inviteExpanded ? '2px' : '-130px' }}
         >
-          <div className="flex items-center gap-4">
-            {/* Flame icon */}
-            <Flame
-              size={36}
-              className="text-orange-400 shrink-0"
-              style={{ filter: 'drop-shadow(0 0 8px rgba(251,146,60,0.7))' }}
-            />
-
-            {/* Text stack */}
+          {/* Rewards Container — overlaps the top invite card */}
+          <div
+            className="relative z-20 w-full bg-black rounded-[22px] p-[18px] cursor-pointer"
+            style={{ border: '1px solid rgba(255,255,255,0.2)' }}
+            onClick={() => setInviteExpanded(!inviteExpanded)}
+          >
+          {/* Reward Points Row */}
+          <div className="flex items-center justify-between mb-[20px]">
             <div className="flex flex-col">
-              <span className="text-white font-bold text-[22px] leading-tight">
-                {streakDays} day streak
-              </span>
-              <span className="text-white/70 text-[13px] font-normal leading-snug mt-0.5">
-                {streakDays === 0
-                  ? 'Place an order today to start your streak!'
-                  : streakDays >= 30
-                  ? '🏆 Legendary streak! +50 bonus points per order'
-                  : streakDays >= 7
-                  ? '🔥🔥 On fire! +50 bonus points per order'
-                  : streakDays >= 3
-                  ? '🔥 Heating up! +20 bonus points per order'
-                  : "You're on a roll. Keep going!"}
+              <p className="font-satoshi text-[14px] text-[#C4C4C4] leading-none mb-[8px]">
+                Reward points
+              </p>
+              <p className="font-satoshi font-bold text-[32px] text-white leading-none">
+                {totalPoints.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            {/* Badge SVG showing streak days */}
+            <div className="relative flex items-center justify-center">
+              <img
+                src={ASSETS.BADGE_ICON}
+                alt="streak badge"
+                className="w-[56px] h-[56px]"
+              />
+              <span
+                className="absolute font-satoshi font-bold text-[14px] text-white leading-none"
+                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', marginTop: '-1px' }}
+              >
+                {streakDays}
               </span>
             </div>
           </div>
-        </div>
 
-        {/* Section B — Badges Showcase */}
-        <div className="mb-[24px] relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>
-              Badges
-            </h3>
-            <span className="text-brand-text-muted text-[12px] font-normal">(tap to view)</span>
-          </div>
-          
-          <div className="flex overflow-x-auto gap-3 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {badgesLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="w-[88px] h-[108px] shrink-0 rounded-[12px] bg-white/5 animate-pulse" />
-              ))
-            ) : (
-              <>
-                {userBadges.map((ub) => {
-                  const badge = ub.badges || {};
-                  const IconComponent = (LucideIcons as any)[badge.icon_name] || Star;
-                  
-                  let bgGradient = 'from-slate-600/40 to-slate-400/20';
-                  let dotColor = 'bg-slate-400';
-                  if (badge.tier === 'bronze') {
-                    bgGradient = 'from-amber-900/40 to-amber-700/20';
-                    dotColor = 'bg-amber-700';
-                  } else if (badge.tier === 'gold') {
-                    bgGradient = 'from-yellow-700/40 to-yellow-500/20';
-                    dotColor = 'bg-yellow-500';
-                  } else if (badge.tier === 'platinum') {
-                    bgGradient = 'from-purple-800/40 to-purple-500/20';
-                    dotColor = 'bg-purple-500';
-                  }
+          {/* Streak Progress Box */}
+          <div
+            className="w-full rounded-[16px] p-[16px] mb-[24px]"
+            style={{ background: '#131313' }}
+          >
+            <p className="font-satoshi font-bold text-[18px] text-white leading-tight mb-[2px]">
+              {streakDays} day streak
+            </p>
+            <p className="font-satoshi text-[13px] text-white/80 mb-[16px]">
+              {streakDays === 0
+                ? 'Place an order today to start your streak!'
+                : streakDays >= 30
+                  ? '🏆 Legendary streak! +50 bonus points per order'
+                  : streakDays >= 7
+                    ? '🔥🔥 On fire! +50 bonus points per order'
+                    : streakDays >= 3
+                      ? '🔥 Heating up! +20 bonus points per order'
+                      : "You're on a roll. Keep going!"}
+            </p>
 
-                  return (
-                    <div 
-                      key={ub.badge_id} 
-                      className={`w-[88px] h-[108px] shrink-0 rounded-[12px] bg-gradient-to-b ${bgGradient} flex flex-col items-center justify-center relative border border-white/10 cursor-pointer`}
-                      onClick={() => setSelectedBadge({ ...badge, earned: true, earned_at: ub.earned_at })}
-                    >
-                      <div className="flex flex-col items-center justify-center gap-1.5 w-full px-2">
-                        <IconComponent size={22} className="text-white shrink-0" />
-                        <span className="text-[10px] text-white text-center font-medium leading-tight line-clamp-2 w-full">{badge.name}</span>
-                      </div>
-                      <div className={`absolute bottom-2 w-1.5 h-1.5 rounded-full ${dotColor}`} />
-                    </div>
-                  );
-                })}
-                
-                {allBadges
-                  .filter((b: any) => !userBadges.some(ub => ub.badge_id === b.id))
-                  .slice(0, 3)
-                  .map((badge: any) => {
-                    const IconComponent = (LucideIcons as any)[badge.icon_name] || Star;
-                    return (
+            {/* Streak Progress Bar — 7 flames for Mon–Sun */}
+            <div className="mt-[22px] relative w-full">
+              {(() => {
+                const totalDays = 7;
+                const completedDays = Math.min(streakDays, totalDays);
+                const fillPercentage = completedDays <= 1 ? 0 : ((completedDays - 1) / (totalDays - 1)) * 100;
+
+                return (
+                  <>
+                    {/* Continuous Track Container perfectly aligned to icon centers */}
+                    <div className="absolute top-1/2 left-[16px] right-[16px] -translate-y-1/2 h-[6px] bg-[#232323] rounded-full overflow-hidden">
+                      {/* Filled Track */}
                       <div 
-                        key={badge.id} 
-                        className="w-[88px] h-[108px] shrink-0 rounded-[12px] bg-white/5 flex flex-col items-center justify-center relative border border-white/5 opacity-40 grayscale cursor-pointer"
-                        onClick={() => setSelectedBadge({ ...badge, earned: false })}
+                        className="h-full bg-[#FF961C] transition-all duration-500 rounded-full" 
+                        style={{ width: `${fillPercentage}%` }} 
+                      />
+                    </div>
+
+                    {/* Icons on top */}
+                    <div className="relative z-10 flex items-center justify-between w-full">
+                      {Array.from({ length: totalDays }).map((_, i) => {
+                        const isLit = i < completedDays;
+                        return (
+                          <div key={i} className="flex flex-col items-center justify-center shrink-0 w-[32px] h-[32px] rounded-full">
+                            <img
+                              src={ASSETS.FIRE_ICON}
+                              alt="flame"
+                              className="w-[24px] h-[24px]"
+                              style={{
+                                filter: isLit ? 'none' : 'grayscale(1) brightness(0.25)',
+                                opacity: isLit ? 1 : 0.8,
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Badges Showcase */}
+          <div className="mb-[8px] relative z-10">
+            <div className="flex items-center gap-2 mb-[16px]">
+              <h3 className="text-[14px] font-medium text-[#C4C4C4]">
+                Badges
+              </h3>
+            </div>
+
+            <div className="relative w-full">
+              <div className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '140px' }}>
+                <div className="grid grid-cols-3 gap-3 pb-[40px]">
+              {badgesLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="w-full h-[108px] rounded-[12px] bg-white/5 animate-pulse" />
+                ))
+              ) : (
+                <>
+                  {userBadges.map((ub) => {
+                    const badge = ub.badges || {};
+                    const IconComponent = ICON_MAP[badge.icon_name] || Star;
+
+                    let bgGradient = 'from-slate-600/40 to-slate-400/20';
+                    let dotColor = 'bg-slate-400';
+                    if (badge.tier === 'bronze') {
+                      bgGradient = 'from-amber-900/40 to-amber-700/20';
+                      dotColor = 'bg-amber-700';
+                    } else if (badge.tier === 'gold') {
+                      bgGradient = 'from-yellow-700/40 to-yellow-500/20';
+                      dotColor = 'bg-yellow-500';
+                    } else if (badge.tier === 'platinum') {
+                      bgGradient = 'from-purple-800/40 to-purple-500/20';
+                      dotColor = 'bg-purple-500';
+                    }
+
+                    return (
+                      <div
+                        key={ub.badge_id}
+                        className={`w-full h-[108px] rounded-[12px] bg-gradient-to-b ${bgGradient} flex flex-col items-center justify-center relative border border-white/10 cursor-pointer`}
+                        onClick={(e) => { e.stopPropagation(); setSelectedBadge({ ...badge, earned: true, earned_at: ub.earned_at }); }}
                       >
                         <div className="flex flex-col items-center justify-center gap-1.5 w-full px-2">
                           <IconComponent size={22} className="text-white shrink-0" />
                           <span className="text-[10px] text-white text-center font-medium leading-tight line-clamp-2 w-full">{badge.name}</span>
                         </div>
+                        <div className={`absolute bottom-2 w-1.5 h-1.5 rounded-full ${dotColor}`} />
                       </div>
                     );
-                })}
-              </>
-            )}
+                  })}
+
+                  {allBadges
+                    .filter((b: any) => !userBadges.some(ub => ub.badge_id === b.id))
+                    .map((badge: any) => {
+                      const IconComponent = ICON_MAP[badge.icon_name] || Star;
+                      return (
+                        <div
+                          key={badge.id}
+                          className="w-full h-[108px] rounded-[12px] bg-white/5 flex flex-col items-center justify-center relative border border-white/5 opacity-40 grayscale cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); setSelectedBadge({ ...badge, earned: false }); }}
+                        >
+                          <div className="flex flex-col items-center justify-center gap-1.5 w-full px-2">
+                            <IconComponent size={22} className="text-white shrink-0" />
+                            <span className="text-[10px] text-white text-center font-medium leading-tight line-clamp-2 w-full">{badge.name}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </>
+              )}
+                </div>
+              </div>
+              {/* Fade overlay for bottom cutoff effect */}
+              <div className="absolute bottom-0 left-0 right-0 h-[20px] bg-gradient-to-t from-black to-transparent pointer-events-none" />
+            </div>
           </div>
-          {/* Badge Detail Bottom Sheet */}
-          {selectedBadge && createPortal(
+        </div>
+        {/* Badge Detail Bottom Sheet */}
+        {selectedBadge && createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-end justify-center"
+            onClick={() => setSelectedBadge(null)}
+            style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          >
             <div
-              className="fixed inset-0 z-[9999] flex items-end justify-center"
-              onClick={() => setSelectedBadge(null)}
-              style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+              className="w-full rounded-t-[24px] p-6 pb-10 mx-auto"
+              style={{ background: '#13131F', border: '1px solid rgba(255,255,255,0.08)', maxWidth: '480px' }}
+              onClick={e => e.stopPropagation()}
             >
-              <div
-                className="w-full rounded-t-[24px] p-6 pb-10 mx-auto"
-                style={{ background: '#13131F', border: '1px solid rgba(255,255,255,0.08)', maxWidth: '480px' }}
-                onClick={e => e.stopPropagation()}
-              >
-                {/* Drag handle */}
-                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-6" />
-                
-                {/* Icon large */}
-                <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center bg-gradient-to-b ${getTierGradient(selectedBadge.tier)}`}>
-                  {(() => {
-                    const Icon = (LucideIcons as any)[selectedBadge.icon_name] || LucideIcons.Star;
-                    return <Icon size={32} className="text-white" />;
-                  })()}
-                </div>
+              {/* Drag handle */}
+              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-6" />
 
-                {/* Tier pill */}
-                <div className="flex justify-center mb-3">
-                  <span className={`text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full ${getTierPillStyle(selectedBadge.tier)}`}>
-                    {selectedBadge.tier}
-                  </span>
-                </div>
-
-                {/* Name + description */}
-                <h3 className="text-white text-[20px] font-bold text-center mb-2">{selectedBadge.name}</h3>
-                <p className="text-brand-text-muted text-[14px] text-center mb-6">{selectedBadge.description}</p>
-
-                {/* Earned / Locked status */}
-                {selectedBadge.earned ? (
-                  <div className="flex items-center justify-center gap-2 text-green-400 text-[13px]">
-                    <LucideIcons.CheckCircle size={16} />
-                    <span>Earned on {new Date(selectedBadge.earned_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="flex items-center gap-2 text-brand-text-muted text-[13px]">
-                      <LucideIcons.Lock size={16} />
-                      <span>Not yet earned</span>
-                    </div>
-                    {selectedBadge.points_reward > 0 && (
-                      <span className="text-[12px] text-[#5260FE] mt-1">+{selectedBadge.points_reward} pts on unlock</span>
-                    )}
-                  </div>
-                )}
+              {/* Icon large */}
+              <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center bg-gradient-to-b ${getTierGradient(selectedBadge.tier)}`}>
+                {(() => {
+                  const Icon = ICON_MAP[selectedBadge.icon_name] || Star;
+                  return <Icon size={32} className="text-white" />;
+                })()}
               </div>
-            </div>,
-            document.body
-          )}
-        </div>
 
-        {/* Section C — Achievements Timeline */}
-        <div className="mb-[32px] relative z-10">
-          <h3 className={`text-[16px] font-medium ${isDarkMode ? 'text-white' : 'text-black'} mb-4`}>
-            Milestones
-          </h3>
-          <div className="flex flex-col">
-            {achievementsLoading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0">
-                  <div className="w-9 h-9 rounded-full bg-white/20 animate-pulse shrink-0" />
-                  <div className="flex-1">
-                    <div className="h-3 w-32 bg-white/10 rounded animate-pulse mb-1" />
-                    <div className="h-2 w-20 bg-white/10 rounded animate-pulse" />
-                  </div>
-                </div>
-              ))
-            ) : achievements.length > 0 ? (
-              achievements.map((ach) => {
-                const meta = achievementMeta[ach.achievement_type] || { label: ach.achievement_type, icon: 'Award', color: '#5260FE' };
-                const Icon = (LucideIcons as any)[meta.icon] || LucideIcons.Award;
-                return (
-                  <div key={ach.achievement_type} className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0">
-                    {/* Icon circle */}
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color + '22', border: `1px solid ${meta.color}44` }}>
-                      <Icon size={16} style={{ color: meta.color }} />
-                    </div>
-                    {/* Label + date */}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-[13px] font-medium leading-none mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>{meta.label}</p>
-                      <p className="text-brand-text-muted text-[11px]">
-                        {new Date(ach.earned_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
-                    {/* Checkmark */}
-                    <LucideIcons.CheckCircle size={16} className="text-green-400 shrink-0" />
-                  </div>
-                );
-              })
-            ) : (
-              <div className="flex flex-col items-center py-6 gap-3">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                  <LucideIcons.Trophy size={20} className="text-white/30" />
-                </div>
-                <p className="text-brand-text-muted text-[13px] text-center">
-                  Complete your first order<br/>to unlock milestones
-                </p>
+              {/* Tier pill */}
+              <div className="flex justify-center mb-3">
+                <span className={`text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full ${getTierPillStyle(selectedBadge.tier)}`}>
+                  {selectedBadge.tier}
+                </span>
               </div>
-            )}
-          </div>
-        </div>
 
+              {/* Name + description */}
+              <h3 className="text-white text-[20px] font-bold text-center mb-2">{selectedBadge.name}</h3>
+              <p className="text-brand-text-muted text-[14px] text-center mb-6">{selectedBadge.description}</p>
+
+              {/* Earned / Locked status */}
+              {selectedBadge.earned ? (
+                <div className="flex items-center justify-center gap-2 text-green-400 text-[13px]">
+                  <CheckCircle size={16} />
+                  <span>Earned on {new Date(selectedBadge.earned_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-center gap-2 text-brand-text-muted text-[13px]">
+                    <Lock size={16} />
+                    <span>Not yet earned</span>
+                  </div>
+                  {selectedBadge.points_reward > 0 && (
+                    <span className="text-[12px] text-[#5260FE] mt-1">+{selectedBadge.points_reward} pts on unlock</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
         {/* How does this work? */}
         <button
           onClick={() => setShowHowItWorks(true)}
-          className="flex items-center gap-1 text-brand-primary text-[14px] font-medium mb-[50px] relative z-10"
+          className="flex items-center gap-1 text-brand-primary text-[16px] font-medium mb-[50px] relative z-10 mt-[16px] self-start"
         >
           How does this work?
         </button>
+        </div>
       </div>
       {!showHowItWorks && <BottomNavigation activeTab="rewards" />}
       {/* How It Works Pop-up */}
@@ -551,7 +556,7 @@ const Rewards = () => {
             onClick={e => e.stopPropagation()}
           >
             {/* Details Icon */}
-            <img loading="lazy" decoding="async"               src={ASSETS.DETAILS}
+            <img loading="lazy" decoding="async" src={ASSETS.DETAILS}
               alt=""
               className="w-[30px] h-[30px] mt-[22px]"
               style={!isDarkMode ? { filter: 'brightness(0)' } : {}}
@@ -597,14 +602,14 @@ const Rewards = () => {
             style={
               isDarkMode
                 ? {
-                    backgroundImage: `url(${ASSETS.POP_UP_CLOSE_BTN})`,
-                    backgroundSize: '100% 100%',
-                    backgroundRepeat: 'no-repeat',
-                  }
+                  backgroundImage: `url(${ASSETS.POP_UP_CLOSE_BTN})`,
+                  backgroundSize: '100% 100%',
+                  backgroundRepeat: 'no-repeat',
+                }
                 : {}
             }
           >
-            <img loading="lazy" decoding="async"               src={ASSETS.CLOSE}
+            <img loading="lazy" decoding="async" src={ASSETS.CLOSE}
               alt=""
               className="w-6 h-6"
               style={!isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
