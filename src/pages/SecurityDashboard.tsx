@@ -1,11 +1,11 @@
 import { ASSETS } from '@/constants/assets';
-import { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { ChevronRight } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import Lottie from 'lottie-react';
+const Lottie = React.lazy(() => import('lottie-react'));
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useAsset } from '@/hooks/useAsset';
 import MpinSheet from '@/components/MpinSheet';
@@ -275,7 +275,7 @@ const SecurityDashboard = () => {
         <div
           className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer relative z-50`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
-          onClick={handleBiometricToggle}
+          onClick={() => handleBiometricToggle()}
         >
           <div className="flex items-center gap-4 w-full">
             <img loading="lazy" decoding="async" src={ASSETS.BIOMETRIC_ICON_MENU} alt="Biometric" className={iconClass} />
@@ -442,12 +442,19 @@ const SecurityDashboard = () => {
                   : 'rgba(255,255,255,1) padding-box, #5260FE border-box',
               }}
             />
-            <Lottie
-              key={kycStatus}
-              animationData={getRadarAnimation()}
-              loop={true}
-              className={`w-full h-full relative z-10 ${isDarkMode ? '' : 'opacity-70'}`}
-            />
+            <Suspense fallback={
+              <div 
+                style={{ width: '100%', height: '200px', background: 'rgba(255,255,255,0.03)' }}
+                className="rounded-[16px] animate-pulse"
+              />
+            }>
+              <Lottie
+                key={kycStatus}
+                animationData={getRadarAnimation()}
+                loop={true}
+                className={`w-full h-full relative z-10 ${isDarkMode ? '' : 'opacity-70'}`}
+              />
+            </Suspense>
           </div>
         </div>
         {/* Content Container */}

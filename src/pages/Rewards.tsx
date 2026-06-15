@@ -17,7 +17,7 @@ import {
   Network, Target
 } from 'lucide-react';
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; className?: string; style?: React.CSSProperties }>> = {
   ShoppingBag, Package, Star, Zap, Crown,
   Flame, Trophy, Users, Award, Lock,
   CheckCircle, MapPin, Network, Target,
