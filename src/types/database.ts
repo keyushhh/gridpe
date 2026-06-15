@@ -178,6 +178,7 @@ export interface Tables {
     amount: number;
     points_amount: number;
     reference_id: string | null;
+    reference_type: string | null;
     description: string;
     created_at: string;
     expires_at: string;
