@@ -11,7 +11,7 @@ const TERMS_FALLBACK = `<p>Welcome to Grid.Pe! These Terms and Conditions govern
 <h3>1. Account Registration</h3>
 <p>You must register for an account to use our services. You agree to provide accurate and complete information and to keep this information updated.</p>
 <h3>2. Services Provided</h3>
-<p>Grid.Pe provides wallet, digital payments, currency exchange, and other financial services. We reserve the right to modify or discontinue any services at any time.</p>
+<p>Grid.Pe provides digital payments, currency exchange, and other financial services. We reserve the right to modify or discontinue any services at any time.</p>
 <h3>3. User Conduct</h3>
 <p>You agree not to use the application for any illegal activities, including money laundering, fraud, or unauthorized access to other accounts.</p>
 <h3>4. Limitation of Liability</h3>

@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
-import { X, Search, Plus, MapPin, MessageSquareMore, Trash2 } from 'lucide-react';
+import { X, Search, Plus, MapPin, MessageSquareMore } from 'lucide-react';
 import { motion, PanInfo } from 'framer-motion';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';

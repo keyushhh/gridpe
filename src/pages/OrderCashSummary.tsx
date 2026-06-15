@@ -14,9 +14,9 @@ import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
 import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
-import { SavedAddress } from '@/types';
+
 import { cn } from '@/lib/utils';
-import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
+import { getAddress, migrateAddressKey } from '@/utils/addressStorage';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useLocationStore } from '@/store/useLocationStore';
 import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
@@ -467,8 +467,6 @@ const OrderCashSummary = () => {
           ? orderData.data 
           : orderData;
 
-
-
       if (orderError || !resolvedOrderData?.success) {
         showToaster('Failed to initiate payment. Please try again.', 'error');
         setIsLoading(false);
@@ -512,7 +510,6 @@ const OrderCashSummary = () => {
         
         // Open in Capacitor Browser (in-app browser, not external Chrome)
         const platform = Capacitor.getPlatform();
-
 
         await Browser.open({
           url: checkoutUrl,

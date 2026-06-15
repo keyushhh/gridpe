@@ -8,7 +8,7 @@ import { hapticSuccess } from '@/utils/haptics';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
-import { ChevronLeft, Star, Info, X } from 'lucide-react';
+import { ChevronLeft, Star, Info } from 'lucide-react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import OrderDeliveredAnim from '@/assets/order-delivered-animation.lottie';
 import DeliveryPinIcon from '@/assets/delivery-pin.svg';
@@ -491,7 +491,7 @@ const OrderDelivered = () => {
             Your order for amount ₹{orderAmount} has been delivered successfully.
           </h2>
           <p className={`mt-[8px] font-satoshi font-normal text-[16px] leading-[140%] ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}>
-            The ₹{orderAmount} held in your wallet for this delivery will be debited shortly. You will be notified for the same. Thank you for using Grid.Pe!
+            The ₹{orderAmount} held for this delivery will be debited shortly. You will be notified for the same. Thank you for using Grid.Pe!
           </p>
           <div className="mt-[20px] flex items-center gap-[12px]">
             <div className="relative flex items-center justify-center w-[14px] h-[14px]">

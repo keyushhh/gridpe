@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BackButton from '@/components/ui/BackButton';
-import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { helpCategories } from '@/lib/helpData';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 const HelpCategoryPage = () => {

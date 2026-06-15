@@ -66,7 +66,7 @@ const SafetyPromisePage = () => {
           </p>
 
           <p className="font-satoshi text-[14px] text-white/80 mt-6 leading-relaxed">
-            Every order is designed to be secure from start to finish, with verified delivery partners, real-time tracking, delivery verification, and protected wallet handling working together behind the scenes. We don't just focus on getting cash to your doorstep. We focus on making sure you feel confident every step of the way.
+            Every order is designed to be secure from start to finish, with verified delivery partners, real-time tracking, delivery verification working together behind the scenes. We don't just focus on getting cash to your doorstep. We focus on making sure you feel confident every step of the way.
           </p>
 
           <p className="font-satoshi text-[14px] text-white/80 mt-6 leading-relaxed">

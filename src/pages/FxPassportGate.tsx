@@ -12,26 +12,11 @@ import CardSkeleton from '@/components/skeletons/CardSkeleton';
 // New light cards
 const FxPassportGate = () => {
   const navigate = useNavigate();
-  const { walletTier, isPassportVerified, fetchProfileData } = useUser();
+  const { isPassportVerified, fetchProfileData } = useUser();
   const isDarkMode = useIsDarkMode();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const [isLoading, setIsLoading] = useState(true);
-  // Mapping for assets and tier names
-  const tierConfig: Record<string, { dark: string; light: string; text: string }> = {
-    Starter: {
-      dark: ASSETS.FX_WALLET_STARTER,
-      light: ASSETS.FX_WALLET_STARTER_LIGHT,
-      text: 'STARTER',
-    },
-    Pro: { dark: ASSETS.FX_WALLET_PRO, light: ASSETS.FX_WALLET_PRO_LIGHT, text: 'PRO' },
-    Elite: { dark: ASSETS.FX_WALLET_ELITE, light: ASSETS.FX_WALLET_ELITE_LIGHT, text: 'ELITE' },
-    Supreme: {
-      dark: ASSETS.FX_WALLET_SUPREME,
-      light: ASSETS.FX_WALLET_SUPREME_LIGHT,
-      text: 'SUPREME',
-    },
-  };
-  const currentTier = tierConfig[walletTier] || tierConfig['Pro'];
+
   useEffect(() => {
     let cancelled = false;
     const checkAccess = async () => {
@@ -51,12 +36,10 @@ const FxPassportGate = () => {
   }, [fetchProfileData]);
   useEffect(() => {
     if (isLoading) return;
-    if (walletTier === 'Starter') {
-      navigate(ROUTES.FX_INTRO);
-    } else if (isPassportVerified) {
+    if (isPassportVerified) {
       navigate(ROUTES.FX_EXCHANGE);
     }
-  }, [isLoading, walletTier, isPassportVerified, navigate]);
+  }, [isLoading, isPassportVerified, navigate]);
   if (isLoading) {
     return (
       <div
@@ -93,24 +76,21 @@ const FxPassportGate = () => {
       <div className="w-full max-w-sm px-5 flex flex-col items-center flex-1 pb-10">
         {/* Tier Container */}
         <div
-          className="w-full h-[101px] rounded-[20px] relative overflow-hidden mt-6 shrink-0"
+          className={`w-full h-[101px] rounded-[20px] relative overflow-hidden mt-6 shrink-0 ${isDarkMode ? 'bg-gradient-to-r from-brand-primary/20 to-brand-primary/10' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}
           style={{
-            backgroundImage: `url(${isDarkMode ? currentTier.dark : currentTier.light})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            border: !isDarkMode ? '1px solid #E9EAEB' : 'none',
+            border: !isDarkMode ? '1px solid #E9EAEB' : '1px solid rgba(255,255,255,0.1)',
           }}
         >
-          <div className="absolute top-[14px] left-[63px] right-4">
+          <div className="absolute top-[14px] left-[20px] right-4">
             <h3
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-bold tracking-tight`}
             >
-              WALLET - {currentTier.text}
+              FX ACCESS
             </h3>
             <p
               className={`${isDarkMode ? 'text-white/80' : 'text-black/80'} text-[11px] font-medium leading-[130%] mt-[5px]`}
             >
-              As a {currentTier.text} user, your standard KYC is complete. However, international FX
+              Your standard KYC is complete. However, international FX
               regulations require a verified Passport for all currency exchanges.
             </p>
           </div>

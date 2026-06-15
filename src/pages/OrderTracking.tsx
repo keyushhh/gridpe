@@ -7,8 +7,8 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Bike } from 'lucide-react';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { } from 'lucide-react';
+
 import { olc } from '@/utils/olc';
 import { Order } from '@/types';
 import { supabase } from '@/lib/supabase';

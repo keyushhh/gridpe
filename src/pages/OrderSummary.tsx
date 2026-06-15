@@ -141,7 +141,7 @@ const OrderSummary = () => {
             <span
               className={`text-[14px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}
             >
-              Wallet top up
+              Amount
             </span>
             <span
               className={`text-[14px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -246,19 +246,7 @@ const OrderSummary = () => {
       <div className="w-full mt-auto px-5 safe-bottom pb-4">
         <SlideToPay
           onComplete={() => {
-            if (retry) {
-              // Pass the original entered amount for wallet credit
-              navigate(ROUTES.WALLET_TOPUP_SUCCESS, {
-                state: {
-                  totalAmount: totalPayable,
-                  creditAmount: parsedAmount,
-                  paymentMethod,
-                  upiId,
-                },
-              });
-            } else {
-              navigate(ROUTES.WALLET_TOPUP_FAILED, { state: { amount, paymentMethod, upiId } });
-            }
+              navigate(-1);
           }}
           label="Confirm and Place Order"
         />

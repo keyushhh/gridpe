@@ -307,7 +307,7 @@ const OrderHistory = () => {
               amount: rt.points_amount || rt.amount || 0,
               total_amount: rt.points_amount || rt.amount || 0,
               status: 'delivered', // maps to 'completed' visually
-              payment_mode: 'wallet',
+              payment_mode: 'cash',
               order_type: 'REWARD',
               meta_data: { type: 'REWARD', item_value: rt.description || 'Reward' },
               created_at: rt.created_at,

@@ -1,16 +1,16 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import Skeleton from 'react-loading-skeleton';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { ChevronDown, Home, Briefcase, Users, MapPin /*, Eye, EyeOff */ } from 'lucide-react';
+import { Home, MapPin /*, Eye, EyeOff */ } from 'lucide-react';
 import { olc } from '@/utils/olc';
 import { fetchRecentOrders, fetchActiveOrders } from '@/lib/orders';
 import { Order, SavedAddress, Rider } from '@/types';
 import { supabase } from '@/lib/supabase';
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useAsset } from '@/hooks/useAsset';
 import useEmblaCarousel from 'embla-carousel-react';
 // REDESIGN_REMOVED: import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
@@ -21,7 +21,6 @@ import RatingSheet from '@/components/RatingSheet';
 import { useUser } from '@/contexts/UserContext';
 // REDESIGN_REMOVED: import { formatINR } from '@/utils/format';
 import { cancelOrder } from '@/lib/orders';
-import { useTheme } from 'next-themes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import NotAvailable from './NotAvailable';
 import { Button } from '@/components/ui/button';
@@ -83,12 +82,11 @@ const currencySymbols: Record<string, string> = {
   ZAR: 'R',
 };
 
-
 const Homepage = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
-  const iconWallet = useAsset(ASSETS.WALLET, ASSETS.WALLET);
+
   const iconFxConvert = useAsset(ASSETS.FX_CONVERT, ASSETS.CURRENCY_ICON);
   const iconOrderCash = useAsset(ASSETS.ORDER_CASH, ASSETS.CASH_ORDER_ICON);
   const iconAddMoney = useAsset(ASSETS.ADD_ICON, ASSETS.ADD_MONEY_ICON);
@@ -96,7 +94,6 @@ const Homepage = () => {
   const orderCashBg = useAsset(ASSETS.ORDER_CASH_BUTTON_BG, '');
   const circleButtonBg = useAsset(ASSETS.CIRCLE_BUTTON, '');
   const bannerBg = useAsset(ASSETS.BANNER_BG_NEW, '');
-  const { setTheme } = useTheme();
   const isDarkMode = useIsDarkMode();
   const [showBalance, setShowBalance] = useState(false);
   const [showDeliveryLimitsModal, setShowDeliveryLimitsModal] = useState(false);
@@ -108,46 +105,14 @@ const Homepage = () => {
     isPassportVerified,
     profileImage,
   } = useUser();
-  const walletBalance: any = (() => {}) as any;
-  const walletTier: any = (() => {}) as any;
-  const scheduledDowngrade: any = (() => {}) as any;
+
   const activeAddress = useLocationStore((state) => state.activeAddress);
   const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
   const tierName = profile?.plan_tier || 'basic';
   const dailyLimit = tierName.toLowerCase() === 'pro' ? 25000 : 5000;
   const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
-  const [balanceAlert, setBalanceAlert] = useState<{
-    days: number;
-    excess: number;
-    targetTier: string;
-  } | null>(null);
-  useEffect(() => {
-    if (scheduledDowngrade && walletBalance > 0) {
-      const tierLimits: Record<string, number> = {
-        Starter: 5000,
-        Pro: 15000,
-        Elite: 50000,
-        Supreme: 150000,
-      };
-      const limit = tierLimits[scheduledDowngrade.tier] || 0;
-      if (walletBalance > limit) {
-        const excess = walletBalance - limit;
-        const targetDate = new Date(scheduledDowngrade.effectiveDate);
-        const diffTime = targetDate.getTime() - new Date().getTime();
-        const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-        setBalanceAlert({
-          days: diffDays,
-          excess: excess,
-          targetTier: scheduledDowngrade.tier,
-        });
-      } else {
-        setBalanceAlert(null);
-      }
-    } else {
-      setBalanceAlert(null);
-    }
-  }, [scheduledDowngrade, walletBalance]);
+
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
 
@@ -322,33 +287,7 @@ const Homepage = () => {
     throwOnError: false,
   });
 
-/* WALLET_HIDDEN: Re-enable when PPI license obtained
-  const walletBalanceQuery = useQuery({
-    queryKey: ['wallet-balance', userId],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('wallets')
-          .select('available_balance')
-          .eq('user_id', userId)
-          .maybeSingle();
-        if (error || !data) {
-          if (error) console.error('walletBalanceQuery Supabase error:', error);
-          return 0;
-        }
-        return Math.floor(Number(data.available_balance || 0));
-      } catch (e) {
-        console.error('walletBalanceQuery unexpected error:', e);
-        return 0;
-      }
-    },
-    enabled: !!userId,
-    staleTime: 30000,
-    placeholderData: keepPreviousData,
-    retry: false,
-    throwOnError: false,
-  });
-*/
+
 
   const activeOrder = activeOrderQuery.data ?? null;
   const transactionHistory = recentOrdersQuery.data ?? [];
@@ -381,7 +320,7 @@ const Homepage = () => {
     return { todayCashSum: todaySum, monthCashSum: monthSum };
   }, [transactionHistory]);
   const hasSavedAddresses = (addressesCountQuery.data ?? 0) > 0;
-  const liveWalletBalance = 0; // WALLET_HIDDEN placeholder
+
 
   const numericAmount = parseFloat(amount) || 0;
   const isDailyLimitExceeded = todayCashSum + numericAmount > dailyLimit;
@@ -452,7 +391,6 @@ const Homepage = () => {
     (activeOrderQuery.isLoading && !activeOrderQuery.data) || 
     (recentOrdersQuery.isLoading && !recentOrdersQuery.data) || 
     (addressesCountQuery.isLoading && !addressesCountQuery.data);
-    // WALLET_HIDDEN: || (walletBalanceQuery.isLoading && !walletBalanceQuery.data);
   const [isRiderAssigned, setIsRiderAssigned] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
@@ -603,7 +541,7 @@ const Homepage = () => {
             'Current Location';
             
           // Check serviceability
-          const { data: isServiceableZone, error } = await supabase.rpc('check_service_availability', {
+          const { data: isServiceableZone, error } = await (supabase as any).rpc('check_service_availability', {
             p_lat: Number(latitude) || 0,
             p_lng: Number(longitude) || 0,
           });
@@ -731,7 +669,7 @@ const Homepage = () => {
         const { latitude, longitude } = position.coords;
 
         // Check the service zone at the new position
-        const { data: newZoneId } = await supabase.rpc('check_service_availability', {
+        const { data: newZoneId } = await (supabase as any).rpc('check_service_availability', {
           p_lat: Number(latitude) || 0,
           p_lng: Number(longitude) || 0,
         });
@@ -831,7 +769,7 @@ const Homepage = () => {
             const oldStatus = payload.eventType === 'UPDATE' ? (payload.old as Order)?.status : null;
             if (oldStatus !== 'success' && oldStatus !== 'delivered') {
               try {
-                const { data: rider } = await supabase
+                const { data: rider } = await (supabase as any)
                   .from('riders')
                   .select('full_name, kyc_photo')
                   .eq('id', newOrder.rider_id)
@@ -851,18 +789,6 @@ const Homepage = () => {
               }
             }
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'wallets',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['wallet-balance', userId] });
         }
       )
       .subscribe();
@@ -1513,33 +1439,7 @@ const Homepage = () => {
 {/* REDESIGN_REMOVED
               {//  Quick Actions // }
               <div className="flex justify-center gap-6 mt-8 px-5">
-                <button
-                  onClick={() => navigate(ROUTES.WALLET_ADD_MONEY)}
-                  className="flex flex-col items-center gap-2"
-                >
-                  <div
-                    className={`flex items-center justify-center w-[52px] h-[52px] ${circleButtonBg ? 'bg-cover' : 'rounded-full'}`}
-                    style={{
-                      backgroundImage: circleButtonBg ? `url(${circleButtonBg})` : 'none',
-                      backgroundColor: circleButtonBg ? 'transparent' : 'rgba(82, 96, 254, 0.13)',
-                      backgroundSize: '100% 100%',
-                      backgroundRepeat: 'no-repeat',
-                    }}
-                  >
-                    <img loading="lazy" decoding="async" src={iconAddMoney} alt="Add" className="w-[22px] h-[22px]" />
-                  </div>
-                  <span className="text-foreground text-[12px] font-medium font-satoshi">
-                    Add Money
-                  </span>
-                </button>
                 {[
-//  WALLET_HIDDEN: Re-enable when PPI license obtained
-                  {
-                    icon: isDarkMode ? ASSETS.WALLET_DARK : iconWallet,
-                    label: 'Wallet',
-                    action: () => navigate(ROUTES.WALLET),
-                  },
-// 
                   {
                     icon: iconFxConvert,
                     label: 'FX Convert',

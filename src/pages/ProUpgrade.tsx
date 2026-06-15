@@ -6,7 +6,7 @@ import BackButton from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
-import { App } from '@capacitor/app';
+
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 

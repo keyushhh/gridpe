@@ -1,7 +1,7 @@
 import React, { useState, useCallback, memo, useEffect, useRef } from 'react';
 import { PhoneInput } from '@/components/PhoneInput';
 import { Button } from '@/components/ui/button';
-import { Capacitor } from '@capacitor/core';
+
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 
 interface PhoneInputSectionProps {

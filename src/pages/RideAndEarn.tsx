@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import { ChevronLeft, Bike, MapPin, User, Phone, ChevronDown } from 'lucide-react';
+
 import { ASSETS } from '@/constants/assets';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';

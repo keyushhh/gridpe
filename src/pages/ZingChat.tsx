@@ -24,6 +24,7 @@ const ZingChat = () => {
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [chatLoading, setChatLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -51,6 +52,7 @@ const ZingChat = () => {
 
   useEffect(() => {
     if (!isSecureStorageReady) return;
+    setChatLoading(false);
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
@@ -189,145 +191,171 @@ const ZingChat = () => {
           </span>
         </div>
         <div className="flex-1" />
-        <div className="flex flex-col gap-[2px]">
-          {messages.map((msg, index) => {
-            const isConsecutive = index > 0 && messages[index - 1].sender === msg.sender;
-            const isLastInGroup = index === messages.length - 1 || messages[index + 1].sender !== msg.sender;
-            
-            return (
-            <div
-              key={msg.id}
-              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} ${!isConsecutive ? 'mt-4' : ''}`}
-            >
-              <div
-                className={`flex items-end gap-2 w-full ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}
-              >
-                {msg.sender === 'zing' ? (
-                  <div className={`w-[35px] shrink-0 flex items-center justify-center ${!isLastInGroup ? 'opacity-0 h-0 pointer-events-none' : 'h-auto mb-1'}`}>
-                    {!hasInteracted ? (
-                      <div className="w-[50px] h-[50px] transform scale-125">
-                        <DotLottieReact
-                          src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
-                          loop
-                          autoplay
-                        />
-                      </div>
-                    ) : (
-                      <img
-                        src={ASSETS.ZING_SMALL}
-                        alt="Zing"
-                        className="w-[28px] h-auto object-contain"
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className={`w-[28px] h-[28px] rounded-full overflow-hidden shrink-0 mb-1 ${!isLastInGroup ? 'opacity-0 h-0 pointer-events-none' : ''}`}>
-                    <img
-                      src={ASSETS.AVATAR}
-                      alt="User"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className={`flex flex-col gap-1 max-w-[75%]`}>
-                  <div
-                    className={`px-4 py-3 flex flex-col gap-2 transition-colors ${
-                      msg.sender === 'zing'
-                        ? `w-fit rounded-2xl ${isConsecutive ? 'rounded-tl-md' : ''} ${!isLastInGroup ? 'rounded-bl-md' : 'rounded-bl-sm'} ${
-                            isDarkMode
-                              ? 'bg-[#1A1A1A] border border-white/5 shadow-sm'
-                              : 'bg-white border border-gray-100 shadow-sm'
-                          }`
-                        : `rounded-2xl ${isConsecutive ? 'rounded-tr-md' : ''} ${!isLastInGroup ? 'rounded-br-md' : 'rounded-br-sm'} ${
-                            isDarkMode
-                              ? 'bg-brand-primary border border-brand-primary text-white shadow-sm'
-                              : 'bg-brand-primary border border-brand-primary text-white shadow-sm'
-                          }`
-                    }`}
-                  >
-                    {msg.image && (
-                      <div className="w-full rounded-lg overflow-hidden mb-2">
-                        <img
-                          src={msg.image}
-                          alt="Attached"
-                          className="w-full h-auto object-contain max-h-[200px]"
-                        />
-                      </div>
-                    )}
-                    {msg.text.map((t, i) => (
-                      <p
-                        key={i}
-                        className={`text-[14px] font-normal font-satoshi leading-snug ${msg.sender === 'user' ? 'text-white' : isDarkMode ? 'text-white/90' : 'text-black'}`}
-                      >
-                        {t}
-                      </p>
-                    ))}
-                  </div>
-                  {msg.sender === 'user' && isLastInGroup && (
-                    <div className="flex items-center gap-1 self-end mr-1 mt-1">
-                      <span
-                        className={`text-[11px] font-medium font-satoshi transition-colors ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
-                      >
-                        {msg.timestamp}
-                      </span>
-                      <img
-                        src={ASSETS.DELIVERED_CHAT}
-                        alt="Delivered"
-                        className={`w-3.5 h-3.5 transition-all ${isDarkMode ? 'opacity-60' : 'opacity-100'}`}
-                      />
-                    </div>
-                  )}
-                  {msg.type === 'actions' && msg.actions && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {msg.actions.map(action => (
-                        <button
-                          key={action}
-                          onClick={() => handleQuickAction(action)}
-                          className={`h-[36px] px-4 rounded-full text-[13px] font-medium font-satoshi transition-colors ${
-                            isDarkMode
-                              ? 'bg-primary/20 border border-primary/40 text-primary-foreground active:bg-primary/30'
-                              : 'bg-primary/10 border border-primary/20 text-primary active:bg-primary/20'
-                          }`}
-                        >
-                          {action}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+        {chatLoading ? (
+          <div className="flex flex-col gap-3 px-4 pt-4">
+            {/* Zing message skeleton */}
+            <div className="flex items-start gap-2">
+              <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse shrink-0" />
+              <div className="flex flex-col gap-1.5">
+                <div className="h-4 w-48 rounded-[12px] bg-white/10 animate-pulse" />
+                <div className="h-4 w-36 rounded-[12px] bg-white/10 animate-pulse" />
               </div>
             </div>
-            );
-          })}
-          {isThinking && (
-            <div className="flex items-end gap-2 max-w-[75%] animate-in fade-in slide-in-from-bottom-2 duration-300 mt-4">
-              <div className="w-[35px] shrink-0 flex items-center justify-center h-auto mb-1">
-                <div className="w-[50px] h-[50px] transform scale-125">
-                  <DotLottieReact
-                    src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
-                    loop
-                    autoplay
+            {/* User message skeleton (right aligned) */}
+            <div className="flex justify-end">
+              <div className="h-4 w-32 rounded-[12px] bg-white/10 animate-pulse" />
+            </div>
+            {/* Zing response skeleton */}
+            <div className="flex items-start gap-2">
+              <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse shrink-0" />
+              <div className="flex flex-col gap-1.5">
+                <div className="h-4 w-56 rounded-[12px] bg-white/10 animate-pulse" />
+                <div className="h-4 w-40 rounded-[12px] bg-white/10 animate-pulse" />
+                <div className="h-4 w-28 rounded-[12px] bg-white/10 animate-pulse" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-[2px]">
+            {messages.map((msg, index) => {
+              const isConsecutive = index > 0 && messages[index - 1].sender === msg.sender;
+              const isLastInGroup = index === messages.length - 1 || messages[index + 1].sender !== msg.sender;
+              
+              return (
+              <div
+                key={msg.id}
+                className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} ${!isConsecutive ? 'mt-4' : ''}`}
+              >
+                <div
+                  className={`flex items-end gap-2 w-full ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}
+                >
+                  {msg.sender === 'zing' ? (
+                    <div className={`w-[35px] shrink-0 flex items-center justify-center ${!isLastInGroup ? 'opacity-0 h-0 pointer-events-none' : 'h-auto mb-1'}`}>
+                      {!hasInteracted ? (
+                        <div className="w-[50px] h-[50px] transform scale-125">
+                          <DotLottieReact
+                            src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
+                            loop
+                            autoplay
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          src={ASSETS.ZING_SMALL}
+                          alt="Zing"
+                          className="w-[28px] h-auto object-contain"
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <div className={`w-[28px] h-[28px] rounded-full overflow-hidden shrink-0 mb-1 ${!isLastInGroup ? 'opacity-0 h-0 pointer-events-none' : ''}`}>
+                      <img
+                        src={ASSETS.AVATAR}
+                        alt="User"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className={`flex flex-col gap-1 max-w-[75%]`}>
+                    <div
+                      className={`px-4 py-3 flex flex-col gap-2 transition-colors ${
+                        msg.sender === 'zing'
+                          ? `w-fit rounded-2xl ${isConsecutive ? 'rounded-tl-md' : ''} ${!isLastInGroup ? 'rounded-bl-md' : 'rounded-bl-sm'} ${
+                              isDarkMode
+                                ? 'bg-[#1A1A1A] border border-white/5 shadow-sm'
+                                : 'bg-white border border-gray-100 shadow-sm'
+                            }`
+                          : `rounded-2xl ${isConsecutive ? 'rounded-tr-md' : ''} ${!isLastInGroup ? 'rounded-br-md' : 'rounded-br-sm'} ${
+                              isDarkMode
+                                ? 'bg-brand-primary border border-brand-primary text-white shadow-sm'
+                                : 'bg-brand-primary border border-brand-primary text-white shadow-sm'
+                            }`
+                      }`}
+                    >
+                      {msg.image && (
+                        <div className="w-full rounded-lg overflow-hidden mb-2">
+                          <img
+                            src={msg.image}
+                            alt="Attached"
+                            className="w-full h-auto object-contain max-h-[200px]"
+                          />
+                        </div>
+                      )}
+                      {msg.text.map((t, i) => (
+                        <p
+                          key={i}
+                          className={`text-[14px] font-normal font-satoshi leading-snug ${msg.sender === 'user' ? 'text-white' : isDarkMode ? 'text-white/90' : 'text-black'}`}
+                        >
+                          {t}
+                        </p>
+                      ))}
+                    </div>
+                    {msg.sender === 'user' && isLastInGroup && (
+                      <div className="flex items-center gap-1 self-end mr-1 mt-1">
+                        <span
+                          className={`text-[11px] font-medium font-satoshi transition-colors ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
+                        >
+                          {msg.timestamp}
+                        </span>
+                        <img
+                          src={ASSETS.DELIVERED_CHAT}
+                          alt="Delivered"
+                          className={`w-3.5 h-3.5 transition-all ${isDarkMode ? 'opacity-60' : 'opacity-100'}`}
+                        />
+                      </div>
+                    )}
+                    {msg.type === 'actions' && msg.actions && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {msg.actions.map(action => (
+                          <button
+                            key={action}
+                            onClick={() => handleQuickAction(action)}
+                            className={`h-[36px] px-4 rounded-full text-[13px] font-medium font-satoshi transition-colors ${
+                              isDarkMode
+                                ? 'bg-primary/20 border border-primary/40 text-primary-foreground active:bg-primary/30'
+                                : 'bg-primary/10 border border-primary/20 text-primary active:bg-primary/20'
+                            }`}
+                          >
+                            {action}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              );
+            })}
+            {isThinking && (
+              <div className="flex items-end gap-2 max-w-[75%] animate-in fade-in slide-in-from-bottom-2 duration-300 mt-4">
+                <div className="w-[35px] shrink-0 flex items-center justify-center h-auto mb-1">
+                  <div className="w-[50px] h-[50px] transform scale-125">
+                    <DotLottieReact
+                      src="https://lottie.host/dec60184-c95b-480f-9bdb-e23f2f3545ab/SOlm7P1CIz.lottie"
+                      loop
+                      autoplay
+                    />
+                  </div>
+                </div>
+                <div
+                  className={`rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 mb-1 transition-colors ${
+                    isDarkMode ? 'bg-[#1A1A1A] border border-white/5 shadow-sm' : 'bg-white border border-gray-100 shadow-sm'
+                  }`}
+                >
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.3s] ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
+                  />
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.15s] ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
+                  />
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full animate-bounce ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                   />
                 </div>
               </div>
-              <div
-                className={`rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 mb-1 transition-colors ${
-                  isDarkMode ? 'bg-[#1A1A1A] border border-white/5 shadow-sm' : 'bg-white border border-gray-100 shadow-sm'
-                }`}
-              >
-                <div
-                  className={`w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.3s] ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
-                />
-                <div
-                  className={`w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.15s] ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
-                />
-                <div
-                  className={`w-1.5 h-1.5 rounded-full animate-bounce ${isDarkMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
         <div className="h-[20px] shrink-0" />
       </main>
       <div className="px-5 pb-2 relative z-20 mt-auto bg-transparent">

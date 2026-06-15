@@ -204,7 +204,7 @@ const DeliveryCaution = () => {
               <p
                 className={`mt-[13px] text-[14px] font-normal font-satoshi opacity-80 leading-relaxed ${isDarkMode ? 'text-white' : 'text-black'}`}
               >
-                The amount held in your wallet for this order will be refunded within 30 minutes if
+                The amount held for this order will be refunded within 30 minutes if
                 you proceed with the cancellation of the order. No additional charges.
               </p>
               <div className="mt-[26px] flex items-center gap-[14px]">

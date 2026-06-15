@@ -70,7 +70,6 @@ const OrderSummary = lazy(() => import('./pages/OrderSummary'));
 
 const PaymentMissing = lazy(() => import('./pages/PaymentMissing'));
 const SelectPaymentMethod = lazy(() => import('./pages/SelectPaymentMethod'));
-const WithdrawOTP = lazy(() => import('./pages/WithdrawOTP'));
 const ViewRiderKyc = lazy(() => import('./pages/ViewRiderKyc'));
 const VerifyRiderKyc = lazy(() => import('./pages/VerifyRiderKyc'));
 const ReportRiderKyc = lazy(() => import('./pages/ReportRiderKyc'));
@@ -818,14 +817,6 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                       element={
                         <ProtectedRoute>
                           <SelectPaymentMethod />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path={ROUTES.WITHDRAW_OTP}
-                      element={
-                        <ProtectedRoute>
-                          <WithdrawOTP />
                         </ProtectedRoute>
                       }
                     />

@@ -81,8 +81,7 @@ const DeleteAccountReasons = () => {
           <p
             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-sans leading-relaxed`}
           >
-            Make sure you have no active transactions and that your wallet balance is fully
-            withdrawn.
+            Make sure you have no active transactions .
             <br />
             (Deleting an account with a balance will result in total loss of funds. Poof.)
           </p>

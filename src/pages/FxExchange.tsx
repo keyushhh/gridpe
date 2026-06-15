@@ -2,7 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
@@ -192,6 +192,7 @@ const FxExchange = () => {
   const { profile, isPassportVerified, kycStatus } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
+  const { showToaster } = useCustomToaster();
 
   // Initial State from navigation
   const { amount: initialAmount, from: initialFrom } = location.state || {};
@@ -201,6 +202,7 @@ const FxExchange = () => {
   const [toCurrency, setToCurrency] = useState('INR');
   const [currencies, setCurCurrencies] = useState<Record<string, string>>({});
   const [fxRate, setFxRate] = useState<number>(87.36);
+  const [ratesLoading, setRatesLoading] = useState(true);
   // NOTE: No isSwapped flag — swap button directly swaps fromCurrency/toCurrency
   // which triggers the rate-fetch effect automatically.
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
@@ -287,6 +289,7 @@ const FxExchange = () => {
   // Fetch Currencies and Live Rate
   useEffect(() => {
     const init = async () => {
+      setRatesLoading(true);
       try {
         // Fetch Currencies - Use static list as requested to avoid Frankfurter CORS
         setCurCurrencies(CURRENCY_NAMES);
@@ -342,6 +345,8 @@ const FxExchange = () => {
         } else {
           setFxRate(1.0);
         }
+      } finally {
+        setRatesLoading(false);
       }
     };
     init();
@@ -596,10 +601,14 @@ const FxExchange = () => {
               {/* Base Rate */}
               <div className="flex justify-between items-center h-[18px]">
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Base Rate</span>
-                <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                  1 {currentFrom} = {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
-                  {formatFxAmount(fxRate)}
-                </span>
+                {ratesLoading ? (
+                  <div className="h-4 w-28 rounded-full bg-white/10 animate-pulse" />
+                ) : (
+                  <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    1 {currentFrom} = {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
+                    {formatFxAmount(fxRate)}
+                  </span>
+                )}
               </div>
               {/* Amount Entered */}
               <div className="flex justify-between items-center h-[18px] mt-[8px]">
@@ -679,7 +688,7 @@ const FxExchange = () => {
         )}
         <button
           className={`w-full h-[48px] bg-primary rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? 'shadow-primary/20 text-white' : 'shadow-primary/30 text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
-          disabled={isBelowMinimum || isSameCurrency}
+          disabled={isBelowMinimum || isSameCurrency || ratesLoading}
           onClick={() => {
             navigate(ROUTES.FX_EXCHANGE_SUMMARY, {
               state: {
@@ -697,7 +706,7 @@ const FxExchange = () => {
             });
           }}
         >
-          Proceed to Order
+          {ratesLoading ? 'Fetching rates...' : 'Proceed to Order'}
         </button>
       </div>
       {/* Modals */}

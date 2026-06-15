@@ -36,6 +36,7 @@ const Banking = () => {
   const userId = profile?.id;
   const isDarkMode = useIsDarkMode();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [isFabExpanded, setIsFabExpanded] = useState(false);
   const [isStacked, setIsStacked] = useState(true);
@@ -48,6 +49,7 @@ const Banking = () => {
   useEffect(() => {
     const loadAccounts = async () => {
       if (!userId) return;
+      setIsLoadingAccounts(true);
       try {
         const data = await fetchBankAccounts(userId);
         setAccounts(data);
@@ -58,6 +60,8 @@ const Banking = () => {
         }
       } catch (error) {
         console.error('Error loading bank accounts:', error);
+      } finally {
+        setIsLoadingAccounts(false);
       }
     };
     loadAccounts();
@@ -192,7 +196,32 @@ const Banking = () => {
           style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' }}
         >
           <div className="flex flex-col min-h-full">
-            {accounts.length === 0 ? (
+            {isLoadingAccounts ? (
+              <div className="flex flex-col gap-3 px-4">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-full rounded-[16px] animate-pulse"
+                    style={{ height: '210px', background: 'rgba(255,255,255,0.05)' }}
+                  >
+                    <div className="p-4 flex flex-col gap-3">
+                      {/* Bank logo + name row */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white/10" />
+                        <div className="h-4 w-32 rounded-full bg-white/10" />
+                      </div>
+                      {/* Account number */}
+                      <div className="h-6 w-48 rounded-full bg-white/10 mt-2" />
+                      {/* Account type pill */}
+                      <div className="h-5 w-20 rounded-full bg-white/10" />
+                      {/* IFSC + Branch */}
+                      <div className="h-3 w-36 rounded-full bg-white/10" />
+                      <div className="h-3 w-28 rounded-full bg-white/10" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : accounts.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center px-10 pt-20">
                 <div
                   className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}

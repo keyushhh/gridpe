@@ -5,16 +5,13 @@ import { ROUTES } from '@/routes';
 import { ChevronDown } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import {
-  LineChart,
-  Line,
   ResponsiveContainer,
   XAxis,
   YAxis,
   Tooltip,
   Area,
   AreaChart,
-  CartesianGrid,
-} from 'recharts';
+  CartesianGrid } from 'recharts';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { formatFxAmount } from '@/utils/format';
 import { CURRENCY_NAMES, CURRENCY_MAP, currencySymbols } from '@/constants/currencies';

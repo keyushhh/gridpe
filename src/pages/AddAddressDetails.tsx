@@ -72,6 +72,25 @@ const AddAddressDetails = () => {
   const [saveAddressAs, setSaveAddressAs] = useState('');
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
 
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const initProfile = async () => {
+      try {
+        if (!profile && currentUserId) {
+          await fetchProfileData(currentUserId);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (isMounted) setProfileLoading(false);
+      }
+    };
+    initProfile();
+    return () => { isMounted = false; };
+  }, [profile, currentUserId, fetchProfileData]);
+
   useEffect(() => {
     if (useAccountDetails) {
       setName(accountName || profile?.full_name || '');
@@ -390,7 +409,17 @@ const AddAddressDetails = () => {
               <h2 className={`text-[14px] font-bold mb-3 px-1 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}>
                 Receiver Details
               </h2>
-              <div className={`rounded-[16px] p-3 border ${isDarkMode ? 'bg-[#1A1A1A] border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
+              {profileLoading ? (
+                <div
+                  className="w-full rounded-[16px] animate-pulse p-4 flex flex-col gap-3"
+                  style={{ background: 'rgba(255,255,255,0.04)', height: '150px' }}
+                >
+                  <div className="h-3 w-24 rounded-full bg-white/10" />
+                  <div className="h-10 w-full rounded-[10px] bg-white/10" />
+                  <div className="h-10 w-full rounded-[10px] bg-white/10" />
+                </div>
+              ) : (
+                <div className={`rounded-[16px] p-3 border ${isDarkMode ? 'bg-[#1A1A1A] border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
                 <label 
                   className={`flex flex-col rounded-lg cursor-pointer ${useAccountDetails ? 'py-1 px-0.5' : 'px-2 py-1.5 mb-3'}`}
                   style={!useAccountDetails ? {
@@ -451,6 +480,7 @@ const AddAddressDetails = () => {
                   </div>
                 )}
               </div>
+              )}
             </div>
 
             {/* ── Location Details ── */}

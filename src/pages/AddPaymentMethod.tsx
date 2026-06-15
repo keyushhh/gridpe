@@ -54,8 +54,7 @@ const upiAppMethods: UpiMethod[] = [
   },
 ];
 const staticMoreMethods: StaticMethod[] = [
-  { id: 'amazon', name: 'Amazon Pay Wallet', icon: ASSETS.AMAZON, type: 'wallet', linked: true },
-  {
+    {
     id: 'netbanking',
     name: 'HDFC Netbanking',
     icon: ASSETS.HDFC_BANK_LOGO,
@@ -151,7 +150,7 @@ const AddPaymentMethod = () => {
     if (location.state?.flow === 'withdrawal') {
       navigate(ROUTES.SELECT_PAYMENT_METHOD, { state: navState });
     } else if (location.state?.flow === 'upgrade') {
-      navigate(ROUTES.SUBSCRIPTION_DETAILS, { state: navState });
+      navigate(ROUTES.PRO_UPGRADE, { state: navState });
     } else {
       navigate(ROUTES.ORDER_SUMMARY, { state: navState });
     }
@@ -260,7 +259,23 @@ const AddPaymentMethod = () => {
           }}
         >
           {isDarkMode && <StrokeOverlay />}
-          {upiMethods.map((method, i) => renderPaymentRow(method, i === upiMethods.length - 1))}
+          {loading ? (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-3 rounded-[12px] animate-pulse"
+                  style={{ background: 'rgba(255,255,255,0.04)' }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
+                  <div className="h-3.5 w-28 rounded-full bg-white/10 flex-1" />
+                  <div className="w-4 h-4 rounded-full bg-white/10 shrink-0" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            upiMethods.map((method, i) => renderPaymentRow(method, i === upiMethods.length - 1))
+          )}
         </div>
         {/* Cards Section */}
         <div className="w-full mt-[36px] flex flex-col z-10">
@@ -269,7 +284,15 @@ const AddPaymentMethod = () => {
           >
             Cards
           </span>
-          {cardMethods.length > 0 ? (
+          {loading ? (
+            <div
+              className="w-full rounded-[12px] animate-pulse p-4 flex items-center gap-3"
+              style={{ background: 'rgba(255,255,255,0.04)', height: '60px' }}
+            >
+              <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
+              <div className="h-3.5 w-36 rounded-full bg-white/10" />
+            </div>
+          ) : cardMethods.length > 0 ? (
             <div
               className="w-full rounded-[22px] flex flex-col px-[10px] overflow-hidden"
               style={{

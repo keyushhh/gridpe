@@ -15,8 +15,10 @@ const HelpSupport = () => {
   const isDarkMode = useIsDarkMode();
   const [recentOrder, setRecentOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   useEffect(() => {
     const loadRecentOrder = async () => {
+      setOrdersLoading(true);
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -30,7 +32,11 @@ const HelpSupport = () => {
           console.error('Failed to fetch recent order', e);
         } finally {
           setLoading(false);
+          setOrdersLoading(false);
         }
+      } else {
+        setLoading(false);
+        setOrdersLoading(false);
       }
     };
     loadRecentOrder();
@@ -98,7 +104,29 @@ const HelpSupport = () => {
           </div>
         </div>
         {/* Recent Order Section */}
-        {recentOrder && (
+        {ordersLoading ? (
+          <div className="mb-[24px]">
+            <h3
+              className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
+            >
+              RECENT ORDER
+            </h3>
+            <div
+              className="w-full rounded-[16px] animate-pulse p-4"
+              style={{ background: 'rgba(255,255,255,0.04)', height: '120px' }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-white/10 shrink-0" />
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="h-3.5 w-32 rounded-full bg-white/10" />
+                  <div className="h-3 w-20 rounded-full bg-white/10" />
+                </div>
+                <div className="h-3 w-16 rounded-full bg-white/10" />
+              </div>
+              <div className="h-8 w-full rounded-[8px] bg-white/10 mt-2" />
+            </div>
+          </div>
+        ) : recentOrder ? (
           <div className="mb-[24px]">
             <h3
               className={`${isDarkMode ? 'text-brand-text-muted' : 'text-black/60'} text-[14px] font-medium font-satoshi mb-[12px] uppercase`}
@@ -226,7 +254,7 @@ const HelpSupport = () => {
               />
             </button>
           </div>
-        )}
+        ) : null}
         {/* Browse Categories */}
         <div className="mb-[20px]">
           <h3
@@ -267,11 +295,7 @@ const HelpSupport = () => {
                   label: 'FAQs',
                   route: ROUTES.HELP_CATEGORY.replace(':categoryId', 'faqs'),
                 },
-                {
-                  icon: isDarkMode ? ASSETS.WALLET_WHITECLR : ASSETS.WALLET_BLACK,
-                  label: 'Grid.Pe Wallet FAQs',
-                  route: ROUTES.HELP_CATEGORY.replace(':categoryId', 'wallet-faqs'),
-                },
+                
                 {
                   icon: isDarkMode ? ASSETS.ONBOARDING : ASSETS.PARTNER_BLACK,
                   label: 'Partner Onboarding',

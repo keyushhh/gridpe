@@ -245,7 +245,7 @@ const FxSuccess = () => {
         statusTitle: 'Order delivered successfully!',
         deliveryText: 'Order Delivered',
         deliverySubText: 'Your package has arrived.',
-        transactionNote: 'Amount deducted from your wallet.',
+        transactionNote: 'Amount deducted.',
         canCancel: false,
       };
     } else if (currentOrder.status === 'failed') {
@@ -274,7 +274,7 @@ const FxSuccess = () => {
         deliverySubText:
           (currentOrder.meta_data as OrderMetadata)?.cancel_reason_type ||
           'Order cancelled by user.',
-        transactionNote: 'Refund has been initiated to your wallet.',
+        transactionNote: 'Refund has been initiated.',
         canCancel: false,
       };
     }

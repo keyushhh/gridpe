@@ -10,7 +10,6 @@ import Skeleton from 'react-loading-skeleton';
 import { ChevronRight, Pencil, Lock } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useTheme } from 'next-themes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useAsset } from '@/hooks/useAsset';
 import { useUser } from '@/contexts/UserContext';
@@ -98,7 +97,6 @@ const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToaster } = useCustomToaster();
-  const { setTheme } = useTheme();
   const {
     profile,
     kycStatus,

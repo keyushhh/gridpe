@@ -87,8 +87,6 @@ const InternationalPayment = () => {
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const { profile, fetchProfileData } = useUser();
-  const refreshBalance: any = (() => {}) as any;
-  const refreshTransactions: any = (() => {}) as any;
   const { showToaster } = useCustomToaster();
   
   const [upiId, setUpiId] = useState('');
@@ -103,7 +101,7 @@ const InternationalPayment = () => {
   const [postalCode, setPostalCode] = useState('');
   const countryDropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const { amount, currency, flow, tier } = location.state || { amount: 0, currency: 'USD', flow: 'wallet_topup' };
+  const { amount, currency, flow, tier } = location.state || { amount: 0, currency: 'USD', flow: 'fx' };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/\D/g, '');
@@ -203,18 +201,7 @@ const InternationalPayment = () => {
           await new Promise(resolve => { const t = setTimeout(resolve, 2000); if (false) clearTimeout(t); });
           await fetchProfileData(currentUserId);
           
-          if (flow === 'wallet_topup') {
-            await refreshBalance();
-            await refreshTransactions();
-            navigate(ROUTES.WALLET_TOPUP_SUCCESS, {
-              state: {
-                totalAmount: amount,
-                creditAmount: amount,
-                paymentMethod: 'paypal',
-                transactionId: verifyData.captureID,
-              },
-            });
-          }
+          await fetchProfileData(currentUserId);
         } else if (urlData.url.includes('paypal-cancel')) {
           showToaster('Payment cancelled', 'error');
         }
@@ -308,20 +295,7 @@ const InternationalPayment = () => {
       }
 
       if (data.success) {
-        await refreshBalance();
         await fetchProfileData(currentUserId);
-        await refreshTransactions();
-
-        if (flow === 'wallet_topup') {
-          navigate(ROUTES.WALLET_TOPUP_SUCCESS, {
-            state: {
-              totalAmount: amount,
-              creditAmount: amount,
-              paymentMethod: 'card',
-              transactionId: data.paymentIntentId,
-            },
-          });
-        }
       } else {
         throw new Error('Payment process unsuccessful');
       }

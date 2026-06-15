@@ -697,15 +697,14 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                   <span
                     className={`text-[14px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
                   >
-                    Grid.Pe Wallet
+                    Grid.Pe
                   </span>
                 </div>
                 <div className="mt-2 flex flex-col gap-4">
                   <p
                     className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}
                   >
-                    No charges yet — your wallet will only be debited after you confirm the
-                    delivery.
+                    No charges yet — you will only be debited after you confirm the delivery.
                   </p>
                   <p
                     className={`text-[13px] font-normal font-satoshi leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}

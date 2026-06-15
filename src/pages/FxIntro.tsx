@@ -41,7 +41,7 @@ const FxIntro = () => {
           <h2
             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-bold font-satoshi leading-tight`}
           >
-            Requires Pro Wallet or above & KYC Verification
+            Requires Pro or above & KYC Verification
           </h2>
           {/* Prerequisites Section */}
           <div className="mt-6">

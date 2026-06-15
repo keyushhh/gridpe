@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { fetchAddresses, deleteAddress, Address } from '@/lib/addresses';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
@@ -13,18 +13,7 @@ import { SavedAddress } from '@/types';
 import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 import { useLocationStore } from '@/store/useLocationStore';
-import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { hapticWarning } from '@/utils/haptics';

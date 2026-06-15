@@ -171,7 +171,7 @@ export const dev_seedMockOrders = async (userId: string) => {
       total_amount: 1350.0,
       status: 'delivered',
       type: 'cash',
-      payment_mode: 'wallet',
+      payment_mode: 'cash',
       address_id: addressId,
       created_at: new Date(Date.now() - 3600000).toISOString(),
       meta_data: { type: 'CASH_ORDER', item_value: 1250.5 },
@@ -182,7 +182,7 @@ export const dev_seedMockOrders = async (userId: string) => {
       total_amount: 940.0,
       status: 'cancelled',
       type: 'cash',
-      payment_mode: 'wallet',
+      payment_mode: 'cash',
       address_id: addressId,
       created_at: new Date(Date.now() - 86400000).toISOString(),
       meta_data: {

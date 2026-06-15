@@ -22,9 +22,7 @@ const OrderCash = () => {
 
   const { profile } = useUser();
   const userId = profile?.id;
-  const tierName = (profile as any)?.wallet_tiers?.name || 'Basic';
-  const dailyLimit = tierName.toLowerCase() === 'pro' ? 25000 : 5000;
-  const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
+    const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
 
   const recentOrdersQuery = useQuery({
     queryKey: ['recent-orders', userId],

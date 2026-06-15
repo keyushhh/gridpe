@@ -14,8 +14,8 @@ const KYCIntro = () => {
   const [showWhyModal, setShowWhyModal] = useState(false);
   const benefits = [
     {
-      title: 'Higher Wallet Limits',
-      description: 'Boost your wallet size and daily top-up cap with verified KYC.',
+      title: 'Higher Limits',
+      description: 'Boost your daily limits with verified KYC.',
     },
     {
       title: 'Cash Deposit & Withdrawal',
@@ -141,8 +141,7 @@ const KYCIntro = () => {
                   className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans leading-relaxed`}
                 >
                   In accordance with the Reserve Bank of India (RBI) regulations, completion of eKYC
-                  is mandatory to enable wallet functionalities such as fund transfers, cash
-                  withdrawals. This ensures compliance, enhances security, and
+                  is mandatory to enable functionalities such as fund transfers. This ensures compliance, enhances security, and
                   enables uninterrupted access to regulated financial services.
                 </p>
               </div>

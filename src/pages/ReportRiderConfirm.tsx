@@ -210,7 +210,7 @@ const ReportRiderConfirm = () => {
               <p
                 className={`mt-4 text-[14px] font-normal font-satoshi leading-[140%] ${isDarkMode ? 'text-white/70' : 'text-brand-text-muted'}`}
               >
-                The amount held in your wallet for this order will be refunded within 30 minutes if
+                The amount held for this order will be refunded within 30 minutes if
                 you proceed with the cancellation of the order. No additional charges.
               </p>
               {/* Status Dot */}

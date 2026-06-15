@@ -2,6 +2,7 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { fetchBankAccounts, BankAccount } from '@/lib/banking';
@@ -22,6 +23,7 @@ const SelectPaymentMethod = () => {
   const location = useLocation();
   const { profile } = useUser();
   const isDarkMode = useIsDarkMode();
+  const { showToaster } = useCustomToaster();
   const { amount, forceManual } = location.state || {};
   const [selectedMethod, setSelectedMethod] = useState<string>(forceManual ? 'upi-id' : '');
   const [upiId, setUpiId] = useState<string>('');
@@ -71,8 +73,7 @@ const SelectPaymentMethod = () => {
     subtitle: `${acc.bank_name} | ${acc.account_type}`,
   }));
   const moreMethods: PaymentMethod[] = [
-    { id: 'amazon', name: 'Amazon Pay Wallet', icon: ASSETS.AMAZON },
-    {
+        {
       id: 'netbanking',
       name: 'HDFC Netbanking',
       icon: ASSETS.HDFC_BANK_LOGO,
@@ -206,7 +207,24 @@ const SelectPaymentMethod = () => {
               {bankAccounts.length > 0 ? 'Linked Bank Accounts' : 'Cards'}
             </h2>
           </div>
-          {bankAccounts.length === 0 && !loading ? (
+          {loading ? (
+            <div className="flex flex-col gap-2 mt-2 w-[364px]">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-3 rounded-[12px] animate-pulse"
+                  style={{ background: 'rgba(255,255,255,0.04)' }}
+                >
+                  <div className="w-5 h-5 rounded-full bg-white/10 shrink-0" />
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="h-3.5 w-36 rounded-full bg-white/10" />
+                    <div className="h-3 w-24 rounded-full bg-white/10" />
+                  </div>
+                  <div className="w-4 h-4 rounded-full bg-white/10 shrink-0" />
+                </div>
+              ))}
+            </div>
+          ) : bankAccounts.length === 0 ? (
             <div className="w-[364px] p-4 rounded-[22px] border border-brand-border-light text-center">
               <p className={`${isDarkMode ? 'text-white/60' : 'text-black/60'} text-[14px]`}>
                 No bank accounts linked.
@@ -361,14 +379,7 @@ const SelectPaymentMethod = () => {
               upiMethods.find(m => m.id === selectedMethod) ||
               cardMethods.find(m => m.id === selectedMethod) ||
               moreMethods.find(m => m.id === selectedMethod);
-            navigate(ROUTES.WITHDRAW_OTP, {
-              state: {
-                selectedMethod,
-                amount,
-                upiId: selectedMethod === 'upi-id' ? upiId : undefined,
-                paymentMethod: methodObj,
-              },
-            });
+            showToaster('This feature is currently unavailable', 'error');
           }}
           disabled={selectedMethod === 'upi-id' && !upiId}
           className={`w-full h-[48px] rounded-full text-white text-[16px] font-bold active:scale-95 transition-transform flex items-center justify-center bg-brand-primary-light ${selectedMethod === 'upi-id' && !upiId ? 'opacity-50 pointer-events-none' : ''}`}

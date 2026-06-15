@@ -342,7 +342,7 @@ const OrderDetails = () => {
           (currentOrder.meta_data?.type === 'CASH_ORDER' || currentOrder.meta_data?.type === 'FX_EXCHANGE'
             ? currentOrder.meta_data.cancel_reason_type
             : '') || 'Order cancelled by user.',
-        transactionNote: 'Refund has been initiated to your wallet.',
+        transactionNote: 'Refund has been initiated.',
         canCancel: false,
       };
     }

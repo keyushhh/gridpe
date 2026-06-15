@@ -248,7 +248,7 @@ const SecurityDashboard = () => {
             <div className={`${textWrapperClass} ${textGap} w-full`}>
               <span className={headerClass}>KYC</span>
               <span className={subTextClass}>
-                KYC also unlocks wallet limits, faster refunds, and your inner peace.
+                KYC also unlocks faster refunds and your inner peace.
               </span>
             </div>
           </div>

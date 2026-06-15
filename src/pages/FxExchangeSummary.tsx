@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import { X, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useQuery } from '@tanstack/react-query';
@@ -16,7 +16,7 @@ import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import { SavedAddress } from '@/types';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import Map, { Marker } from 'react-map-gl/maplibre';
+import { Marker } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
@@ -30,8 +30,6 @@ const FxExchangeSummary = () => {
   const { showToaster } = useCustomToaster();
   const isDarkMode = useIsDarkMode();
   const { profile, rewardPoints: availableRewardPoints } = useUser();
-  const walletBalance: any = (() => {}) as any;
-  const refreshBalance: any = (() => {}) as any;
   const currentUserId = profile?.id;
   // Accept full FX state
   const {
@@ -46,8 +44,7 @@ const FxExchangeSummary = () => {
     markupPercent = 0.006,
     currencySymbols = {},
   } = location.state || {};
-  // No longer fetching wallet data here, using walletBalance from UserContext
-  const hasInsufficientBalance = amount > walletBalance;
+  // Removed walletBalance check
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
   const [isPayOpen, setIsPayOpen] = useState(true); // Default open for breakdown
@@ -199,10 +196,6 @@ const FxExchangeSummary = () => {
   const handlePay = async () => {
     try {
       const userId = currentUserId;
-      if (totalAmount > walletBalance) {
-        showToaster('Insufficient wallet balance.', 'error');
-        return;
-      }
       let addressId = savedAddress?.id;
       if (!addressId && savedAddress) {
         try {
@@ -257,30 +250,7 @@ const FxExchangeSummary = () => {
         navigate(ROUTES.NOT_AVAILABLE);
         return;
       }
-      // NEW: Wallet Hold - Moves available_balance -> held_balance before order insert
-      const { error: holdError } = await withTimeout(
-        supabase.rpc('wallet_hold', {
-          p_user_id: userId,
-          p_amount: totalAmount,
-          p_order_id: null,
-          p_description: 'Order Placement Hold (FX)',
-        }),
-        15_000,
-        'wallet-hold'
-      ).catch((err) => {
-        if (isTimeoutError(err)) {
-          showToaster(err.message, 'error');
-        }
-        throw err;
-      });
-      if (holdError) {
-        console.error('Wallet hold failed:', holdError);
-        showToaster(
-          holdError.message || 'Failed to secure funds. Please check your balance.',
-          'error'
-        );
-        return;
-      }
+      // Wallet hold removed
       const receiveAmount = finalAmount - tipAmount;
       const cleanedReceiveAmount = Math.round(receiveAmount * 100) / 100;
       const cleanedHoldAmount = Math.round(holdAmount * 100) / 100;
@@ -362,7 +332,7 @@ const FxExchangeSummary = () => {
           zone_id: zoneId, // Tagging with the zone_id from RPC
           amount: rcvAmt, // What user receives
           total_amount: hldAmt, // What is deducted/held from wallet
-          payment_mode: 'WALLET',
+          payment_mode: 'CARD',
           order_type: 'FX_EXCHANGE',
           currency: 'INR',
           status: 'pending',
@@ -451,37 +421,9 @@ const FxExchangeSummary = () => {
           dAddressText
         );
         const finalOrderId = orderData.id;
-        // NEW: Link the hold transaction to the newly created order
-        // We fetch the most recent pending hold for this user to avoid matching multiple rows
-        const { data: holdTx } = await supabase
-          .from('wallet_transactions')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('type', 'hold')
-          .eq('status', 'pending')
-          .is('order_id', null)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (holdTx) {
-          await withTimeout(
-            supabase
-              .from('wallet_transactions')
-              .update({ order_id: finalOrderId })
-              .eq('id', holdTx.id),
-            10_000,
-            'link-wallet-transaction'
-          ).catch((err) => {
-            if (isTimeoutError(err)) {
-              showToaster(err.message, 'error');
-            }
-            throw err;
-          });
-        }
+        // Hold transaction linking removed
         // Update app badge
         setBadge(1);
-        // Refresh balance after successful order & hold
-        await refreshBalance();
         navigate(ROUTES.FX_SUCCESS.replace(':orderId', finalOrderId), {
           state: {
             totalAmount: amount,
@@ -1228,26 +1170,22 @@ const FxExchangeSummary = () => {
         >
           {quoteLoading
             ? 'Calculating fees...'
-            : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} will be held from wallet`}
+            : `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total payable`}
         </p>
         <p
-          className={`text-[16px] font-medium font-sans mb-[34px] ${totalAmount > walletBalance ? 'text-brand-error' : isDarkMode ? 'text-white' : 'text-black'}`}
+          className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? 'text-white' : 'text-black'}`}
         >
           {quoteLoading
             ? 'Syncing pricing...'
-            : totalAmount > walletBalance
-              ? 'Insufficient funds in wallet'
-              : 'You won’t be charged unless the delivery is completed.'}
+            : 'You won’t be charged unless the delivery is completed.'}
         </p>
         <SlideToPay
           onComplete={handlePay}
-          disabled={!savedAddress || totalAmount > walletBalance || quoteLoading}
+          disabled={!savedAddress || quoteLoading}
           label={
             quoteLoading
               ? 'Calculating...'
-              : totalAmount > walletBalance
-                ? 'Low Balance'
-                : 'Slide to Pay'
+              : 'Slide to Pay'
           }
         />
       </div>

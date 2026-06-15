@@ -412,7 +412,7 @@ const ScheduleDelivery = () => {
         <p
           className={`text-[18px] font-bold font-sans mb-[16px] ${isDarkMode ? 'text-white' : 'text-black'}`}
         >
-          Amount will be held from wallet
+          Amount will be held
         </p>
         <p
           className={`text-[16px] font-medium font-sans mb-[34px] ${isDarkMode ? 'text-white' : 'text-black'}`}

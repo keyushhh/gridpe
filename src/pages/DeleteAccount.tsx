@@ -144,7 +144,7 @@ const DeleteAccount = () => {
           <OptionCard
             type="delete"
             title="Delete Account"
-            description="This will wipe your account, order history, and wallet. You won't be able to reverse this."
+            description="This will wipe your account, order and history. You won't be able to reverse this."
             paddingY="py-[12px]"
           />
         </div>

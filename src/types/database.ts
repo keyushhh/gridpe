@@ -146,8 +146,7 @@ export interface Tables {
     user_id: string;
     bank_account_id: string | null;
     upi_id: string | null;
-    wallet_name: string | null;
-    payout_method: 'bank_account' | 'upi' | 'wallet';
+    payout_method: 'bank_account' | 'upi';
     amount: number;
     status: 'pending' | 'success' | 'failed' | 'completed';
     currency: string;
@@ -201,7 +200,6 @@ export interface Tables {
     expiry_month: number | string;
     expiry_year: number | string;
     card_type: string;
-    razorpay_token_id?: string | null;
     created_at?: string;
   };
   user_subscriptions: {
@@ -411,16 +409,6 @@ export interface Database {
         };
         Returns: { success: boolean; error?: string };
       };
-      wallet_withdraw: {
-        Args: {
-          p_user_id: string;
-          p_amount: number;
-          p_payout_method: string;
-          p_vpa: string | null;
-          p_description: string;
-        };
-        Returns: { success: boolean; error?: string };
-      };
       complete_cash_order: {
         Args: {
           p_order_id: string;
@@ -450,15 +438,6 @@ export interface Database {
         };
         Returns: string | null;
       };
-      wallet_hold: {
-        Args: {
-          p_user_id: string;
-          p_amount: number;
-          p_order_id: string | null;
-          p_description: string;
-        };
-        Returns: { success: boolean; error?: string };
-      };
       calculate_rider_earning: {
         Args: {
           dist_km: number;
@@ -477,16 +456,6 @@ export interface Database {
       apply_tier_forfeiture: {
         Args: {
           p_user_id: string;
-        };
-        Returns: { success: boolean; error?: string };
-      };
-      wallet_deposit: {
-        Args: {
-          p_user_id: string;
-          p_amount: number;
-          p_description: string;
-          p_reference_id: string;
-          p_metadata?: Record<string, unknown>;
         };
         Returns: { success: boolean; error?: string };
       };

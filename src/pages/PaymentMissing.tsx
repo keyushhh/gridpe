@@ -4,7 +4,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 // Assets
-import { Button } from '@/components/ui/button';
+
 import { useWebScroll } from '@/hooks/useWebScroll';
 const PaymentMissing = () => {
   const { containerOverflow } = useWebScroll();

@@ -204,11 +204,6 @@ import fxconvert from '@/assets/fx convert.svg';
 import fxConvert from '@/assets/fx-convert.svg';
 import fxLight from '@/assets/fx-light.png';
 import fxLightSvg from '@/assets/fx-light.svg';
-import fxWalletElite from '@/assets/fx-wallet-elite.png';
-import fxWalletPro_1 from '@/assets/fx-wallet-pro-1.png';
-import fxWalletPro from '@/assets/fx-wallet-pro.png';
-import fxWalletStarter from '@/assets/fx-wallet-starter.png';
-import fxWalletSupreme from '@/assets/fx-wallet-supreme.png';
 import gallery from '@/assets/gallery.svg';
 import generalBlack from '@/assets/general-black.svg';
 import generalIssues from '@/assets/general-issues.svg';
@@ -249,7 +244,6 @@ import iconPan from '@/assets/icon-pan.png';
 import iconPassport from '@/assets/icon-passport.png';
 import iconSecurity from '@/assets/icon-security.svg';
 import iconVoter from '@/assets/icon-voter.png';
-import iconWallet from '@/assets/icon-wallet.png';
 import iconsBgLight from '@/assets/icons-bg-light.png';
 import idfcBankLogo from '@/assets/idfc-bank-logo.png';
 import idfcBank from '@/assets/idfc-bank.png';
@@ -286,10 +280,6 @@ import eliteSelectedLight from '@/assets/light-cards/elite-selected-light.png';
 import eliteSettingsLight from '@/assets/light-cards/elite-settings-light.png';
 import eliteSubscriptionLight from '@/assets/light-cards/elite-subscription-light.png';
 import eliteWithdrawLight from '@/assets/light-cards/elite-withdraw-light.png';
-import fxWalletEliteLight from '@/assets/light-cards/fx-wallet-elite-light.png';
-import fxWalletProLight from '@/assets/light-cards/fx-wallet-pro-light.png';
-import fxWalletStarterLight from '@/assets/light-cards/fx-wallet-starter-light.png';
-import fxWalletSupremeLight from '@/assets/light-cards/fx-wallet-supreme-light.png';
 import proExpandLight from '@/assets/light-cards/pro-expand-light.png';
 import proNonselectedLight from '@/assets/light-cards/pro-nonselected-light.png';
 import proSelectedLight from '@/assets/light-cards/pro-selected-light.png';
@@ -312,10 +302,6 @@ import supremeSelectedLight from '@/assets/light-cards/supreme-selected-light.pn
 import supremeSettingsLight from '@/assets/light-cards/supreme-settings-light.png';
 import supremeSubscriptionLight from '@/assets/light-cards/supreme-subscription-light.png';
 import supremeWithdrawLight from '@/assets/light-cards/supreme-withdraw-light.png';
-import walletCreatedEliteLight from '@/assets/light-cards/wallet-created-elite-light.png';
-import walletCreatedProLight from '@/assets/light-cards/wallet-created-pro-light.png';
-import walletCreatedStarterLight from '@/assets/light-cards/wallet-created-starter-light.png';
-import walletCreatedSupremeLight from '@/assets/light-cards/wallet-created-supreme-light.png';
 import lightMode from '@/assets/light-mode.svg';
 import lightWarningCheck from '@/assets/light-warning-check.svg';
 import lightmodeKycCover from '@/assets/lightmode-kyc-cover.png';
@@ -444,7 +430,6 @@ import securityPendingLight from '@/assets/security-pending-light.png';
 import securityPending from '@/assets/security-pending.png';
 import security from '@/assets/security.svg';
 import selectedtab from '@/assets/selected tab.png';
-import selectedwallet from '@/assets/selected wallet.png';
 import selectedAddress from '@/assets/selected-address.png';
 import selectedPill from '@/assets/selected-pill.png';
 import selected from '@/assets/selected.png';
@@ -522,17 +507,6 @@ import verifiedIcon from '@/assets/verified-icon.png';
 import verified from '@/assets/verified.png';
 import verifiedSvg from '@/assets/verified.svg';
 import visaLogo from '@/assets/visa-logo.png';
-import walletCard from '@/assets/wallet - card.png';
-import walletBlack from '@/assets/wallet-black.svg';
-import walletCredited from '@/assets/wallet-credited.svg';
-import walletDark from '@/assets/wallet-dark.svg';
-import walletDebited from '@/assets/wallet-debited.svg';
-import walletLight from '@/assets/wallet-light.png';
-import walletLightSvg from '@/assets/wallet-light.svg';
-import walletLogo from '@/assets/wallet-logo.svg';
-import walletStarter from '@/assets/wallet-starter.png';
-import walletWhiteclr from '@/assets/wallet-whiteclr.svg';
-import wallet from '@/assets/wallet.svg';
 import warningBackground from '@/assets/warning-background.png';
 import warningEllipse from '@/assets/warning-ellipse.png';
 import yearDropdownBg from '@/assets/year-dropdown-bg.png';
@@ -744,11 +718,6 @@ export const ASSETS = {
   FX_CONVERT: fxConvert,
   FX_LIGHT: fxLight,
   FX_LIGHT_SVG: fxLightSvg,
-  FX_WALLET_ELITE: fxWalletElite,
-  FX_WALLET_PRO_1: fxWalletPro_1,
-  FX_WALLET_PRO: fxWalletPro,
-  FX_WALLET_STARTER: fxWalletStarter,
-  FX_WALLET_SUPREME: fxWalletSupreme,
   GALLERY: gallery,
   GENERAL_BLACK: generalBlack,
   GENERAL_ISSUES: generalIssues,
@@ -789,7 +758,6 @@ export const ASSETS = {
   ICON_PASSPORT: iconPassport,
   ICON_SECURITY: iconSecurity,
   ICON_VOTER: iconVoter,
-  ICON_WALLET: iconWallet,
   ICONS_BG_LIGHT: iconsBgLight,
   IDFC_BANK_LOGO: idfcBankLogo,
   IDFC_BANK: idfcBank,
@@ -826,10 +794,6 @@ export const ASSETS = {
   ELITE_SETTINGS_LIGHT: eliteSettingsLight,
   ELITE_SUBSCRIPTION_LIGHT: eliteSubscriptionLight,
   ELITE_WITHDRAW_LIGHT: eliteWithdrawLight,
-  FX_WALLET_ELITE_LIGHT: fxWalletEliteLight,
-  FX_WALLET_PRO_LIGHT: fxWalletProLight,
-  FX_WALLET_STARTER_LIGHT: fxWalletStarterLight,
-  FX_WALLET_SUPREME_LIGHT: fxWalletSupremeLight,
   PRO_EXPAND_LIGHT: proExpandLight,
   PRO_NONSELECTED_LIGHT: proNonselectedLight,
   PRO_SELECTED_LIGHT: proSelectedLight,
@@ -852,10 +816,6 @@ export const ASSETS = {
   SUPREME_SETTINGS_LIGHT: supremeSettingsLight,
   SUPREME_SUBSCRIPTION_LIGHT: supremeSubscriptionLight,
   SUPREME_WITHDRAW_LIGHT: supremeWithdrawLight,
-  WALLET_CREATED_ELITE_LIGHT: walletCreatedEliteLight,
-  WALLET_CREATED_PRO_LIGHT: walletCreatedProLight,
-  WALLET_CREATED_STARTER_LIGHT: walletCreatedStarterLight,
-  WALLET_CREATED_SUPREME_LIGHT: walletCreatedSupremeLight,
   LIGHT_MODE: lightMode,
   LIGHT_WARNING_CHECK: lightWarningCheck,
   LIGHTMODE_KYC_COVER: lightmodeKycCover,
@@ -984,7 +944,6 @@ export const ASSETS = {
   SECURITY_PENDING: securityPending,
   SECURITY: security,
   SELECTEDTAB: selectedtab,
-  SELECTEDWALLET: selectedwallet,
   SELECTED_ADDRESS: selectedAddress,
   SELECTED_PILL: selectedPill,
   SELECTED: selected,
@@ -1062,17 +1021,6 @@ export const ASSETS = {
   VERIFIED: verified,
   VERIFIED_SVG: verifiedSvg,
   VISA_LOGO: visaLogo,
-  WALLET_CARD: walletCard,
-  WALLET_BLACK: walletBlack,
-  WALLET_CREDITED: walletCredited,
-  WALLET_DARK: walletDark,
-  WALLET_DEBITED: walletDebited,
-  WALLET_LIGHT: walletLight,
-  WALLET_LIGHT_SVG: walletLightSvg,
-  WALLET_LOGO: walletLogo,
-  WALLET_STARTER: walletStarter,
-  WALLET_WHITECLR: walletWhiteclr,
-  WALLET: wallet,
   WARNING_BACKGROUND: warningBackground,
   WARNING_ELLIPSE: warningEllipse,
   YEAR_DROPDOWN_BG: yearDropdownBg,

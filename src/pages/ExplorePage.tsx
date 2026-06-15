@@ -2,14 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
-import { Share } from '@capacitor/share';
+
 import { ASSETS } from '@/constants/assets';
 import { useAsset } from '@/hooks/useAsset';
 import {
-  ChevronRight, ChevronDown, Banknote, ArrowLeftRight,
-  TrendingUp, Clock, Sparkles, ShieldCheck, UserCheck,
-  Lock, Phone, Info, Users, Share2, FileText, Bike, MapPin,
-  ArrowRight
+  ChevronRight, Info, Users, FileText, Bike, ArrowRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import mapDark from '@/assets/map-dark.png';

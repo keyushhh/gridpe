@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { Circle, CheckCircle2 } from 'lucide-react';
+
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Order } from '@/types';
 const ISSUE_CATEGORIES = [

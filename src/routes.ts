@@ -33,7 +33,6 @@ export const ROUTES = {
   ORDER_SUMMARY: '/order-summary',
   PAYMENT_MISSING: '/payment-missing',
   SELECT_PAYMENT_METHOD: '/select-payment-method',
-  WITHDRAW_OTP: '/withdraw-otp',
   VIEW_RIDER_KYC: '/view-rider-kyc/:orderId',
   VERIFY_RIDER_KYC: '/verify-rider-kyc',
   REPORT_RIDER_KYC: '/report-rider-kyc',
