@@ -346,7 +346,7 @@ const OnboardingScreen = () => {
             full_name: socialName || user.email || 'Guest User',
             mpin_set: false,
             kyc_status: 'incomplete',
-          })
+          } as any)
           .select()
           .maybeSingle();
         if (createError) {
@@ -367,6 +367,7 @@ const OnboardingScreen = () => {
         if (socialName && profileData.full_name !== socialName) {
           const { data: updatedProfile, error: updateError } = await supabase
             .from('profiles')
+            // @ts-ignore
             .update({ full_name: socialName })
             .eq('id', user.id)
             .select()
@@ -507,6 +508,7 @@ const OnboardingScreen = () => {
       const { data: updatedProfile, error } = await withTimeout(
         supabase
           .from('profiles')
+          // @ts-ignore
           .update({
             mpin_set: true,
             mpin_hash: hashedMpin,
@@ -536,6 +538,27 @@ const OnboardingScreen = () => {
         localStorage.setItem('biometrics_enabled', 'true');
       }
       saveBiometricEnabled(biometricState.isEnabled);
+
+      // Award referral points — fire and forget, never block signup
+      const pendingReferralCode = localStorage.getItem('referralCode');
+      if (pendingReferralCode && user?.id) {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        fetch(`${supabaseUrl}/functions/v1/award-referral-points`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            new_user_id: user.id,
+            referral_code: pendingReferralCode,
+          }),
+        })
+          .then(() => localStorage.removeItem('referralCode'))
+          .catch(() => localStorage.removeItem('referralCode')); // always clear, even on failure
+      }
+
       navigate(ROUTES.HOME, { replace: true });
     } catch (err: unknown) {
       console.error('Unexpected error in MPIN setup:', err);
@@ -580,7 +603,7 @@ const OnboardingScreen = () => {
           }
           throw err;
         });
-        targetHash = fetchedProfile?.mpin_hash ?? null;
+        targetHash = fetchedProfile ? (fetchedProfile as any).mpin_hash : null;
       }
       if (!targetHash) {
         setErrorState(prev => ({ ...prev, general: 'MPIN not set for this account.' }));

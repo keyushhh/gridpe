@@ -9,7 +9,7 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, ChevronRight, Flame, Star, History } from 'lucide-react';
+import { Copy, Share2, ChevronRight, Flame, Star, History } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -17,6 +17,8 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 
 import { OrderMetadata } from '@/types';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
@@ -52,7 +54,7 @@ const Rewards = () => {
   
   useBodyScrollLock(showHowItWorks || !!selectedBadge);
   
-  const referralLink = 'http://sdp.apl/?ref=' + (profile?.referral_code || '');
+  const referralLink = `https://gridpe.in/refer?ref=${profile?.referral_code || ''}`;
 
   const [userBadges, setUserBadges] = useState<any[]>([]);
   const [allBadges, setAllBadges] = useState<any[]>([]);
@@ -153,9 +155,26 @@ const Rewards = () => {
     const latest = new Date(Math.max(...expiries));
     return `${latest.getMonth() + 1}/${latest.getFullYear().toString().slice(-2)}`;
   }, [rewardTransactions]);
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    showToaster('Referral link copied!', 'success');
+  const handleCopyLink = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Share.share({
+          title: 'Join me on Grid.Pe!',
+          text: `Use my referral code to sign up on Grid.Pe and get ₹2.50 welcome bonus! 🎉`,
+          url: referralLink,
+          dialogTitle: 'Share your referral link',
+        });
+      } catch {
+        // User dismissed share sheet — not an error
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(referralLink);
+        showToaster('Referral link copied!', 'success');
+      } catch {
+        showToaster('Could not copy link', 'error');
+      }
+    }
   };
 
   const getTierGradient = (tier: string) => {
@@ -277,8 +296,8 @@ const Rewards = () => {
             </p>
             <div className="flex items-center mt-[14px]">
               <p className="font-satoshi font-medium text-[14px] text-[#848EFF]">{referralLink}</p>
-              <button onClick={handleCopyLink} className="ml-[12px] p-0">
-                <img loading="lazy" decoding="async" src={ASSETS.COPY} alt="Copy" style={{ width: '15px', height: '15px' }} />
+              <button onClick={handleCopyLink} className="ml-[12px] p-0 text-[#848EFF] flex items-center justify-center">
+                {Capacitor.isNativePlatform() ? <Share2 size={16} /> : <Copy size={16} />}
               </button>
             </div>
           </div>
