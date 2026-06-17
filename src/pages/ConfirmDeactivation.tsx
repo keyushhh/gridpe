@@ -225,7 +225,7 @@ const ConfirmDeactivation = () => {
           disabled={!isValid}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_REMOVE_CARD}
               alt="Deactivate Account"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
@@ -243,7 +243,7 @@ const ConfirmDeactivation = () => {
           onClick={handleCancel}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_CANCEL_WIDE}
               alt="Cancel"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"

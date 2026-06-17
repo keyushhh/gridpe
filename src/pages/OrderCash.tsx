@@ -281,7 +281,7 @@ const OrderCash = () => {
                 <KeypadButton
                   onClick={handleBackspace}
                   icon={
-                    <img
+                    <img loading="lazy"
                       src={ASSETS.BACKSPACE}
                       alt="Backspace"
                       className="w-[18px] h-[18px] object-contain"

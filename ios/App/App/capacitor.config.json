@@ -39,6 +39,7 @@
 		"BiometricAuthNative",
 		"SecureStorage",
 		"SafeAreaPlugin",
+		"FirebaseCrashlyticsPlugin",
 		"AppPlugin",
 		"CAPBrowserPlugin",
 		"GeolocationPlugin",

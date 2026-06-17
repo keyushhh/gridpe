@@ -2,7 +2,10 @@ import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/routes';
-import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
+const Map = React.lazy(() => import('@/components/MapWrapper'));
+const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
+const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
+const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { olc } from '@/utils/olc';
 import { supabase } from '@/lib/supabase';
@@ -379,7 +382,7 @@ const OrderDetails = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="w-6 h-6 flex items-center justify-center"
         >
-          <img loading="eager" decoding="async"             src={ASSETS.HAMBURGER_MENU}
+          <img loading="lazy" decoding="async"             src={ASSETS.HAMBURGER_MENU}
             alt="Menu"
             className={`w-full h-full ${!isDarkMode ? 'brightness-0' : ''}`}
           />
@@ -500,7 +503,8 @@ const OrderDetails = () => {
             {/* Mini Map (Only if showMap is true) */}
             {statusConfig.showMap && (
               <div className="shrink-0 relative rounded-[8px] overflow-hidden w-[110px] h-[82px] bg-neutral-900">
-                <Map
+                <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                  <Map
                   {...viewState}
                   style={{ width: '100%', height: '100%' }}
                   mapStyle={
@@ -528,7 +532,8 @@ const OrderDetails = () => {
                       <img loading="lazy" decoding="async" src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-6 h-6" />
                     </Marker>
                   )}
-                </Map>
+                  </Map>
+                </React.Suspense>
               </div>
             )}
           </div>

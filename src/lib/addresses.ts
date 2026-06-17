@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { olc } from '@/utils/olc';
 import { Address } from '@/types';
+import { crashlytics } from '@/lib/crashlytics';
 export type { Address };
 
 /**
@@ -23,6 +24,7 @@ export const ensureGlobalPlusCode = (
     }
   } catch (err) {
     console.error('Plus Code validation/expansion failed:', err);
+    crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Plus Code validation/expansion failed');
   }
 
   return plusCode;
@@ -40,6 +42,7 @@ export const getAuthUserId = async (): Promise<string | null> => {
     return user?.id || null;
   } catch (err) {
     console.error('Failed to get auth user:', err);
+    crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to get auth user');
     return null;
   }
 };
@@ -71,15 +74,14 @@ export const createAddress = async (address: Omit<Address, 'id' | 'created_at'>)
     contact_phone: address.contact_phone || null,
   };
 
-  const { data, error } = await supabase.from('addresses').insert(insertPayload).select().single();
+  const { data, error } = await (supabase.from('addresses') as any).insert(insertPayload).select().single();
 
   if (error) throw error;
   return data as Address;
 };
 
 export const updateAddress = async (id: string, updates: Partial<Address>) => {
-  const { data, error } = await supabase
-    .from('addresses')
+  const { data, error } = await (supabase.from('addresses') as any)
     .update(updates)
     .eq('id', id)
     .select()
@@ -90,7 +92,7 @@ export const updateAddress = async (id: string, updates: Partial<Address>) => {
 };
 
 export const deleteAddress = async (id: string, userId: string) => {
-  const { error } = await supabase.from('addresses').delete().eq('id', id).eq('user_id', userId);
+  const { error } = await (supabase.from('addresses') as any).delete().eq('id', id).eq('user_id', userId);
 
   if (error) throw error;
 };

@@ -178,7 +178,7 @@ const ViewRiderKyc = () => {
             className={`absolute inset-0 w-full h-full transition-all duration-300 ${!isRevealed ? `blur-[20px] ${isDarkMode ? 'brightness-[0.25]' : 'brightness-[0.9]'}` : 'blur-0 brightness-100'}`}
           >
             {/* Background */}
-            <img loading="eager" decoding="async"               src={
+            <img loading="lazy" decoding="async"               src={
                 rider?.kyc_type === 'pan'
                   ? ASSETS.PAN_BG
                   : rider?.kyc_type === 'drivers'

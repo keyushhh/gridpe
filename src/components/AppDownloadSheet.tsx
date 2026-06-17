@@ -120,7 +120,7 @@ export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss
         {/* Drag Handle */}
         <div className="absolute top-3 w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full" />
 
-        <img 
+        <img loading="lazy" 
           src={appDownloadSheetImg} 
           alt="App Download" 
           className="w-[170px] h-[157px] mt-[58px]" 

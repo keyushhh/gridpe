@@ -16,7 +16,6 @@ import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import { SavedAddress } from '@/types';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import { Marker } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
@@ -117,6 +116,7 @@ const FxExchangeSummary = () => {
           );
         }
         // For FX, p_amount is finalAmount (receive) and p_service_amount is (markup + flatFee)
+        // @ts-ignore - DB types missing for this RPC
         const { data, error } = await supabase.rpc('get_order_quote', {
           p_amount: finalAmount,
           p_order_type: 'fx',
@@ -229,6 +229,7 @@ const FxExchangeSummary = () => {
       }
       // Check Service Availability & Get Zone ID
       const { data: zoneId, error: zoneError } = await withTimeout(
+        // @ts-ignore - DB types missing for this RPC
         supabase.rpc('check_service_availability', {
           p_lat: Number(savedAddress?.latitude) || 0,
           p_lng: Number(savedAddress?.longitude) || 0,
@@ -274,7 +275,7 @@ const FxExchangeSummary = () => {
             .eq('city', normalizeCity(savedAddress.city));
           if (hubs && hubs.length > 0) {
             // Use the first active hub for the city as coordinates are missing for individual hubs
-            const nearest = hubs[0];
+            const nearest = hubs[0] as any;
             pickupLocation = nearest.id;
             pickupAddress = `${nearest.location_name}, ${nearest.city}`;
           } else {
@@ -289,16 +290,17 @@ const FxExchangeSummary = () => {
           .select('phone')
           .eq('id', userId)
           .single();
-        if (userError || !userProfile?.phone) {
+        if (userError || !(userProfile as any)?.phone) {
           throw new Error('Please add a phone number to your profile to proceed.');
         }
-        const customerPhoneNumber = userProfile.phone;
+        const customerPhoneNumber = (userProfile as any).phone;
         const deliveryAddressText =
           savedAddress.address_line ||
           savedAddress.full_address ||
           savedAddress?.tag ||
           getAddressDisplay();
         const { data: earnings, error: earningsError } = await withTimeout(
+          // @ts-ignore
           supabase.rpc('calculate_rider_earning', {
             dist_km: parseFloat(distance.toFixed(2)),
             cash_amount: finalAmount,
@@ -379,6 +381,7 @@ const FxExchangeSummary = () => {
         if (!payload.delivery_address_text)
           console.error('DEBUG: (FX) delivery_address_text is NULL');
         const { data, error } = await withTimeout(
+          // @ts-ignore
           supabase.from('orders').insert([payload]).select().single(),
           15_000,
           'create-order'
@@ -403,10 +406,10 @@ const FxExchangeSummary = () => {
           .select('phone')
           .eq('id', userId)
           .single();
-        if (profileError || !userProfile?.phone) {
+        if (profileError || !(userProfile as any)?.phone) {
           throw new Error('A valid phone number is required to place an order.');
         }
-        const customerPhoneNumber = userProfile.phone;
+        const customerPhoneNumber = (userProfile as any).phone;
         const dAddressText =
           savedAddress.address_line ||
           savedAddress.full_address ||
@@ -420,7 +423,7 @@ const FxExchangeSummary = () => {
           pickupAddress,
           dAddressText
         );
-        const finalOrderId = orderData.id;
+        const finalOrderId = (orderData as any).id;
         // Hold transaction linking removed
         // Update app badge
         setBadge(1);
@@ -466,10 +469,10 @@ const FxExchangeSummary = () => {
               .select('phone')
               .eq('id', userId)
               .single();
-            if (retryError || !retryProfile?.phone) {
+            if (retryError || !(retryProfile as any)?.phone) {
               throw new Error('A valid phone number is required to proceed.');
             }
-            const retryPhone = retryProfile.phone;
+            const retryPhone = (retryProfile as any).phone;
             const retryDAddressText =
               updatedAddr.address_line ||
               updatedAddr.full_address ||
@@ -483,7 +486,7 @@ const FxExchangeSummary = () => {
               pickupAddress,
               retryDAddressText
             );
-            const finalRetryOrderId = retryData.id;
+            const finalRetryOrderId = (retryData as any).id;
             if (finalRetryOrderId) {
               setBadge(1);
               navigate(ROUTES.FX_SUCCESS.replace(':orderId', finalRetryOrderId), {
@@ -595,7 +598,7 @@ const FxExchangeSummary = () => {
               <img
                 src={ASSETS.LOCATION}
                 alt="Location"
-                loading="eager"
+                loading="lazy"
                 decoding="async"
                 width="22"
                 height="22"
@@ -612,7 +615,7 @@ const FxExchangeSummary = () => {
                 <img
                   src={ASSETS.CHEVRON_DOWN}
                   alt="Toggle"
-                  loading="eager"
+                  loading="lazy"
                   decoding="async"
                   width="16"
                   height="16"
@@ -648,7 +651,7 @@ const FxExchangeSummary = () => {
               <img
                 src={ASSETS.DELIVERY}
                 alt="Delivery"
-                loading="eager"
+                loading="lazy"
                 decoding="async"
                 width="24"
                 height="24"
@@ -675,7 +678,7 @@ const FxExchangeSummary = () => {
             <img
               src={ASSETS.CALENDAR}
               alt="Calendar"
-              loading="eager"
+              loading="lazy"
               decoding="async"
               width="18"
               height="18"

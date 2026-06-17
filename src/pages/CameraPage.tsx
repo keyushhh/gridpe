@@ -93,7 +93,7 @@ const CameraPage = () => {
         />
         {/* Frame Asset Overlay */}
         <div className="relative w-[85%] aspect-[1.586/1] max-w-[360px] flex items-center justify-center z-10">
-          <img loading="eager" decoding="async"             src={ASSETS.CAMERA_SCAN_FRAME}
+          <img loading="lazy" decoding="async"             src={ASSETS.CAMERA_SCAN_FRAME}
             alt="Align Card"
             className="w-full h-full object-contain"
           />

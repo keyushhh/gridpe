@@ -1,39 +1,48 @@
 import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { logger } from '@/lib/logger';
+import { crashlytics } from '@/lib/crashlytics';
+
+interface Props extends React.PropsWithChildren {
+  route?: string;
+}
 
 interface State {
   hasError: boolean;
-  errorMessage: string;
 }
 
-class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
-  state = { hasError: false, errorMessage: '' };
+export class ErrorBoundary extends React.Component<Props, State> {
+  state = { hasError: false };
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, errorMessage: error.message };
+  static getDerivedStateFromError(_error: Error): State {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Log to console in dev — swap for your analytics/Sentry later
-    console.error('[ErrorBoundary caught]', error, info.componentStack);
+    crashlytics.recordError(error, 'ErrorBoundary');
+    logger.error(error, {
+      route: this.props.route || window.location.pathname,
+      componentStack: info.componentStack
+    });
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, errorMessage: '' });
-    window.location.reload();
+    this.setState({ hasError: false });
   };
 
   render() {
     if (this.state.hasError) {
-      return <ErrorFallback onReset={this.handleReset} errorMessage={this.state.errorMessage} />;
+      return <ErrorFallback onReset={this.handleReset} />;
     }
     return this.props.children;
   }
 }
 
-const ErrorFallback: React.FC<{ onReset: () => void; errorMessage: string }> = ({ onReset, errorMessage }) => {
+const ErrorFallback: React.FC<{ onReset: () => void }> = ({ onReset }) => {
   const isDarkMode = (typeof window !== 'undefined' && document.documentElement.classList.contains('dark')) || 
                      (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const navigate = useNavigate();
   
   const primaryColor = '#5260FE';
   const bgColor = isDarkMode ? '#0A0A12' : '#FFFFFF';
@@ -102,46 +111,62 @@ const ErrorFallback: React.FC<{ onReset: () => void; errorMessage: string }> = (
           We hit an unexpected error. This has been noted and we're on it.
         </p>
 
-        <button
-          onClick={onReset}
-          style={{
-            width: '100%',
-            height: '52px',
-            borderRadius: '100px',
-            backgroundColor: primaryColor,
-            color: '#FFFFFF',
-            fontWeight: 600,
-            fontSize: '15px',
-            border: 'none',
-            fontFamily: 'Satoshi, sans-serif',
-            cursor: 'pointer',
-            transition: 'filter 0.15s ease',
-          }}
-          onPointerDown={(e) => { e.currentTarget.style.filter = 'brightness(0.85)'; }}
-          onPointerUp={(e) => { e.currentTarget.style.filter = 'brightness(1)'; }}
-          onPointerLeave={(e) => { e.currentTarget.style.filter = 'brightness(1)'; }}
-        >
-          Reload app
-        </button>
-
-        {((import.meta as any).env?.DEV || process.env.NODE_ENV === 'development') && errorMessage && (
-          <div
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+          <button
+            onClick={onReset}
             style={{
-              marginTop: '16px',
-              fontSize: '11px',
-              opacity: 0.3,
-              fontFamily: 'monospace',
-              color: textColor,
-              textAlign: 'center',
-              wordBreak: 'break-all',
-              maxWidth: '100%',
+              width: '100%',
+              height: '52px',
+              borderRadius: '100px',
+              backgroundColor: primaryColor,
+              color: '#FFFFFF',
+              fontWeight: 600,
+              fontSize: '15px',
+              border: 'none',
+              fontFamily: 'Satoshi, sans-serif',
+              cursor: 'pointer',
+              transition: 'filter 0.15s ease',
             }}
+            onPointerDown={(e) => { e.currentTarget.style.filter = 'brightness(0.85)'; }}
+            onPointerUp={(e) => { e.currentTarget.style.filter = 'brightness(1)'; }}
+            onPointerLeave={(e) => { e.currentTarget.style.filter = 'brightness(1)'; }}
           >
-            {errorMessage.substring(0, 120)}{errorMessage.length > 120 ? '...' : ''}
-          </div>
-        )}
+            Try again
+          </button>
+          
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              width: '100%',
+              height: '52px',
+              borderRadius: '100px',
+              backgroundColor: 'transparent',
+              color: textColor,
+              fontWeight: 600,
+              fontSize: '15px',
+              border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              fontFamily: 'Satoshi, sans-serif',
+              cursor: 'pointer',
+              transition: 'background-color 0.15s ease',
+            }}
+            onPointerDown={(e) => { e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
+            onPointerUp={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            onPointerLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     </div>
+  );
+};
+
+export const RouteErrorBoundary = () => {
+  const location = useLocation();
+  return (
+    <ErrorBoundary key={location.pathname} route={location.pathname}>
+      <Outlet />
+    </ErrorBoundary>
   );
 };
 

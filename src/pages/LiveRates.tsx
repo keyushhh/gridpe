@@ -469,7 +469,7 @@ const LiveRates = () => {
               disabled={isSameCurrency}
               className={`active:scale-90 transition-all border-none shadow-none bg-transparent outline-none ring-0 p-0 ${isSameCurrency ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
-              <img
+              <img loading="lazy"
                 src={isDarkMode ? ASSETS.ARROW_DOWN_UP : ASSETS.ARROW_DOWN_UP_LIGHT}
                 alt="Swap"
                 className="w-10 h-10 border-none outline-none shadow-none"

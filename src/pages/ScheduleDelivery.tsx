@@ -255,7 +255,7 @@ const ScheduleDelivery = () => {
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4">
             <div className="flex items-center gap-2">
-              <img
+              <img loading="lazy"
                 src={ASSETS.TIME_ICON}
                 alt="Time"
                 className={`w-[22px] h-[22px] ${!isDarkMode ? 'brightness-0' : ''}`}

@@ -79,7 +79,7 @@ const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace, isDarkMode, di
           disabled={disabled}
           isDarkMode={isDarkMode}
           icon={
-            <img
+            <img loading="lazy"
               src={ASSETS.BACKSPACE}
               alt="Backspace"
               className="w-[18px] h-[18px] object-contain"

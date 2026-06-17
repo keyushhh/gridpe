@@ -314,7 +314,7 @@ const Settings = () => {
             {isLoading ? (
               <Skeleton circle width={56} height={56} />
             ) : (
-              <img loading="eager" decoding="async"                 src={profileImage || ASSETS.AVATAR}
+              <img loading="lazy" decoding="async"                 src={profileImage || ASSETS.AVATAR}
                 className="w-14 h-14 rounded-full object-cover"
               />
             )}
@@ -593,7 +593,7 @@ const Settings = () => {
             <div className="space-y-4">
               <div className="flex justify-between cursor-pointer" onClick={() => setShowLogoutConfirmation(true)}>
                 <div className="flex items-center gap-3">
-                  <img loading="eager" decoding="async" src={iconLogout} className="w-[18px] filter brightness-0 dark:invert" />
+                  <img loading="lazy" decoding="async" src={iconLogout} className="w-[18px] filter brightness-0 dark:invert" />
                   <span className="text-foreground text-[14px]">Log Out</span>
                 </div>
                 <ChevronRight />

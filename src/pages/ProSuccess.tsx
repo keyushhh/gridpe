@@ -63,7 +63,7 @@ const ProSuccess = () => {
 
         {/* Check Icon */}
         <div className="mt-8 flex items-center justify-center">
-          <img
+          <img loading="lazy"
             src={isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT}
             alt="Success"
             className="w-[62px] h-[62px] object-contain animate-in zoom-in-50 duration-500"

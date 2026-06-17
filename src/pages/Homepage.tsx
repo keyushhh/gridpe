@@ -3,7 +3,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 
 import { useNavigate, useLocation } from 'react-router-dom';
-import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
+const Map = React.lazy(() => import('@/components/MapWrapper'));
+const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
+const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
+const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Home, MapPin /*, Eye, EyeOff */ } from 'lucide-react';
 import { olc } from '@/utils/olc';
@@ -1121,7 +1124,7 @@ const Homepage = () => {
                     }}
                   />
                   <button onClick={() => navigate(ROUTES.SETTINGS)}>
-                    <img loading="eager" decoding="async"                       src={profileImage || ASSETS.AVATAR}
+                    <img loading="lazy" decoding="async"                       src={profileImage || ASSETS.AVATAR}
                       alt="Profile"
                       className="w-12 h-12 rounded-full object-cover"
                     />
@@ -1288,7 +1291,7 @@ const Homepage = () => {
                   <div className="flex flex-col mb-[13px]">
                     <div className="flex justify-between items-center mb-[8px]">
                       <span className="font-satoshi font-normal text-[16px] text-white">Delivery Limit</span>
-                      <img 
+                      <img loading="lazy" 
                         src={infoIcon} 
                         alt="info" 
                         className="w-[14px] h-[14px] cursor-pointer" 
@@ -1329,7 +1332,7 @@ const Homepage = () => {
                   onClick={() => navigate(ROUTES.PRO_UPGRADE)}
                 >
                   <div className="flex items-center">
-                    <img src={proIcon} alt="Pro Icon" className="w-[42px] h-[42px]" />
+                    <img loading="lazy" src={proIcon} alt="Pro Icon" className="w-[42px] h-[42px]" />
                     <div className="flex flex-col ml-[9px]">
                       <span className="font-satoshi font-medium text-[15px] text-white leading-none">
                         Grid.Pe Pro
@@ -1339,7 +1342,7 @@ const Homepage = () => {
                       </span>
                     </div>
                   </div>
-                  <img src={arrowUpIcon} alt="Arrow Up" className="w-[28px] h-[28px]" />
+                  <img loading="lazy" src={arrowUpIcon} alt="Arrow Up" className="w-[28px] h-[28px]" />
                 </div>
               )}
 {/* REDESIGN_REMOVED
@@ -1513,7 +1516,8 @@ const Homepage = () => {
                       className="shrink-0 w-[96px] h-[64px] rounded-[8px] overflow-hidden relative border border-black/5"
                       style={{ backgroundColor: isDarkMode ? '#1a1a1a' : '#f0f0f0' }}
                     >
-                      <Map
+                      <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                        <Map
                         initialViewState={{
                           latitude: mapCenterLat,
                           longitude: mapCenterLng,
@@ -1560,7 +1564,8 @@ const Homepage = () => {
                             />
                           </Marker>
                         )}
-                      </Map>
+                        </Map>
+                      </React.Suspense>
                     </div>
                   </div>
                 </div>
@@ -1912,7 +1917,7 @@ const Homepage = () => {
                     <KeypadButton
                       onClick={handleBackspace}
                       icon={
-                        <img
+                        <img loading="lazy"
                           src={ASSETS.BACKSPACE}
                           alt="Backspace"
                           className="w-[18px] h-[18px] object-contain"

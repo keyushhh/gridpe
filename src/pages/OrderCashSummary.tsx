@@ -18,12 +18,13 @@ import { setBadge } from '@/utils/badge';
 import { cn } from '@/lib/utils';
 import { getAddress, migrateAddressKey } from '@/utils/addressStorage';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { crashlytics } from '@/lib/crashlytics';
 import { useLocationStore } from '@/store/useLocationStore';
 import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
-import { useCustomToaster } from '@/contexts/CustomToasterContext';
+
 
 // Module-level storage — survives React state resets within the session
 let isPaymentInProgress = false;
@@ -125,6 +126,7 @@ const OrderCashSummary = () => {
           await runVerification(pendingVerificationStore);
         } catch (err) {
           console.error('[appUrlOpen] runVerification failed:', err);
+          crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[appUrlOpen] runVerification failed');
           showToaster('Payment verification failed. Please check your order history.', 'error');
         }
       }
@@ -138,6 +140,7 @@ const OrderCashSummary = () => {
             await runVerification(pendingVerificationStore);
           } catch (err) {
             console.error('[resume] runVerification failed:', err);
+            crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[resume] runVerification failed');
             showToaster('Payment verification failed. Please check your order history.', 'error');
           }
         }, 1500);
@@ -203,6 +206,7 @@ const OrderCashSummary = () => {
       });
     } catch (err) {
       console.error('runVerification error:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'runVerification error');
       pendingVerificationStore = null;
       setPendingVerification(null);
       showToaster('Verification failed.', 'error');
@@ -247,7 +251,7 @@ const OrderCashSummary = () => {
             activeAddress.longitude
           );
         }
-        const { data, error } = await supabase.rpc('get_order_quote', {
+        const { data, error } = await (supabase.rpc as any)('get_order_quote', {
           p_amount: Number(parsedAmount),
           p_order_type: 'cash',
           p_distance_km: Number(distance.toFixed(2)),
@@ -258,6 +262,7 @@ const OrderCashSummary = () => {
         setQuoteData(data);
       } catch (err) {
         console.error('Failed to fetch order quote', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to fetch order quote');
         showToaster('Failed to calculate order fees. Please try again.', 'error');
       } finally {
         setQuoteLoading(false);
@@ -352,6 +357,7 @@ const OrderCashSummary = () => {
           try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { console.warn('Failed to persist address', e); }
         } catch (addrErr: unknown) {
           console.error('Failed to save address before order', addrErr);
+          crashlytics.recordError(addrErr instanceof Error ? addrErr : new Error(String(addrErr)), 'Failed to save address before order');
           const errorMessage = addrErr instanceof Error ? addrErr.message : 'Please try again.';
           showToaster(`Failed to save address: ${errorMessage}`, 'error');
           return;
@@ -359,8 +365,8 @@ const OrderCashSummary = () => {
       }
 
       // Step 2: Zone check
-      const { data: zoneId, error: zoneError } = await withTimeout(
-        supabase.rpc('check_service_availability', {
+      const { data: zoneId, error: zoneError } = (await withTimeout(
+        (supabase.rpc as any)('check_service_availability', {
           p_lat: Number(activeAddress.latitude) || 0,
           p_lng: Number(activeAddress.longitude) || 0,
         }),
@@ -371,7 +377,7 @@ const OrderCashSummary = () => {
           showToaster(err.message, 'error');
         }
         throw err;
-      });
+      })) as any;
       if (zoneError) {
         console.error('Zone check failed:', zoneError);
         showToaster('Failed to verify service availability. Please try again.', 'error');
@@ -388,10 +394,10 @@ const OrderCashSummary = () => {
         .select('phone')
         .eq('id', userId)
         .single();
-      if (userError || !userProfile?.phone) {
+      if (userError || !(userProfile as any)?.phone) {
         throw new Error('Please add a phone number to your profile to proceed.');
       }
-      const customerPhoneNumber = userProfile.phone;
+      const customerPhoneNumber = (userProfile as any).phone;
 
       // Step 4: Calculate rider earnings and pickup location
       let riderEarnings = 0;
@@ -406,8 +412,7 @@ const OrderCashSummary = () => {
             activeAddress.latitude,
             activeAddress.longitude
           );
-          const { data: hubs, error: hubsError } = await supabase
-            .from('hubs')
+          const { data: hubs, error: hubsError } = await (supabase.from('hubs') as any)
             .select('id, location_name, city')
             .eq('city', normalizeCity(activeAddress.city));
           if (hubs && hubs.length > 0) {
@@ -416,14 +421,14 @@ const OrderCashSummary = () => {
             pickupAddress = `${nearest.location_name}, ${nearest.city}`;
           }
         }
-        const { data: earnings, error: earningsError } = await withTimeout(
-          supabase.rpc('calculate_rider_earning', {
+        const { data: earnings, error: earningsError } = (await withTimeout(
+          (supabase.rpc as any)('calculate_rider_earning', {
             dist_km: parseFloat(distance.toFixed(2)),
             cash_amount: parsedAmount,
           }),
           10_000,
           'calculate-rider-earning'
-        );
+        )) as any;
         if (!earningsError && earnings !== null) {
           riderEarnings = parseFloat(earnings);
         }
@@ -433,6 +438,7 @@ const OrderCashSummary = () => {
           throw err;
         }
         console.error('Failed to calculate dynamic data:', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to calculate dynamic data');
       }
 
       // Step 5: Resolve delivery address text
@@ -536,6 +542,7 @@ const OrderCashSummary = () => {
                   await runVerification(pendingVerificationStore);
                 } catch (err) {
                   console.error('[browserFinished] runVerification failed:', err);
+                  crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[browserFinished] runVerification failed');
                   showToaster('Payment verification failed. Please check your order history.', 'error');
                 }
               }, 1000);
@@ -600,6 +607,7 @@ const OrderCashSummary = () => {
               });
             } catch (err) {
               console.error('[verify-cash-order] invocation failed:', err);
+              crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[verify-cash-order] invocation failed');
               showToaster('Payment verification failed. Please check your order history.', 'error');
             }
           }
@@ -608,6 +616,7 @@ const OrderCashSummary = () => {
 
     } catch (error: unknown) {
       console.error('handlePay error:', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'handlePay error');
       showToaster('Order failed. Please try again or contact support.', 'error');
     } finally {
       setIsLoading(false);
@@ -702,7 +711,7 @@ const OrderCashSummary = () => {
                   : {}
               }
             >
-              <img loading="eager" decoding="async"                 src={ASSETS.LOCATION}
+              <img loading="lazy" decoding="async"                 src={ASSETS.LOCATION}
                 alt="Location"
                 className={`w-[22px] h-[22px] ${!isDarkMode ? 'brightness-0' : ''}`}
               />

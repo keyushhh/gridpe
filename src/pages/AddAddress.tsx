@@ -1,6 +1,10 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import Map, { ViewState, ViewStateChangeEvent, MapRef, Marker, Source, Layer } from 'react-map-gl/maplibre';
+import type { ViewState, ViewStateChangeEvent, MapRef } from 'react-map-gl/maplibre';
+const Map = React.lazy(() => import('@/components/MapWrapper'));
+const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
+const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
+const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -320,7 +324,8 @@ const AddAddress = () => {
       className={`h-full w-full relative bg-background ${isDarkMode ? 'text-white' : 'text-black'} ${containerOverflow}`}
     >
       {/* Map */}
-      <Map
+      <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+        <Map
         ref={mapRef}
         {...viewState}
         minZoom={3}
@@ -357,6 +362,7 @@ const AddAddress = () => {
           </Marker>
         )}
       </Map>
+      </React.Suspense>
       {/* Top Container Layer */}
       <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none">
         <div
@@ -462,7 +468,7 @@ const AddAddress = () => {
         {/* Fixed Center Pin */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
           <div className="relative z-0 -mt-10">
-            <img src={ASSETS.MAP_PIN_ICON} alt="Pin" loading="eager" decoding="async" width="46" height="58" className="w-[46px] h-[58px]" />
+            <img src={ASSETS.MAP_PIN_ICON} alt="Pin" loading="lazy" decoding="async" width="46" height="58" className="w-[46px] h-[58px]" />
           </div>
         </div>
         {/* Helper Pill & Navigation Button Container */}
@@ -489,7 +495,7 @@ const AddAddress = () => {
             {/* Can swap icon color or use filter */}
             <img               src={ASSETS.LOCATION_PIN}
               alt="Snap"
-              loading="eager"
+              loading="lazy"
               decoding="async"
               width="16"
               height="16"
@@ -527,7 +533,7 @@ const AddAddress = () => {
           >
             <img               src={ASSETS.NAVIGATION_ICON}
               alt="Nav"
-              loading="eager"
+              loading="lazy"
               decoding="async"
               width="18"
               height="18"
@@ -597,7 +603,7 @@ const AddAddress = () => {
               >
                 <img                   src={ASSETS.LOCATION_PIN}
                   alt="Loc"
-                  loading="eager"
+                  loading="lazy"
                   decoding="async"
                   width="16"
                   height="16"
@@ -654,7 +660,7 @@ const AddAddress = () => {
                           </span>
                           <img                             src={ASSETS.COPY}
                             alt="Copy"
-                            loading="eager"
+                            loading="lazy"
                             decoding="async"
                             width="12"
                             height="12"

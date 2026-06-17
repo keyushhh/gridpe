@@ -118,7 +118,7 @@ const SelectPaymentMethod = () => {
         {/* UPI Section */}
         <div className="w-full flex flex-col mb-[36px] items-center">
           <div className="w-[362px] mb-[12px] flex justify-start">
-            <img loading="eager" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
+            <img loading="lazy" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
           </div>
           <div
             className="rounded-[12px] flex flex-col px-[10px] overflow-hidden"

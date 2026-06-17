@@ -468,7 +468,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                   Add address
                 </p>
               </div>
-              <img
+              <img loading="lazy"
                 src={ASSETS.CHEVRONRIGHT}
                 alt=""
                 className="w-4 h-4 opacity-50"
@@ -498,7 +498,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                   </p>
                 </div>
               </div>
-              <img
+              <img loading="lazy"
                 src={ASSETS.CHEVRONRIGHT}
                 alt=""
                 className="w-4 h-4 opacity-50"
@@ -521,7 +521,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                   Request address from someone else
                 </p>
               </div>
-              <img
+              <img loading="lazy"
                 src={ASSETS.CHEVRONRIGHT}
                 alt=""
                 className="w-4 h-4 opacity-50"
@@ -573,7 +573,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                   {/* Header Row */}
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-2">
-                      <img
+                      <img loading="lazy"
                         src={getTagIcon(addr.tag)}
                         alt={addr.tag}
                         className="w-4 h-4"
@@ -586,7 +586,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                       </span>
                       {showChip && (
                         <div className="relative h-[26px] w-[79px] ml-2 flex items-center justify-center">
-                          <img
+                          <img loading="lazy"
                             src={ASSETS.SELECTED_ADDRESS}
                             alt="Selected"
                             className="absolute inset-0 w-full h-full object-contain"
@@ -609,7 +609,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                         e.preventDefault();
                         handleEdit(e, addr);
                       }}>
-                        <img
+                        <img loading="lazy"
                           src={ASSETS.EDIT}
                           alt="Edit"
                           className="w-[22px] h-[22px] opacity-70 hover:opacity-100"
@@ -617,7 +617,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                         />
                       </button>
                       <button onClick={e => e.stopPropagation()}>
-                        <img
+                        <img loading="lazy"
                           src={ASSETS.SHARE}
                           alt="Share"
                           className="w-[22px] h-[22px] opacity-70 hover:opacity-100"
@@ -629,7 +629,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                         e.preventDefault();
                         handleDelete(e, idx);
                       }}>
-                        <img
+                        <img loading="lazy"
                           src={ASSETS.DELETE}
                           alt="Delete"
                           className="w-[22px] h-[22px] opacity-70 hover:opacity-100"

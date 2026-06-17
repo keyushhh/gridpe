@@ -37,7 +37,7 @@ const VerifyRiderKyc = () => {
       <div className="px-5 flex flex-col items-center mt-[21px]">
         {/* Status Icon */}
         <div className="flex items-center justify-center mb-8">
-          <img loading="eager" decoding="async" src={ASSETS.CHECK_ICON} alt="Checked" style={{ width: '62px', height: '62px' }} />
+          <img loading="lazy" decoding="async" src={ASSETS.CHECK_ICON} alt="Checked" style={{ width: '62px', height: '62px' }} />
         </div>
         <h2 className="text-white text-[18px] font-bold font-satoshi text-center mb-[40px] leading-tight">
           Let us know if this seems genuine

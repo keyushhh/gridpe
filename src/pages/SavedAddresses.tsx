@@ -207,7 +207,7 @@ const SavedAddresses = () => {
             <div
               className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
             >
-              <img
+              <img loading="lazy"
                 src={ASSETS.ADDRESS}
                 alt="No addresses"
                 className="w-12 h-12 opacity-40"
@@ -251,7 +251,7 @@ const SavedAddresses = () => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <img
+                    <img loading="lazy"
                       src={getTagIcon(addr.label)}
                       alt=""
                       className="w-5 h-5"

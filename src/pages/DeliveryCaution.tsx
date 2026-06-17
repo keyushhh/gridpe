@@ -112,7 +112,7 @@ const DeliveryCaution = () => {
             Delivery Caution
           </h1>
           {/* Icon */}
-          <img loading="eager" decoding="async"             src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
+          <img loading="lazy" decoding="async"             src={isDarkMode ? ASSETS.CAUTION : ASSETS.CAUTION_LIGHT}
             alt="Caution"
             className="mt-[21px] w-[62px] h-[62px] relative z-10"
           />

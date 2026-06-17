@@ -74,5 +74,7 @@
     <string>We need access to your local network to connect to the development server for live reloading during development.</string>
     <key>NSUserNotificationUsageDescription</key>
     <string>Grid.Pe sends you alerts for transactions, payments, orders and account activity.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Grid.Pe needs camera access to capture documents for KYC verification.</string>
 </dict>
 </plist>

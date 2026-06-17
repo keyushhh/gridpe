@@ -5,7 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticWarning } from '@/utils/haptics';
-import Map, { Marker, Source, Layer, LayerProps } from 'react-map-gl/maplibre';
+import type { LayerProps } from 'react-map-gl/maplibre';
+const Map = React.lazy(() => import('@/components/MapWrapper'));
+const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
+const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
+const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Order } from '@/types';
 import { cn } from '@/lib/utils';
@@ -354,7 +358,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
             {/* Status Frame */}
             <div className="h-[25px] flex items-center pl-[13.5px]">
               <div className="flex items-center gap-[6px]">
-                <img
+                <img loading="lazy"
                   src={config.statusIcon}
                   alt=""
                   className="w-[14px] h-[14px]"
@@ -378,7 +382,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 backgroundRepeat: 'no-repeat',
               }}
             >
-              <img
+              <img loading="lazy"
                 src={config.icon}
                 alt=""
                 className="absolute top-[17px] left-[17px] w-[35px] h-[35px]"
@@ -486,7 +490,8 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                         </p>
                       </div>
                       <div className="absolute top-[13.5px] right-[13.5px] w-[98px] h-[68px] rounded-[6px] overflow-hidden">
-                        <Map
+                        <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                          <Map
                           {...viewState}
                           style={{ width: '100%', height: '100%' }}
                           mapStyle={
@@ -502,16 +507,17 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                           </Source>
                           <Marker latitude={viewState.latitude} longitude={viewState.longitude}>
                             <div className="animate-pulse">
-                              <img src={ASSETS.CURRENT_LOCATION} alt="User" className="w-4 h-4" />
+                              <img loading="lazy" src={ASSETS.CURRENT_LOCATION} alt="User" className="w-4 h-4" />
                             </div>
                           </Marker>
                           <Marker
                             latitude={viewState.latitude + 0.002}
                             longitude={viewState.longitude + 0.002}
                           >
-                            <img src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-5 h-5" />
+                            <img loading="lazy" src={ASSETS.DELIVERY_RIDER} alt="Rider" className="w-5 h-5" />
                           </Marker>
                         </Map>
+                        </React.Suspense>
                       </div>
                     </div>
                   </div>
@@ -525,7 +531,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                     <div className="p-[14px]">
                       <div className="flex gap-4 items-start">
                         <div className="w-[64px] h-[68px] relative shrink-0 rounded-[6px] overflow-hidden">
-                          <img
+                          <img loading="lazy"
                             src={(() => {
                               const rider = order?.rider;
                               const photo = (rider?.kyc_photo || rider?.profile_url || '').trim();
@@ -546,7 +552,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                           />
                           {/* Verified Tag Bar */}
                           <div className="absolute bottom-0 left-0 right-0 bg-brand-success-vibrant h-[18px] flex items-center justify-center gap-[6px] z-10">
-                            <img src={ASSETS.VERIFIED_SVG} alt="V" className="w-[12px] h-[12px]" />
+                            <img loading="lazy" src={ASSETS.VERIFIED_SVG} alt="V" className="w-[12px] h-[12px]" />
                             <span className="text-white text-[10px] font-medium font-satoshi">
                               Verified
                             </span>
@@ -744,7 +750,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                   }}
                   className="flex items-center justify-center w-[16px] h-[16px]"
                 >
-                  <img
+                  <img loading="lazy"
                     src={isDarkMode ? ASSETS.DELIVERY_TIP_INFO : ASSETS.INFO_TIP}
                     alt="Info"
                     className={`w-full h-full ${!isDarkMode ? '' : 'brightness-0 opacity-100 invert-[38%] sepia-[68%] saturate-[3440%] hue-rotate-[197deg] brightness-[102%] contrast-[106%]'}`}
@@ -799,7 +805,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                             }}
                             className="cursor-pointer hover:opacity-80 flex items-center justify-center w-[12px] h-[12px]"
                           >
-                            <img
+                            <img loading="lazy"
                               src={ASSETS.CROSS_ICON}
                               alt="Remove"
                               className="w-full h-full object-contain"
@@ -852,7 +858,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                         }}
                         className="z-30 cursor-pointer hover:opacity-80 flex items-center justify-center w-[10px] h-[10px]"
                       >
-                        <img
+                        <img loading="lazy"
                           src={ASSETS.CROSS_ICON}
                           alt="Remove"
                           className="w-full h-full object-contain"
@@ -1125,7 +1131,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 backgroundColor: 'transparent',
               }}
             >
-              <img
+              <img loading="lazy"
                 src={isDarkMode ? ASSETS.CARD_ICO : ASSETS.CARD_ICON}
                 alt="Delivery Tip"
                 className={`object-contain ${isDarkMode ? 'w-8 h-8 mb-4' : 'w-[30px] h-[30px] mt-[19px]'}`}

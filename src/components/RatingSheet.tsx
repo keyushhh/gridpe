@@ -153,13 +153,13 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
           >
             <div className="flex gap-4 items-start">
               <div className="w-[64px] h-[68px] relative shrink-0 rounded-[6px] overflow-hidden">
-                <img
+                <img loading="lazy"
                   src={order.rider_photo ? (order.rider_photo.startsWith('http') ? order.rider_photo : `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/riders/${order.rider_photo}`) : ASSETS.AVATAR}
                   alt={order.rider_name}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-brand-success-vibrant h-[18px] flex items-center justify-center gap-[6px] z-10">
-                  <img src={ASSETS.VERIFIED_SVG} alt="V" className="w-[12px] h-[12px]" />
+                  <img loading="lazy" src={ASSETS.VERIFIED_SVG} alt="V" className="w-[12px] h-[12px]" />
                   <span className="text-white text-[10px] font-medium font-satoshi">Verified</span>
                 </div>
               </div>
@@ -230,7 +230,7 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
                 Add Tip
               </span>
               <button onClick={() => setShowDeliveryTipPopup(true)}>
-                <img
+                <img loading="lazy"
                   src={isDarkMode ? ASSETS.DELIVERY_TIP_INFO : ASSETS.INFO_TIP}
                   alt="Info"
                   className={cn("w-4 h-4", isDarkMode ? "brightness-0 invert-[38%] sepia-[68%] saturate-[3440%] hue-rotate-[197deg] brightness-[102%] contrast-[106%]" : "")}
@@ -262,7 +262,7 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
                     </span>
                     {selectedTipOption === val && (
                       <div onClick={handleClearTip} className="ml-2 cursor-pointer">
-                        <img src={ASSETS.CROSS_ICON} alt="X" className="w-3 h-3" />
+                        <img loading="lazy" src={ASSETS.CROSS_ICON} alt="X" className="w-3 h-3" />
                       </div>
                     )}
                     {val === '20' && (
@@ -292,7 +292,7 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
                   </span>
                   {selectedTipOption === 'other' && (
                     <div onClick={handleClearCustomTip} className="ml-1 cursor-pointer">
-                      <img src={ASSETS.CROSS_ICON} alt="X" className="w-2 h-2" />
+                      <img loading="lazy" src={ASSETS.CROSS_ICON} alt="X" className="w-2 h-2" />
                     </div>
                   )}
                 </button>
@@ -362,7 +362,7 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
                 backgroundSize: 'cover',
               }}
             >
-              <img src={isDarkMode ? ASSETS.CARD_ICO : ASSETS.CARD_ICON} alt="Tip" className="w-8 h-8 mb-4" />
+              <img loading="lazy" src={isDarkMode ? ASSETS.CARD_ICO : ASSETS.CARD_ICON} alt="Tip" className="w-8 h-8 mb-4" />
               <h2 className={cn("font-bold mb-4", isDarkMode ? "text-white" : "text-black")}>Delivery Tip</h2>
               <div className={cn("rounded-xl p-4", isDarkMode ? "bg-black" : "bg-gray-50")}>
                 <p className={cn("text-[13px] leading-relaxed mb-2", isDarkMode ? "text-white" : "text-black")}>

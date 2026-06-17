@@ -126,7 +126,7 @@ const KYCIntro = () => {
             }
           >
             <div className="flex flex-col items-center">
-              <img
+              <img loading="lazy"
                 src={ASSETS.ICON_KYC}
                 alt="KYC"
                 className={`w-8 h-8 mb-4 ${!isDarkMode ? 'filter brightness-0' : ''}`}

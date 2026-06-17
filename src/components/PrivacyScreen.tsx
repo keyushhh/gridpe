@@ -62,7 +62,7 @@ export function PrivacyScreen() {
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-        <img src={ASSETS.GRIDPE_LOGO} alt="Grid.Pe" style={{ width: '32px', height: '32px' }} />
+        <img loading="lazy" src={ASSETS.GRIDPE_LOGO} alt="Grid.Pe" style={{ width: '32px', height: '32px' }} />
       </div>
       <span style={{
         fontSize: 13,

@@ -151,7 +151,7 @@ const OrderCard = React.memo(
         {/* Top Container */}
         <div className="w-full h-[25px] flex items-center px-[18px] relative overflow-hidden">
           <div className="relative z-10 flex items-center mt-[2px]">
-            <img loading="eager" decoding="async"               src={config.statusIcon}
+            <img loading="lazy" decoding="async"               src={config.statusIcon}
               alt=""
               className="w-3 h-3 mr-[4px]"
               style={{ filter: config.iconFilter }}

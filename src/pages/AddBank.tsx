@@ -278,7 +278,7 @@ const AddBank = () => {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-4">
-                  <img loading="eager" decoding="async"                     src={selection === 'auto' ? ASSETS.RADIO_FILLED : ASSETS.RADIO_EMPTY}
+                  <img loading="lazy" decoding="async"                     src={selection === 'auto' ? ASSETS.RADIO_FILLED : ASSETS.RADIO_EMPTY}
                     alt="radio"
                     className="w-5 h-5 shrink-0"
                     style={

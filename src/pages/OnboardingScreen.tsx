@@ -29,7 +29,7 @@ import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
 const LogoSection = memo(() => (
   <div className="flex flex-col items-center px-6 pt-16 pb-20">
     <div className="animate-fade-in flex flex-col items-center" style={{ animationDelay: '0.1s' }}>
-      <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
+      <img loading="lazy" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
       <p className="text-foreground text-[18px] font-normal text-center">
         Cash access, reimagined.
       </p>
@@ -729,7 +729,7 @@ const OnboardingScreen = () => {
         }}
       >
         <div className="flex flex-col items-center animate-pulse">
-          <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
+          <img loading="lazy" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className="h-12 mb-3 dark:invert-0 invert" />
         </div>
       </div>
     );

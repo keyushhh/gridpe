@@ -152,7 +152,7 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
           {!isDarkMode ? (
             <ChevronRight className="text-white w-8 h-8" />
           ) : (
-            <img
+            <img loading="lazy"
               src={ASSETS.SWIPE}
               alt=""
               className="w-[40%] h-[40%] object-contain pointer-events-none"

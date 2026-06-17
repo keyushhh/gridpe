@@ -89,7 +89,7 @@ const HelpSupport = () => {
           />
           <span className="glass-rim-v2" />
           <div className="flex items-center w-full h-full pl-[12px] relative z-10">
-            <img loading="eager" decoding="async"               src={ASSETS.SEARCH_ICON}
+            <img loading="lazy" decoding="async"               src={ASSETS.SEARCH_ICON}
               alt=""
               className="w-6 h-6 shrink-0"
               style={{

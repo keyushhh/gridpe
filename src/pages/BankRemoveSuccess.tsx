@@ -63,7 +63,7 @@ const BankRemoveSuccess = () => {
       <div className="flex-1 flex flex-col items-center w-full relative z-10">
         {/* Icon: 62x62px, 22px below heading */}
         <div className="mt-[22px]">
-          <img
+          <img loading="lazy"
             src={isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT}
             alt="Success"
             className="w-[62px] h-[62px] object-contain"

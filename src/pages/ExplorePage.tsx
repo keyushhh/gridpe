@@ -71,7 +71,7 @@ const ExplorePage = () => {
 
           {/* Map Image & Pin Container */}
           <div className="absolute right-0 top-[6px] bottom-[6px] w-[172px] h-[104px]">
-            <img
+            <img loading="lazy"
               src={isDarkMode ? mapDark : mapLight}
               className="w-full h-full object-contain"
               alt="Coverage Map"
@@ -86,7 +86,7 @@ const ExplorePage = () => {
                 {/* Base Glow behind pin */}
                 <div className="absolute w-8 h-8 rounded-full bg-[#5260FE]/40 blur-md" />
 
-                <img
+                <img loading="lazy"
                   src={mapPinFill}
                   alt="Location Pin"
                   className="relative z-10 w-6 h-6 object-contain"
@@ -125,7 +125,7 @@ const ExplorePage = () => {
               opacity: 1        // NUDGE: Adjust transparency if needed
             }}
           >
-            <img
+            <img loading="lazy"
               src={scallopedImage}
               alt="Background decoration"
               className="w-full h-auto object-cover"
@@ -324,7 +324,7 @@ const ExplorePage = () => {
             />
             
             {/* Left Illustration */}
-            <img 
+            <img loading="lazy" 
               src={safetyIllustration}
               alt="Safety"
               className="absolute left-0 top-0 w-[75px] h-[72px] object-contain"

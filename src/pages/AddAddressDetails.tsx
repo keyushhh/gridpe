@@ -19,7 +19,7 @@ import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
 import { Contact, Home, Briefcase, Navigation, MapPin, Phone as PhoneIcon } from 'lucide-react';
-import Map from 'react-map-gl/maplibre';
+const Map = React.lazy(() => import('@/components/MapWrapper'));
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useLocationStore } from '@/store/useLocationStore';
 // Assets
@@ -541,7 +541,8 @@ const AddAddressDetails = () => {
                     className={`w-[76px] min-h-[76px] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shrink-0 border ${isDarkMode ? 'border-white/10 bg-[#222]' : 'border-gray-200 bg-blue-50'}`}
                   >
                     <div className="absolute inset-0 pointer-events-none z-0">
-                      <Map
+                      <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                        <Map
                         initialViewState={{
                           longitude: mapLng,
                           latitude: mapLat,
@@ -556,11 +557,12 @@ const AddAddressDetails = () => {
                         interactive={false}
                         attributionControl={false}
                       />
+                      </React.Suspense>
                       <div className="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
                     </div>
                     
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pt-1">
-                      <img src={ASSETS.MAP_PIN_ICON} alt="Map Pin" className="w-5 h-6 drop-shadow-md" />
+                      <img loading="lazy" src={ASSETS.MAP_PIN_ICON} alt="Map Pin" className="w-5 h-6 drop-shadow-md" />
                     </div>
                     <span className="absolute bottom-1 left-0 right-0 text-brand-primary text-[10px] font-bold font-satoshi z-20 text-center drop-shadow-sm">
                       Change
@@ -647,7 +649,8 @@ const AddAddressDetails = () => {
             
             {/* Map Pattern Background */}
             <div className="absolute top-0 left-0 right-0 h-32 z-0 opacity-70 dark:opacity-30 pointer-events-none">
-              <Map
+              <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                <Map
                 initialViewState={{
                   longitude: mapLng,
                   latitude: mapLat,
@@ -662,6 +665,7 @@ const AddAddressDetails = () => {
                 interactive={false}
                 attributionControl={false}
               />
+              </React.Suspense>
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-[#1A1A1A]/70 dark:to-[#1A1A1A]" />
             </div>
 

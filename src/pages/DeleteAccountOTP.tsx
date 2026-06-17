@@ -169,7 +169,7 @@ const DeleteAccountOTP = () => {
           disabled={!isComplete}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_REMOVE_CARD}
               alt="Delete Account"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
@@ -187,7 +187,7 @@ const DeleteAccountOTP = () => {
           onClick={handleCancel}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_CANCEL_WIDE}
               alt="Cancel"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"

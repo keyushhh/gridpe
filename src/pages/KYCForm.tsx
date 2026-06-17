@@ -231,13 +231,13 @@ const KYCForm = () => {
                 }}
               >
                 <div className="flex justify-between items-start">
-                  <img
+                  <img loading="lazy"
                     src={doc.icon}
                     alt={doc.name}
                     className={`w-8 h-8 object-contain ${!isDarkMode && (doc.id === 'pan' || doc.id === 'passport') ? 'filter brightness-0' : ''}`}
                     style={doc.id === 'dl' ? { opacity: 1, filter: 'none' } : undefined}
                   />
-                  <img
+                  <img loading="lazy"
                     src={selectedDoc === doc.id ? ASSETS.RADIO_ON : ASSETS.RADIO_OFF}
                     alt={selectedDoc === doc.id ? 'Selected' : 'Not selected'}
                     className={`w-6 h-6 ${!isDarkMode && selectedDoc !== doc.id ? 'filter brightness-0 opacity-20' : ''}`}

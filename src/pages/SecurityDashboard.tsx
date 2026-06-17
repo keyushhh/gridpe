@@ -92,7 +92,7 @@ const SecurityDashboard = () => {
                 }}
               />
             ) : (
-              <img loading="eager" decoding="async"                 src={ASSETS.KYC_BADGE}
+              <img loading="lazy" decoding="async"                 src={ASSETS.KYC_BADGE}
                 className="w-[24px] h-[24px] object-contain"
                 alt="Badge"
               />

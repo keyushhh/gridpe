@@ -41,7 +41,7 @@ const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({ isOpen, onClose, on
           {/* Header */}
           <div className="text-left mb-6">
             <div className="flex items-center gap-2 mb-1">
-              {icon && <img src={icon} alt="" className="w-5 h-5" />}
+              {icon && <img loading="lazy" src={icon} alt="" className="w-5 h-5" />}
               <h2 className="text-[18px] font-bold text-white font-satoshi">Save address as</h2>
             </div>
             <p className="text-[16px] font-medium text-white/80 font-satoshi">

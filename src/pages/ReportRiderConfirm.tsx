@@ -47,7 +47,7 @@ const ReportRiderConfirm = () => {
       <div className="px-5 flex flex-col items-center">
         {/* Check Icon - 21px below header */}
         <div className="mt-[21px] flex items-center justify-center relative z-10">
-          <img
+          <img loading="lazy"
             src={isDarkMode ? ASSETS.CHECK_ICON : ASSETS.LIGHT_WARNING_CHECK}
             alt="Report Logged"
             style={{ width: '62px', height: '62px' }}

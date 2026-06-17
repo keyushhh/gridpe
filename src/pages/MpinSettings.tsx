@@ -106,7 +106,7 @@ const MpinSettings = () => {
                       }}
                     />
                   ) : (
-                    <img loading="eager" decoding="async" src={ASSETS.KYC_BADGE} alt="Secure" className="w-6 h-6 object-contain" />
+                    <img loading="lazy" decoding="async" src={ASSETS.KYC_BADGE} alt="Secure" className="w-6 h-6 object-contain" />
                   )}
                   <span
                     className={`${isDarkMode ? 'text-white' : 'text-black'} text-[18px] font-medium`}

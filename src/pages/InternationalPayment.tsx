@@ -349,7 +349,7 @@ const InternationalPayment = () => {
         
         {/* UPI SECTION */}
         <div className="w-full flex items-center mb-[12px]">
-          <img loading="eager" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
+          <img loading="lazy" decoding="async" src={ASSETS.UPI} alt="UPI" className="w-[32px] h-[32px] object-contain" />
           <span className={`ml-[14px] text-[16px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}>
             Pay using any UPI App
           </span>

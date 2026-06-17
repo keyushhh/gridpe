@@ -91,7 +91,7 @@ const LinkedAccounts = () => {
             <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium`}>
               Linked Bank Accounts ({AVAILABLE_BANKS.length})
             </span>
-            <img
+            <img loading="lazy"
               src={isAllSelected ? ASSETS.CHECK_BOX_SELECTED : ASSETS.CHECK_BOX_OUTLINE_BLANK}
               alt="select all"
               className="w-6 h-6 cursor-pointer"
@@ -112,7 +112,7 @@ const LinkedAccounts = () => {
                     onClick={() => toggleAccount(account.id)}
                   >
                     {/* Checkbox */}
-                    <img
+                    <img loading="lazy"
                       src={isSelected ? ASSETS.CHECK_BOX_SELECTED : ASSETS.CHECK_BOX_OUTLINE_BLANK}
                       alt="checkbox"
                       className="w-6 h-6 shrink-0 mr-4"

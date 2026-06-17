@@ -114,7 +114,7 @@ const DeleteAccountReasons = () => {
                     }`}
                   >
                     <div className="shrink-0 mr-3">
-                      <img
+                      <img loading="lazy"
                         src={selectedReason === index ? ASSETS.RADIO_ON : ASSETS.RADIO_OFF}
                         alt={selectedReason === index ? 'Selected' : 'Not selected'}
                         className="w-[20px] h-[20px] object-contain"
@@ -141,7 +141,7 @@ const DeleteAccountReasons = () => {
                   }`}
                 >
                   <div className="shrink-0 mr-3">
-                    <img
+                    <img loading="lazy"
                       src={selectedReason === index ? ASSETS.RADIO_ON : ASSETS.RADIO_OFF}
                       alt={selectedReason === index ? 'Selected' : 'Not selected'}
                       className="w-[20px] h-[20px] object-contain"
@@ -191,7 +191,7 @@ const DeleteAccountReasons = () => {
           disabled={isDeleteDisabled}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_REMOVE_CARD}
               alt="Delete Anyway"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
@@ -209,7 +209,7 @@ const DeleteAccountReasons = () => {
           onClick={handleCancel}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_CANCEL_WIDE}
               alt="Cancel"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"

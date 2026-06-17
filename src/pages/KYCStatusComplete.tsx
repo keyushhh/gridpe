@@ -75,7 +75,7 @@ const KYCStatusComplete = () => {
                   }}
                 />
               ) : (
-                <img
+                <img loading="lazy"
                   src={ASSETS.KYC_BADGE}
                   className="w-[24px] h-[24px] object-contain"
                   alt="Badge"

@@ -1,3 +1,4 @@
+export const config = { auth: false };
 declare const Deno: any;
 import { createClient } from '@supabase/supabase-js'
 

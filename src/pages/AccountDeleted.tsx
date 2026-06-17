@@ -63,7 +63,7 @@ const AccountDeleted = () => {
       </h1>
       {/* Icon - 21px below heading */}
       <div className="mt-[21px] mb-[35px] relative z-10">
-        <img
+        <img loading="lazy"
           src={isDarkMode ? ASSETS.SAD_FACE : ASSETS.SAD_FACE_RED}
           alt="Sad Face"
           className="w-[62px] h-[62px] object-contain"
@@ -122,7 +122,7 @@ const AccountDeleted = () => {
           onClick={handleTakeMeBack}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_CANCEL_WIDE}
               alt="Take Me Back"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"

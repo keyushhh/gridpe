@@ -65,7 +65,7 @@ const RideAndEarn = () => {
           </h1>
 
           <div className="mt-[21px] flex items-center justify-center">
-            <img src={ASSETS.CHECK_ICON} alt="Success" style={{ width: '62px', height: '62px' }} />
+            <img loading="lazy" src={ASSETS.CHECK_ICON} alt="Success" style={{ width: '62px', height: '62px' }} />
           </div>
 
           <p className="mt-[35px] text-white text-[18px] font-bold font-satoshi text-center leading-[140%]">
@@ -128,15 +128,15 @@ const RideAndEarn = () => {
         >
           <div className="flex flex-col gap-[10px]">
             <div className="flex items-center">
-              <img src={timeIcon} alt="Time" className="w-4 h-4 mr-2" />
+              <img loading="lazy" src={timeIcon} alt="Time" className="w-4 h-4 mr-2" />
               <span className="font-satoshi font-normal text-[12px] text-foreground">Flexible hours</span>
             </div>
             <div className="flex items-center">
-              <img src={mapIcon} alt="Map" className="w-4 h-4 mr-2" />
+              <img loading="lazy" src={mapIcon} alt="Map" className="w-4 h-4 mr-2" />
               <span className="font-satoshi font-normal text-[12px] text-foreground">Bangalore (More cities coming soon)</span>
             </div>
             <div className="flex items-center">
-              <img src={cashIcon} alt="Cash" className="w-4 h-4 mr-2" />
+              <img loading="lazy" src={cashIcon} alt="Cash" className="w-4 h-4 mr-2" />
               <span className="font-satoshi font-normal text-[12px] text-foreground">Weekly Payouts</span>
             </div>
           </div>

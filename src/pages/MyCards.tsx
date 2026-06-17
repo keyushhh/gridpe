@@ -10,6 +10,7 @@ import ConfirmationModal from '@/components/ConfirmationModal';
 import { getCards, Card, removeCard, setDefaultCard } from '@/utils/cardUtils';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
+import { crashlytics } from '@/lib/crashlytics';
 // Import all saved card backgrounds
 import { useWebScroll } from '@/hooks/useWebScroll';
 const cardBackgrounds = [
@@ -48,6 +49,7 @@ const MyCards = () => {
       setIsStacked(fetchedCards.length > 1);
     } catch (err) {
       console.error('Failed to fetch cards:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to fetch cards');
       // toast.error('Failed to load cards');
     } finally {
       setIsLoading(false);
@@ -222,7 +224,7 @@ const MyCards = () => {
                 <div
                   className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
                 >
-                  <img loading="eager" decoding="async"                     src={ASSETS.CARD_ICON}
+                  <img loading="lazy" decoding="async"                     src={ASSETS.CARD_ICON}
                     alt="No cards"
                     className="w-12 h-12 opacity-40"
                     style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -381,19 +383,19 @@ const MyCards = () => {
                             style={{ bottom: `${logoBottom}px` }}
                           >
                             {card.card_type?.toLowerCase() === 'visa' && (
-                              <img loading="eager" decoding="async"                                 src={ASSETS.VISA_LOGO}
+                              <img loading="lazy" decoding="async"                                 src={ASSETS.VISA_LOGO}
                                 alt="Visa"
                                 className="h-full object-contain"
                               />
                             )}
                             {card.card_type?.toLowerCase() === 'mastercard' && (
-                              <img loading="eager" decoding="async"                                 src={ASSETS.MASTERCARD_LOGO}
+                              <img loading="lazy" decoding="async"                                 src={ASSETS.MASTERCARD_LOGO}
                                 alt="Mastercard"
                                 className="h-full object-contain"
                               />
                             )}
                             {(card.card_type?.toLowerCase() === 'rupay' || card.card_type?.toLowerCase() === 'rupay ') && (
-                              <img loading="eager" decoding="async"                                 src={ASSETS.RUPAY_LOGO}
+                              <img loading="lazy" decoding="async"                                 src={ASSETS.RUPAY_LOGO}
                                 alt="Rupay"
                                 className="h-full object-contain"
                               />

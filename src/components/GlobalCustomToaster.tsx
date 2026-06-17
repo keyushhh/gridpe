@@ -103,7 +103,7 @@ const GlobalCustomToaster: React.FC = () => {
         <div className="relative z-10 flex items-center w-full">
           <div className="flex-shrink-0 w-[35px] h-[35px] flex items-center justify-center">
             {type === 'delete' ? (
-              <img
+              <img loading="lazy"
                 src={ASSETS.TRASH_DELETE}
                 alt="Delete"
                 className="w-[26px] h-[26px] object-contain"

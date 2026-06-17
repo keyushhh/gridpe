@@ -56,7 +56,7 @@ const FxKYCSuccess = () => {
       <div className="w-full max-w-sm px-5 flex-1 flex flex-col items-center relative z-10 pb-8">
         {/* Check Icon — 22px below header */}
         <div className="mt-8 flex items-center justify-center">
-          <img
+          <img loading="lazy"
             src={isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT}
             alt="Success"
             className="w-[62px] h-[62px] object-contain animate-in zoom-in-50 duration-500"

@@ -95,7 +95,7 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
             className="absolute left-1/2 top-[18%] flex flex-col items-center pointer-events-none"
             style={{ transform: 'translateX(-50%)', width: '100%' }}
           >
-            <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className={`h-12 mb-3 ${isDarkMode ? 'dark:invert-0' : 'invert'}`} />
+            <img loading="lazy" decoding="async" src={ASSETS.GRIDPE_LOGO} alt="grid.pe" className={`h-12 mb-3 ${isDarkMode ? 'dark:invert-0' : 'invert'}`} />
             <p className={`text-[18px] font-normal text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Cash access, reimagined.
             </p>

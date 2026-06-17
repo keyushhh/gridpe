@@ -128,7 +128,7 @@ const ProfileEdit = () => {
       </div>
       <div className="px-5 mt-8">
         <div className="bg-white dark:bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-brand-border-light dark:border-white/10 h-[101px]">
-          <img loading="eager" decoding="async"             src={profileImage || ASSETS.AVATAR}
+          <img loading="lazy" decoding="async"             src={profileImage || ASSETS.AVATAR}
             alt="Profile"
             className="w-16 h-16 rounded-full object-cover"
             style={{

@@ -4,7 +4,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticSuccess } from '@/utils/haptics';
-import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
+const Map = React.lazy(() => import('@/components/MapWrapper'));
+const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
+const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
+const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { olc } from '@/utils/olc';
 import { supabase } from '@/lib/supabase';
@@ -329,7 +332,7 @@ const FxSuccess = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="w-6 h-6 flex items-center justify-center"
         >
-          <img loading="eager" decoding="async"             src={ASSETS.HAMBURGER_MENU}
+          <img loading="lazy" decoding="async"             src={ASSETS.HAMBURGER_MENU}
             alt="Menu"
             className={`w-full h-full ${!isDarkMode ? 'brightness-0' : ''}`}
           />
@@ -425,7 +428,8 @@ const FxSuccess = () => {
             </div>
             {statusConfig.showMap && (
               <div className="shrink-0 relative rounded-[8px] overflow-hidden w-[110px] h-[82px] bg-neutral-900">
-                <Map
+                <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                  <Map
                   {...viewState}
                   style={{ width: '100%', height: '100%' }}
                   mapStyle={
@@ -451,6 +455,7 @@ const FxSuccess = () => {
                     </Marker>
                   )}
                 </Map>
+                </React.Suspense>
               </div>
             )}
           </div>

@@ -9,6 +9,7 @@ import { useUser } from '@/contexts/UserContext';
 
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { crashlytics } from '@/lib/crashlytics';
 
 declare const Cashfree: any;
 import proPageBg from '@/assets/pro-page-bg.webp';
@@ -118,6 +119,7 @@ const ProUpgrade = () => {
       }
     } catch (err: any) {
       console.error(err);
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Pro upgrade payment initiation error');
       setIsLoading(false);
     }
   };
@@ -143,6 +145,7 @@ const ProUpgrade = () => {
       }
     } catch (err) {
       console.error('Verification error', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Pro upgrade verification error');
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +169,7 @@ const ProUpgrade = () => {
             <BackButton onClick={() => navigate(-1)} />
           </div>
           <div className="w-full flex justify-center">
-            <img 
+            <img loading="lazy" 
               src={gridpeProSvg} 
               alt="Grid.Pe Pro" 
               className="w-[114px] h-[50px] object-contain"

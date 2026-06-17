@@ -56,7 +56,7 @@ const DeleteAccount = () => {
       >
         {/* Radio Button */}
         <div className="shrink-0 mt-[2px]">
-          <img
+          <img loading="lazy"
             src={isSelected ? ASSETS.RADIO_ON : ASSETS.RADIO_OFF}
             alt={isSelected ? 'Selected' : 'Not Selected'}
             className="w-[18px] h-[18px] object-contain"
@@ -157,7 +157,7 @@ const DeleteAccount = () => {
           onClick={handleProceed}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_REMOVE_CARD}
               alt="Proceed"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"
@@ -175,7 +175,7 @@ const DeleteAccount = () => {
           onClick={handleGoBack}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_CANCEL_WIDE}
               alt="Cancel"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"

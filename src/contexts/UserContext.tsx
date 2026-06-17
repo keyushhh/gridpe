@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { crashlytics } from '@/lib/crashlytics';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
 import { Profile as UserProfile, Tables } from '@/types';
@@ -127,6 +128,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             }
           } catch (e) {
             console.error('Failed to read from SecureStorage:', e);
+            crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Failed to read from SecureStorage');
             setState(prev => ({ ...prev, isSecureStorageReady: true }));
           }
         } else {
@@ -156,6 +158,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error('Failed to initialize user state:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to initialize user state');
         setState(prev => ({ ...prev, isInitializing: false, isSecureStorageReady: true }));
       }
     };
@@ -187,6 +190,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error('Failed to save user state:', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to save user state');
       showToaster("Couldn't save your settings. Please try again.", 'error');
     }
   }, [state, showToaster]);
@@ -255,7 +259,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             .maybeSingle();
         }
 
-        const { data: profileData, error: profileError } = queryResult;
+        const { data: profileData, error: profileError } = queryResult as any;
         if (profileError) throw profileError;
 
         if (profileData) {
@@ -283,8 +287,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           if (import.meta.env.DEV) console.warn('No profile found for user - Attempting to create one...');
 
           // Auto-create a minimal profile if missing
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
+          const { data: newProfile, error: createError } = await (supabase
+            .from('profiles') as any)
             .insert({
               id: userId,
               name:
@@ -296,7 +300,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               kyc_status: 'incomplete',
               mpin_set: false,
             })
-            .select()
+            .select('id')
             .single();
 
           if (createError) {
@@ -309,6 +313,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       } catch (error) {
         console.error('Failed to fetch profile data:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to fetch profile data');
       }
     },
     [supabase, state.isResetting]
@@ -353,6 +358,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user?.id) {
+        crashlytics.setUser(session.user.id);
+      } else {
+        crashlytics.clearUser();
+      }
+
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         // Purge any localStorage keys that belong to other users to avoid cross-account pollution
         try {
@@ -444,10 +455,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from('profiles').update({ biometric_on: enabled }).eq('id', user.id);
+          await (supabase.from('profiles') as any).update({ biometric_on: enabled }).eq('id', user.id);
         }
       } catch (error) {
         console.error('Failed to sync biometric preference:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to sync biometric preference');
         showToaster("Couldn't update your biometric settings. Please try again.", 'error');
       }
     },
@@ -495,10 +507,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from('profiles').update({ is_passport_verified: verified }).eq('id', user.id);
+          await (supabase.from('profiles') as any).update({ is_passport_verified: verified }).eq('id', user.id);
         }
       } catch (error) {
         console.error('Failed to sync passport verified:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to sync passport verified');
       }
     },
     [supabase]

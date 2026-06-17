@@ -53,7 +53,7 @@ const PaymentMissing = () => {
       {/* Content */}
       <div className="flex-1 flex flex-col items-center pt-[16px] px-[44px] text-center relative z-10">
         {/* Icon - 16px below heading */}
-        <img
+        <img loading="lazy"
           src={isDarkMode ? ASSETS.CANCELLED_ICO : ASSETS.ALERT_YELLOW}
           alt="Alert"
           className="w-[62px] h-[62px] mb-[35px]"

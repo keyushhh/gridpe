@@ -137,7 +137,7 @@ const NeedHelp = () => {
           {/* Status Frame */}
           <div className="h-[25px] flex items-center pl-[13.5px]">
             <div className="flex items-center gap-[6px]">
-              <img
+              <img loading="lazy"
                 src={config.statusIcon}
                 alt=""
                 className="w-[14px] h-[14px]"
@@ -171,7 +171,7 @@ const NeedHelp = () => {
               </>
             )}
             <div className="relative z-10 w-full h-full">
-              <img
+              <img loading="lazy"
                 src={config.icon}
                 alt=""
                 className="absolute top-[17px] left-[17px] w-[35px] h-[35px]"

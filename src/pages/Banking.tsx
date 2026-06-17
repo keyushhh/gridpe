@@ -226,7 +226,7 @@ const Banking = () => {
                 <div
                   className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-white/5' : 'bg-gray-50'}`}
                 >
-                  <img loading="eager" decoding="async"                     src={ASSETS.ICON_BANK_ACC}
+                  <img loading="lazy" decoding="async"                     src={ASSETS.ICON_BANK_ACC}
                     alt="No banks"
                     className="w-12 h-12 opacity-40"
                     style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -367,7 +367,7 @@ const Banking = () => {
                                 </p>
                               </div>
                               <div className="w-[48px] h-[48px] flex items-center justify-end">
-                                <img loading="eager" decoding="async"                                   src={getBankLogo(account.bank_name)}
+                                <img loading="lazy" decoding="async"                                   src={getBankLogo(account.bank_name)}
                                   alt="Bank"
                                   className="h-[32px] w-auto object-contain"
                                 />

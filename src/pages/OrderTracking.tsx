@@ -1,11 +1,14 @@
 import { ASSETS } from '@/constants/assets';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
+const Map = React.lazy(() => import('@/components/MapWrapper'));
+const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
+const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
+const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { } from 'lucide-react';
 
@@ -320,7 +323,8 @@ const OrderTracking = () => {
             <Skeleton height="100%" borderRadius={0} style={{ height: '100%' }} />
           </div>
         ) : (
-          <Map
+          <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+            <Map
             {...viewState}
             onMove={evt => setViewState(evt.viewState)}
             style={{ width: '100%', height: '100%' }}
@@ -350,7 +354,7 @@ const OrderTracking = () => {
             )}
             <Marker latitude={currentLat} longitude={currentLng}>
               <div className="animate-pulse">
-                <img loading="eager" decoding="async"                   src={ASSETS.CURRENT_LOCATION}
+                <img loading="lazy" decoding="async"                   src={ASSETS.CURRENT_LOCATION}
                   alt="User"
                   className="w-6 h-6"
                   width={24}
@@ -358,7 +362,8 @@ const OrderTracking = () => {
                 />
               </div>
             </Marker>
-          </Map>
+            </Map>
+          </React.Suspense>
         )}
       </div>
       <div className="flex-1 overflow-y-auto pb-safe">

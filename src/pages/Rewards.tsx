@@ -211,7 +211,7 @@ const Rewards = () => {
         {/* Header */}
         <div className="mb-6 relative z-10 flex items-start justify-between">
           <div>
-            <img loading="eager" decoding="async" src={ASSETS.GRIDPE_LOGO}
+            <img loading="lazy" decoding="async" src={ASSETS.GRIDPE_LOGO}
               alt="grid.pe"
               className="h-10 mb-2"
               style={!isDarkMode ? { filter: 'brightness(0)' } : undefined}
@@ -317,7 +317,7 @@ const Rewards = () => {
             </div>
             {/* Badge SVG showing streak days */}
             <div className="relative flex items-center justify-center">
-              <img
+              <img loading="lazy"
                 src={ASSETS.BADGE_ICON}
                 alt="streak badge"
                 className="w-[56px] h-[56px]"
@@ -375,7 +375,7 @@ const Rewards = () => {
                         const isLit = i < completedDays;
                         return (
                           <div key={i} className="flex flex-col items-center justify-center shrink-0 w-[32px] h-[32px] rounded-full">
-                            <img
+                            <img loading="lazy"
                               src={ASSETS.FIRE_ICON}
                               alt="flame"
                               className="w-[24px] h-[24px]"

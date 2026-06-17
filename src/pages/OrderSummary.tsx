@@ -95,7 +95,7 @@ const OrderSummary = () => {
         >
           {isDarkMode && <StrokeOverlay22 />}
           {paymentMethod?.icon ? (
-            <img loading="eager" decoding="async"               src={
+            <img loading="lazy" decoding="async"               src={
                 paymentMethod.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : paymentMethod.icon
               }
               alt={paymentMethod.name}

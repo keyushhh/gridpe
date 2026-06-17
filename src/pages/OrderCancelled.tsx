@@ -49,7 +49,7 @@ const OrderCancelled = () => {
         </h1>
         {/* Status Icon - 21px below header */}
         <div className="mt-[21px] flex items-center justify-center">
-          <img
+          <img loading="lazy"
             src={isDarkMode ? ASSETS.CANCELLED_ICO : ASSETS.FAILED_LIGHT}
             alt="Cancelled"
             style={{ width: '62px', height: '62px' }}

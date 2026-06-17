@@ -17,7 +17,7 @@ import { registerPushNotifications } from './utils/pushNotifications';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import GlobalCustomToaster from './components/GlobalCustomToaster';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary, { RouteErrorBoundary } from './components/ErrorBoundary';
 import { ROUTES } from './routes';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -126,6 +126,8 @@ import ForceUpdateSheet from './components/ForceUpdateSheet';
 import { PrivacyScreen } from './components/PrivacyScreen';
 import { useLocationStore } from '@/store/useLocationStore';
 import ReactSplashScreen from '@/components/ReactSplashScreen';
+import { track } from '@/lib/analytics';
+import { crashlytics } from '@/lib/crashlytics';
 
 const DevSheetPreview = () => {
   if (!import.meta.env.DEV) {
@@ -302,7 +304,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
   useEffect(() => {
     // Sync Supabase session from OAuth deep links
     const listener = CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
-      if (url.startsWith('gridpe://')) {
+      if (url.startsWith('gridpe://') || url.startsWith('com.gridpe.customer://')) {
 
         // Handle PKCE/Implicit flow tokens from URL fragments or queries
         if (url.includes('access_token') && url.includes('refresh_token')) {
@@ -341,6 +343,8 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
 
   // Secondary Initialization (Heavy / Non-critical)
   useEffect(() => {
+    crashlytics.initialize();
+    track('app_opened', { source: 'organic' });
     const timer = setTimeout(() => {
       if (Capacitor.isNativePlatform()) {
         registerPushNotifications();
@@ -400,7 +404,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
 
 
   return (
-    <>
+    <ErrorBoundary>
       <UpdatePrompt status={updateStatus} storeUrl={storeUrl} onDismiss={() => setUpdateStatus('none')} />
 
       {isReloading && (
@@ -472,8 +476,9 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                     <NoInternet />
                   ) : (
                   <Routes>
-                    <Route path="/dev/sheet-preview" element={<DevSheetPreview />} />
-                    <Route path={ROUTES.INDEX} element={<Index />} />
+                    <Route element={<RouteErrorBoundary />}>
+                      <Route path="/dev/sheet-preview" element={<DevSheetPreview />} />
+                      <Route path={ROUTES.INDEX} element={<Index />} />
                     <Route path={ROUTES.RIDE_AND_EARN} element={<RideAndEarn />} />
                     <Route
                       path={ROUTES.PRO_UPGRADE}
@@ -1050,8 +1055,9 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                     <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
                     <Route path={ROUTES.LEGAL_TERMS} element={<LegalPage type="terms" />} />
                     <Route path={ROUTES.LEGAL_PRIVACY} element={<LegalPage type="privacy" />} />
-                    <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
-                    <Route path="*" element={<NotFound />} />
+                      <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Route>
                   </Routes>
                   )}
                 </Router>
@@ -1060,7 +1066,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
           </main>
         </div>
       </SkeletonTheme>
-    </>
+    </ErrorBoundary>
   );
 };
 

@@ -47,7 +47,7 @@ const AccountRetrieved = () => {
       </h1>
       {/* Icon - 21px below heading */}
       <div className="mt-[21px] mb-[35px] relative z-10">
-        <img
+        <img loading="lazy"
           src={isDarkMode ? ASSETS.CHECK_ICON_LARGE : ASSETS.CHECK_ICON_LIGHT}
           alt="Success"
           className="w-[62px] h-[62px] object-contain"
@@ -102,7 +102,7 @@ const AccountRetrieved = () => {
           onClick={handleBackHome}
         >
           {isDarkMode ? (
-            <img
+            <img loading="lazy"
               src={ASSETS.BUTTON_PRIMARY_WIDE}
               alt="Back Home"
               className="absolute inset-0 w-full h-full object-fill pointer-events-none"

@@ -100,7 +100,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               className="w-full h-[48px] relative active:scale-95 transition-transform flex items-center justify-center"
             >
               {isDarkMode ? (
-                <img
+                <img loading="lazy"
                   src={primaryButtonSrc}
                   alt="Primary Action"
                   className="absolute inset-0 w-full h-full object-contain pointer-events-none"
@@ -131,7 +131,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               className="w-full h-[48px] relative active:scale-95 transition-transform flex items-center justify-center"
             >
               {isDarkMode ? (
-                <img
+                <img loading="lazy"
                   src={secondaryButtonSrc}
                   alt="Cancel"
                   className="absolute inset-0 w-full h-full object-contain pointer-events-none"

@@ -38,7 +38,7 @@ const SafetyPromisePage = () => {
           </div>
 
           <div className="flex flex-col items-center justify-center pt-3 pb-3 px-4">
-            <img
+            <img loading="lazy"
               src={safetyIllustration}
               alt="Safety Illustration"
               className="w-[75px] h-[72px] mb-3 object-contain"

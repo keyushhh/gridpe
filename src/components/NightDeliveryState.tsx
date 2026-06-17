@@ -89,7 +89,7 @@ const NightDeliveryState: React.FC<NightDeliveryStateProps> = ({
           </button>
         </div>
         <button onClick={onProfileClick}>
-          <img
+          <img loading="lazy"
             src={profileImage || ASSETS.AVATAR}
             alt="Profile"
             className="w-12 h-12 rounded-full object-cover"

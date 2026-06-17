@@ -221,7 +221,7 @@ const OrderDelivered = () => {
         >
           {/* Top section: Avatar and text */}
           <div className="flex items-start gap-[10px]">
-            <img
+            <img loading="lazy"
               src={orderData?.rider?.kyc_photo || orderData?.rider?.profile_url || ASSETS.AVATAR}
               className="w-[46px] h-[46px] rounded-full object-cover shrink-0 bg-black/10 dark:bg-white/10"
               alt="Rider"
@@ -523,7 +523,7 @@ const OrderDelivered = () => {
           <div className={`mt-[12px] w-[calc(100%+30px)] -mx-[15px] h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`} />
 
           <div className="mt-[12px] flex items-start">
-            <img src={DeliveryPinIcon} alt="Pin" className="w-[31px] h-[31px] shrink-0" />
+            <img loading="lazy" src={DeliveryPinIcon} alt="Pin" className="w-[31px] h-[31px] shrink-0" />
             <div className="ml-[16px] flex flex-col pt-[3px]">
               <span className={`font-satoshi font-medium text-[14px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                 Delivery at {addressLabel}
@@ -535,7 +535,7 @@ const OrderDelivered = () => {
           </div>
 
           <div className="mt-[15px] flex items-start">
-            <img src={DeliveryCallIcon} alt="Call" className="w-[31px] h-[31px] shrink-0" />
+            <img loading="lazy" src={DeliveryCallIcon} alt="Call" className="w-[31px] h-[31px] shrink-0" />
             <div className="ml-[16px] flex flex-col pt-[7px]">
               <span className={`font-satoshi font-medium text-[14px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
                 {customerName}, {customerPhone}

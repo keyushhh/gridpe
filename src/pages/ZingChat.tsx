@@ -240,7 +240,7 @@ const ZingChat = () => {
                           />
                         </div>
                       ) : (
-                        <img
+                        <img loading="lazy"
                           src={ASSETS.ZING_SMALL}
                           alt="Zing"
                           className="w-[28px] h-auto object-contain"
@@ -249,7 +249,7 @@ const ZingChat = () => {
                     </div>
                   ) : (
                     <div className={`w-[28px] h-[28px] rounded-full overflow-hidden shrink-0 mb-1 ${!isLastInGroup ? 'opacity-0 h-0 pointer-events-none' : ''}`}>
-                      <img
+                      <img loading="lazy"
                         src={ASSETS.AVATAR}
                         alt="User"
                         className="w-full h-full object-cover"
@@ -274,7 +274,7 @@ const ZingChat = () => {
                     >
                       {msg.image && (
                         <div className="w-full rounded-lg overflow-hidden mb-2">
-                          <img
+                          <img loading="lazy"
                             src={msg.image}
                             alt="Attached"
                             className="w-full h-auto object-contain max-h-[200px]"
@@ -297,7 +297,7 @@ const ZingChat = () => {
                         >
                           {msg.timestamp}
                         </span>
-                        <img
+                        <img loading="lazy"
                           src={ASSETS.DELIVERED_CHAT}
                           alt="Delivered"
                           className={`w-3.5 h-3.5 transition-all ${isDarkMode ? 'opacity-60' : 'opacity-100'}`}
@@ -402,7 +402,7 @@ const ZingChat = () => {
               onClick={() => fileInputRef.current?.click()}
               className={`p-1 active:scale-95 hover:scale-105 transition-transform opacity-80 cursor-pointer ${!isDarkMode ? 'grayscale invert' : ''}`}
             >
-              <img
+              <img loading="lazy"
                 src={ASSETS.ADD_CIRCLE}
                 alt="Add"
                 className="w-[22px] h-[22px] pointer-events-none"
@@ -414,7 +414,7 @@ const ZingChat = () => {
               onClick={handleSend}
               className={`p-1 active:scale-95 hover:scale-110 transition-transform cursor-pointer ${!isDarkMode ? 'grayscale invert' : ''}`}
             >
-              <img
+              <img loading="lazy"
                 src={ASSETS.SEND}
                 alt="Send"
                 className="w-[22px] h-[22px] pointer-events-none"

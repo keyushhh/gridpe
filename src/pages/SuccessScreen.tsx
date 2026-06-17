@@ -92,7 +92,7 @@ const SuccessScreen = () => {
       {/* Check Icon — 22px below header */}
       <div className="mt-[22px]">
         {kycStatus === 'verified' ? (
-          <img
+          <img loading="lazy"
             src={isDarkMode ? ASSETS.CHECK_ICON : ASSETS.CHECK_ICON_LIGHT}
             alt="Success"
             className="w-[62px] h-[62px] object-contain animate-bounce"

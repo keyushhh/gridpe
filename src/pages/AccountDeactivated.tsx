@@ -61,7 +61,7 @@ const AccountDeactivated = () => {
           Deactivated
         </h1>
         {/* Icon */}
-        <img loading="eager" decoding="async"           src={ASSETS.SAD}
+        <img loading="lazy" decoding="async"           src={ASSETS.SAD}
           alt="Sad Face"
           className="w-[62px] h-[62px] mt-[12px]"
           style={

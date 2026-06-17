@@ -115,7 +115,7 @@ const FxPassportGate = () => {
             <div
               className={`w-6 h-6 rounded-full ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} relative z-10 flex items-center justify-center`}
             >
-              <img loading="eager" decoding="async" src={ASSETS.DONE} alt="Done" className="w-6 h-6" />
+              <img loading="lazy" decoding="async" src={ASSETS.DONE} alt="Done" className="w-6 h-6" />
             </div>
             <span
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-medium font-satoshi`}

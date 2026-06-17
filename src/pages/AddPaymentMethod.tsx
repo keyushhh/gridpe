@@ -162,7 +162,7 @@ const AddPaymentMethod = () => {
         onClick={() => method.linked && setSelectedMethod(method.id)}
       >
         {method.icon && (
-          <img loading="eager" decoding="async"             src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon}
+          <img loading="lazy" decoding="async"             src={method.id === 'cred' && !isDarkMode ? ASSETS.CRED_LIGHT : method.icon}
             alt={method.name}
             className="w-[32px] h-[32px] object-contain"
           />
