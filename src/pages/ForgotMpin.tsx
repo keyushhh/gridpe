@@ -72,7 +72,7 @@ const ForgotMpin = () => {
     setIsLoading(true);
     // Simulate verify
     await new Promise(resolve => setTimeout(resolve, 1500));
-    if (otp === '123456') {
+    if (import.meta.env.DEV && otp === '123456') {
       navigate(ROUTES.MPIN_SETTINGS, { state: { resetMpin: true } });
     } else {
       setError('Invalid OTP');

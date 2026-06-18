@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { crashlytics } from '@/lib/crashlytics';
+import { identify, reset as analyticsReset } from '@/lib/analytics';
+import { identifyUser, resetPostHogUser } from '../lib/analytics/providers/posthog';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
 import { Profile as UserProfile, Tables } from '@/types';
@@ -360,8 +362,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user?.id) {
         crashlytics.setUser(session.user.id);
+        identifyUser(session.user.id);
+        identify(session.user.id, {
+          email: session.user.email,
+          phone: session.user.phone,
+        });
       } else {
         crashlytics.clearUser();
+        resetPostHogUser();
+        analyticsReset();
       }
 
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {

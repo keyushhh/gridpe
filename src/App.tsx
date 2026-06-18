@@ -126,8 +126,9 @@ import ForceUpdateSheet from './components/ForceUpdateSheet';
 import { PrivacyScreen } from './components/PrivacyScreen';
 import { useLocationStore } from '@/store/useLocationStore';
 import ReactSplashScreen from '@/components/ReactSplashScreen';
-import { track } from '@/lib/analytics';
+import { track, capturePageview } from '@/lib/analytics';
 import { crashlytics } from '@/lib/crashlytics';
+import { initPostHog } from './lib/analytics/providers/posthog';
 
 const DevSheetPreview = () => {
   if (!import.meta.env.DEV) {
@@ -152,6 +153,7 @@ const LocationTracker = ({
   const location = useLocation();
   useEffect(() => {
     currentPathRef.current = location.pathname;
+    capturePageview(location.pathname);
   }, [location, currentPathRef]);
   return null;
 };
@@ -344,6 +346,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
   // Secondary Initialization (Heavy / Non-critical)
   useEffect(() => {
     crashlytics.initialize();
+    initPostHog();
     track('app_opened', { source: 'organic' });
     const timer = setTimeout(() => {
       if (Capacitor.isNativePlatform()) {

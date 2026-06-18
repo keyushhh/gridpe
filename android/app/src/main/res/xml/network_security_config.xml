@@ -9,7 +9,5 @@
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">192.168.29.136</domain>
         <domain includeSubdomains="true">flagcdn.com</domain>
-        <domain includeSubdomains="true">js.stripe.com</domain>
-        <domain includeSubdomains="true">api.stripe.com</domain>
     </domain-config>
 </network-security-config>

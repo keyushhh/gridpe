@@ -115,7 +115,7 @@ const AddBank = () => {
     setResendTimer(30);
   };
   const handleVerifyOtp = async () => {
-    if (otp !== '123456') return; // Simple validation
+    if (!import.meta.env.DEV || otp !== '123456') return; // Simple validation
     setIsLoading(true);
     // Simulate verification
     await new Promise(resolve => setTimeout(resolve, 1500));
