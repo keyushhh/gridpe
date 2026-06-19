@@ -21,6 +21,8 @@ export function initPostHog(): void {
       }
     },
   });
+  
+  posthog.register({ app: 'customer' });
 }
 
 export function identifyUser(userId: string, properties?: Record<string, unknown>): void {

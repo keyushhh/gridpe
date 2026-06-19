@@ -16,6 +16,7 @@ import DeliveryCallIcon from '@/assets/delivery-call.svg';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { crashlytics } from '@/lib/crashlytics';
 
 const OrderDelivered = () => {
   const { containerOverflow } = useWebScroll();
@@ -31,12 +32,13 @@ const OrderDelivered = () => {
   const [wouldOrderAgain, setWouldOrderAgain] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasRated, setHasRated] = useState(false);
+  const [isFetchingData, setIsFetchingData] = useState(true);
   const [riderStats, setRiderStats] = useState<{ average_stars?: number, total_ratings?: number } | null>(null);
   const [tipAmount, setTipAmount] = useState(0);
   const [selectedTipOption, setSelectedTipOption] = useState<string | null>(null);
   const [customTipValue, setCustomTipValue] = useState('');
 
-  const orderAmount = location.state?.order?.amount || 2000;
+  const orderAmount = location.state?.order?.amount ?? null;
   const orderData = location.state?.order;
 
   const addressSource = orderData?.addresses || location.state?.savedAddress;
@@ -53,7 +55,7 @@ const OrderDelivered = () => {
   const addressDisplay = getAddressDisplay();
 
   const customerName = addressSource?.contact_name || addressSource?.name || profile?.full_name || orderData?.user?.full_name || 'Customer';
-  const customerPhone = addressSource?.contact_phone || addressSource?.phone || profile?.phone || orderData?.user?.phone || '1234556567';
+  const customerPhone = addressSource?.contact_phone || addressSource?.phone || profile?.phone || orderData?.user?.phone || null;
 
   useEffect(() => {
     hapticSuccess();
@@ -81,12 +83,16 @@ const OrderDelivered = () => {
           .maybeSingle();
           
         if (existingRating) {
+          const ratingData = existingRating as any;
           setHasRated(true);
-          setRating(existingRating.stars);
-          setWouldOrderAgain(existingRating.would_order_again ?? null);
+          setRating(ratingData.stars);
+          setWouldOrderAgain(ratingData.would_order_again ?? null);
         }
       } catch (err) {
         console.error("Error fetching rating data:", err);
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'OrderDelivered fetchData failed');
+      } finally {
+        setIsFetchingData(false);
       }
     };
     
@@ -229,17 +235,21 @@ const OrderDelivered = () => {
             <div className="flex flex-col justify-center h-[46px]">
               <span className={`font-satoshi font-medium text-[14px] leading-tight flex items-center ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}>
                 Delivered by {orderData?.rider?.full_name || 'Your Rider'}
-                {riderStats && (
-                  <span className={`flex items-center ml-[8px] text-[12px] font-medium px-[6px] py-[2px] rounded-full ${isDarkMode ? 'bg-white/10 text-white' : 'bg-black/5 text-black'}`}>
-                    {(riderStats.total_ratings ?? 0) >= 5 ? (
-                      <>
-                        <Star className="w-[10px] h-[10px] text-[#FFD700] fill-[#FFD700] mr-[4px]" />
-                        {riderStats.average_stars?.toFixed(1)} ({riderStats.total_ratings})
-                      </>
-                    ) : (
-                      'New Rider'
-                    )}
-                  </span>
+                {isFetchingData ? (
+                  <div className="h-4 w-24 bg-gray-500/20 animate-pulse rounded ml-[8px]" />
+                ) : (
+                  riderStats && (
+                    <span className={`flex items-center ml-[8px] text-[12px] font-medium px-[6px] py-[2px] rounded-full ${isDarkMode ? 'bg-white/10 text-white' : 'bg-black/5 text-black'}`}>
+                      {(riderStats.total_ratings ?? 0) >= 5 ? (
+                        <>
+                          <Star className="w-[10px] h-[10px] text-[#FFD700] fill-[#FFD700] mr-[4px]" />
+                          {riderStats.average_stars?.toFixed(1)} ({riderStats.total_ratings})
+                        </>
+                      ) : (
+                        'New Rider'
+                      )}
+                    </span>
+                  )
                 )}
               </span>
               <span className={`font-satoshi font-bold text-[16px] mt-[1px] leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
@@ -321,8 +331,9 @@ const OrderDelivered = () => {
                   style={{ width: '74px', height: '38px' }}
                 >
                   <button
+                    disabled={hasRated}
                     onClick={() => handleTipSelect(val)}
-                    className={`relative block w-full h-full transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${val === '20' ? 'rounded-[19px]' : ''} ${!isDarkMode ? 'rounded-full' : ''}`}
+                    className={`relative block w-full h-full transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${val === '20' ? 'rounded-[19px]' : ''} ${!isDarkMode ? 'rounded-full' : ''} ${hasRated ? 'opacity-40 pointer-events-none' : ''}`}
                     style={
                       isDarkMode
                         ? {
@@ -372,8 +383,9 @@ const OrderDelivered = () => {
               ))}
               <div className="relative shrink-0" style={{ width: '74px', height: '38px' }}>
                 <button
+                  disabled={hasRated}
                   onClick={() => handleTipSelect('other')}
-                  className={`relative flex items-center justify-center transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${selectedTipOption === 'other' ? 'flex-row gap-[10px]' : ''} ${!isDarkMode ? 'rounded-full' : ''}`}
+                  className={`relative flex items-center justify-center transition-all z-10 overflow-hidden p-0 m-0 border-none outline-none ${selectedTipOption === 'other' ? 'flex-row gap-[10px]' : ''} ${!isDarkMode ? 'rounded-full' : ''} ${hasRated ? 'opacity-40 pointer-events-none' : ''}`}
                   style={
                     isDarkMode
                       ? {
@@ -488,10 +500,10 @@ const OrderDelivered = () => {
           }}
         >
           <h2 className={`font-satoshi font-medium text-[16px] leading-tight ${isDarkMode ? 'text-white' : 'text-black'}`}>
-            Your order for amount ₹{orderAmount} has been delivered successfully.
+            Your order for amount ₹{orderAmount != null ? orderAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '--'} has been delivered successfully.
           </h2>
           <p className={`mt-[8px] font-satoshi font-normal text-[16px] leading-[140%] ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}>
-            The ₹{orderAmount} held for this delivery will be debited shortly. You will be notified for the same. Thank you for using Grid.Pe!
+            The ₹{orderAmount != null ? orderAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '--'} held for this delivery will be debited shortly. You will be notified for the same. Thank you for using Grid.Pe!
           </p>
           <div className="mt-[20px] flex items-center gap-[12px]">
             <div className="relative flex items-center justify-center w-[14px] h-[14px]">
@@ -538,7 +550,7 @@ const OrderDelivered = () => {
             <img loading="lazy" src={DeliveryCallIcon} alt="Call" className="w-[31px] h-[31px] shrink-0" />
             <div className="ml-[16px] flex flex-col pt-[7px]">
               <span className={`font-satoshi font-medium text-[14px] leading-none ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                {customerName}, {customerPhone}
+                {customerName}, {customerPhone ?? '--'}
               </span>
             </div>
           </div>

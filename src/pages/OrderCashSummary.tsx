@@ -216,6 +216,7 @@ const OrderCashSummary = () => {
   };
   // Dynamic Quote State
   const [quoteLoading, setQuoteLoading] = useState(true);
+  const [quoteError, setQuoteError] = useState(false);
   const [quoteData, setQuoteData] = useState<{
     delivery_fee: number;
     platform_fee: number;
@@ -234,44 +235,57 @@ const OrderCashSummary = () => {
     return base;
   };
   // Calculations
+  const calculatedDistance = React.useMemo(() => {
+    if (activeAddress?.latitude && activeAddress?.longitude) {
+      return calculateDistance(
+        HUB_COORDS.CASH.lat,
+        HUB_COORDS.CASH.lng,
+        Number(activeAddress.latitude),
+        Number(activeAddress.longitude)
+      );
+    }
+    return null;
+  }, [activeAddress?.latitude, activeAddress?.longitude]);
+
   const parsedAmount = parseFloat((amount || '0').toString().replace(/,/g, '')) || 0;
   const rewardPointsValue = rewardApplied && rewardPoints ? parseInt(rewardPoints, 10) : 0;
   const rewardDiscount = rewardPointsValue * 0.025;
   // Fetch Quote
-  React.useEffect(() => {
-    const fetchQuote = async () => {
-      setQuoteLoading(true);
-      try {
-        let distance = 1.2; // Fallback
-        if (activeAddress?.latitude && activeAddress?.longitude) {
-          distance = calculateDistance(
-            HUB_COORDS.CASH.lat,
-            HUB_COORDS.CASH.lng,
-            activeAddress.latitude,
-            activeAddress.longitude
-          );
-        }
-        const { data, error } = await (supabase.rpc as any)('get_order_quote', {
-          p_amount: Number(parsedAmount),
-          p_order_type: 'cash',
-          p_distance_km: Number(distance.toFixed(2)),
-          p_service_amount: 0,
-          p_user_id: userId || null,
-        });
-        if (error) throw error;
-        setQuoteData(data);
-      } catch (err) {
-        console.error('Failed to fetch order quote', err);
-        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to fetch order quote');
-        showToaster('Failed to calculate order fees. Please try again.', 'error');
-      } finally {
+  const fetchQuote = React.useCallback(async () => {
+    setQuoteError(false);
+    setQuoteLoading(true);
+    try {
+      if (calculatedDistance === null) {
+        showToaster('Could not determine your delivery location. Please re-select your address.', 'error');
+        setQuoteError(true);
         setQuoteLoading(false);
+        return;
       }
-    };
+      const distance = calculatedDistance;
+      const { data, error } = await (supabase.rpc as any)('get_order_quote', {
+        p_amount: Number(parsedAmount),
+        p_order_type: 'cash',
+        p_distance_km: Number(distance.toFixed(2)),
+        p_service_amount: 0,
+        p_user_id: userId || null,
+      });
+      if (error) throw error;
+      setQuoteData(data);
+    } catch (err) {
+      console.error('Failed to fetch order quote', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to fetch order quote');
+      showToaster('Failed to calculate order fees. Please try again.', 'error');
+      setQuoteError(true);
+    } finally {
+      setQuoteLoading(false);
+    }
+  }, [parsedAmount, calculatedDistance, userId]);
+
+  React.useEffect(() => {
     if (parsedAmount > 0) {
       fetchQuote();
     }
-  }, [parsedAmount]);
+  }, [parsedAmount, fetchQuote]);
   const deliveryFee = quoteData?.delivery_fee || 0;
   const platformFee = quoteData?.platform_fee || 0;
   const gst = quoteData?.gst || 0;
@@ -380,10 +394,12 @@ const OrderCashSummary = () => {
       })) as any;
       if (zoneError) {
         console.error('Zone check failed:', zoneError);
+        crashlytics.recordError(zoneError instanceof Error ? zoneError : new Error(String(zoneError)), 'Zone check failed');
         showToaster('Failed to verify service availability. Please try again.', 'error');
         return;
       }
       if (!zoneId) {
+        showToaster('Cash delivery is not available in your area yet.', 'error');
         navigate(ROUTES.NOT_AVAILABLE);
         return;
       }
@@ -395,7 +411,10 @@ const OrderCashSummary = () => {
         .eq('id', userId)
         .single();
       if (userError || !(userProfile as any)?.phone) {
-        throw new Error('Please add a phone number to your profile to proceed.');
+        showToaster('Please add a phone number to your profile before ordering.', 'error');
+        setIsLoading(false);
+        navigate(ROUTES.SETTINGS);
+        return;
       }
       const customerPhoneNumber = (userProfile as any).phone;
 
@@ -404,14 +423,13 @@ const OrderCashSummary = () => {
       let pickupLocation: string | null = null;
       let pickupAddress: string | null = null;
       try {
-        let distance = 1.2;
-        if (activeAddress?.latitude && activeAddress?.longitude) {
-          distance = calculateDistance(
-            HUB_COORDS.CASH.lat,
-            HUB_COORDS.CASH.lng,
-            activeAddress.latitude,
-            activeAddress.longitude
-          );
+        if (calculatedDistance === null) {
+          showToaster('Could not determine your delivery location. Please re-select your address.', 'error');
+          setIsLoading(false);
+          return;
+        }
+        const distance = calculatedDistance;
+        if (true) {
           const { data: hubs, error: hubsError } = await (supabase.from('hubs') as any)
             .select('id, location_name, city')
             .eq('city', normalizeCity(activeAddress.city));
@@ -662,6 +680,7 @@ const OrderCashSummary = () => {
   const isConfirmDisabled =
     !activeAddress ||
     quoteLoading ||
+    quoteError ||
     isLoading ||
     pendingVerification !== null ||
     (isScheduledFlow && !selectedSlot);
@@ -928,6 +947,24 @@ const OrderCashSummary = () => {
               <div className="h-4 w-full bg-gray-500/20 animate-pulse rounded"></div>
               <div className="h-4 w-3/4 bg-gray-500/20 animate-pulse rounded"></div>
               <div className="h-4 w-5/6 bg-gray-500/20 animate-pulse rounded"></div>
+            </div>
+          ) : quoteError ? (
+            <div className="w-full flex flex-col items-center gap-3 py-2">
+              <span className={`text-[13px] font-sans ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                Could not load pricing. Please try again.
+              </span>
+              <button
+                onClick={() => {
+                  if (parsedAmount > 0) {
+                    setQuoteError(false);
+                    setQuoteLoading(true);
+                    fetchQuote();
+                  }
+                }}
+                className="text-[13px] font-medium text-brand-purple underline"
+              >
+                Retry
+              </button>
             </div>
           ) : (
             <>

@@ -10,9 +10,9 @@ const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ d
 const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
 const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { } from 'lucide-react';
 
 import { olc } from '@/utils/olc';
+import { crashlytics } from '@/lib/crashlytics';
 import { Order } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { setBadge } from '@/utils/badge';
@@ -75,6 +75,7 @@ const OrderTracking = () => {
         setUserLocation({ latitude: newLat, longitude: newLng });
       } catch (e) {
         console.error('Failed to decode location', e);
+        crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Failed to decode OLC location');
       }
     } else if (activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude) {
       const newLat = activeOrder.addresses.latitude;
@@ -114,12 +115,18 @@ const OrderTracking = () => {
             .single();
           if (controller.signal.aborted || !active) return;
           if (data && !error) {
-            setRiderName(data.full_name);
-            setOrder(prev => (prev ? { ...prev, rider: data } : null));
+            const riderData = data as any;
+            setRiderName(riderData.full_name);
+            setOrder(prev => (prev ? { ...prev, rider: riderData } : null));
           }
         } catch (err) {
           if (!active) return;
           console.error('Failed to fetch rider', err);
+          crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'fetchRider failed');
+          // Silent retry after 3 seconds
+          setTimeout(() => {
+            if (active) fetchRider();
+          }, 3000);
         }
       };
       fetchRider();
@@ -206,13 +213,6 @@ const OrderTracking = () => {
       };
     }
   }, [order?.id, order?.rider_id, navigate]);
-  useEffect(() => {
-    // Simulate rider entering the OTP after 60 seconds
-    const timer = setTimeout(async () => {
-      // ... (rest of the existing OTP verification logic)
-    }, 60000);
-    return () => clearTimeout(timer);
-  }, [navigate, order]);
   // Calculate dynamic coordinates
   const currentLat = userLocation?.latitude || viewState.latitude;
   const currentLng = userLocation?.longitude || viewState.longitude;

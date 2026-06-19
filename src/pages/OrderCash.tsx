@@ -21,8 +21,10 @@ const OrderCash = () => {
   const isDarkMode = useIsDarkMode();
 
   const { profile } = useUser();
+  const tierName = profile?.plan_tier ?? 'free';
+  const dailyLimit = tierName.toLowerCase() === 'pro' ? 10000 : 5000;
+  const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
   const userId = profile?.id;
-    const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
 
   const recentOrdersQuery = useQuery({
     queryKey: ['recent-orders', userId],
