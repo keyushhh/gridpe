@@ -458,25 +458,6 @@ const Settings = () => {
               <ChevronRight />
             </div>
 
-            <div
-              className="flex justify-between cursor-pointer"
-              onClick={() => navigate(ROUTES.BANKING)}
-            >
-              <div className="flex items-start gap-3">
-                <img loading="lazy" decoding="async" src={iconBankAcc} className="w-[18px] mt-[2px]" />
-                <div>
-                  <p className="text-foreground text-[14px]">Bank Accounts</p>
-                  <p className="text-black dark:text-muted-foreground text-[12px]">
-                    {bankAccountCount === 0
-                      ? '0 bank accounts linked'
-                      : bankAccountCount === 1
-                        ? '1 bank account linked'
-                        : `${bankAccountCount} bank accounts linked`}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight />
-            </div>
           </div>
         </div>
 

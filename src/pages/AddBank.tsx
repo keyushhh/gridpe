@@ -10,7 +10,7 @@ import { PhoneInput } from '@/components/PhoneInput';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
-import { fetchBankDetails, getBankLogo } from '@/utils/bankUtils';
+import { fetchBankDetails } from '@/utils/bankUtils';
 import { createBankAccount, BankAccount } from '@/lib/banking';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useUser } from '@/contexts/UserContext';

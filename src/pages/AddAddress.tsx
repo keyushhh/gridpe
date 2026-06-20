@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { ViewState, ViewStateChangeEvent, MapRef } from 'react-map-gl/maplibre';
 const Map = React.lazy(() => import('@/components/MapWrapper'));
@@ -16,7 +17,6 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
-  calculateDistance,
   getDistance,
   GeocodeResult,
   reverseGeocode,
@@ -97,6 +97,7 @@ const AddAddress = () => {
           }
         }
       } catch (err) {
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'AddAddress: Plus Code search error');
         console.error('Plus Code search error:', err);
         showToaster("Couldn't save address. Please try again.", 'error');
       }
@@ -110,6 +111,7 @@ const AddAddress = () => {
       setSearchResults(results);
       setShowDropdown(results.length > 0);
     } catch (error) {
+      crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: Forward geocode search error');
       console.error('Search error:', error);
     }
   };
@@ -157,6 +159,7 @@ const AddAddress = () => {
         setDistanceInMeters(null);
       }
     } catch (error) {
+      crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: Reverse geocode fetch address error');
       console.error('Error fetching address:', error);
       setAddressTitle('Location not found');
       setAddressLine('Unable to fetch address details. Please try moving the pin.');
@@ -223,6 +226,7 @@ const AddAddress = () => {
       // Fetch address for this new GPS location
       fetchAddress(latitude, longitude, { lat: latitude, lng: longitude });
     } catch (error) {
+      crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: GPS location fetch error');
       console.error('Error getting location:', error);
       showToaster('Unable to retrieve your current location. Please try again or check your GPS settings.', 'error');
     }
@@ -243,6 +247,7 @@ const AddAddress = () => {
       // Fetch address for the new snapped location
       fetchAddress(centerLat, centerLng);
     } catch (error) {
+      crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: Snap to grid error');
       console.error('Error snapping to grid:', error);
     }
   };

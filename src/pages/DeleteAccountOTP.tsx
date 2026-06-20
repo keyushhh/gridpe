@@ -1,5 +1,4 @@
 import { ASSETS } from '@/constants/assets';
-import { useUser } from '@/contexts/UserContext';
 import { LocationState } from '@/types/navigation';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';

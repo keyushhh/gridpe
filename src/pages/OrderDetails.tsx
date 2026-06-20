@@ -13,7 +13,6 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { getOrderById, cancelOrder as lib_cancelOrder } from '@/lib/orders';
 import { Order, OrderMetadata } from '@/types';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import OrderDetailsSkeleton from '@/components/skeletons/OrderDetailsSkeleton';

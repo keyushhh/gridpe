@@ -16,6 +16,7 @@ import { useWebScroll } from '@/hooks/useWebScroll';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import { crashlytics } from '@/lib/crashlytics';
 
 declare const Cashfree: any;
 let pendingCardVerificationOrderId: string | null = null;
@@ -163,11 +164,12 @@ const AddCard = () => {
     setIsLoading(true);
     try {
       // Get user phone from profile
-      const { data: userProfile } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('phone, name, email')
         .eq('id', userId)
         .single();
+      const userProfile = data as any;
       
       if (!userProfile?.phone) {
         showToaster('Please add a phone number to your profile first.', 'error');
@@ -191,6 +193,7 @@ const AddCard = () => {
         });
 
       if (orderError || !orderData?.success) {
+        crashlytics.recordError(new Error(orderError?.message || 'create-card-verification-order failed'), 'AddCard create-card-verification-order failed');
         showToaster('Failed to initialize card verification.', 'error');
         return;
       }
@@ -235,7 +238,7 @@ const AddCard = () => {
               }
               navigate(ROUTES.CARDS, { state: { cardAdded: true } });
             } catch (err) {
-              
+              crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[AddCard] verify-card-order web error');
               showToaster('Card verification failed. Please try again.', 'error');
               console.error('[AddCard] verify-card-order web error:', err);
             }
@@ -245,6 +248,7 @@ const AddCard = () => {
         });
       }
     } catch (err) {
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'AddCard handleSaveCard error');
       showToaster('Failed to save card. Please try again.', 'error');
       console.error('AddCard error:', err);
     } finally {
@@ -304,7 +308,7 @@ const AddCard = () => {
         
         navigate(ROUTES.CARDS, { state: { cardAdded: true } });
       } catch (err) {
-        
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[AddCard] verify-card-order native deep link error');
         showToaster('Card verification failed. Please try again.', 'error');
         console.error('[AddCard] verify-card-order error:', err);
       }

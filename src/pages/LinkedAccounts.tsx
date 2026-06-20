@@ -15,7 +15,7 @@ const LinkedAccounts = () => {
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
-  const mobile = location.state?.mobile || '9876543210';
+  const mobile: string | null = location.state?.mobile ?? null;
   const maskMobile = (num: string) => {
     if (!num || num.length < 7) return num;
     const prefix = num.substring(0, 2);
@@ -66,7 +66,7 @@ const LinkedAccounts = () => {
         <p
           className={`${isDarkMode ? 'text-white' : 'text-black'} text-[16px] font-medium leading-relaxed mb-6`}
         >
-          Linked accounts found for +91 {maskMobile(mobile)}. Pick your primary bank account — or
+          Linked accounts found{mobile ? ` for +91 ${maskMobile(mobile)}` : ''}. Pick your primary bank account — or
           select all and let us handle the rest.
         </p>
         {/* Unified Container */}

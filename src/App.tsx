@@ -37,10 +37,10 @@ const MyCards = lazy(() => import('./pages/MyCards'));
 const AddCard = lazy(() => import('./pages/AddCard'));
 const CardRemoveSuccess = lazy(() => import('./pages/CardRemoveSuccess'));
 const CameraPage = lazy(() => import('./pages/CameraPage'));
-const Banking = lazy(() => import('./pages/Banking'));
-const AddBank = lazy(() => import('./pages/AddBank'));
-const LinkedAccounts = lazy(() => import('./pages/LinkedAccounts'));
-const BankRemoveSuccess = lazy(() => import('./pages/BankRemoveSuccess'));
+// const Banking = lazy(() => import('./pages/Banking'));
+// const AddBank = lazy(() => import('./pages/AddBank'));
+// const LinkedAccounts = lazy(() => import('./pages/LinkedAccounts'));
+// const BankRemoveSuccess = lazy(() => import('./pages/BankRemoveSuccess'));
 const SecurityDashboard = lazy(() => import('./pages/SecurityDashboard'));
 const KYCStatusComplete = lazy(() => import('./pages/KYCStatusComplete'));
 const DeleteAccount = lazy(() => import('./pages/DeleteAccount'));
@@ -571,7 +571,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                         </ProtectedRoute>
                       }
                     />
-                    <Route
+                    {/* <Route
                       path={ROUTES.BANKING}
                       element={
                         <ProtectedRoute>
@@ -602,7 +602,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                           <BankRemoveSuccess />
                         </ProtectedRoute>
                       }
-                    />
+                    /> */}
                     <Route
                       path={ROUTES.SECURITY_DASHBOARD}
                       element={

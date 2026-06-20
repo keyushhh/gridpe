@@ -36,6 +36,8 @@ const ExplorePage = () => {
         backgroundImage: `url(${mainBg})`,
         overscrollBehavior: 'none',
         WebkitOverflowScrolling: 'auto',
+        touchAction: 'none',
+        WebkitTouchCallout: 'none',
       }}
     >
       <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-32 safe-top">

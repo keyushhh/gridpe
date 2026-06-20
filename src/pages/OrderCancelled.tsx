@@ -9,7 +9,7 @@ const OrderCancelled = () => {
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
   const [seconds, setSeconds] = useState(28);
-  const orderAmount = location.state?.order?.amount || 2000;
+  const orderAmount = location.state?.order?.amount ?? null;
   useEffect(() => {
     const timer = setInterval(() => {
       setSeconds(prev => {
@@ -69,7 +69,7 @@ const OrderCancelled = () => {
           <p
             className={`text-[16px] font-medium font-satoshi mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`}
           >
-            Your order for amount {formatINR(orderAmount)} has been cancelled.
+            Your order{orderAmount != null ? ` for amount ${formatINR(orderAmount)}` : ''} has been cancelled.
           </p>
           <p
             className={`text-[14px] font-normal font-satoshi leading-[150%] mb-4 ${isDarkMode ? 'text-white/60' : 'text-brand-text-muted'}`}

@@ -9,6 +9,7 @@ import { fetchBankAccounts, BankAccount } from '@/lib/banking';
 import { getBankLogo } from '@/utils/bankUtils';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useUser } from '@/contexts/UserContext';
+import { crashlytics } from '@/lib/crashlytics';
 interface PaymentMethod {
   id: string;
   name: string;
@@ -44,6 +45,7 @@ const SelectPaymentMethod = () => {
           setSelectedMethod(defaultAcc.id);
         }
       } catch (error) {
+        crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'SelectPaymentMethod: Error loading bank accounts');
         console.error('Error loading bank accounts:', error);
       } finally {
         setLoading(false);

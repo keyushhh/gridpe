@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
-import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { fetchRecentOrders } from '@/lib/orders';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
@@ -142,7 +141,7 @@ const OrderCash = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
+      className={`min-h-[100dvh] max-h-[100dvh] w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

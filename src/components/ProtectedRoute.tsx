@@ -8,6 +8,7 @@ import MpinSheet from '@/components/MpinSheet';
 
 // Module-level flag — gate only triggers after tab has been hidden at least once
 let hasBeenHidden = false;
+let hiddenAt: number | null = null;
 
 const INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 
@@ -63,11 +64,13 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         }
 
         // Fetch ONLY mpin_hash — do not touch profile context
-        const { data: profileData } = await supabase
+        const { data } = await supabase
           .from('profiles')
           .select('mpin_hash')
           .eq('id', session.user.id)
           .single();
+
+        const profileData = data as any;
 
         if (profileData?.mpin_hash) {
           mpinHashRef.current = profileData.mpin_hash;
@@ -105,12 +108,33 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
+        // Record when we went hidden and pause the timer
+        hiddenAt = Date.now();
         if (inactivityTimer.current) {
           clearTimeout(inactivityTimer.current);
           inactivityTimer.current = null;
         }
       } else {
-        resetInactivityTimer();
+        // Tab is visible again — check how long we were away
+        if (hiddenAt !== null) {
+          const elapsed = Date.now() - hiddenAt;
+          hiddenAt = null;
+          if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+            // Been away long enough — lock immediately
+            triggerMpinGate();
+            return;
+          }
+          // Resume the remaining time instead of restarting from full 2 minutes
+          const remaining = INACTIVITY_TIMEOUT_MS - elapsed;
+          if (inactivityTimer.current) {
+            clearTimeout(inactivityTimer.current);
+          }
+          inactivityTimer.current = setTimeout(() => {
+            triggerMpinGate();
+          }, remaining);
+        } else {
+          resetInactivityTimer();
+        }
       }
     };
 
@@ -161,6 +185,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           onSuccess={() => {
             setShowMpinGate(false);
             hasBeenHidden = false;
+            hiddenAt = null;
           }}
         />
       </>

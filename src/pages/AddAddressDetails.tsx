@@ -13,9 +13,7 @@ import {
   updateAddress,
   Address,
   ensureGlobalPlusCode,
-  getAuthUserId,
 } from '@/lib/addresses';
-import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
 import { Contact, Home, Briefcase, Navigation, MapPin, Phone as PhoneIcon } from 'lucide-react';

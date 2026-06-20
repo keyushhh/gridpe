@@ -5,7 +5,6 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { Search } from 'lucide-react';
 import { fetchAddresses, deleteAddress, Address } from '@/lib/addresses';
-import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -16,7 +15,6 @@ import { useLocationStore } from '@/store/useLocationStore';
 
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
-import { hapticWarning } from '@/utils/haptics';
 import { useBackButtonHandler } from '@/hooks/useBackButtonHandler';
 
 const mapToSavedAddress = (addr: Address): SavedAddress => {

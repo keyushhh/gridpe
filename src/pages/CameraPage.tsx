@@ -39,15 +39,17 @@ const CameraPage = () => {
           },
         });
       } else {
-        // Fallback for demo/manual trigger if no number found but shutter clicked
-        navigate(ROUTES.CARDS_ADD, {
-          state: {
-            scanned: true,
-            cardNumber: '4242424242424242', // Default for demo as requested
-            expiry: '12/28',
-            cardHolder: 'ABC',
-          },
-        });
+        if (import.meta.env.DEV) {
+          // Fallback for demo/manual trigger if no number found but shutter clicked
+          navigate(ROUTES.CARDS_ADD, {
+            state: {
+              scanned: true,
+              cardNumber: '4242424242424242', // Default for demo as requested
+              expiry: '12/28',
+              cardHolder: 'ABC',
+            },
+          });
+        }
       }
     } catch (err) {
       console.error('OCR Error:', err);

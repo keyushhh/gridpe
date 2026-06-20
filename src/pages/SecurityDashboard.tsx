@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { hapticLight } from '@/utils/haptics';
 import { Capacitor } from '@capacitor/core';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import AppDownloadSheet from '@/components/AppDownloadSheet';
 interface LocationState { originPath?: string }
 
 const SecurityDashboard = () => {
@@ -33,6 +34,7 @@ const SecurityDashboard = () => {
   const [isDeviceEnabled, setIsDeviceEnabled] = useState(() => {
     return localStorage.getItem('biometrics_enabled') === 'true';
   });
+  const [showAppDownloadSheet, setShowAppDownloadSheet] = useState(false);
   // Get assets via useAsset for theme support
   const securityCompleteAsset = useAsset(ASSETS.SECURITY_COMPLETE, ASSETS.SECURITY_ACTIVE_LIGHT);
   const securityPendingAsset = useAsset(ASSETS.SECURITY_PENDING, ASSETS.SECURITY_PENDING_LIGHT);
@@ -120,6 +122,10 @@ const SecurityDashboard = () => {
     }
   };
   const handleBiometricToggle = async (nextState?: boolean) => {
+    if (!Capacitor.isNativePlatform()) {
+      setShowAppDownloadSheet(true);
+      return;
+    }
     try {
       await hapticLight();
     } catch (_) {
@@ -484,6 +490,10 @@ const SecurityDashboard = () => {
           onSuccess={onMpinVerifySuccess}
         />
       )}
+      <AppDownloadSheet
+        forceOpen={showAppDownloadSheet}
+        onClose={() => setShowAppDownloadSheet(false)}
+      />
     </div>
   );
 };

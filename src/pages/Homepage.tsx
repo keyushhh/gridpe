@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 
@@ -484,6 +485,7 @@ const Homepage = () => {
         }
       } catch (error) {
         if (!active || controller.signal.aborted) return;
+        crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Homepage: FX edge function failed, using fallback rate');
         console.error('Failed to fetch FX data from Edge Function, using fallback:', error);
         // Fallback to hardcoded rate of 83.45 as requested so the UI never breaks
         setFxRate(83.45);
@@ -550,6 +552,7 @@ const Homepage = () => {
           });
           
           if (error) {
+            crashlytics.recordError(new Error(error.message || 'check_service_availability RPC failed'), 'Homepage: First install availability check RPC failed');
             console.error('Availability check RPC failed:', error);
           }
           
@@ -599,6 +602,7 @@ const Homepage = () => {
         setIsAddressSheetOpen(true);
       }
     } catch (e) {
+      crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Homepage: Error in first install location flow');
       console.error('Error in first install location flow:', e);
       // Fallback
       setIsAddressSheetOpen(true);
@@ -788,6 +792,7 @@ const Homepage = () => {
                   rider_photo: riderPhoto,
                 });
               } catch (err) {
+                crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Homepage: Error fetching rider for rating sheet');
                 console.error('Error fetching rider for rating:', err);
               }
             }
@@ -820,6 +825,7 @@ const Homepage = () => {
           zoom: 14,
         });
       } catch (e) {
+        crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Homepage: Failed to decode Plus Code for map');
         console.error('Failed to decode Plus Code', e);
       }
     } else if (activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude) {
@@ -844,6 +850,7 @@ const Homepage = () => {
           p_lng: Number(savedAddress.longitude) || 0,
         });
         if (error) {
+          crashlytics.recordError(new Error(error.message || 'check_service_availability RPC failed'), 'Homepage: Foreground zone check RPC error');
           console.error('RPC Error checking availability:', error);
           setIsUnserviceable(true);
         } else {
@@ -851,6 +858,7 @@ const Homepage = () => {
           setCurrentZoneId(data);
         }
       } catch (err) {
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Homepage: Failed to check service availability on foreground');
         console.error('Failed to check service availability:', err);
         setIsUnserviceable(false);
       } finally {
@@ -881,6 +889,7 @@ const Homepage = () => {
         queryClient.invalidateQueries({ queryKey: ['wallet-balance', userId] });
       }
     } catch (e) {
+      crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Homepage: Failed to cancel order');
       console.error('Failed to cancel order', e);
       throw e;
     }

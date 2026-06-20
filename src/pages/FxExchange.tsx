@@ -6,10 +6,10 @@ import { ChevronDown } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useUser } from '@/contexts/UserContext';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { formatINR, formatFxAmount } from '@/utils/format';
+import { formatFxAmount } from '@/utils/format';
 import { CURRENCY_NAMES, CURRENCY_MAP, currencySymbols } from '@/constants/currencies';
-import { supabase } from '@/lib/supabase';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { crashlytics } from '@/lib/crashlytics';
 
 interface CurrencyModalProps {
   isOpen: boolean;
@@ -147,7 +147,6 @@ const CurrencyModal = ({
 };
 const PassportUpgradeModal = ({ isOpen }: { isOpen: boolean }) => {
   const navigate = useNavigate();
-  const { showToaster } = useCustomToaster();
   const isDarkMode = useIsDarkMode();
   if (!isOpen) return null;
   return (
@@ -316,7 +315,7 @@ const FxExchange = () => {
 
         const data = await response.json();
         if (fromCurrency === 'AED' || toCurrency === 'AED') {
-          console.debug('FX AED raw response:', { url, data });
+          if (import.meta.env.DEV) { console.debug('FX AED raw response:', { url, data }); }
         }
 
         if (!data.rates) {
@@ -330,7 +329,8 @@ const FxExchange = () => {
           throw new Error(`Required rates not found in response: ${JSON.stringify(data)}`);
         }
       } catch (error) {
-        console.error('Failed to fetch FX data:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error('Failed to fetch FX rates'), 'FxExchange');
+        if (import.meta.env.DEV) { console.error('Failed to fetch FX data:', error); }
         showToaster('Failed to fetch live exchange rates. Using fallback rates.', 'error');
         if (isSameCurrency) {
           setFxRate(1);

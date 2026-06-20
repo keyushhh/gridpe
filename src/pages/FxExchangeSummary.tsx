@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -6,12 +7,11 @@ import { ROUTES } from '@/routes';
 import { X } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
 import { supabase } from '@/lib/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
-import { createAddress, getAuthUserId } from '@/lib/addresses';
+import { createAddress } from '@/lib/addresses';
 import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import { SavedAddress } from '@/types';
@@ -126,6 +126,7 @@ const FxExchangeSummary = () => {
         if (error) throw error;
         setQuoteData(data);
       } catch (err) {
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'FxExchangeSummary: Failed to fetch FX order quote');
         console.error('Failed to fetch FX order quote', err);
         showToaster('Failed to calculate order fees. Please try again.', 'error');
       } finally {
@@ -218,6 +219,7 @@ const FxExchangeSummary = () => {
           setSavedAddress(updatedAddr);
           try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { console.warn('Failed to write namespaced address', e); }
         } catch (err) {
+          crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'FxExchangeSummary: Failed to save address before order');
           console.error('Failed to save address before order', err);
           showToaster('Failed to save address details. Please try again.', 'error');
           return;
@@ -243,6 +245,7 @@ const FxExchangeSummary = () => {
         throw err;
       });
       if (zoneError) {
+        crashlytics.recordError(zoneError instanceof Error ? zoneError : new Error(String(zoneError)), 'FxExchangeSummary: Zone check failed');
         console.error('Zone check failed:', zoneError);
         showToaster('Failed to verify service availability. Please try again.', 'error');
         return;
@@ -279,10 +282,11 @@ const FxExchangeSummary = () => {
             pickupLocation = nearest.id;
             pickupAddress = `${nearest.location_name}, ${nearest.city}`;
           } else {
-            console.error(
-              'HUB FETCH FAILED: No active hubs found for city:',
-              normalizeCity(savedAddress.city)
-            );
+            const hubErr = new Error(`No active hubs found for city: ${normalizeCity(savedAddress.city)}`);
+            crashlytics.recordError(hubErr, 'FxExchangeSummary: Hub fetch failed');
+            console.error('HUB FETCH FAILED: No active hubs found for city:', normalizeCity(savedAddress.city));
+            showToaster('No active hubs found for your area. Please try again later.', 'error');
+            return;
           }
         }
         const { data: userProfile, error: userError } = await supabase
@@ -311,6 +315,7 @@ const FxExchangeSummary = () => {
         if (!earningsError && earnings !== null) {
           riderEarnings = parseFloat(earnings);
         } else {
+          crashlytics.recordError(new Error(earningsError?.message || 'Rider earnings RPC failed'), 'FxExchangeSummary: Rider earnings RPC failed');
           console.error('Rider earnings RPC failed, using 0 fallback:', earningsError);
         }
       } catch (err) {
@@ -318,6 +323,7 @@ const FxExchangeSummary = () => {
           showToaster(err.message, 'error');
           throw err;
         }
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'FxExchangeSummary: Failed to calculate dynamic data');
         console.error('Failed to calculate dynamic data:', err);
       }
       const createOrderDirectly = async (
@@ -392,6 +398,7 @@ const FxExchangeSummary = () => {
           throw err;
         });
         if (error) {
+          crashlytics.recordError(new Error(error.message || 'FX order insert failed'), 'FxExchangeSummary: Supabase FX Insert Error');
           console.error('Supabase FX Insert Error:', error);
           throw new Error(`Database error: ${error.message || 'Failed to insert order'}`);
         }
@@ -437,6 +444,7 @@ const FxExchangeSummary = () => {
           },
         });
       } catch (orderError: unknown) {
+        crashlytics.recordError(orderError instanceof Error ? orderError : new Error(String(orderError)), 'FxExchangeSummary: First FX order attempt failed');
         console.error('First FX order attempt failed:', orderError);
         // Handle Stale Address ID (Foreign Key Violation)
         const errorMessage = orderError instanceof Error ? orderError.message : '';
@@ -501,6 +509,7 @@ const FxExchangeSummary = () => {
               return; // Success after retry
             }
           } catch (retryErr: unknown) {
+            crashlytics.recordError(retryErr instanceof Error ? retryErr : new Error(String(retryErr)), 'FxExchangeSummary: Retry order attempt failed');
             console.error('Retry failed', retryErr);
             throw new Error(`Retry failed: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`);
           }
@@ -508,6 +517,7 @@ const FxExchangeSummary = () => {
         throw orderError;
       }
     } catch (error: unknown) {
+      crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'FxExchangeSummary: Final catch in handlePay');
       console.error('Final catch in handlePay (FX):', error);
       showToaster(`Failed to place order: ${error instanceof Error ? error.message : 'Please try again.'}`, 'error');
     }

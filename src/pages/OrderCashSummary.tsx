@@ -8,7 +8,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import { supabase } from '@/lib/supabase';
-import { createAddress, getAuthUserId } from '@/lib/addresses';
+import { createAddress } from '@/lib/addresses';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
@@ -16,7 +16,6 @@ import { calculateDistance, HUB_COORDS, normalizeCity } from '@/lib/utils';
 import { setBadge } from '@/utils/badge';
 
 import { cn } from '@/lib/utils';
-import { getAddress, migrateAddressKey } from '@/utils/addressStorage';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { crashlytics } from '@/lib/crashlytics';
 import { useLocationStore } from '@/store/useLocationStore';
