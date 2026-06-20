@@ -4,7 +4,7 @@ import appDownloadSheetImg from '../assets/app-download-sheet.png';
 
 let hasBeenDismissedThisSession = false;
 
-export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss }: { forceOpen?: boolean, onClose?: () => void, onDismiss?: () => void }) {
+export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss, description }: { forceOpen?: boolean, onClose?: () => void, onDismiss?: () => void, description?: string }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   
@@ -137,7 +137,7 @@ export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss
           className="mt-[11px] font-normal text-[14px] text-gray-600 dark:text-[#A0A0A0] w-[274px] text-center"
           style={{ fontFamily: 'Satoshi, sans-serif' }}
         >
-          Faster checkout, live order tracking & instant notifications
+          {description ?? "Faster checkout, live order tracking & instant notifications"}
         </p>
         
         <button 

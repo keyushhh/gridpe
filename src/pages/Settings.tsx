@@ -5,6 +5,7 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import BackButton from '@/components/ui/BackButton';
+import AppDownloadSheet from '@/components/AppDownloadSheet';
 import { cn } from '@/lib/utils';
 import Skeleton from 'react-loading-skeleton';
 import { ChevronRight, Pencil, Lock } from 'lucide-react';
@@ -123,6 +124,7 @@ const Settings = () => {
   const originPath = (location.state as LocationState)?.originPath || ROUTES.SETTINGS;
   const [pushNotifications, setPushNotifications] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const [showAppDownloadSheet, setShowAppDownloadSheet] = useState(false);
 
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const securityCompleteAsset = useAsset(ASSETS.SECURITY_COMPLETE, ASSETS.SECURITY_ACTIVE_LIGHT);
@@ -542,6 +544,10 @@ const Settings = () => {
                       onCheckedChange={async val => {
                         triggerHaptic();
                         if (val) {
+                          if (!Capacitor.isNativePlatform()) {
+                            setShowAppDownloadSheet(true);
+                            return;
+                          }
                           try {
                             const permission = await PushNotifications.requestPermissions();
                             if (permission.receive !== 'granted') {
@@ -551,7 +557,7 @@ const Settings = () => {
                               setPushNotifications(true);
                             }
                           } catch (e) {
-                            console.error('Push notification permission error:', e);
+                            if (import.meta.env.DEV) { console.error('Push notification permission error:', e); }
                             setPushNotifications(false);
                             showToaster('Enable notifications in your device settings to receive notifications.', 'error');
                           }
@@ -757,6 +763,12 @@ const Settings = () => {
           </div>
         </div>
       )}
+
+      <AppDownloadSheet
+        forceOpen={showAppDownloadSheet}
+        onClose={() => setShowAppDownloadSheet(false)}
+        description="Please download our app to enable push notifications."
+      />
     </div>
   );
 };

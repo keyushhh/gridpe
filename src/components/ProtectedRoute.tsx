@@ -106,6 +106,20 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       }, INACTIVITY_TIMEOUT_MS);
     };
 
+    const handlePageHide = () => {
+      hiddenAt = Date.now();
+      if (inactivityTimer.current) {
+        clearTimeout(inactivityTimer.current);
+        inactivityTimer.current = null;
+      }
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      // Always lock immediately on bfcache restore — no grace period
+      triggerMpinGate();
+    };
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         // Record when we went hidden and pause the timer
@@ -143,6 +157,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       document.addEventListener(event, resetInactivityTimer);
     });
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
 
     resetInactivityTimer();
 
@@ -151,6 +167,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         document.removeEventListener(event, resetInactivityTimer);
       });
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
       if (inactivityTimer.current) {
         clearTimeout(inactivityTimer.current);
       }

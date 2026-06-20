@@ -493,6 +493,7 @@ const SecurityDashboard = () => {
       <AppDownloadSheet
         forceOpen={showAppDownloadSheet}
         onClose={() => setShowAppDownloadSheet(false)}
+        description="Please download our app for proper security features."
       />
     </div>
   );
