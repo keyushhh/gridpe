@@ -149,7 +149,7 @@ html.font-pending body {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: auto;
     /* `manipulation` kills the 300ms double-tap zoom delay on iOS WKWebView. */
-    touch-action: manipulation;
+    touch-action: none;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }

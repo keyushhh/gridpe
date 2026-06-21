@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { crashlytics } from '@/lib/crashlytics';
 
 import { ASSETS } from '@/constants/assets';
 import { ROUTES } from '@/routes';
@@ -32,7 +33,7 @@ const RideAndEarn = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('rider_interest').insert({
+      const { error } = await (supabase.from('rider_interest') as any).insert({
         full_name: fullName.trim(),
         phone: '+91' + phoneDigits,
         city
@@ -41,7 +42,8 @@ const RideAndEarn = () => {
       if (error) throw error;
       setIsSubmitted(true);
     } catch (error) {
-      console.error(error);
+      if (import.meta.env.DEV) console.error('[RideAndEarn] insert failed:', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error('RideAndEarn rider_interest insert failed'), 'RideAndEarn.handleSubmit');
       showToaster('Something went wrong. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);

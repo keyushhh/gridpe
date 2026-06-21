@@ -22,6 +22,7 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useAppUpdateCheck } from '@/hooks/useAppUpdateCheck';
+import { crashlytics } from '@/lib/crashlytics';
 
 type SecurityStatus = 'verified' | 'in_review' | 'pending' | 'incomplete';
 
@@ -178,7 +179,11 @@ const Settings = () => {
         const dbCount = dbCountResponse.count || 0;
         cardCount = localCards.length + dbCount;
       } catch (error) {
-        console.error('Error loading settings counts:', error);
+        crashlytics.recordError(
+          error instanceof Error ? error : new Error('Failed to load settings counts'),
+          'Settings.settingsCounts'
+        );
+        if (import.meta.env.DEV) { console.error('Error loading settings counts:', error); }
         // Robust fallback: try getting at least local cards if everything failed
         try {
           if (userId) {

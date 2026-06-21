@@ -74,7 +74,7 @@ const OrderTracking = () => {
         }));
         setUserLocation({ latitude: newLat, longitude: newLng });
       } catch (e) {
-        console.error('Failed to decode location', e);
+        if (import.meta.env.DEV) { console.error('Failed to decode location', e); }
         crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Failed to decode OLC location');
       }
     } else if (activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude) {
@@ -121,7 +121,7 @@ const OrderTracking = () => {
           }
         } catch (err) {
           if (!active) return;
-          console.error('Failed to fetch rider', err);
+          if (import.meta.env.DEV) { console.error('Failed to fetch rider', err); }
           crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'fetchRider failed');
           // Silent retry after 3 seconds
           setTimeout(() => {

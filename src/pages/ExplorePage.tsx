@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ROUTES } from '@/routes';
@@ -29,8 +29,17 @@ const ExplorePage = () => {
   const [fxExpanded, setFxExpanded] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
+  useEffect(() => {
+    const el = document.getElementById('explore-page-root');
+    if (!el) return;
+    const prevent = (e: TouchEvent) => e.preventDefault();
+    el.addEventListener('touchstart', prevent, { passive: false });
+    return () => el.removeEventListener('touchstart', prevent);
+  }, []);
+
   return (
     <div
+      id="explore-page-root"
       className="absolute inset-0 flex flex-col overflow-hidden bg-cover bg-center"
       style={{
         backgroundImage: `url(${mainBg})`,

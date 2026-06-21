@@ -6,6 +6,7 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
+import { crashlytics } from '@/lib/crashlytics';
 interface Message {
   id: string;
   sender: 'zing' | 'user';
@@ -83,14 +84,19 @@ const ZingChat = () => {
       };
       setMessages(prev => [...prev, zingReply]);
     } catch (error: unknown) {
-      console.error('Zing Brain Error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      crashlytics.recordError(
+        error instanceof Error ? error : new Error('Zing AI edge function failed'),
+        'ZingChat.fetchZingReply'
+      );
+      if (import.meta.env.DEV) { console.error('Zing Brain Error:', error); }
       const errorMsg: Message = {
         id: Date.now().toString(),
         sender: 'zing',
         text: [
           "Whoops! My battery's a bit low or I'm having a brain freeze. 🧊",
-          `Debug Info: ${errorMessage}`,
+          ...(import.meta.env.DEV
+            ? [`Debug Info: ${error instanceof Error ? error.message : 'Unknown error'}`]
+            : []),
         ],
         timestamp: formatTime(),
         type: 'text',

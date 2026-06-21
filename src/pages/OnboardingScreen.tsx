@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@/contexts/UserContext';
 import { useAsset } from '@/hooks/useAsset';
 import { Profile } from '@/types';
+import { crashlytics } from '@/lib/crashlytics';
 //  // Moved to registry
 import { isWeakMpin } from '@/utils/validationUtils';
 import { hashMpin } from '@/utils/cryptoUtils';
@@ -228,7 +229,11 @@ const OnboardingScreen = () => {
           setUiState(prev => ({ ...prev, isAuthChecking: false }));
         }
       } catch (e) {
-        console.error('Session check failed', e);
+        crashlytics.recordError(
+          e instanceof Error ? e : new Error('Session check failed on mount'),
+          'OnboardingScreen.sessionCheck'
+        );
+        if (import.meta.env.DEV) { console.error('Session check failed', e); }
         setUiState(prev => ({ ...prev, isAuthChecking: false }));
       }
     };
@@ -299,7 +304,7 @@ const OnboardingScreen = () => {
       const { error } = await supabase.auth.signInWithOtp({
         phone: phoneToSend,
       });
-      console.log('OTP REQUEST COMPLETE - error:', JSON.stringify(error));
+      if (import.meta.env.DEV) { console.log('OTP REQUEST COMPLETE - error:', JSON.stringify(error)); }
       if (error) {
         setErrorState(prev => ({ ...prev, phone: error.message }));
         setUiState(prev => ({ ...prev, isLoading: false }));
@@ -307,7 +312,11 @@ const OnboardingScreen = () => {
       }
       setUiState(prev => ({ ...prev, isLoading: false, step: 'otp', resendTimer: 20 }));
     } catch (err) {
-      console.error(err);
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('handleRequestOTP failed'),
+        'OnboardingScreen.handleRequestOTP'
+      );
+      if (import.meta.env.DEV) { console.error(err); }
       setErrorState(prev => ({ ...prev, phone: 'Something went wrong. Please try again.' }));
       setUiState(prev => ({ ...prev, isLoading: false }));
     }
@@ -327,7 +336,11 @@ const OnboardingScreen = () => {
         profileData = data;
         profileError = error;
       } catch (err: unknown) {
-        console.error('HandleSession: Fetch threw', err);
+        crashlytics.recordError(
+          err instanceof Error ? err : new Error('HandleSession profile fetch failed'),
+          'OnboardingScreen.handleSession.fetchProfile'
+        );
+        if (import.meta.env.DEV) { console.error('HandleSession: Fetch threw', err); }
         profileError = err instanceof Error ? err : new Error(String(err));
       }
       const socialName =
@@ -350,14 +363,22 @@ const OnboardingScreen = () => {
           .select()
           .maybeSingle();
         if (createError) {
-          console.error('Error creating profile in handleSession:', createError);
+          crashlytics.recordError(
+            createError instanceof Error ? createError : new Error('Profile creation failed in handleSession'),
+            'OnboardingScreen.handleSession.createProfile'
+          );
+          if (import.meta.env.DEV) { console.error('Error creating profile in handleSession:', createError); }
           // Fallback to minimal object to avoid blocking the user
           currentProfile = { id: user.id, mpin_set: false } as Profile;
         } else {
           currentProfile = newProfile;
         }
       } else if (profileError) {
-        console.error('Non-missing-row error fetching profile:', profileError);
+        crashlytics.recordError(
+          profileError instanceof Error ? profileError : new Error('Non-missing-row profile fetch error'),
+          'OnboardingScreen.handleSession.profileError'
+        );
+        if (import.meta.env.DEV) { console.error('Non-missing-row error fetching profile:', profileError); }
         // Fallback
         currentProfile = { id: user.id, mpin_set: false } as Profile;
       }
@@ -444,7 +465,11 @@ const OnboardingScreen = () => {
         setErrorState(prev => ({ ...prev, otp: 'Session validation failed. Please try again.' }));
       }
     } catch (err: unknown) {
-      console.error(err);
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('handleVerifyOTP failed'),
+        'OnboardingScreen.handleVerifyOTP'
+      );
+      if (import.meta.env.DEV) { console.error(err); }
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong.';
       setErrorState(prev => ({ ...prev, otp: `${errorMessage} Please try again.` }));
     } finally {
@@ -526,7 +551,11 @@ const OnboardingScreen = () => {
         throw err;
       });
       if (error) {
-        console.error('Failed to update MPIN status:', error);
+        crashlytics.recordError(
+          error instanceof Error ? error : new Error('Failed to update MPIN status'),
+          'OnboardingScreen.handleSetupMpin.updateStatus'
+        );
+        if (import.meta.env.DEV) { console.error('Failed to update MPIN status:', error); }
         setErrorState(prev => ({ ...prev, general: 'Failed to save MPIN. Please try again.' }));
         setUiState(prev => ({ ...prev, isLoading: false }));
         return;
@@ -561,7 +590,11 @@ const OnboardingScreen = () => {
 
       navigate(ROUTES.HOME, { replace: true });
     } catch (err: unknown) {
-      console.error('Unexpected error in MPIN setup:', err);
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('Unexpected error in MPIN setup'),
+        'OnboardingScreen.handleSetupMpin'
+      );
+      if (import.meta.env.DEV) { console.error('Unexpected error in MPIN setup:', err); }
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
       setErrorState(prev => ({ ...prev, general: `${errorMessage} Please try again.` }));
       setUiState(prev => ({ ...prev, isLoading: false }));
@@ -622,7 +655,11 @@ const OnboardingScreen = () => {
         setUiState(prev => ({ ...prev, isLoading: false }));
       }
     } catch (err: unknown) {
-      console.error('Login verification error:', err);
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('Login MPIN verification error'),
+        'OnboardingScreen.handleLoginMpinVerification'
+      );
+      if (import.meta.env.DEV) { console.error('Login verification error:', err); }
       const errorMessage = err instanceof Error ? err.message : 'Verification failed.';
       setErrorState(prev => ({ ...prev, general: `${errorMessage} Check connection.` }));
       setUiState(prev => ({ ...prev, isLoading: false }));
@@ -647,11 +684,19 @@ const OnboardingScreen = () => {
         // Silent verification - if success, navigate home
         await handleLoginMpinVerification(storedMpin);
       } else {
-        console.warn('Biometric success but no MPIN in secure storage');
+        crashlytics.recordError(
+          new Error('Biometric success but no MPIN in secure storage'),
+          'OnboardingScreen.handleBiometricLogin.mpinMissing'
+        );
+        if (import.meta.env.DEV) { console.warn('Biometric success but no MPIN in secure storage'); }
         setBiometricState(prev => ({ ...prev, failCount: prev.failCount + 1 }));
       }
     } catch (error) {
-      console.error('Biometric login failed:', error);
+      crashlytics.recordError(
+        error instanceof Error ? error : new Error('Biometric login failed'),
+        'OnboardingScreen.handleBiometricLogin'
+      );
+      if (import.meta.env.DEV) { console.error('Biometric login failed:', error); }
       setBiometricState(prev => ({ ...prev, failCount: prev.failCount + 1 }));
     } finally {
       setBiometricState(prev => ({ ...prev, isPrompting: false }));
@@ -681,7 +726,11 @@ const OnboardingScreen = () => {
       });
       if (error) throw error;
     } catch (err) {
-      console.error(`${providerName} login error:`, err);
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error(`${providerName} login error`),
+        'OnboardingScreen.handleSocialLogin'
+      );
+      if (import.meta.env.DEV) { console.error(`${providerName} login error:`, err); }
       setErrorState(prev => ({ ...prev, general: `Failed to sign in with ${providerName}.` }));
     } finally {
       setUiState(prev => ({ ...prev, isLoading: false }));

@@ -89,8 +89,9 @@ const OrderDelivered = () => {
           setWouldOrderAgain(ratingData.would_order_again ?? null);
         }
       } catch (err) {
-        console.error("Error fetching rating data:", err);
+        if (import.meta.env.DEV) { console.error("Error fetching rating data:", err); }
         crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'OrderDelivered fetchData failed');
+        showToaster('Failed to load rating data. Please try again.', 'error');
       } finally {
         setIsFetchingData(false);
       }
@@ -160,7 +161,11 @@ const OrderDelivered = () => {
         navigate(ROUTES.HOME);
       }, 1500);
     } catch (err: any) {
-      console.error('Error submitting rating:', err);
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('Failed to submit rating'),
+        'OrderDelivered.handleSubmitRating'
+      );
+      if (import.meta.env.DEV) { console.error('Error submitting rating:', err); }
       showToaster(err.message || 'Failed to submit rating', 'error');
     } finally {
       setIsSubmitting(false);

@@ -1,5 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import React, { useState, useEffect, useRef } from 'react';
+import { crashlytics } from '@/lib/crashlytics';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
@@ -98,8 +99,8 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
     let timeoutId: NodeJS.Timeout;
     const verifyOriginalMpin = async () => {
       if (verifyMpin.length === 4) {
-        // Developer Bypass
-        if (verifyMpin === '8787' || verifyMpin === '9999') {
+        // Developer Bypass — DEV only, never ships to production
+        if (import.meta.env.DEV && (verifyMpin === '8787' || verifyMpin === '9999')) {
           if (mode === 'change') {
             setStep('CREATE_NEW');
             setNewMpin('');
@@ -142,7 +143,11 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
             }, 500);
           }
         } catch (error) {
-          console.error('Verification error:', error);
+          crashlytics.recordError(
+            error instanceof Error ? error : new Error('MPIN verification failed'),
+            'MpinSheet.verifyOriginalMpin'
+          );
+          if (import.meta.env.DEV) { console.error('Verification error:', error); }
           setVerifyStatus('error');
         }
       } else {
@@ -283,8 +288,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
       } = await supabase.auth.getUser();
       if (!user) throw new Error('No user session');
       const hashedPin = await hashMpin(newMpin);
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await (supabase.from('profiles') as any)
         .update({
           mpin_hash: hashedPin,
           mpin_set: true,
@@ -295,7 +299,11 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
       if (onSuccess) onSuccess(newMpin);
       onClose();
     } catch (error) {
-      console.error('Failed to update MPIN:', error);
+      crashlytics.recordError(
+        error instanceof Error ? error : new Error('Failed to update MPIN'),
+        'MpinSheet.updateMpin'
+      );
+      if (import.meta.env.DEV) { console.error('Failed to update MPIN:', error); }
       setCreateError('Failed to update MPIN. Please try again.');
       setIsSaving(false);
     }

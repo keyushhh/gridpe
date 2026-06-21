@@ -124,7 +124,7 @@ const OrderCashSummary = () => {
         try {
           await runVerification(pendingVerificationStore);
         } catch (err) {
-          console.error('[appUrlOpen] runVerification failed:', err);
+          if (import.meta.env.DEV) console.error('[appUrlOpen] runVerification failed:', err);
           crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[appUrlOpen] runVerification failed');
           showToaster('Payment verification failed. Please check your order history.', 'error');
         }
@@ -138,7 +138,7 @@ const OrderCashSummary = () => {
           try {
             await runVerification(pendingVerificationStore);
           } catch (err) {
-            console.error('[resume] runVerification failed:', err);
+            if (import.meta.env.DEV) console.error('[resume] runVerification failed:', err);
             crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[resume] runVerification failed');
             showToaster('Payment verification failed. Please check your order history.', 'error');
           }
@@ -190,6 +190,7 @@ const OrderCashSummary = () => {
         pendingVerificationStore = null;
         setPendingVerification(null);
         showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
+        crashlytics.recordError(new Error(verifyData?.message || 'verify-cash-order failed'), 'OrderCashSummary.runVerification.first');
         return;
       }
 
@@ -204,7 +205,7 @@ const OrderCashSummary = () => {
         }
       });
     } catch (err) {
-      console.error('runVerification error:', err);
+      if (import.meta.env.DEV) console.error('runVerification error:', err);
       crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'runVerification error');
       pendingVerificationStore = null;
       setPendingVerification(null);
@@ -271,7 +272,8 @@ const OrderCashSummary = () => {
       if (error) throw error;
       setQuoteData(data);
     } catch (err) {
-      console.error('Failed to fetch order quote', err);
+      if (import.meta.env.DEV) console.error('Failed to fetch order quote', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('Failed to fetch order quote'), 'OrderCashSummary.fetchQuote');
       crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to fetch order quote');
       showToaster('Failed to calculate order fees. Please try again.', 'error');
       setQuoteError(true);
@@ -367,9 +369,9 @@ const OrderCashSummary = () => {
           addressId = newAddress.id;
           const updatedAddr = { ...activeAddress, id: addressId };
           setActiveAddress(updatedAddr);
-          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { console.warn('Failed to persist address', e); }
+          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { if (import.meta.env.DEV) console.warn('Failed to persist address', e); }
         } catch (addrErr: unknown) {
-          console.error('Failed to save address before order', addrErr);
+          if (import.meta.env.DEV) console.error('Failed to save address before order', addrErr);
           crashlytics.recordError(addrErr instanceof Error ? addrErr : new Error(String(addrErr)), 'Failed to save address before order');
           const errorMessage = addrErr instanceof Error ? addrErr.message : 'Please try again.';
           showToaster(`Failed to save address: ${errorMessage}`, 'error');
@@ -392,7 +394,7 @@ const OrderCashSummary = () => {
         throw err;
       })) as any;
       if (zoneError) {
-        console.error('Zone check failed:', zoneError);
+        if (import.meta.env.DEV) console.error('Zone check failed:', zoneError);
         crashlytics.recordError(zoneError instanceof Error ? zoneError : new Error(String(zoneError)), 'Zone check failed');
         showToaster('Failed to verify service availability. Please try again.', 'error');
         return;
@@ -454,7 +456,8 @@ const OrderCashSummary = () => {
           showToaster(err.message, 'error');
           throw err;
         }
-        console.error('Failed to calculate dynamic data:', err);
+        if (import.meta.env.DEV) console.error('Failed to calculate dynamic data:', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('Failed to calculate dynamic data'), 'OrderCashSummary.calculateDynamicData');
         crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to calculate dynamic data');
       }
 
@@ -493,6 +496,7 @@ const OrderCashSummary = () => {
       if (orderError || !resolvedOrderData?.success) {
         showToaster('Failed to initiate payment. Please try again.', 'error');
         setIsLoading(false);
+        crashlytics.recordError(new Error(resolvedOrderData?.message || 'create-cash-order failed'), 'OrderCashSummary.createOrder');
         return;
       }
 
@@ -558,7 +562,7 @@ const OrderCashSummary = () => {
                 try {
                   await runVerification(pendingVerificationStore);
                 } catch (err) {
-                  console.error('[browserFinished] runVerification failed:', err);
+                  if (import.meta.env.DEV) console.error('[browserFinished] runVerification failed:', err);
                   crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[browserFinished] runVerification failed');
                   showToaster('Payment verification failed. Please check your order history.', 'error');
                 }
@@ -611,6 +615,7 @@ const OrderCashSummary = () => {
               if (verifyError || !verifyData?.success) {
                 showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
                 setIsLoading(false);
+                crashlytics.recordError(new Error(verifyData?.message || 'verify-cash-order failed'), 'OrderCashSummary.runVerification.second');
                 return;
               }
 
@@ -623,7 +628,7 @@ const OrderCashSummary = () => {
                 }
               });
             } catch (err) {
-              console.error('[verify-cash-order] invocation failed:', err);
+              if (import.meta.env.DEV) console.error('[verify-cash-order] invocation failed:', err);
               crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[verify-cash-order] invocation failed');
               showToaster('Payment verification failed. Please check your order history.', 'error');
             }
@@ -632,7 +637,7 @@ const OrderCashSummary = () => {
       }
 
     } catch (error: unknown) {
-      console.error('handlePay error:', error);
+      if (import.meta.env.DEV) console.error('handlePay error:', error);
       crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'handlePay error');
       showToaster('Order failed. Please try again or contact support.', 'error');
     } finally {

@@ -16,6 +16,7 @@ import { useLocationStore } from '@/store/useLocationStore';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { useBackButtonHandler } from '@/hooks/useBackButtonHandler';
+import { crashlytics } from '@/lib/crashlytics';
 
 const mapToSavedAddress = (addr: Address): SavedAddress => {
   return {
@@ -71,7 +72,7 @@ const SavedAddresses = () => {
         const parsed = await getAddress<SavedAddress>(ADDRESS_KEYS.USER_ADDRESS, null);
         if (parsed?.id) setSelectedAddressId(parsed.id);
       } catch (e) {
-        console.warn('Error reading legacy address keys', e);
+        if (import.meta.env.DEV) { console.warn('Error reading legacy address keys', e); }
       }
     };
     initAddress();
@@ -87,8 +88,12 @@ const SavedAddresses = () => {
       const data = await fetchAddresses(userId);
       setAddresses(data);
     } catch (e: unknown) {
-      console.error('Failed to load addresses', e);
-      showToaster('Failed to load saved addresses. Please try again.', 'error');
+      crashlytics.recordError(
+        e instanceof Error ? e : new Error('Failed to load addresses'),
+        'SavedAddresses.loadAddresses'
+      );
+      if (import.meta.env.DEV) { console.error('Failed to load addresses', e); }
+      showToaster('Failed to load your addresses. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -107,7 +112,11 @@ const SavedAddresses = () => {
         dialogTitle: `Share ${addr.label}`,
       });
     } catch (e: unknown) {
-      console.error('Failed to share address', e);
+      crashlytics.recordError(
+        e instanceof Error ? e : new Error('Failed to share address'),
+        'SavedAddresses.handleShare'
+      );
+      if (import.meta.env.DEV) { console.error('Failed to share address', e); }
       if (e instanceof Error && e.message !== 'Share canceled') {
         showToaster('Failed to share address. Feature might be unsupported.', 'error');
       }
@@ -451,9 +460,12 @@ const SavedAddresses = () => {
                           setSelectedAddressId(null);
                         }
                       } catch (e: unknown) {
-                        console.error('Failed to delete address', e);
-                        const errorMessage = e instanceof Error ? e.message : 'Failed to delete address. Please try again.';
-                        showToaster(errorMessage, 'error');
+                        crashlytics.recordError(
+                          e instanceof Error ? e : new Error('Failed to delete address'),
+                          'SavedAddresses.deleteAddress'
+                        );
+                        if (import.meta.env.DEV) { console.error('Failed to delete address', e); }
+                        showToaster('Failed to delete address. Please try again.', 'error');
                       } finally {
                         setShowActionSheet(false);
                       }

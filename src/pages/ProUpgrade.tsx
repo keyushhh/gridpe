@@ -10,6 +10,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { crashlytics } from '@/lib/crashlytics';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 
 declare const Cashfree: any;
 import proPageBg from '@/assets/pro-page-bg.webp';
@@ -54,6 +55,7 @@ const ProUpgrade = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { profile, fetchProfileData } = useUser();
   const userId = profile?.id;
+  const { showToaster } = useCustomToaster();
 
   const handleUpgradeClick = async () => {
     if (!userId) return;
@@ -66,7 +68,12 @@ const ProUpgrade = () => {
       });
       
       if (error || !data) {
-        console.error('Failed to initiate payment', error);
+        crashlytics.recordError(
+          error instanceof Error ? error : new Error('Failed to initiate pro subscription'),
+          'ProUpgrade.createSubscription'
+        );
+        if (import.meta.env.DEV) { console.error('Failed to initiate payment', error); }
+        showToaster('Failed to start payment. Please try again.', 'error');
         setIsLoading(false);
         return;
       }
@@ -75,7 +82,7 @@ const ProUpgrade = () => {
       const payment_session_id = parsedData?.payment_session_id || parsedData?.data?.payment_session_id;
       const order_id = parsedData?.order_id || parsedData?.data?.order_id;
       
-      console.log("Initializing Cashfree with Session ID:", payment_session_id);
+      if (import.meta.env.DEV) { console.log("Initializing Cashfree with Session ID:", payment_session_id); }
 
       const isNative = Capacitor.isNativePlatform();
       
@@ -110,7 +117,8 @@ const ProUpgrade = () => {
         
         cashfree.checkout(checkoutOptions).then(async (result: any) => {
           if (result.error) {
-            console.error('Payment failed or cancelled.');
+            if (import.meta.env.DEV) { console.error('Payment failed or cancelled.'); }
+            showToaster('Payment was not completed. Please try again.', 'error');
             setIsLoading(false);
           } else {
             await verifyPayment(order_id);
@@ -118,8 +126,12 @@ const ProUpgrade = () => {
         });
       }
     } catch (err: any) {
-      console.error(err);
-      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Pro upgrade payment initiation error');
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('handleUpgradeClick failed'),
+        'ProUpgrade.handleUpgradeClick'
+      );
+      if (import.meta.env.DEV) { console.error(err); }
+      showToaster('Something went wrong. Please try again.', 'error');
       setIsLoading(false);
     }
   };
@@ -131,7 +143,12 @@ const ProUpgrade = () => {
         body: { order_id }
       });
       if (error) {
-         console.error('Payment verification failed.', error);
+         crashlytics.recordError(
+           error instanceof Error ? error : new Error('Pro subscription verification failed'),
+           'ProUpgrade.verifyPayment'
+         );
+         if (import.meta.env.DEV) { console.error('Payment verification failed.', error); }
+         showToaster('Payment verification failed. Please contact support.', 'error');
       } else if (data?.success) {
          await fetchProfileData?.();
          navigate(ROUTES.PRO_SUCCESS, { 
@@ -141,11 +158,16 @@ const ProUpgrade = () => {
            } 
          });
       } else {
-         console.error('Payment not completed.', data?.error);
+         if (import.meta.env.DEV) { console.error('Payment not completed.', data?.error); }
+         showToaster('Payment not completed. Please try again.', 'error');
       }
     } catch (err) {
-      console.error('Verification error', err);
-      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Pro upgrade verification error');
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('verifyPayment outer catch'),
+        'ProUpgrade.verifyPayment.catch'
+      );
+      if (import.meta.env.DEV) { console.error('Verification error', err); }
+      showToaster('Verification error. Please contact support if payment was deducted.', 'error');
     } finally {
       setIsLoading(false);
     }

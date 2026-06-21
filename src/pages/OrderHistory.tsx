@@ -12,6 +12,7 @@ import { ROUTES } from '@/routes';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
+import { crashlytics } from '@/lib/crashlytics';
 
 const OrderCard = React.memo(
   ({
@@ -300,7 +301,7 @@ const OrderHistory = () => {
 
 
         if (rewardData && rewardData.length > 0) {
-          const sortedOrders = rewardData.map(rt => {
+          const sortedOrders = rewardData.map((rt: any) => {
             return {
               id: rt.id,
               user_id: rt.user_id,
@@ -388,7 +389,11 @@ const OrderHistory = () => {
       // Refresh cache
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (e: unknown) {
-      console.error('Failed to cancel order', e);
+      crashlytics.recordError(
+        e instanceof Error ? e : new Error('Failed to cancel order'),
+        'OrderHistory.handleCancelOrder'
+      );
+      if (import.meta.env.DEV) { console.error('Failed to cancel order', e); }
       showToaster('Cancellation Failed', 'error');
     }
   };
