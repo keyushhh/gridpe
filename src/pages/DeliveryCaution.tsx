@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cancelOrder } from '@/lib/orders';
@@ -73,7 +74,8 @@ const DeliveryCaution = () => {
         'Identity Mismatch',
         'User chose not to proceed due to identity mismatch'
       ).catch(err => {
-        console.error('Failed to cancel order:', err);
+        if (import.meta.env.DEV) console.error('Failed to cancel order:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('DeliveryCaution failed to cancel order'), 'DeliveryCaution.cancelOrder');
         showToaster(`Cancellation failed: ${err.message || 'Please try again.'}`, 'error');
       });
     }

@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 export interface BankAccount {
   id: string;
   bankName: string;
@@ -55,12 +56,13 @@ export const AVAILABLE_BANKS: BankAccount[] = [
 ];
 export const fetchBankDetails = async (ifsc: string) => {
   try {
-    // NOTE: Using Razorpay's public IFSC API (free, no auth required). Not a payment dependency.
-    const response = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+    // NOTE: Using bankifsccode.com public IFSC API (free, no auth required).
+    const response = await fetch(`https://api.bankifsccode.com/${ifsc}`);
     if (!response.ok) throw new Error('Invalid IFSC');
     return await response.json();
   } catch (error) {
-    console.error('Error fetching bank details:', error);
+    if (import.meta.env.DEV) console.error('Error fetching bank details:', error);
+    crashlytics.recordError(error instanceof Error ? error : new Error('bankUtils fetchBankDetails failed'), 'bankUtils.fetchBankDetails');
     return null;
   }
 };

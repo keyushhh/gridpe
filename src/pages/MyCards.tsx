@@ -48,7 +48,8 @@ const MyCards = () => {
       setCards(fetchedCards);
       setIsStacked(fetchedCards.length > 1);
     } catch (err) {
-      console.error('Failed to fetch cards:', err);
+      if (import.meta.env.DEV) console.error('Failed to fetch cards:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('MyCards failed to fetch cards'), 'MyCards.fetchCards');
       crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to fetch cards');
       // toast.error('Failed to load cards');
     } finally {

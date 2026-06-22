@@ -18,6 +18,7 @@ import { useWebScroll } from '@/hooks/useWebScroll';
 import OrderDetailsSkeleton from '@/components/skeletons/OrderDetailsSkeleton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { crashlytics } from '@/lib/crashlytics';
 const OrderDetails = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -69,11 +70,13 @@ const OrderDetails = () => {
           if (data) {
             setOrder(data);
           } else {
-            console.error('Order not found');
+            if (import.meta.env.DEV) console.error('Order not found');
+            crashlytics.recordError(new Error('OrderDetails order not found'), 'OrderDetails.fetchOrder');
           }
         } catch (e) {
           if (controller.signal.aborted || !active) return;
-          console.error('Failed to fetch order', e);
+          if (import.meta.env.DEV) console.error('Failed to fetch order', e);
+          crashlytics.recordError(e instanceof Error ? e : new Error('OrderDetails failed to fetch order'), 'OrderDetails.fetchOrder');
         } finally {
           if (!controller.signal.aborted && active) {
             setLoading(false);
@@ -113,7 +116,8 @@ const OrderDetails = () => {
             .subscribe();
         }
       } catch (err) {
-        console.error('Failed to setup order subscription', err);
+        if (import.meta.env.DEV) console.error('Failed to setup order subscription', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('OrderDetails failed to setup realtime subscription'), 'OrderDetails.realtimeSetup');
       }
     };
     setupSubscription();
@@ -182,7 +186,8 @@ const OrderDetails = () => {
           zoom: 14,
         });
       } catch (e) {
-        console.error('Failed to decode Plus Code', e);
+        if (import.meta.env.DEV) console.error('Failed to decode Plus Code', e);
+        crashlytics.recordError(e instanceof Error ? e : new Error('OrderDetails failed to decode Plus Code'), 'OrderDetails.decodePlusCode');
       }
     } else if (addr?.latitude && addr?.longitude) {
       setViewState({
@@ -211,7 +216,8 @@ const OrderDetails = () => {
       });
       setShowCancelPopup(false);
     } catch (e: unknown) {
-      console.error('Failed to cancel order', e);
+      if (import.meta.env.DEV) console.error('Failed to cancel order', e);
+      crashlytics.recordError(e instanceof Error ? e : new Error('OrderDetails failed to cancel order'), 'OrderDetails.cancelOrder');
       const errorMessage = e instanceof Error ? e.message : 'Please contact support.';
       showToaster(`Failed to cancel order: ${errorMessage}`, 'error');
     }

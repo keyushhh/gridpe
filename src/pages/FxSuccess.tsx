@@ -16,6 +16,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { getOrderById, cancelOrder } from '@/lib/orders';
 import { Order, OrderMetadata } from '@/types';
 import { useUser } from '@/contexts/UserContext';
+import { crashlytics } from '@/lib/crashlytics';
 const currencySymbols: Record<string, string> = {
   AUD: '$',
   BRL: 'R$',
@@ -96,7 +97,8 @@ const FxSuccess = () => {
             setOrder(data);
           }
         } catch (e) {
-          console.error('Failed to fetch order', e);
+          if (import.meta.env.DEV) console.error('Failed to fetch order', e);
+          crashlytics.recordError(e instanceof Error ? e : new Error('FxSuccess failed to fetch order'), 'FxSuccess.fetchOrder');
         } finally {
           setLoading(false);
         }
@@ -153,7 +155,8 @@ const FxSuccess = () => {
           zoom: 14,
         });
       } catch (e) {
-        console.error('Failed to decode Plus Code', e);
+        if (import.meta.env.DEV) console.error('Failed to decode Plus Code', e);
+        crashlytics.recordError(e instanceof Error ? e : new Error('FxSuccess failed to decode Plus Code'), 'FxSuccess.decodePlusCode');
       }
     } else if (addr?.latitude && addr?.longitude) {
       setViewState({
@@ -173,7 +176,8 @@ const FxSuccess = () => {
       if (updatedOrder) setOrder(updatedOrder);
       setShowCancelPopup(false);
     } catch (e) {
-      console.error('Failed to cancel order', e);
+      if (import.meta.env.DEV) console.error('Failed to cancel order', e);
+      crashlytics.recordError(e instanceof Error ? e : new Error('FxSuccess failed to cancel order'), 'FxSuccess.cancelOrder');
     }
   };
   const getAddressDisplay = () => {

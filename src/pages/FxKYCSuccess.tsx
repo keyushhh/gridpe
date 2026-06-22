@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -16,7 +17,8 @@ const FxKYCSuccess = () => {
       await setPassportVerifiedInDb(true);
       navigate(ROUTES.FX_EXCHANGE, { replace: true });
     } catch (err) {
-      console.error('Failed to persist passport verification:', err);
+      if (import.meta.env.DEV) console.error('Failed to persist passport verification:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('FxKYCSuccess failed to persist passport verification'), 'FxKYCSuccess.persistVerification');
       setLoading(false);
     }
   };

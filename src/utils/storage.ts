@@ -22,13 +22,13 @@ export const writeStorage = (key: string, value: unknown, userId?: string) => {
   try {
     localStorage.setItem(k, JSON.stringify(value));
   } catch (e) {
-    console.warn('writeStorage failed', k, e);
+    if (import.meta.env.DEV) console.warn('writeStorage failed', k, e);
   }
 };
 
 export const removeStorage = (key: string, userId?: string) => {
   const k = storageKey(key, userId);
-  try { localStorage.removeItem(k); } catch (e) { console.warn('removeStorage failed', k, e); }
+  try { localStorage.removeItem(k); } catch (e) { if (import.meta.env.DEV) console.warn('removeStorage failed', k, e); }
 };
 
 export const purgeOtherUsersStorage = (currentUserId?: string) => {
@@ -46,7 +46,7 @@ export const purgeOtherUsersStorage = (currentUserId?: string) => {
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
   } catch (e) {
-    console.warn('purgeOtherUsersStorage failed', e);
+    if (import.meta.env.DEV) console.warn('purgeOtherUsersStorage failed', e);
   }
 };
 

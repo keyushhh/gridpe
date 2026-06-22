@@ -77,7 +77,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<GeocodeR
       lon: data.lon,
     };
   } catch (error) {
-    console.error('Reverse geocoding failed:', error);
+    if (import.meta.env.DEV) console.error('Reverse geocoding failed:', error);
     throw error;
   }
 };
@@ -118,7 +118,7 @@ export const forwardGeocode = async (
 
     return data;
   } catch (error) {
-    console.error('Forward geocoding failed:', error);
+    if (import.meta.env.DEV) console.error('Forward geocoding failed:', error);
     return [];
   }
 };

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { crashlytics } from '@/lib/crashlytics';
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
@@ -86,7 +87,8 @@ const ProfileEdit = () => {
       showToaster('Profile updated successfully', 'success');
       navigate(-1);
     } catch (error) {
-      console.error('Error updating profile:', error);
+      if (import.meta.env.DEV) console.error('Error updating profile:', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error('ProfileEdit update failed'), 'ProfileEdit.handleSubmit');
       showToaster('Failed to update profile', 'error');
     }
   };

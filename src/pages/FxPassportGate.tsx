@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -23,7 +24,8 @@ const FxPassportGate = () => {
       try {
         await fetchProfileData();
       } catch (err) {
-        console.error('Failed to fetch profile in FxPassportGate:', err);
+        if (import.meta.env.DEV) console.error('Failed to fetch profile in FxPassportGate:', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('FxPassportGate failed to fetch profile'), 'FxPassportGate.fetchProfile');
       }
       if (!cancelled) {
         setIsLoading(false);

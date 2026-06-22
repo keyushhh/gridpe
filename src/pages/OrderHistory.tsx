@@ -478,7 +478,8 @@ const OrderHistory = () => {
                   showToaster('Seeding Failed', 'error');
                 }
               } catch (error: unknown) {
-                console.error('Seeding error:', error);
+                if (import.meta.env.DEV) console.error('Seeding error:', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error('OrderHistory seeding error'), 'OrderHistory.seedData');
                 showToaster('Seeding Failed', 'error');
               }
             }}

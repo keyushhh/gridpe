@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { crashlytics } from '@/lib/crashlytics';
 import { Preferences } from '@capacitor/preferences';
 import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
 import { reverseGeocode, getDistance } from '@/utils/geoUtils';
@@ -17,7 +18,7 @@ async function getAddressPref(): Promise<SavedAddress | null> {
     const addr = await getAddress<SavedAddress>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
     if (addr) return addr;
   } catch (e) {
-    console.warn('Failed to read address from Preferences', e);
+    if (import.meta.env.DEV) console.warn('Failed to read address from Preferences', e);
   }
   return null;
 }
@@ -26,7 +27,7 @@ async function setAddressPref(addr: SavedAddress): Promise<void> {
   try {
     await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addr);
   } catch (e) {
-    console.warn('Failed to write address to Preferences', e);
+    if (import.meta.env.DEV) console.warn('Failed to write address to Preferences', e);
   }
 }
 
@@ -34,7 +35,7 @@ async function removeAddressPref(): Promise<void> {
   try {
     await removeAddress(ADDRESS_KEYS.SELECTED_ADDRESS);
   } catch (e) {
-    console.warn('Failed to remove address from Preferences', e);
+    if (import.meta.env.DEV) console.warn('Failed to remove address from Preferences', e);
   }
 }
 
@@ -130,7 +131,8 @@ export const useLocationStore = create<LocationState>((set, get) => ({
         isManualAddressSelected: isManual || state.isManualAddressSelected 
       }));
     } catch (err) {
-      console.error('Failed to set active address:', err);
+      if (import.meta.env.DEV) console.error('Failed to set active address:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('useLocationStore failed to set active address'), 'useLocationStore.setActiveAddress');
       if (addr) {
         setAddressPref(addr).catch((e) => {
           if (import.meta.env.DEV) console.warn('[LocationStore] non-critical error:', e);
@@ -194,7 +196,7 @@ export const useLocationStore = create<LocationState>((set, get) => ({
           }
         }
       } catch (e) {
-        console.warn('Failed reading cache during refresh', e);
+        if (import.meta.env.DEV) console.warn('Failed reading cache during refresh', e);
       }
 
       if (needsGeocode) {
@@ -221,7 +223,7 @@ export const useLocationStore = create<LocationState>((set, get) => ({
           const updatedCache = { ...currentCache, ...newState };
           await Preferences.set({ key: CACHE_KEY, value: JSON.stringify(updatedCache) });
         } catch (e) {
-          console.warn('Failed saving cache', e);
+          if (import.meta.env.DEV) console.warn('Failed saving cache', e);
         }
         
         newState.isRefreshing = false;
@@ -281,12 +283,14 @@ export const useLocationStore = create<LocationState>((set, get) => ({
             }
           }
         } catch (e) {
-          console.error('Failed to auto-match address', e);
+          if (import.meta.env.DEV) console.error('Failed to auto-match address', e);
+          crashlytics.recordError(e instanceof Error ? e : new Error('useLocationStore failed to auto-match address'), 'useLocationStore.autoMatchAddress');
         }
       }
       
     } catch (err) {
-      console.error('Error fetching fresh location:', err);
+      if (import.meta.env.DEV) console.error('Error fetching fresh location:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('useLocationStore failed to fetch fresh location'), 'useLocationStore.fetchFreshLocation');
       // Fallback to whatever we have
       set({ isRefreshing: false, loading: false });
     } finally {
@@ -326,7 +330,7 @@ export const useLocationStore = create<LocationState>((set, get) => ({
             }
           }
         } catch (e) {
-          console.warn('Failed to load active address from storage', e);
+          if (import.meta.env.DEV) console.warn('Failed to load active address from storage', e);
         }
       }
 
@@ -343,7 +347,7 @@ export const useLocationStore = create<LocationState>((set, get) => ({
           cachedLocation = JSON.parse(value);
         }
       } catch (e) {
-        console.warn('Failed reading cache on init', e);
+        if (import.meta.env.DEV) console.warn('Failed reading cache on init', e);
       }
       
       if (cachedLocation && cachedLocation.lat && cachedLocation.lng) {

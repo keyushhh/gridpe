@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -52,7 +53,8 @@ const CameraPage = () => {
         }
       }
     } catch (err) {
-      console.error('OCR Error:', err);
+      if (import.meta.env.DEV) console.error('OCR Error:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('CameraPage OCR failed'), 'CameraPage.ocrError');
       setIsProcessing(false);
     }
   };

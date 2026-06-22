@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { crashlytics } from '@/lib/crashlytics';
 const HelpSupport = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -29,7 +30,8 @@ const HelpSupport = () => {
             setRecentOrder(orders[0]);
           }
         } catch (e) {
-          console.error('Failed to fetch recent order', e);
+          if (import.meta.env.DEV) console.error('Failed to fetch recent order', e);
+          crashlytics.recordError(e instanceof Error ? e : new Error('HelpSupport failed to fetch recent order'), 'HelpSupport.fetchRecentOrder');
         } finally {
           setLoading(false);
           setOrdersLoading(false);

@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -32,7 +33,8 @@ const OrderCash = () => {
       try {
         return await fetchRecentOrders(userId);
       } catch (e) {
-        console.error('recentOrdersQuery unexpected error:', e);
+        if (import.meta.env.DEV) console.error('recentOrdersQuery unexpected error:', e);
+        crashlytics.recordError(e instanceof Error ? e : new Error('OrderCash recentOrdersQuery failed'), 'OrderCash.recentOrdersQuery');
         return [];
       }
     },

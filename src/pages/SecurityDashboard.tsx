@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -152,7 +153,8 @@ const SecurityDashboard = () => {
       setBiometricAction('enable');
       setShowMpinForBiometric(true);
     } catch (error: unknown) {
-      console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
+      if (import.meta.env.DEV) console.error('Android Biometric Error:', JSON.stringify(error, null, 2));
+      crashlytics.recordError(error instanceof Error ? error : new Error('SecurityDashboard Android biometric error'), 'SecurityDashboard.biometricEnable');
       const errorMessage = error instanceof Error ? error.message : 'Failed to check biometric availability';
       showToaster(errorMessage, 'error');
     }
@@ -171,7 +173,8 @@ const SecurityDashboard = () => {
         }
         showToaster('Biometric unlock disabled on this device', 'success');
       } catch (error: unknown) {
-        console.error('Failed to disable biometrics:', error);
+        if (import.meta.env.DEV) console.error('Failed to disable biometrics:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error('SecurityDashboard failed to disable biometrics'), 'SecurityDashboard.biometricDisable');
         showToaster('Failed to disable biometrics. Please try again.', 'error');
       } finally {
         setShowMpinForBiometric(false);
@@ -202,7 +205,8 @@ const SecurityDashboard = () => {
       }
       showToaster('Biometric unlock enabled!', 'success');
     } catch (error: unknown) {
-      console.error('Biometric authentication failed:', JSON.stringify(error, null, 2));
+      if (import.meta.env.DEV) console.error('Biometric authentication failed:', JSON.stringify(error, null, 2));
+      crashlytics.recordError(error instanceof Error ? error : new Error('SecurityDashboard biometric authentication failed'), 'SecurityDashboard.biometricAuth');
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed or cancelled';
       showToaster(errorMessage, 'error');
     } finally {

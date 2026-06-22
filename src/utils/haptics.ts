@@ -12,7 +12,7 @@ export const hapticLight = async () => {
   try {
     await Haptics.impact({ style: ImpactStyle.Light });
   } catch (e) {
-    console.warn('Haptics not supported on this device', e);
+    if (import.meta.env.DEV) console.warn('Haptics not supported on this device', e);
   }
 };
 
@@ -25,7 +25,7 @@ export const hapticMedium = async () => {
   try {
     await Haptics.impact({ style: ImpactStyle.Medium });
   } catch (e) {
-    console.warn('Haptics not supported on this device', e);
+    if (import.meta.env.DEV) console.warn('Haptics not supported on this device', e);
   }
 };
 
@@ -37,7 +37,7 @@ export const hapticHeavy = async () => {
   try {
     await Haptics.impact({ style: ImpactStyle.Heavy });
   } catch (e) {
-    console.warn('Haptics not supported on this device', e);
+    if (import.meta.env.DEV) console.warn('Haptics not supported on this device', e);
   }
 };
 
@@ -50,7 +50,7 @@ export const hapticSuccess = async () => {
   try {
     await Haptics.notification({ type: NotificationType.Success });
   } catch (e) {
-    console.warn('Haptics not supported on this device', e);
+    if (import.meta.env.DEV) console.warn('Haptics not supported on this device', e);
   }
 };
 
@@ -63,7 +63,7 @@ export const hapticError = async () => {
   try {
     await Haptics.notification({ type: NotificationType.Error });
   } catch (e) {
-    console.warn('Haptics not supported on this device', e);
+    if (import.meta.env.DEV) console.warn('Haptics not supported on this device', e);
   }
 };
 
@@ -76,6 +76,6 @@ export const hapticWarning = async () => {
   try {
     await Haptics.notification({ type: NotificationType.Warning });
   } catch (e) {
-    console.warn('Haptics not supported on this device', e);
+    if (import.meta.env.DEV) console.warn('Haptics not supported on this device', e);
   }
 };

@@ -34,6 +34,7 @@ import { Share } from '@capacitor/share';
 import { OrderMetadata } from '@/types';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { crashlytics } from '@/lib/crashlytics';
 
 interface RewardTransaction {
   id: string;
@@ -165,14 +166,16 @@ const Rewards = () => {
           url: referralLink,
           dialogTitle: 'Share your referral link',
         });
-      } catch {
+      } catch (err) {
         // User dismissed share sheet — not an error
+        crashlytics.recordError(err instanceof Error ? err : new Error('Rewards share link failed'), 'Rewards.handleCopyLink');
       }
     } else {
       try {
         await navigator.clipboard.writeText(referralLink);
         showToaster('Referral link copied!', 'success');
-      } catch {
+      } catch (err) {
+        crashlytics.recordError(err instanceof Error ? err : new Error('Rewards clipboard copy failed'), 'Rewards.handleCopyLink');
         showToaster('Could not copy link', 'error');
       }
     }

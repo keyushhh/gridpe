@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect, useRef } from 'react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useNavigate } from 'react-router-dom';
@@ -169,7 +170,8 @@ const AddBank = () => {
         state: { accountsAdded: true, selectedAccounts: [savedAccount] },
       });
     } catch (error) {
-      console.error('Error adding bank account:', error);
+      if (import.meta.env.DEV) console.error('Error adding bank account:', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error('AddBank failed to add bank account'), 'AddBank.handleSubmit');
       setIsLoading(false);
     }
   };

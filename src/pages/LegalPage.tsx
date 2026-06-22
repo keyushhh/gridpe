@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { User } from '@supabase/supabase-js';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { crashlytics } from '@/lib/crashlytics';
 interface LegalContent {
   id: string;
   content: string;
@@ -103,7 +104,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
 
         // Check if user has already accepted this version
         let accepted = false;
-        const { data: consent } = await supabase
+        const { data: consent } = await (supabase as any)
           .from('user_legal_consents')
           .select('id')
           .eq('user_id', userId)
@@ -132,7 +133,8 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
           error: null,
         };
       } catch (err) {
-        console.warn('LegalPage: Failed to load content from database, using fallback.', err);
+        if (import.meta.env.DEV) console.warn('LegalPage: Failed to load content from database, using fallback.', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('LegalPage failed to load content from database'), 'LegalPage.fetchContent');
         return defaultData;
       }
     },
@@ -146,7 +148,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
     if (!legalContent) return;
     if (userId) {
       // Save consent to DB
-      const { error: consentError } = await supabase.from('user_legal_consents').upsert(
+      const { error: consentError } = await (supabase as any).from('user_legal_consents').upsert(
         {
           user_id: userId,
           document_type: type,
@@ -156,12 +158,13 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
         { onConflict: 'user_id,document_type,document_id' }
       );
       if (consentError) {
-        console.error('LegalPage: Error saving consent:', consentError);
+        if (import.meta.env.DEV) console.error('LegalPage: Error saving consent:', consentError);
+        crashlytics.recordError(consentError instanceof Error ? consentError : new Error('LegalPage failed to save consent'), 'LegalPage.saveConsent');
       }
 
       // Update user profile terms columns in Supabase
       try {
-        const { error: profileError } = await supabase
+        const { error: profileError } = await (supabase as any)
           .from('profiles')
           .update({
             terms_accepted_at: new Date().toISOString(),
@@ -177,7 +180,8 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
           });
         }
       } catch (err) {
-        console.error('LegalPage: Error updating profile terms columns:', err);
+        if (import.meta.env.DEV) console.error('LegalPage: Error updating profile terms columns:', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('LegalPage failed to update profile terms'), 'LegalPage.updateProfileTerms');
       }
     }
     if (type === 'terms' && !isAccepted) {

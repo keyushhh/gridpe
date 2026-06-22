@@ -9,6 +9,7 @@ import { Order, Rider } from '@/types';
 import BackButton from '@/components/ui/BackButton';
 import { QRCodeSVG } from 'qrcode.react';
 import CardSkeleton from '@/components/skeletons/CardSkeleton';
+import { crashlytics } from '@/lib/crashlytics';
 // KYC Backgrounds
 const ViewRiderKyc = () => {
   const navigate = useNavigate();
@@ -54,14 +55,16 @@ const ViewRiderKyc = () => {
           if (data && !riderError) {
             setRider(data);
           } else {
-            console.error('Rider fetch error:', riderError);
+            if (import.meta.env.DEV) console.error('Rider fetch error:', riderError);
+            crashlytics.recordError(riderError instanceof Error ? riderError : new Error('ViewRiderKyc rider fetch failed'), 'ViewRiderKyc.fetchRiderData');
             setError('Rider information not available');
           }
         } else if (!rider && !currentOrder?.rider_id) {
           setError('No rider assigned to this order yet');
         }
       } catch (err: unknown) {
-        console.error('Data loading error:', err);
+        if (import.meta.env.DEV) console.error('Data loading error:', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('ViewRiderKyc data loading failed'), 'ViewRiderKyc.loadData');
         setError('Failed to load identity data');
       } finally {
         setIsLoading(false);
@@ -117,6 +120,7 @@ const ViewRiderKyc = () => {
         })
         .replace(/\//g, '/');
     } catch (e) {
+      crashlytics.recordError(e instanceof Error ? e : new Error('ViewRiderKyc unknown failure'), 'ViewRiderKyc.unknown');
       return 'Not Available';
     }
   };

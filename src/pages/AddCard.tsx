@@ -240,7 +240,8 @@ const AddCard = () => {
             } catch (err) {
               crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[AddCard] verify-card-order web error');
               showToaster('Card verification failed. Please try again.', 'error');
-              console.error('[AddCard] verify-card-order web error:', err);
+              if (import.meta.env.DEV) console.error('[AddCard] verify-card-order web error:', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('AddCard verify-card-order web error'), 'AddCard.verifyCardOrderWeb');
             }
           } else if (result.error) {
             showToaster('Card verification failed. Please try again.', 'error');
@@ -250,7 +251,8 @@ const AddCard = () => {
     } catch (err) {
       crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'AddCard handleSaveCard error');
       showToaster('Failed to save card. Please try again.', 'error');
-      console.error('AddCard error:', err);
+      if (import.meta.env.DEV) console.error('AddCard error:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('AddCard unknown error'), 'AddCard.handleSubmit');
     } finally {
       setIsLoading(false);
     }
@@ -310,7 +312,8 @@ const AddCard = () => {
       } catch (err) {
         crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[AddCard] verify-card-order native deep link error');
         showToaster('Card verification failed. Please try again.', 'error');
-        console.error('[AddCard] verify-card-order error:', err);
+        if (import.meta.env.DEV) console.error('[AddCard] verify-card-order error:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('AddCard verify-card-order native error'), 'AddCard.verifyCardOrderNative');
       }
     });
     return () => {

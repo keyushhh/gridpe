@@ -46,7 +46,8 @@ const SelectPaymentMethod = () => {
         }
       } catch (error) {
         crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'SelectPaymentMethod: Error loading bank accounts');
-        console.error('Error loading bank accounts:', error);
+        if (import.meta.env.DEV) console.error('Error loading bank accounts:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error('SelectPaymentMethod failed to load bank accounts'), 'SelectPaymentMethod.loadBankAccounts');
       } finally {
         setLoading(false);
       }

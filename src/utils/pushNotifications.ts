@@ -32,12 +32,12 @@ export const registerPushNotifications = async (navigate?: (path: string) => voi
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('profiles').update({ push_token: token }).eq('id', user.id);
+        await (supabase as any).from('profiles').update({ push_token: token }).eq('id', user.id);
       }
     });
 
     PushNotifications.addListener('registrationError', error => {
-      console.error('Push registration error:', error);
+      if (import.meta.env.DEV) console.error('Push registration error:', error);
     });
 
     // Notification received while app is in FOREGROUND — show in-app banner (handled separately)
@@ -62,6 +62,6 @@ export const registerPushNotifications = async (navigate?: (path: string) => voi
       window.dispatchEvent(new CustomEvent('notification-tapped', { detail: data }));
     });
   } catch (e) {
-    console.error('Push notification setup failed:', e);
+    if (import.meta.env.DEV) console.error('Push notification setup failed:', e);
   }
 };

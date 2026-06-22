@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import CardSkeleton from '@/components/skeletons/CardSkeleton';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
+import { crashlytics } from '@/lib/crashlytics';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -35,7 +36,8 @@ const AuthCallback = () => {
           if (!error) {
             tokensFound = true;
           } else {
-            console.error('AuthCallback: Error setting session:', error);
+            if (import.meta.env.DEV) console.error('AuthCallback: Error setting session:', error);
+            crashlytics.recordError(error instanceof Error ? error : new Error('AuthCallback setSession failed'), 'AuthCallback.setSession');
           }
         }
       }
@@ -47,7 +49,10 @@ const AuthCallback = () => {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (!error) tokensFound = true;
-          else console.error('AuthCallback: Exchange error:', error);
+          else {
+            if (import.meta.env.DEV) console.error('AuthCallback: Exchange error:', error);
+            crashlytics.recordError(error instanceof Error ? error : new Error('AuthCallback exchangeCodeForSession failed'), 'AuthCallback.exchangeCode');
+          }
         }
       }
 

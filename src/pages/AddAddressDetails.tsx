@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -80,7 +81,8 @@ const AddAddressDetails = () => {
           await fetchProfileData(currentUserId);
         }
       } catch (e) {
-        console.error(e);
+        if (import.meta.env.DEV) console.error('[AddAddressDetails] error:', e);
+        crashlytics.recordError(e instanceof Error ? e : new Error('AddAddressDetails unknown error'), 'AddAddressDetails.unknown');
       } finally {
         if (isMounted) setProfileLoading(false);
       }
@@ -284,7 +286,7 @@ const AddAddressDetails = () => {
         try {
           writeStorage('user_address', uiAddr, userId);
         } catch (e) {
-          console.warn('Failed to persist address to namespaced storage', e);
+          if (import.meta.env.DEV) console.warn('Failed to persist address to namespaced storage', e);
         }
       }
 
@@ -293,7 +295,8 @@ const AddAddressDetails = () => {
       navigate(ROUTES.HOME);
     } catch (err: unknown) {
       const error = err as Error;
-      console.error('Failed to save address', error);
+      if (import.meta.env.DEV) console.error('Failed to save address', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error('AddAddressDetails failed to save address'), 'AddAddressDetails.saveAddress');
       showToaster(`Failed to save address: ${error.message || 'Unknown error'}`, 'error');
     }
   };

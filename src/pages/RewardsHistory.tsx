@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { ASSETS } from '@/constants/assets';
 import BaseListSkeleton from '@/components/skeletons/BaseListSkeleton';
 import { ShoppingBag, Users, Award, Flame, Gift, ArrowUpRight, Clock } from 'lucide-react';
+import { crashlytics } from '@/lib/crashlytics';
 
 const RewardsHistory = () => {
   const navigate = useNavigate();
@@ -18,17 +19,22 @@ const RewardsHistory = () => {
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['rewards_history', userId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return [];
 
-      const { data, error } = await supabase
-        .from('reward_transactions')
-        .select('id, type, points_amount, description, created_at, reference_type')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        const { data, error } = await supabase
+          .from('reward_transactions')
+          .select('id, type, points_amount, description, created_at, reference_type')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        crashlytics.recordError(err instanceof Error ? err : new Error('RewardsHistory failed to load transactions'), 'RewardsHistory.queryFn');
+        throw err;
+      }
     },
     enabled: !!userId,
   });

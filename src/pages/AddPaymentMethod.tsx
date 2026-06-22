@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -81,7 +82,8 @@ const AddPaymentMethod = () => {
         const accounts = await fetchBankAccounts(userId);
         setBankAccounts(accounts);
       } catch (error) {
-        console.error('Error loading bank accounts:', error);
+        if (import.meta.env.DEV) console.error('Error loading bank accounts:', error);
+        crashlytics.recordError(error instanceof Error ? error : new Error('AddPaymentMethod failed to load bank accounts'), 'AddPaymentMethod.loadBankAccounts');
         throw error;
       } finally {
         setLoading(false);

@@ -1,4 +1,5 @@
 import { ASSETS } from '@/constants/assets';
+import { crashlytics } from '@/lib/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -261,7 +262,8 @@ const LiveRates = () => {
         }
       }
     } catch (err) {
-      console.error('Error fetching historical data:', err);
+      if (import.meta.env.DEV) console.error('Error fetching historical data:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('LiveRates failed to fetch historical data'), 'LiveRates.fetchHistoricalData');
       setHistory([]);
     } finally {
       setIsLoadingHistory(false);
@@ -325,7 +327,8 @@ const LiveRates = () => {
         // Fetch real historical data from Frankfurter API
         fetchHistoricalData(currentFrom, currentTo, activeRange);
       } catch (err) {
-        console.error('Error fetching rates:', err);
+        if (import.meta.env.DEV) console.error('Error fetching rates:', err);
+        crashlytics.recordError(err instanceof Error ? err : new Error('LiveRates failed to fetch rates'), 'LiveRates.fetchRates');
         if (currentFrom === 'INR') {
           setFxRate(1 / 83.45);
         } else if (currentTo === 'INR') {

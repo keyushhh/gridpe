@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import DiditSDK from '@didit-protocol/sdk-web';
+import { crashlytics } from '@/lib/crashlytics';
 const KYCForm = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
@@ -36,7 +37,8 @@ const KYCForm = () => {
           if (typeof DiditSDK.shared.close === 'function') DiditSDK.shared.close();
           if (typeof DiditSDK.shared.destroy === 'function') DiditSDK.shared.destroy();
         } catch (e) {
-          console.warn('Didit SDK cleanup warning:', e);
+          if (import.meta.env.DEV) console.warn('Didit SDK cleanup warning:', e);
+          crashlytics.recordError(e instanceof Error ? e : new Error('KYCForm Didit SDK cleanup warning'), 'KYCForm.didItCleanup');
         }
       }
     };
@@ -111,7 +113,8 @@ const KYCForm = () => {
         },
       });
     } catch (error) {
-      console.error('KYC Submission error:', error);
+      if (import.meta.env.DEV) console.error('KYC Submission error:', error);
+      crashlytics.recordError(error instanceof Error ? error : new Error('KYCForm submission failed'), 'KYCForm.handleSubmit');
       showToaster('Failed to start verification. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
