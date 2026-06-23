@@ -199,7 +199,7 @@ const NeedHelp = () => {
                 ₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
               <div
-                className={`absolute left-[12px] h-[1px] ${isDarkMode ? 'bg-[#363636]' : 'bg-brand-border-light'}`}
+                className={`absolute left-[12px] h-[1px] ${isDarkMode ? 'bg-brand-border-mid' : 'bg-brand-border-light'}`}
                 style={{ top: '65px', width: '338px' }}
               />
               <div

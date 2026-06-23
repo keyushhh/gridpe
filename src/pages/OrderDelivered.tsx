@@ -294,8 +294,8 @@ const OrderDelivered = () => {
                 <button
                   onClick={() => setWouldOrderAgain(false)}
                   className={`flex-1 h-[40px] rounded-[6px] border flex items-center justify-center font-satoshi font-medium text-[14px] transition-all ${wouldOrderAgain === false
-                      ? 'bg-[#ef4444] border-[#ef4444] text-white'
-                      : 'border-[#ef4444] text-[#ef4444] bg-transparent'
+                      ? 'bg-brand-error-light border-brand-error-light text-white'
+                      : 'border-brand-error-light text-brand-error-light bg-transparent'
                     }`}
                 >
                   ✗ Not Really
@@ -303,8 +303,8 @@ const OrderDelivered = () => {
                 <button
                   onClick={() => setWouldOrderAgain(true)}
                   className={`flex-1 h-[40px] rounded-[6px] border flex items-center justify-center font-satoshi font-medium text-[14px] transition-all ${wouldOrderAgain === true
-                      ? 'bg-[#22c55e] border-[#22c55e] text-white'
-                      : 'border-[#22c55e] text-[#22c55e] bg-transparent'
+                      ? 'bg-brand-green-chart border-brand-green-chart text-white'
+                      : 'border-brand-green-chart text-brand-green-chart bg-transparent'
                     }`}
                 >
                   ✓ Yes, Absolutely
@@ -475,8 +475,8 @@ const OrderDelivered = () => {
               <button
                 onClick={() => setCashQuality(cashQuality === 'no' ? null : 'no')}
                 className={`w-[46px] h-[40px] rounded-[6px] border flex items-center justify-center font-satoshi font-medium text-[14px] transition-all ${cashQuality === 'no'
-                    ? 'bg-[#ef4444] border-[#ef4444] text-white'
-                    : 'border-[#ef4444] text-[#ef4444] bg-transparent'
+                    ? 'bg-brand-error-light border-brand-error-light text-white'
+                    : 'border-brand-error-light text-brand-error-light bg-transparent'
                   }`}
               >
                 No
@@ -484,8 +484,8 @@ const OrderDelivered = () => {
               <button
                 onClick={() => setCashQuality(cashQuality === 'yes' ? null : 'yes')}
                 className={`w-[46px] h-[40px] rounded-[6px] border flex items-center justify-center font-satoshi font-medium text-[14px] transition-all ${cashQuality === 'yes'
-                    ? 'bg-[#22c55e] border-[#22c55e] text-white'
-                    : 'border-[#22c55e] text-[#22c55e] bg-transparent'
+                    ? 'bg-brand-green-chart border-brand-green-chart text-white'
+                    : 'border-brand-green-chart text-brand-green-chart bg-transparent'
                   }`}
               >
                 Yes
@@ -512,8 +512,8 @@ const OrderDelivered = () => {
           </p>
           <div className="mt-[20px] flex items-center gap-[12px]">
             <div className="relative flex items-center justify-center w-[14px] h-[14px]">
-              <div className="absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75 animate-ping"></div>
-              <div className="relative w-[10px] h-[10px] rounded-full bg-[#22c55e] z-10" />
+              <div className="absolute inline-flex h-full w-full rounded-full bg-brand-green-chart opacity-75 animate-ping"></div>
+              <div className="relative w-[10px] h-[10px] rounded-full bg-brand-green-chart z-10" />
             </div>
             <span className={`text-[13px] font-normal font-satoshi ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}>
               Delivery confirmed

@@ -248,7 +248,7 @@ const SavedAddresses = () => {
                   setShowActionSheet(true);
                   setShowDeleteConfirm(false);
                 }}
-                className={`cursor-pointer ${isDarkMode ? 'bg-[#0D0D0D]/60 active:bg-white/5' : 'bg-white active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-all duration-300 ${
+                className={`cursor-pointer ${isDarkMode ? 'bg-brand-surface-mid/60 active:bg-white/5' : 'bg-white active:bg-black/5'} backdrop-blur-sm border rounded-xl p-4 transition-all duration-300 ${
                   selectedAddressId === addr.id
                     ? 'border-brand-primary shadow-md shadow-brand-primary/10'
                     : isDarkMode
@@ -377,7 +377,7 @@ const SavedAddresses = () => {
                       showToaster('Delivery address updated', 'success');
                       setShowActionSheet(false);
                     }}
-                    className="w-full h-[52px] rounded-full bg-[#5260FE] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi shadow-lg shadow-indigo-950/20"
+                    className="w-full h-[52px] rounded-full bg-brand-primary active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi shadow-lg shadow-indigo-950/20"
                   >
                     Set as Delivery Address
                   </button>
@@ -408,7 +408,7 @@ const SavedAddresses = () => {
                     onClick={() => {
                       setShowDeleteConfirm(true);
                     }}
-                    className="w-full h-[52px] rounded-full bg-[#EF4444] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi"
+                    className="w-full h-[52px] rounded-full bg-brand-error-light active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi"
                   >
                     Delete
                   </button>
@@ -470,7 +470,7 @@ const SavedAddresses = () => {
                         setShowActionSheet(false);
                       }
                     }}
-                    className="w-full h-[52px] rounded-full bg-[#EF4444] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi"
+                    className="w-full h-[52px] rounded-full bg-brand-error-light active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi"
                   >
                     Delete
                   </button>

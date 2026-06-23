@@ -287,7 +287,7 @@ const ScheduleDelivery = () => {
                 AM
               </button>
               <div
-                className={`h-[1px] w-[30px] my-[4px] ${isDarkMode ? 'bg-[#2D2D30]' : 'bg-brand-border-light'}`}
+                className={`h-[1px] w-[30px] my-[4px] ${isDarkMode ? 'bg-brand-border-mid' : 'bg-brand-border-light'}`}
               />
               <button
                 onClick={() => handleMeridiemClick('PM')}

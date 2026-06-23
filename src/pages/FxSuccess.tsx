@@ -432,7 +432,7 @@ const FxSuccess = () => {
             </div>
             {statusConfig.showMap && (
               <div className="shrink-0 relative rounded-[8px] overflow-hidden w-[110px] h-[82px] bg-neutral-900">
-                <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>
                   <Map
                   {...viewState}
                   style={{ width: '100%', height: '100%' }}

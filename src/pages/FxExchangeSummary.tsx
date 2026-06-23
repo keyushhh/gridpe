@@ -1174,7 +1174,7 @@ const FxExchangeSummary = () => {
         onAddressSelect={handleAddressSelect}
       />
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? 'bg-[#171717]/30 backdrop-blur-[24px]' : 'bg-white border-t border-x border-brand-border-light'}`}
+        className={`fixed bottom-0 left-0 right-0 z-50 flex flex-col pt-[26px] px-[20px] safe-bottom pb-4 shadow-none ${isDarkMode ? 'bg-brand-surface-dark/30 backdrop-blur-[24px]' : 'bg-white border-t border-x border-brand-border-light'}`}
         style={{
           minHeight: '255px',
           borderTopLeftRadius: '32px',

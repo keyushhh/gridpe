@@ -35,7 +35,7 @@ const OrderCancelled = () => {
     >
       {/* Red Glowing Orb for Light Mode */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-[#EF4444] rounded-full blur-[120px] opacity-[0.15] pointer-events-none" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-brand-error-light rounded-full blur-[120px] opacity-[0.15] pointer-events-none" />
       )}
       <div
         className="flex flex-col items-center px-[35px] safe-top relative z-10"
@@ -80,9 +80,9 @@ const OrderCancelled = () => {
           </p>
           {/* Status Dot */}
           <div className="flex items-start gap-2">
-            <div className="w-[12px] h-[12px] rounded-full bg-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.5)] mt-0.5" />
+            <div className="w-[12px] h-[12px] rounded-full bg-brand-error-light shadow-[0_0_8px_rgba(239,68,68,0.5)] mt-0.5" />
             <span
-              className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-[#D0D0D0]' : 'text-brand-text-muted'}`}
+              className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-brand-text-subtle' : 'text-brand-text-muted'}`}
             >
               Delivery rejected due to flagged verification.
             </span>

@@ -34,7 +34,7 @@ const HelpReportSuccess = () => {
     >
       {/* Light Mode Success Glow */}
       {!isDarkMode && (
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-[#0D992F] rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-brand-success-mid rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
       {/* Header */}
       <header className="px-5 pt-8 pb-0 flex items-center justify-center relative z-10 shrink-0">

@@ -80,7 +80,7 @@ const PaymentMissing = () => {
             You don’t have a payment method added.
           </h2>
           <p
-            className={`${isDarkMode ? 'text-[#AFAFAF]' : 'text-black'} text-[16px] font-normal font-satoshi leading-snug`}
+            className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black'} text-[16px] font-normal font-satoshi leading-snug`}
           >
             So unless you plan to launch your own bank in the next 3 seconds...
             <p>

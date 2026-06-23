@@ -273,7 +273,7 @@ const Rewards = () => {
                 className="flex items-center justify-between px-[14px] h-[38px] rounded-full bg-black border border-white/10"
               >
                 <p
-                  className="font-satoshi text-[12px] text-[#5260FE] truncate flex-1 mr-2"
+                  className="font-satoshi text-[12px] text-brand-primary truncate flex-1 mr-2"
                   style={{ maxWidth: '80%' }}
                 >
                   {referralLink}
@@ -289,7 +289,7 @@ const Rewards = () => {
               {/* Send Invite button */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
-                className="w-full h-[38px] shadow-xl transition-all bg-[#5260FE] hover:bg-[#5260FE]/90 active:scale-[0.98] text-white rounded-full font-satoshi font-medium text-[14px] flex items-center justify-center border-none"
+                className="w-full h-[38px] shadow-xl transition-all bg-brand-primary hover:bg-brand-primary/90 active:scale-[0.98] text-white rounded-full font-satoshi font-medium text-[14px] flex items-center justify-center border-none"
               >
                 Send Invite
               </button>
@@ -311,7 +311,7 @@ const Rewards = () => {
           {/* Reward Points Row */}
           <div className="flex items-center justify-between mb-[20px]">
             <div className="flex flex-col">
-              <p className="font-satoshi text-[14px] text-[#C4C4C4] leading-none mb-[8px]">
+              <p className="font-satoshi text-[14px] text-brand-text-subtle leading-none mb-[8px]">
                 Reward points
               </p>
               <p className="font-satoshi font-bold text-[32px] text-white leading-none">
@@ -364,7 +364,7 @@ const Rewards = () => {
                 return (
                   <>
                     {/* Continuous Track Container perfectly aligned to icon centers */}
-                    <div className="absolute top-1/2 left-[16px] right-[16px] -translate-y-1/2 h-[6px] bg-[#232323] rounded-full overflow-hidden">
+                    <div className="absolute top-1/2 left-[16px] right-[16px] -translate-y-1/2 h-[6px] bg-brand-surface-mid rounded-full overflow-hidden">
                       {/* Filled Track */}
                       <div 
                         className="h-full bg-[#FF961C] transition-all duration-500 rounded-full" 
@@ -400,7 +400,7 @@ const Rewards = () => {
           {/* Badges Showcase */}
           <div className="mb-[8px] relative z-10">
             <div className="flex items-center gap-2 mb-[16px]">
-              <h3 className="text-[14px] font-medium text-[#C4C4C4]">
+              <h3 className="text-[14px] font-medium text-brand-text-subtle">
                 Badges
               </h3>
             </div>
@@ -519,7 +519,7 @@ const Rewards = () => {
                     <span>Not yet earned</span>
                   </div>
                   {selectedBadge.points_reward > 0 && (
-                    <span className="text-[12px] text-[#5260FE] mt-1">+{selectedBadge.points_reward} pts on unlock</span>
+                    <span className="text-[12px] text-brand-primary mt-1">+{selectedBadge.points_reward} pts on unlock</span>
                   )}
                 </div>
               )}

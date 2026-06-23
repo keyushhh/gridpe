@@ -22,6 +22,7 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useAppUpdateCheck } from '@/hooks/useAppUpdateCheck';
+import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
 import { crashlytics } from '@/lib/crashlytics';
 
 type SecurityStatus = 'verified' | 'in_review' | 'pending' | 'incomplete';
@@ -428,7 +429,7 @@ const Settings = () => {
                   </svg>
                 </div>
                 <div className="mx-3 flex-1 flex flex-col">
-                  <span className="text-[15px] font-semibold text-[#5260FE]">Update Available</span>
+                  <span className="text-[15px] font-semibold text-brand-primary">Update Available</span>
                   <span className="text-[12px] font-normal" style={{ color: 'rgba(82,96,254,0.7)' }}>Tap to update to the latest version</span>
                 </div>
               </div>
@@ -441,9 +442,9 @@ const Settings = () => {
 
         {/* PAYMENT METHODS */}
         <div className="px-5 mt-6">
-          <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+          <GpSectionLabel className="mb-3.5">
             PAYMENT METHODS
-          </p>
+          </GpSectionLabel>
           <div className="space-y-4">
             <div
               className="flex justify-between cursor-pointer"
@@ -470,9 +471,9 @@ const Settings = () => {
 
         {/* MANAGE */}
         <div className="px-5 mt-6">
-          <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+          <GpSectionLabel className="mb-3.5">
             MANAGE
-          </p>
+          </GpSectionLabel>
           <div className="space-y-4">
             <div
               className="flex justify-between cursor-pointer"
@@ -493,9 +494,9 @@ const Settings = () => {
 
         {/* LEGAL */}
         <div className="px-5 mt-6">
-          <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+          <GpSectionLabel className="mb-3.5">
             LEGAL
-          </p>
+          </GpSectionLabel>
           <div className="space-y-4">
             <div
               className="flex justify-between cursor-pointer"
@@ -528,9 +529,9 @@ const Settings = () => {
         {/* PREFERENCES & Footer Container */}
         <div className="flex-1 w-full bg-brand-bg-light dark:bg-transparent mt-6 pt-4 flex flex-col">
           <div className="px-5">
-            <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+            <GpSectionLabel className="mb-3.5">
               PREFERENCES
-            </p>
+            </GpSectionLabel>
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
@@ -579,9 +580,9 @@ const Settings = () => {
 
           {/* ACCOUNT */}
           <div className="px-5 mt-6">
-            <p className="mb-3.5 text-black dark:text-muted-foreground text-[14px] font-bold tracking-wider">
+            <GpSectionLabel className="mb-3.5">
               ACCOUNT
-            </p>
+            </GpSectionLabel>
             <div className="space-y-4">
               <div className="flex justify-between cursor-pointer" onClick={() => setShowLogoutConfirmation(true)}>
                 <div className="flex items-center gap-3">
@@ -697,7 +698,7 @@ const Settings = () => {
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="mx-auto mb-4 text-[#EF4444] animate-pulse"
+              className="mx-auto mb-4 text-brand-error-light animate-pulse"
             >
               <path
                 d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H14"
@@ -747,7 +748,7 @@ const Settings = () => {
                   });
                 }}
                 disabled={isLoggingOut}
-                className={`w-full h-[52px] rounded-full bg-gradient-to-r from-[#EF4444] to-[#DC2626] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi ${
+                className={`w-full h-[52px] rounded-full bg-gradient-to-r from-brand-error-light to-brand-error-dark active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi ${
                   isDarkMode ? 'shadow-lg shadow-red-950/20' : 'shadow-none'
                 }`}
               >

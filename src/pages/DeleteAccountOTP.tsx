@@ -6,6 +6,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
@@ -102,11 +103,9 @@ const DeleteAccountOTP = () => {
         {/* OTP Input */}
         <div className="mb-8 w-full flex flex-col items-center">
           <div className="w-full text-left mb-[24px]">
-            <h3
-              className={`${isDarkMode ? 'text-[#707070]' : 'text-black/50'} text-[14px] font-bold font-sans uppercase mb-[6px]`}
-            >
+            <GpSectionLabel>
               CONFIRM VERIFICATION CODE
-            </h3>
+            </GpSectionLabel>
             <p
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-italic font-sans italic`}
             >

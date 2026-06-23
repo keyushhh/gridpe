@@ -3,6 +3,7 @@ import { PhoneInput } from '@/components/PhoneInput';
 import { Button } from '@/components/ui/button';
 
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import { GpButton } from '@/components/ui/GpButton';
 
 interface PhoneInputSectionProps {
   initialValue: string;
@@ -75,21 +76,13 @@ const PhoneInputSection = React.forwardRef<HTMLInputElement, PhoneInputSectionPr
       </div>
 
       <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-        <Button
-          variant="gradient"
-          className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans transition-all duration-200"
+        <GpButton
           onClick={handleSubmit}
+          isLoading={isLoading}
           disabled={isLoading || phoneNumber.length === 0}
         >
-          {isLoading ? (
-            <span className="flex items-center gap-2">
-              <ButtonSpinner />
-              Sending...
-            </span>
-          ) : (
-            'Request OTP'
-          )}
-        </Button>
+          Request OTP
+        </GpButton>
       </div>
     </>
   );

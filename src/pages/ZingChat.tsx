@@ -268,7 +268,7 @@ const ZingChat = () => {
                         msg.sender === 'zing'
                           ? `w-fit rounded-2xl ${isConsecutive ? 'rounded-tl-md' : ''} ${!isLastInGroup ? 'rounded-bl-md' : 'rounded-bl-sm'} ${
                               isDarkMode
-                                ? 'bg-[#1A1A1A] border border-white/5 shadow-sm'
+                                ? 'bg-brand-surface-dark border border-white/5 shadow-sm'
                                 : 'bg-white border border-gray-100 shadow-sm'
                             }`
                           : `rounded-2xl ${isConsecutive ? 'rounded-tr-md' : ''} ${!isLastInGroup ? 'rounded-br-md' : 'rounded-br-sm'} ${
@@ -345,7 +345,7 @@ const ZingChat = () => {
                 </div>
                 <div
                   className={`rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1 mb-1 transition-colors ${
-                    isDarkMode ? 'bg-[#1A1A1A] border border-white/5 shadow-sm' : 'bg-white border border-gray-100 shadow-sm'
+                    isDarkMode ? 'bg-brand-surface-dark border border-white/5 shadow-sm' : 'bg-white border border-gray-100 shadow-sm'
                   }`}
                 >
                   <div
@@ -374,7 +374,7 @@ const ZingChat = () => {
         />
         <div
           className={`w-full h-[48px] rounded-full flex items-center px-6 transition-all duration-300 ${
-            isDarkMode ? 'bg-brand-card-dark border border-[#313131] shadow-sm' : 'bg-white border border-brand-border-light shadow-sm'
+            isDarkMode ? 'bg-brand-card-dark border border-brand-border-mid shadow-sm' : 'bg-white border border-brand-border-light shadow-sm'
           }`}
         >
           <label htmlFor="chat-input" className="sr-only">

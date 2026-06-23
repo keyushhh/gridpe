@@ -6,6 +6,7 @@ import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import { GpButton } from '@/components/ui/GpButton';
 const FxKYCSuccess = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
@@ -79,26 +80,15 @@ const FxKYCSuccess = () => {
         <div className="flex-1 min-h-[40px]" />
         {/* Actions */}
         <div className="w-full flex flex-col items-center gap-4">
-          <button
+          <GpButton
+            size="lg"
             onClick={handleGoToFx}
             disabled={loading}
-            className={`w-full h-[52px] flex items-center justify-center text-[16px] font-bold text-white transition-all active:scale-95 rounded-full shadow-xl shadow-brand-primary/20 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-            style={{
-              backgroundImage: isDarkMode ? `url(${ASSETS.DARKBG_CTA})` : 'none',
-              backgroundColor: isDarkMode ? '#5260FE' : '#000000',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
+            isLoading={loading}
+            className="shadow-xl shadow-brand-primary/20"
           >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <ButtonSpinner />
-                Please wait...
-              </span>
-            ) : (
-              'Go to FX Exchange'
-            )}
-          </button>
+            Go to FX Exchange
+          </GpButton>
           {/* Disclaimer — 12px below CTA */}
           <p
             className={`${isDarkMode ? 'text-white/40' : 'text-black/40'} text-[12px] text-center font-satoshi`}

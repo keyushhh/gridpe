@@ -65,8 +65,8 @@ const GlobalCustomToaster: React.FC = () => {
       : 'radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0) 100%)';
   };
   const getLoaderColor = () => {
-    if (type === 'success') return isDarkMode ? '#00ED51' : '#0C7E4B';
-    if (type === 'error' || type === 'delete') return isDarkMode ? '#F04248' : '#A70000';
+    if (type === 'success') return isDarkMode ? '#16B751' : '#0C7E4B';
+    if (type === 'error' || type === 'delete') return isDarkMode ? '#EF4444' : '#A70000';
     return isDarkMode ? '#FFFFFF' : '#000000';
   };
   return (

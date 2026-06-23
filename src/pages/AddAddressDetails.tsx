@@ -356,12 +356,12 @@ const AddAddressDetails = () => {
           {placeholder}
         </label>
         <div
-          className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
+          className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-brand-border-mid' : 'bg-brand-bg-light border border-brand-border-light'}`}
         >
           {!value && (
             <div className="absolute inset-0 px-6 flex items-center pointer-events-none">
               <span
-                className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}
+                className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-brand-text-dim2'}`}
               >
                 {placeholder}
                 {mandatory && <span className="text-brand-error ml-1">*</span>}
@@ -420,7 +420,7 @@ const AddAddressDetails = () => {
                   <div className="h-10 w-full rounded-[10px] bg-white/10" />
                 </div>
               ) : (
-                <div className={`rounded-[16px] p-3 border ${isDarkMode ? 'bg-[#1A1A1A] border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
+                <div className={`rounded-[16px] p-3 border ${isDarkMode ? 'bg-brand-surface-dark border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
                 <label 
                   className={`flex flex-col rounded-lg cursor-pointer ${useAccountDetails ? 'py-1 px-0.5' : 'px-2 py-1.5 mb-3'}`}
                   style={!useAccountDetails ? {
@@ -451,7 +451,7 @@ const AddAddressDetails = () => {
                   <div className="space-y-[10px]">
                     {renderInput('addr-name', name, setName, 'Receiver name', true)}
                     <div
-                      className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
+                      className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-brand-border-mid' : 'bg-brand-bg-light border border-brand-border-light'}`}
                     >
                       <button 
                         onClick={() => showToaster('Contact selection requires native plugin installation.', 'error')}
@@ -463,7 +463,7 @@ const AddAddressDetails = () => {
                       <div className="flex-1 ml-[22px] mr-[20px] relative h-full flex items-center">
                         {!phone && (
                           <div className="absolute inset-0 flex items-center pointer-events-none z-0">
-                            <span className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}>
+                            <span className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-brand-text-dim2'}`}>
                               Receiver number
                               <span className="text-brand-error ml-1">*</span>
                             </span>
@@ -489,7 +489,7 @@ const AddAddressDetails = () => {
               <h2 className={`text-[14px] font-bold mb-3 px-1 ${isDarkMode ? 'text-white' : 'text-brand-bg-deep'}`}>
                 Location Details
               </h2>
-              <div className={`rounded-2xl p-3 border ${isDarkMode ? 'bg-[#1A1A1A] border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
+              <div className={`rounded-2xl p-3 border ${isDarkMode ? 'bg-brand-surface-dark border-white/5' : 'bg-white border-brand-border-light shadow-sm'}`}>
                 {/* Tab Switch */}
                 <div className={`flex rounded-full p-1 mb-4 ${isDarkMode ? 'bg-black/30' : 'bg-gray-100'}`}>
                   {tags.map(tag => {
@@ -527,7 +527,7 @@ const AddAddressDetails = () => {
                 <div className="flex items-stretch gap-3 mb-4">
                   <div className="flex-1 min-w-0">
                     <div
-                      className={`h-full min-h-[76px] rounded-xl px-4 py-3 flex flex-col justify-center transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
+                      className={`h-full min-h-[76px] rounded-xl px-4 py-3 flex flex-col justify-center transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-brand-border-mid' : 'bg-brand-bg-light border border-brand-border-light'}`}
                     >
                       <span className={`text-[11px] font-medium font-satoshi ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                         Area
@@ -542,7 +542,7 @@ const AddAddressDetails = () => {
                     className={`w-[76px] min-h-[76px] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shrink-0 border ${isDarkMode ? 'border-white/10 bg-[#222]' : 'border-gray-200 bg-blue-50'}`}
                   >
                     <div className="absolute inset-0 pointer-events-none z-0">
-                      <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                      <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>
                         <Map
                         initialViewState={{
                           longitude: mapLng,
@@ -582,12 +582,12 @@ const AddAddressDetails = () => {
                 Delivery Instructions <span className={`font-normal text-[12px] ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(Optional)</span>
               </h2>
               <div
-                className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-[#313131]' : 'bg-brand-bg-light border border-brand-border-light'}`}
+                className={`h-[48px] rounded-full px-6 flex items-center relative transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-brand-border-mid' : 'bg-brand-bg-light border border-brand-border-light'}`}
               >
                 <div className="flex-1 relative h-full flex items-center mr-2">
                   {!deliveryInstructions && (
                     <div className="absolute inset-0 flex items-center pointer-events-none z-0">
-                      <span className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-[#666666]'}`}>
+                      <span className={`font-light text-[14px] font-satoshi ${isDarkMode ? 'text-white opacity-50' : 'text-brand-text-dim2'}`}>
                         Instructions to reach location
                       </span>
                     </div>
@@ -646,11 +646,11 @@ const AddAddressDetails = () => {
       {/* Confirm Details Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-[90%] max-w-sm bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="w-[90%] max-w-sm bg-white dark:bg-brand-surface-dark rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-2xl relative overflow-hidden">
             
             {/* Map Pattern Background */}
             <div className="absolute top-0 left-0 right-0 h-32 z-0 opacity-70 dark:opacity-30 pointer-events-none">
-              <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+              <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>
                 <Map
                 initialViewState={{
                   longitude: mapLng,

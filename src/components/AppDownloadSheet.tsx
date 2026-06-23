@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import appDownloadSheetImg from '../assets/app-download-sheet.png';
+import { GpButton } from '@/components/ui/GpButton';
 
 let hasBeenDismissedThisSession = false;
 
@@ -105,7 +106,7 @@ export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss
       
       {/* Sheet */}
       <div 
-        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1A1C20] rounded-t-[16px] z-[100000] sm:max-w-[430px] sm:mx-auto h-[466px] flex flex-col items-center ${
+        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-brand-surface-dark rounded-t-[16px] z-[100000] sm:max-w-[430px] sm:mx-auto h-[466px] flex flex-col items-center ${
           dragY === 0 ? 'transition-transform duration-300 ease-out' : ''
         } ${isVisible && !isClosing ? 'translate-y-0' : 'translate-y-full'}`}
         style={dragY > 0 ? { transform: `translateY(${dragY}px)` } : undefined}
@@ -140,13 +141,13 @@ export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss
           {description ?? "Faster checkout, live order tracking & instant notifications"}
         </p>
         
-        <button 
+        <GpButton 
           onClick={handleDownload}
-          className="mt-[22px] w-[332px] h-[48px] bg-[#5260FE] text-white font-medium text-[14px] rounded-full flex items-center justify-center transition-colors hover:bg-[#404bcf]"
-          style={{ fontFamily: 'Satoshi, sans-serif' }}
+          fullWidth={false}
+          className="mt-[22px] w-[332px]"
         >
           Download the app
-        </button>
+        </GpButton>
         
         <button 
           onClick={handleClose}

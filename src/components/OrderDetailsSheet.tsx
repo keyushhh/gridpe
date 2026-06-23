@@ -490,7 +490,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                         </p>
                       </div>
                       <div className="absolute top-[13.5px] right-[13.5px] w-[98px] h-[68px] rounded-[6px] overflow-hidden">
-                        <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                        <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>
                           <Map
                           {...viewState}
                           style={{ width: '100%', height: '100%' }}

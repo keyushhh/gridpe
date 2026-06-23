@@ -81,7 +81,7 @@ const AccountRetrieved = () => {
           Everything's back. You're safe, we're chill, no one cried. (Okay maybe just a little.)
         </p>
         <p
-          className={`${isDarkMode ? 'text-[#AFAFAF]' : 'text-black'} text-[16px] font-normal font-sans mt-3`}
+          className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black'} text-[16px] font-normal font-sans mt-3`}
           style={{ lineHeight: '120%' }}
         >
           Account reactivated. Let's pretend this emotional dip never happened. We got you.
@@ -89,7 +89,7 @@ const AccountRetrieved = () => {
         <div className="mt-3 flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-[#00FF00] shadow-[0_0_8px_rgba(0,255,0,0.6)]"></div>
           <span
-            className={`${isDarkMode ? 'text-[#D0D0D0]' : 'text-black'} text-[12px] font-normal font-sans`}
+            className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black'} text-[12px] font-normal font-sans`}
           >
             We don't talk about the last 2 minutes.
           </span>

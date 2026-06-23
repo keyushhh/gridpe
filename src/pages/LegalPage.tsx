@@ -9,6 +9,7 @@ import BackButton from '@/components/ui/BackButton';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { GpButton } from '@/components/ui/GpButton';
 import { User } from '@supabase/supabase-js';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { crashlytics } from '@/lib/crashlytics';
@@ -290,20 +291,21 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
       {/* Bottom Actions */}
       {showActions && (
         <div className="px-6 safe-bottom pb-6 pt-2 flex gap-4 animate-fade-in justify-center relative z-10">
-          <Button
-            variant="outline"
-            className={`w-[172px] h-[48px] rounded-full border text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-brand-border-light text-black'}`}
+          <GpButton
+            variant="secondary"
+            fullWidth={false}
+            className="w-[172px]"
             onClick={handleDecline}
           >
             Decline
-          </Button>
-          <Button
-            variant={isDarkMode ? 'gradient' : 'default'}
-            className={`w-[172px] h-[48px] rounded-full text-white text-[16px] font-medium flex items-center justify-center transition-all ${isDarkMode ? 'btn-gradient' : 'bg-brand-primary hover:bg-brand-primary/90 border-none'}`}
+          </GpButton>
+          <GpButton
+            fullWidth={false}
+            className="w-[172px]"
             onClick={handleAccept}
           >
             Accept
-          </Button>
+          </GpButton>
         </div>
       )}
       <style dangerouslySetInnerHTML={{

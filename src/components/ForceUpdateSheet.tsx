@@ -3,6 +3,7 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ASSETS } from '@/constants/assets';
+import { GpButton } from '@/components/ui/GpButton';
 
 interface ForceUpdateSheetProps {
   storeUrl: string;
@@ -152,13 +153,13 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
             </p>
 
             {/* CTA Button */}
-            <button
+            <GpButton
               onClick={handleUpdate}
-              className="mt-[44px] w-[331px] h-[48px] rounded-full flex items-center justify-center text-white font-satoshi font-bold text-[16px] transition-opacity active:opacity-80"
-              style={{ backgroundColor: '#5260FE' }}
+              fullWidth={false}
+              className="mt-[44px] w-[331px]"
             >
               {isUpdating ? 'Opening Store...' : 'Update Now'}
-            </button>
+            </GpButton>
           </div>
         </div>
       </div>

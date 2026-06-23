@@ -171,7 +171,7 @@ const ConfirmDeactivation = () => {
         </h2>
         <div className="h-[6px]" />
         <p
-          className={`${isDarkMode ? 'text-[#C4C4C4]' : 'text-black/60'} text-[14px] font-normal font-sans`}
+          className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black/60'} text-[14px] font-normal font-sans`}
         >
           Just to be sure — enter your MPIN to confirm.
         </p>

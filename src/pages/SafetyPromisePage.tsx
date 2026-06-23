@@ -53,7 +53,7 @@ const SafetyPromisePage = () => {
         </div>
 
         {/* Content Section */}
-        <div className="mt-4 bg-[#050505] rounded-[24px] p-5 pb-8 border border-white/[0.05]">
+        <div className="mt-4 bg-brand-surface-mid rounded-[24px] p-5 pb-8 border border-white/[0.05]">
           <h2 className="font-satoshi font-bold text-[22px] text-white leading-tight">
             Why We're Different
           </h2>

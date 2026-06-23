@@ -7,6 +7,7 @@ import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { GpButton } from '@/components/ui/GpButton';
 const DeliveryCaution = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -217,12 +218,13 @@ const DeliveryCaution = () => {
                   Awaiting delivery confirmation
                 </span>
               </div>
-              <button
+              <GpButton
+                variant="secondary"
                 onClick={handleCancel}
-                className={`mt-[50px] w-full h-[48px] rounded-full border text-[16px] font-medium font-satoshi active:scale-[0.98] transition-all bg-muted border-border ${isDarkMode ? 'text-white' : 'text-black'} ${!isDarkMode ? 'bg-neutral-950 text-white border-transparent' : ''}`}
+                className={`mt-[50px] ${!isDarkMode ? 'bg-neutral-950 text-white border-transparent' : ''}`}
               >
                 Cancel
-              </button>
+              </GpButton>
             </div>
           )}
           {selectedOption === 'yes' && (
@@ -232,12 +234,12 @@ const DeliveryCaution = () => {
               >
                 Please follow the on-screen instructions to go ahead with the delivery.
               </p>
-              <button
+              <GpButton
                 onClick={handleProceed}
-                className="mt-[135px] w-full h-[48px] rounded-full bg-primary text-white text-[16px] font-medium font-satoshi active:scale-[0.98] transition-transform"
+                className="mt-[135px]"
               >
                 Proceed
-              </button>
+              </GpButton>
             </div>
           )}
         </>
@@ -316,21 +318,18 @@ const DeliveryCaution = () => {
           </button>
           {/* Actions */}
           <div className="mt-auto mb-[40px] w-[362px] flex flex-col gap-[12px] relative z-10">
-            <button
+            <GpButton
               onClick={handleProceed}
               disabled={!isAgreed}
-              className={`w-full h-[48px] rounded-full text-white text-[16px] font-medium font-satoshi transition-all ${
-                isAgreed ? 'bg-primary active:scale-[0.98]' : 'bg-primary/50 cursor-not-allowed'
-              }`}
             >
               Proceed with Delivery
-            </button>
-            <button
+            </GpButton>
+            <GpButton
+              variant="secondary"
               onClick={handleCancel}
-              className={`w-full h-[48px] rounded-full border text-[16px] font-medium font-satoshi active:scale-[0.98] transition-all ${isDarkMode ? 'bg-muted border-white/10 text-white' : 'bg-muted border-transparent text-black'}`}
             >
               Cancel Delivery
-            </button>
+            </GpButton>
           </div>
         </>
       ) : step === 'identify' ? (
@@ -385,26 +384,25 @@ const DeliveryCaution = () => {
           {/* Actions */}
           <div className="mt-auto mb-[40px] w-[362px] flex flex-col gap-[12px] relative z-10">
             {!isPhotoTaken ? (
-              <button
+              <GpButton
                 onClick={handleTakePhoto}
-                className="w-full h-[48px] rounded-full bg-primary text-white text-[16px] font-medium font-satoshi active:scale-[0.98] transition-transform"
               >
                 Take Photo
-              </button>
+              </GpButton>
             ) : (
               <>
-                <button
+                <GpButton
                   onClick={handleProceed} /* Assuming submit just proceeds for now */
-                  className="w-full h-[48px] text-[16px] font-medium font-satoshi rounded-full bg-primary text-white active:scale-[0.98] transition-transform"
                 >
                   Submit
-                </button>
-                <button
+                </GpButton>
+                <GpButton
+                  variant="secondary"
                   onClick={handleRetake}
-                  className={`w-full h-[48px] text-[16px] font-medium font-satoshi rounded-full transition-all active:scale-[0.98] ${isDarkMode ? 'bg-muted border border-white/10 text-white' : 'bg-muted text-black border-transparent'}`}
+                  className={!isDarkMode ? 'bg-muted text-black border-transparent' : ''}
                 >
                   Retake
-                </button>
+                </GpButton>
               </>
             )}
           </div>
@@ -528,12 +526,11 @@ const DeliveryCaution = () => {
                 </div>
               </>
             ) : (
-              <button
+              <GpButton
                 onClick={handleProceed}
-                className={`w-full h-[48px] text-[16px] font-medium font-satoshi rounded-full transition-all active:scale-[0.98] ${isDarkMode ? 'bg-transparent border border-white/20 text-white' : 'bg-primary border-transparent text-white'}`}
               >
                 Get OTP
-              </button>
+              </GpButton>
             )}
           </div>
         </>

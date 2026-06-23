@@ -6,6 +6,7 @@ import BackButton from '@/components/ui/BackButton';
 import { Check, X, Loader2 } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
+import { GpButton } from '@/components/ui/GpButton';
 import { supabase } from '@/lib/supabase';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
@@ -84,6 +85,7 @@ const KYCForm = () => {
       if (kycStatus !== 'verified') {
         const { error: profileError } = await supabase
           .from('profiles')
+          // @ts-ignore
           .update({ kyc_status: 'pending' })
           .eq('id', rawUuid);
         if (profileError) throw profileError;
@@ -180,7 +182,7 @@ const KYCForm = () => {
               </span>
             </div>
             <div
-              className={`w-full h-[6px] ${isDarkMode ? 'bg-white/20' : 'bg-[#F2F4F7]'} rounded-full overflow-hidden`}
+              className={`w-full h-[6px] ${isDarkMode ? 'bg-white/20' : 'bg-brand-bg-light'} rounded-full overflow-hidden`}
             >
               <div className="h-full w-[25%] bg-brand-primary rounded-full" />
             </div>
@@ -193,7 +195,7 @@ const KYCForm = () => {
               {isFxFlow ? 'Passport Required' : 'Choose a document'}
             </h2>
             <p
-              className={`${isDarkMode ? 'text-brand-text-muted' : 'text-[#616161]'} text-[14px] font-sans font-normal`}
+              className={`${isDarkMode ? 'text-brand-text-muted' : 'text-brand-text-muted'} text-[14px] font-sans font-normal`}
             >
               {isFxFlow
                 ? 'Only a valid passport is accepted for FX Exchange KYC'
@@ -266,7 +268,7 @@ const KYCForm = () => {
                   )}
                 </div>
                 <p
-                  className={`${isDarkMode ? 'text-brand-text-muted' : 'text-[#616161]'} text-[13px] font-normal font-sans leading-snug`}
+                  className={`${isDarkMode ? 'text-brand-text-muted' : 'text-brand-text-muted'} text-[13px] font-normal font-sans leading-snug`}
                 >
                   {req.text}
                 </p>
@@ -280,18 +282,18 @@ const KYCForm = () => {
         className={`mt-auto safe-bottom pb-4 pt-4 w-full flex flex-col items-center ${isDarkMode ? 'bg-gradient-to-t from-brand-bg-dark to-transparent' : 'bg-white/80 backdrop-blur-md'} z-20`}
       >
         <p
-          className={`${isDarkMode ? 'text-brand-text-muted/60' : 'text-[#616161]'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}
+          className={`${isDarkMode ? 'text-brand-text-muted/60' : 'text-brand-text-muted'} text-[14px] font-normal font-sans text-left mb-4 leading-relaxed max-w-[362px] w-full px-5`}
         >
           This information is used for identity verification only, and will be kept secure by Didit
         </p>
-        <Button
-          variant="gradient"
-          className="w-[362px] h-[48px] rounded-full text-white font-medium text-[16px] font-sans flex items-center justify-center p-0 m-0"
+        <GpButton
+          fullWidth={false}
+          className="w-[362px]"
           disabled={!selectedDoc || isSubmitting}
           onClick={handleContinue}
         >
           {isSubmitting ? 'Starting...' : 'Continue'}
-        </Button>
+        </GpButton>
       </div>
     </div>
   );

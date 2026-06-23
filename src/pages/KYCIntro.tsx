@@ -136,7 +136,7 @@ const KYCIntro = () => {
               >
                 Know Your Customer
               </h2>
-              <div className={`${isDarkMode ? 'bg-brand-bg-dark/80' : 'bg-[#F8F9FA]'} rounded-xl p-4`}>
+              <div className={`${isDarkMode ? 'bg-brand-bg-dark/80' : 'bg-brand-bg-light'} rounded-xl p-4`}>
                 <p
                   className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans leading-relaxed`}
                 >

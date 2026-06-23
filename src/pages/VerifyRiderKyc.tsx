@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
+import { GpButton } from '@/components/ui/GpButton';
 const VerifyRiderKyc = () => {
   const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState<'yes' | 'no'>('yes');
@@ -92,15 +93,12 @@ const VerifyRiderKyc = () => {
         </div>
         {/* Confirm Button */}
         <div className="w-full mt-[35px]">
-          <button
+          <GpButton
             onClick={handleConfirm}
-            className="w-full h-[48px] rounded-full text-white text-[16px] font-medium bg-brand-primary active:scale-95 transition-all flex items-center justify-center"
-            style={{
-              boxShadow: '0px 4px 10px rgba(82, 96, 254, 0.3)',
-            }}
+            className="shadow-[0px_4px_10px_rgba(82,96,254,0.3)]"
           >
             Confirm
-          </button>
+          </GpButton>
         </div>
       </div>
     </div>

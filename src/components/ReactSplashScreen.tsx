@@ -60,7 +60,7 @@ export const ReactSplashScreen: React.FC<ReactSplashScreenProps> = ({ onComplete
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0A0A12] text-white safe-top safe-bottom"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-brand-bg-dark text-white safe-top safe-bottom"
         >
           {/* Main Content Area shifted slightly up */}
           <div className="flex flex-col items-center justify-center -mt-24 space-y-8 w-full px-8">

@@ -55,7 +55,7 @@ const ExplorePage = () => {
           <h1 className="font-satoshi font-black text-[40px] leading-none text-foreground">
             Explore
           </h1>
-          <h2 className="font-satoshi font-medium text-[24px] leading-none text-[#5260FE]">
+          <h2 className="font-satoshi font-medium text-[24px] leading-none text-brand-primary">
             what's possible.
           </h2>
         </div>
@@ -93,9 +93,9 @@ const ExplorePage = () => {
                 className="relative flex items-center justify-center"
               >
                 {/* Live pulsing blob effect (Ping) */}
-                <div className="absolute w-5 h-5 rounded-full bg-[#5260FE] animate-ping opacity-75" />
+                <div className="absolute w-5 h-5 rounded-full bg-brand-primary animate-ping opacity-75" />
                 {/* Base Glow behind pin */}
-                <div className="absolute w-8 h-8 rounded-full bg-[#5260FE]/40 blur-md" />
+                <div className="absolute w-8 h-8 rounded-full bg-brand-primary/40 blur-md" />
 
                 <img loading="lazy"
                   src={mapPinFill}
@@ -152,7 +152,7 @@ const ExplorePage = () => {
                 setCashExpanded(true);
                 setFxExpanded(false);
               }}
-              className={`relative w-full h-[146px] rounded-[16px] overflow-hidden border border-white/5 cursor-pointer bg-[#1C1C1E] ${cashExpanded ? 'z-30' : 'z-20'}`}
+              className={`relative w-full h-[146px] rounded-[16px] overflow-hidden border border-white/5 cursor-pointer bg-brand-card-dark ${cashExpanded ? 'z-30' : 'z-20'}`}
             >
               {/* Top Purple Box */}
               <motion.div
@@ -239,7 +239,7 @@ const ExplorePage = () => {
                 setFxExpanded(true);
                 setCashExpanded(false);
               }}
-              className={`relative w-full h-[146px] rounded-[16px] overflow-hidden border border-white/5 cursor-pointer bg-[#1C1C1E] ${fxExpanded ? 'z-30' : 'z-20'}`}
+              className={`relative w-full h-[146px] rounded-[16px] overflow-hidden border border-white/5 cursor-pointer bg-brand-card-dark ${fxExpanded ? 'z-30' : 'z-20'}`}
             >
               {/* Top Purple Box */}
               <motion.div
@@ -464,7 +464,7 @@ const ExplorePage = () => {
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="mx-auto mb-4 text-[#EF4444] animate-pulse"
+              className="mx-auto mb-4 text-brand-error-light animate-pulse"
             >
               <path
                 d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H14"
@@ -509,7 +509,7 @@ const ExplorePage = () => {
                   setShowLogoutConfirmation(false);
                   logout();
                 }}
-                className={`w-full h-[52px] rounded-full bg-gradient-to-r from-[#EF4444] to-[#DC2626] active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi ${isDarkMode ? 'shadow-lg shadow-red-950/20' : 'shadow-none'
+                className={`w-full h-[52px] rounded-full bg-gradient-to-r from-brand-error-light to-brand-error-dark active:scale-95 transition-all flex items-center justify-center font-bold text-white text-[16px] font-satoshi ${isDarkMode ? 'shadow-lg shadow-red-950/20' : 'shadow-none'
                   }`}
               >
                 Log Out

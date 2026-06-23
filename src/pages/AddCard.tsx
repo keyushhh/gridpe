@@ -391,7 +391,7 @@ const AddCard = () => {
             </div>
             {/* Card Number Label */}
             <div className="absolute top-[70px] left-[26px]">
-              <p className="text-[#C4C4C4] text-[13px] font-normal font-satoshi">Card Number</p>
+              <p className="text-brand-text-subtle text-[13px] font-normal font-satoshi">Card Number</p>
             </div>
             {/* Card Number Value */}
             <div className="absolute top-[93px] left-[26px] right-[26px] flex items-center justify-between h-[24px]">
@@ -441,7 +441,7 @@ const AddCard = () => {
             <div className="absolute top-[129px] left-[26px] flex gap-8">
               {/* Expiry Group */}
               <div className="flex flex-col gap-[5px] w-[90px]">
-                <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">
+                <label className="text-brand-text-subtle text-[14px] font-normal font-satoshi leading-none">
                   Expiry Date
                 </label>
                 <div className="h-[28px] relative">
@@ -459,7 +459,7 @@ const AddCard = () => {
               </div>
               {/* CVV Group */}
               <div className="flex flex-col gap-[5px] ml-6">
-                <label className="text-[#C4C4C4] text-[14px] font-normal font-satoshi leading-none">
+                <label className="text-brand-text-subtle text-[14px] font-normal font-satoshi leading-none">
                   CVV
                 </label>
                 {/* CVV Input with Visibility Logic */}

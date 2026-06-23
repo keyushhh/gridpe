@@ -97,7 +97,7 @@ const AccountDeleted = () => {
           No worries — it's not like we cried or anything.
         </p>
         <div
-          className={`${isDarkMode ? 'text-[#AFAFAF]' : 'text-black'} text-[16px] font-normal font-sans mb-[12px]`}
+          className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black'} text-[16px] font-normal font-sans mb-[12px]`}
           style={{ lineHeight: '120%' }}
         >
           <p className="mb-1">No judgment though — digital breakups happen.</p>
@@ -109,7 +109,7 @@ const AccountDeleted = () => {
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-brand-error shadow-[0_0_8px_rgba(255,59,48,0.6)]"></div>
           <span
-            className={`${isDarkMode ? 'text-[#D0D0D0]' : 'text-black'} text-[12px] font-normal font-sans`}
+            className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black'} text-[12px] font-normal font-sans`}
           >
             Deleted but still in our feels.
           </span>

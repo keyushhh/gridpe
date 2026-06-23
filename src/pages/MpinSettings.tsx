@@ -197,7 +197,7 @@ const MpinSettings = () => {
             </h2>
             {/* Body Pill – 318x73px, radius 16px, 24px below heading */}
             <div
-              className={`${isDarkMode ? 'bg-[#090909]' : 'bg-white'} flex items-center px-4`}
+              className={`${isDarkMode ? 'bg-brand-surface-mid' : 'bg-white'} flex items-center px-4`}
               style={{
                 marginTop: '24px',
                 width: '318px',

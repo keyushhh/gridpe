@@ -6,6 +6,7 @@ import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
+import { GpButton } from '@/components/ui/GpButton';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
@@ -181,22 +182,13 @@ const ForgotMpin = () => {
       </div>
       {/* Bottom CTA */}
       <div className="mt-auto px-5 safe-bottom pb-4 w-full relative z-10">
-        <Button
+        <GpButton
           onClick={step === 'REQUEST' ? handleRequestOTP : handleSubmit}
           disabled={isLoading || (step === 'VERIFY' && otp.length < 6)}
-          className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium font-sans"
+          isLoading={isLoading}
         >
-          {isLoading ? (
-            <span className="flex items-center gap-2">
-              <ButtonSpinner />
-              {step === 'REQUEST' ? 'Sending...' : 'Verifying...'}
-            </span>
-          ) : step === 'REQUEST' ? (
-            'Request OTP'
-          ) : (
-            'Submit'
-          )}
-        </Button>
+          {step === 'REQUEST' ? 'Request OTP' : 'Submit'}
+        </GpButton>
       </div>
     </div>
   );

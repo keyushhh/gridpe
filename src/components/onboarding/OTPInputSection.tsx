@@ -2,6 +2,7 @@ import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
+import { GpButton } from '@/components/ui/GpButton';
 
 interface OTPInputSectionProps {
   phoneNumber: string;
@@ -110,21 +111,13 @@ const OTPInputSection: React.FC<OTPInputSectionProps> = ({
         </button>
       </div>
 
-      <Button
-        variant="gradient"
-        className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
+      <GpButton
         onClick={onVerifyOTP}
+        isLoading={isLoading}
         disabled={isLoading || otp.length < 6}
       >
-        {isLoading ? (
-          <span className="flex items-center gap-2">
-            <ButtonSpinner />
-            Verifying...
-          </span>
-        ) : (
-          'Continue'
-        )}
-      </Button>
+        Continue
+      </GpButton>
     </div>
   );
 };

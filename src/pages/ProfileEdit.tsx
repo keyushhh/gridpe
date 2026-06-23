@@ -11,6 +11,7 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { crashlytics } from '@/lib/crashlytics';
+import { GpButton } from '@/components/ui/GpButton';
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();
@@ -73,6 +74,7 @@ const ProfileEdit = () => {
     try {
       const { error } = await supabase
         .from('profiles')
+        // @ts-ignore
         .update({
           name,
           avatar_url: profileImage,
@@ -218,7 +220,7 @@ const ProfileEdit = () => {
               </div>
               <img loading="lazy" decoding="async" src={ASSETS.VERIFIED} className="w-4 h-4 object-contain" alt="Verified" />
             </div>
-            <p className="text-black dark:text-[#5B5B5B] text-[14px] font-normal px-4">
+            <p className="text-black dark:text-brand-text-muted text-[14px] font-normal px-4">
               This is how we know it's you. Or your evil twin.
             </p>
           </div>
@@ -266,16 +268,16 @@ const ProfileEdit = () => {
                 ) : null}
               </div>
             </div>
-            <p className="text-black dark:text-[#5B5B5B] text-[14px] font-normal px-4 mt-2 font-satoshi">
+            <p className="text-black dark:text-brand-text-muted text-[14px] font-normal px-4 mt-2 font-satoshi">
               {emailHelperText}
             </p>
           </div>
-          <Button
+          <GpButton
             onClick={handleSaveProfile}
-            className="w-full h-[48px] rounded-full text-[16px] font-medium bg-brand-primary hover:bg-brand-primary/90 text-white border-none mt-[65px]"
+            className="mt-[65px]"
           >
             {ctaLabel}
-          </Button>
+          </GpButton>
           <button
             onClick={() => navigate(-1)}
             className="w-full h-[48px] rounded-full text-[16px] font-medium flex items-center justify-center transition-transform active:scale-95 mt-[14px]"

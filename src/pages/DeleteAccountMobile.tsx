@@ -5,6 +5,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
+import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
 import { useUser } from '@/contexts/UserContext';
 import { LocationState } from '@/types/navigation';
 const DeleteAccountMobile = () => {
@@ -91,11 +92,9 @@ const DeleteAccountMobile = () => {
         </div>
         {/* Mobile Input */}
         <div className="space-y-2">
-          <h3
-            className={`${isDarkMode ? 'text-[#707070]' : 'text-black/50'} text-[14px] font-bold font-sans uppercase mb-[6px]`}
-          >
+          <GpSectionLabel>
             CONFIRM MOBILE NUMBER
-          </h3>
+          </GpSectionLabel>
           <p
             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-italic font-sans italic mb-[6px]`}
           >

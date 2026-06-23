@@ -180,8 +180,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const isDark = savedTheme !== 'light';
     return (
       <div
-        className="fixed inset-0"
-        style={{ backgroundColor: isDark ? '#0a0a12' : '#FFFFFF' }}
+        className={`fixed inset-0 ${isDark ? 'bg-brand-bg-dark' : 'bg-white'}`}
       />
     );
   }

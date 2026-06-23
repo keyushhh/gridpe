@@ -12,6 +12,7 @@ import timeIcon from '@/assets/time.svg';
 import mapIcon from '@/assets/map.svg';
 import cashIcon from '@/assets/cash.svg';
 import { PhoneInput } from '@/components/PhoneInput';
+import { GpButton } from '@/components/ui/GpButton';
 
 const RideAndEarn = () => {
   const navigate = useNavigate();
@@ -185,20 +186,13 @@ const RideAndEarn = () => {
 
       {/* CTA SECTION */}
       <div className="mt-[25px] px-5">
-        <button
+        <GpButton
           onClick={handleSubmit}
           disabled={!fullName || phoneDigits.length !== 10 || isSubmitting}
-          className={`w-full h-[48px] rounded-full bg-brand-primary text-white text-[16px] font-medium font-satoshi active:scale-95 transition-all ${(!fullName || phoneDigits.length !== 10 || isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          isLoading={isSubmitting}
         >
-          {isSubmitting ? (
-            <span className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-              Submitting...
-            </span>
-          ) : (
-            'Register Interest'
-          )}
-        </button>
+          Register Interest
+        </GpButton>
 
         <div className="mt-[22px] mx-auto max-w-[334px]">
           <p className="text-center font-satoshi font-medium text-[14px] text-muted-foreground leading-[140%]">

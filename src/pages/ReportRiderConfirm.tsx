@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
+import { GpStatusDot } from '@/components/ui/GpStatusDot';
 const ReportRiderConfirm = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
@@ -174,7 +175,7 @@ const ReportRiderConfirm = () => {
               {/* Status Dot */}
               <div className="mt-4 flex items-center gap-2">
                 <div className="w-[20px] h-[20px] rounded-full flex items-center justify-center">
-                  <div className="w-[12px] h-[12px] rounded-full bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                  <GpStatusDot status="review" />
                 </div>
                 <span
                   className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
@@ -216,7 +217,7 @@ const ReportRiderConfirm = () => {
               {/* Status Dot */}
               <div className="mt-[21px] flex items-center gap-2">
                 <div className="w-[20px] h-[20px] rounded-full flex items-center justify-center">
-                  <div className="w-[12px] h-[12px] rounded-full bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                  <GpStatusDot status="review" />
                 </div>
                 <span
                   className={`text-[12px] font-normal font-satoshi ${isDarkMode ? 'text-white/50' : 'text-brand-text-muted'}`}

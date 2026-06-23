@@ -14,6 +14,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { Button } from '@/components/ui/button';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { GpButton } from '@/components/ui/GpButton';
 
 interface MpinSheetProps {
   onClose: () => void;
@@ -367,7 +368,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
             {!hideClose ? (
               <button
                 onClick={onClose}
-                className={`w-[40px] h-[40px] flex items-center justify-center rounded-full transition-colors ${isDarkMode ? 'bg-[#1C1C1E] active:bg-[#2C2C2E]' : 'bg-[#F2F2F7] active:bg-[#E5E5EA]'}`}
+                className={`w-[40px] h-[40px] flex items-center justify-center rounded-full transition-colors ${isDarkMode ? 'bg-brand-card-dark active:bg-[#2C2C2E]' : 'bg-[#F2F2F7] active:bg-[#E5E5EA]'}`}
               >
                 <X className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
               </button>
@@ -546,20 +547,13 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
             {/* Success CTA - Rendered in main flow */}
             {step === 'CREATE_NEW' && createSuccess && (
               <div className="w-full mt-auto px-5 pb-10">
-                <Button
+                <GpButton
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium"
+                  isLoading={isSaving}
                 >
-                  {isSaving ? (
-                    <span className="flex items-center gap-2">
-                      <ButtonSpinner size={16} />
-                      Saving...
-                    </span>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </Button>
+                  Save Changes
+                </GpButton>
               </div>
             )}
           </div>

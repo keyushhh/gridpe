@@ -36,7 +36,7 @@ const NotAvailable: React.FC<NotAvailableProps> = ({ onOpenAddressSheet }) => {
 
         {/* Body Text */}
         <p
-          className={`font-satoshi font-medium text-[14px] leading-[19px] mt-[10px] max-w-[322px] ${isDarkMode ? 'text-white/60' : 'text-[#71717A]'}`}
+          className={`font-satoshi font-medium text-[14px] leading-[19px] mt-[10px] max-w-[322px] ${isDarkMode ? 'text-white/60' : 'text-brand-text-muted'}`}
         >
           Grid.Pe is not available at this location yet, our team is working tirelessly to bring
           Grid.Pe to you at the earliest. Please revist after a while.

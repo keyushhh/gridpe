@@ -28,6 +28,7 @@ import { cancelOrder } from '@/lib/orders';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import NotAvailable from './NotAvailable';
 import { Button } from '@/components/ui/button';
+import { GpButton } from '@/components/ui/GpButton';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/routes';
 // Tag Icons
@@ -1997,17 +1998,16 @@ const Homepage = () => {
               </div>
               
               <div className="mt-[22px] flex flex-col items-center">
-                <button
-                  className="w-full max-w-[328px] h-[48px] bg-[#5260FE] rounded-full active:scale-95 transition-transform flex items-center justify-center mb-[14px]"
+                <GpButton
+                  fullWidth={false}
+                  className="max-w-[328px] mb-[14px]"
                   onClick={() => {
                     setShowDeliveryLimitsModal(false);
                     navigate(ROUTES.PRO_UPGRADE);
                   }}
                 >
-                  <span className="text-white text-[16px] font-medium font-satoshi">
-                    Explore Grid.Pe Pro
-                  </span>
-                </button>
+                  Explore Grid.Pe Pro
+                </GpButton>
                 
                 <button
                   className="active:opacity-70 transition-opacity"

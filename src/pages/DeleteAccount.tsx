@@ -71,7 +71,7 @@ const DeleteAccount = () => {
           </h3>
           <div className="h-[9.5px]" />
           <p
-            className={`${isDarkMode ? 'text-[#C4C4C4]' : 'text-black/60'} text-[12px] font-normal font-sans leading-relaxed`}
+            className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black/60'} text-[12px] font-normal font-sans leading-relaxed`}
           >
             {description}
           </p>
@@ -126,7 +126,7 @@ const DeleteAccount = () => {
           {/* Subheader */}
           <div className="h-[6px]" />
           <p
-            className={`${isDarkMode ? 'text-[#C4C4C4]' : 'text-black/60'} text-[14px] font-medium font-sans`}
+            className={`${isDarkMode ? 'text-brand-text-subtle' : 'text-black/60'} text-[14px] font-medium font-sans`}
           >
             You can pause your account or go nuclear. Up to you.
           </p>

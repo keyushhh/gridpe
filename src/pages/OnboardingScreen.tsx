@@ -892,7 +892,7 @@ const OnboardingScreen = () => {
                         className={`h-[54px] w-[81px] rounded-[12px] text-2xl font-semibold transition-all bg-cover bg-center 
                         text-black dark:text-white 
                         bg-brand-bg-light border border-brand-border-light 
-                        dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10`}
+                        dark:bg-brand-surface-dark/50 dark:border-none dark:ring-1 dark:ring-white/10`}
                         render={({ char, isActive }) => (
                           <div className="flex items-center justify-center w-full h-full">
                             {char ? (mpinState.maskedIndices.has(index) ? '•' : char) : null}
@@ -989,7 +989,7 @@ const OnboardingScreen = () => {
                             ? 'border border-red-500 ring-1 ring-red-500'
                             : mpinState.isSuccess
                               ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent'
-                              : 'bg-brand-bg-light border border-brand-border-light dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
+                              : 'bg-brand-bg-light border border-brand-border-light dark:bg-brand-surface-dark/50 dark:border-none dark:ring-1 dark:ring-white/10'
                         }`}
                         style={{
                           backgroundImage: isPredictableError
@@ -1039,7 +1039,7 @@ const OnboardingScreen = () => {
                             ? 'border border-red-500 ring-1 ring-red-500'
                             : mpinState.isSuccess
                               ? 'bg-transparent border border-green-500 ring-1 ring-green-500 dark:bg-transparent'
-                              : 'bg-brand-bg-light border border-brand-border-light dark:bg-[#1a1a2e]/50 dark:border-none dark:ring-1 dark:ring-white/10'
+                              : 'bg-brand-bg-light border border-brand-border-light dark:bg-brand-surface-dark/50 dark:border-none dark:ring-1 dark:ring-white/10'
                         }`}
                         style={{
                           backgroundImage: isMismatchError

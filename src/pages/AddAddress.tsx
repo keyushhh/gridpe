@@ -329,7 +329,7 @@ const AddAddress = () => {
       className={`h-full w-full relative bg-background ${isDarkMode ? 'text-white' : 'text-black'} ${containerOverflow}`}
     >
       {/* Map */}
-      <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+      <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>
         <Map
         ref={mapRef}
         {...viewState}
@@ -361,8 +361,8 @@ const AddAddress = () => {
         {userLocation && (
           <Marker latitude={userLocation.lat} longitude={userLocation.lng} anchor="center">
             <div className="relative flex items-center justify-center">
-              <div className="absolute w-5 h-5 bg-[#5260FE] rounded-full animate-ping opacity-75"></div>
-              <div className="relative w-3.5 h-3.5 bg-[#5260FE] border-2 border-white rounded-full shadow-md"></div>
+              <div className="absolute w-5 h-5 bg-brand-primary rounded-full animate-ping opacity-75"></div>
+              <div className="relative w-3.5 h-3.5 bg-brand-primary border-2 border-white rounded-full shadow-md"></div>
             </div>
           </Marker>
         )}
@@ -432,7 +432,7 @@ const AddAddress = () => {
           {/* Dropdown Results */}
           {showDropdown && searchResults.length > 0 && (
             <div
-              className={`absolute top-[52px] w-[363px] backdrop-blur-xl border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto shadow-2xl ${isDarkMode ? 'bg-brand-card-dark border-[#313131]' : 'bg-background/95 border-border'}`}
+              className={`absolute top-[52px] w-[363px] backdrop-blur-xl border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto shadow-2xl ${isDarkMode ? 'bg-brand-card-dark border-brand-border-mid' : 'bg-background/95 border-border'}`}
               style={{ zIndex: 50 }}
             >
               {searchResults.map((result, idx) => (

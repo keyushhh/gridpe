@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
+import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const DeleteAccountReasons = () => {
   const { containerOverflow } = useWebScroll();
@@ -88,11 +89,9 @@ const DeleteAccountReasons = () => {
         </div>
         {/* Reasons Section */}
         <div className="mb-2">
-          <h3
-            className={`${isDarkMode ? 'text-[#707070]' : 'text-black/50'} text-[14px] font-bold font-sans tracking-widest uppercase mb-[6px]`}
-          >
+          <GpSectionLabel>
             REASON FOR DELETION
-          </h3>
+          </GpSectionLabel>
           <p
             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans italic mb-4`}
           >
@@ -168,12 +167,12 @@ const DeleteAccountReasons = () => {
               placeholder={'Go ahead, break our heart. Tell us how we failed you\u2026'}
               className={`w-full h-[146px] rounded-[10px] p-4 text-[12px] font-light font-sans resize-none focus:outline-none ${
                 isDarkMode
-                  ? 'bg-brand-card-dark/30 border border-white/10 text-white focus:border-white/20 placeholder:text-[#878787]'
-                  : 'bg-white border border-brand-border-light text-black focus:border-black/20 placeholder:text-[#AAAAAA]'
+                  ? 'bg-brand-card-dark/30 border border-white/10 text-white focus:border-white/20 placeholder:text-brand-text-muted'
+                  : 'bg-white border border-brand-border-light text-black focus:border-black/20 placeholder:text-brand-text-placeholder'
               } placeholder:font-light placeholder:text-[12px]`}
             />
             <div
-              className={`absolute bottom-4 right-4 ${isDarkMode ? 'text-[#878787]' : 'text-black/40'} text-[12px] font-light font-sans`}
+              className={`absolute bottom-4 right-4 ${isDarkMode ? 'text-brand-text-muted' : 'text-black/40'} text-[12px] font-light font-sans`}
             >
               (max {200 - otherReason.length} chars of heartbreak)
             </div>

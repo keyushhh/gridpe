@@ -323,7 +323,7 @@ const OrderTracking = () => {
             <Skeleton height="100%" borderRadius={0} style={{ height: '100%' }} />
           </div>
         ) : (
-          <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+          <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>
             <Map
             {...viewState}
             onMove={evt => setViewState(evt.viewState)}
@@ -394,7 +394,7 @@ const OrderTracking = () => {
                 </div>
               </div>
               <div className={`h-[9px] rounded-full overflow-hidden mb-[16px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-                <div className="h-full rounded-full transition-all duration-300 ease-linear bg-[#5260FE]" style={{ width: `${progress}%`, boxShadow: '0 0 10px rgba(82,96,254,0.5)' }} />
+                <div className="h-full rounded-full transition-all duration-300 ease-linear bg-brand-primary" style={{ width: `${progress}%`, boxShadow: '0 0 10px rgba(82,96,254,0.5)' }} />
               </div>
               <div>
                 <p className={`text-[16px] font-bold font-satoshi leading-snug mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>
@@ -433,7 +433,7 @@ const OrderTracking = () => {
                 </div>
               </div>
               <div className={`h-[9px] rounded-full overflow-hidden mb-[16px] ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-                <div className="h-full rounded-full transition-all duration-300 ease-linear bg-[#5260FE]" style={{ width: `${progress}%`, boxShadow: '0 0 10px rgba(82,96,254,0.5)' }} />
+                <div className="h-full rounded-full transition-all duration-300 ease-linear bg-brand-primary" style={{ width: `${progress}%`, boxShadow: '0 0 10px rgba(82,96,254,0.5)' }} />
               </div>
               <div>
                 <p className={`text-[16px] font-bold font-satoshi leading-snug mb-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>

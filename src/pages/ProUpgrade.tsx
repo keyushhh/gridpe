@@ -238,8 +238,8 @@ const ProUpgrade = () => {
             onClick={() => setBillingCycle('monthly')}
             className={`flex-1 rounded-[16px] p-[16px] cursor-pointer transition-all border ${
               billingCycle === 'monthly' 
-                ? 'border-[#CA8429] bg-[#CA8429]/[0.02]' 
-                : 'border-white/5 bg-[#0B0B0B]'
+                ? 'border-brand-pro-gold bg-[#CA8429]/[0.02]' 
+                : 'border-white/5 bg-brand-surface-mid'
             }`}
           >
             <div className={`font-satoshi font-bold text-[16px] leading-none mb-[12px] ${billingCycle === 'monthly' ? 'text-white' : 'text-white/50'}`}>
@@ -256,8 +256,8 @@ const ProUpgrade = () => {
             onClick={() => setBillingCycle('annual')}
             className={`flex-1 rounded-[16px] p-[16px] cursor-pointer transition-all border ${
               billingCycle === 'annual' 
-                ? 'border-[#CA8429] bg-[#CA8429]/[0.02]' 
-                : 'border-white/5 bg-[#0B0B0B]'
+                ? 'border-brand-pro-gold bg-[#CA8429]/[0.02]' 
+                : 'border-white/5 bg-brand-surface-mid'
             }`}
           >
             <div className="flex items-center justify-between mb-[12px]">

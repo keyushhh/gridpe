@@ -476,7 +476,7 @@ const OrderDetails = () => {
         <div className="w-full mb-[16px] flex flex-col">
           {/* Header Row (Top Container) */}
           <div
-            className={`w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px] ${isDarkMode ? 'bg-[#191919]/[0.31] backdrop-blur-[25px]' : 'bg-neutral-950'} border border-border border-b-0`}
+            className={`w-full px-[16px] py-[9px] flex justify-between items-start z-10 shrink-0 rounded-t-[14px] ${isDarkMode ? 'bg-brand-card-dark/[0.31] backdrop-blur-[25px]' : 'bg-neutral-950'} border border-border border-b-0`}
           >
             <span className={`text-[12px] font-medium font-sans whitespace-nowrap mr-2 text-white`}>
               Delivering to -{' '}
@@ -490,7 +490,7 @@ const OrderDetails = () => {
           </div>
           {/* Status & Map Container (Bottom Container) */}
           <div
-            className={`w-full rounded-b-[14px] flex ${isDarkMode ? 'bg-[#191919]/[0.31] backdrop-blur-[25px]' : 'bg-background'} border border-border border-t-0 p-[12px]`}
+            className={`w-full rounded-b-[14px] flex ${isDarkMode ? 'bg-brand-card-dark/[0.31] backdrop-blur-[25px]' : 'bg-background'} border border-border border-t-0 p-[12px]`}
           >
             {/* Left Text */}
             <div className="flex-1 flex flex-col justify-start pr-2">
@@ -508,7 +508,7 @@ const OrderDetails = () => {
             {/* Mini Map (Only if showMap is true) */}
             {statusConfig.showMap && (
               <div className="shrink-0 relative rounded-[8px] overflow-hidden w-[110px] h-[82px] bg-neutral-900">
-                <React.Suspense fallback={<div className="w-full h-full bg-[#0A0A12]" />}>
+                <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>
                   <Map
                   {...viewState}
                   style={{ width: '100%', height: '100%' }}
@@ -545,7 +545,7 @@ const OrderDetails = () => {
         </div>
         {/* Transaction Details Container */}
         <div
-          className={`w-full rounded-[13px] p-[12px] mb-[29px] border border-border ${isDarkMode ? 'bg-[#191919]/[0.31] backdrop-blur-[25px]' : 'bg-background'}`}
+          className={`w-full rounded-[13px] p-[12px] mb-[29px] border border-border ${isDarkMode ? 'bg-brand-card-dark/[0.31] backdrop-blur-[25px]' : 'bg-background'}`}
         >
           <h3
             className={`text-[16px] font-medium font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}

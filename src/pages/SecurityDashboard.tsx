@@ -266,7 +266,7 @@ const SecurityDashboard = () => {
         </div>
         {/* ROW 2: MPIN */}
         <div
-          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer`}
+          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-brand-surface-mid' : 'bg-white'} cursor-pointer`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
           onClick={() => setShowMpinSheet(true)}
         >
@@ -283,7 +283,7 @@ const SecurityDashboard = () => {
         </div>
         {/* ROW 3: Biometric */}
         <div
-          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer relative z-50`}
+          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-brand-surface-mid' : 'bg-white'} cursor-pointer relative z-50`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
           onClick={() => handleBiometricToggle()}
         >
@@ -303,7 +303,7 @@ const SecurityDashboard = () => {
         </div>
         {/* ROW 4: Delete Account */}
         <div
-          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-[#0B0B0B]' : 'bg-white'} cursor-pointer rounded-t-none rounded-b-xl`}
+          className={`w-full ${rowHeight} flex items-center justify-between ${paddingClass} ${isDarkMode ? 'bg-brand-surface-mid' : 'bg-white'} cursor-pointer rounded-t-none rounded-b-xl`}
           style={!isDarkMode ? { border: '1px solid #E9EAEB' } : {}}
           onClick={() => navigate(ROUTES.DELETE_ACCOUNT, { state: { originPath } })}
         >
