@@ -74,7 +74,7 @@ const ProfileEdit = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        // @ts-ignore
+        // @ts-expect-error -- third-party type mismatch
         .update({
           name,
           avatar_url: profileImage,

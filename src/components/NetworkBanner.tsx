@@ -18,7 +18,7 @@ const NetworkBanner: React.FC = () => {
         setStatus(prev => {
           if (prev && !prev.connected && s.connected) {
             setShowBackOnline(true);
-            const t = setTimeout(() => setShowBackOnline(false), 3000); if (false) clearTimeout(t);
+            const t = setTimeout(() => setShowBackOnline(false), 3000);
           }
           return s;
         });

@@ -205,7 +205,7 @@ const Homepage = () => {
           };
           
           setSavedAddress(addressToSave);
-          try { setActiveAddress?.(addressToSave); } catch {}
+          try { setActiveAddress?.(addressToSave); } catch { /* intentional */ }
           await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addressToSave);
         }
       } catch (e) {
@@ -590,7 +590,7 @@ const Homepage = () => {
             
             // Set as current location on Home screen
             setSavedAddress(addressToSave);
-            try { setActiveAddress?.(addressToSave); } catch {}
+            try { setActiveAddress?.(addressToSave); } catch { /* intentional */ }
             await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addressToSave);
             
             // Prompt user to confirm or add a saved address
@@ -633,7 +633,7 @@ const Homepage = () => {
       const parsed = await getAddress<SavedAddress | null>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
       if (parsed) {
         setSavedAddress(parsed);
-        try { setActiveAddress?.(parsed); } catch {}
+        try { setActiveAddress?.(parsed); } catch { /* intentional */ }
         return;
       }
 
@@ -645,7 +645,7 @@ const Homepage = () => {
       const parsedLegacy = await getAddress<SavedAddress | null>(ADDRESS_KEYS.USER_ADDRESS, null);
       if (parsedLegacy) {
         setSavedAddress(parsedLegacy);
-        try { setActiveAddress?.(parsedLegacy); } catch {}
+        try { setActiveAddress?.(parsedLegacy); } catch { /* intentional */ }
         return;
       }
       
@@ -879,7 +879,7 @@ const Homepage = () => {
   }, [savedAddress]);
   const handleAddressSelect = (address: SavedAddress | null) => {
     setSavedAddress(address);
-    try { setActiveAddress?.(address); } catch {}
+    try { setActiveAddress?.(address); } catch { /* intentional */ }
     if (address) {
       setIsAddressSheetOpen(false);
     }

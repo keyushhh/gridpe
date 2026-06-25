@@ -116,7 +116,7 @@ const FxExchangeSummary = () => {
           );
         }
         // For FX, p_amount is finalAmount (receive) and p_service_amount is (markup + flatFee)
-        // @ts-ignore - DB types missing for this RPC
+        // @ts-expect-error - DB types missing for this RPC
         const { data, error } = await supabase.rpc('get_order_quote', {
           p_amount: finalAmount,
           p_order_type: 'fx',
@@ -233,7 +233,7 @@ const FxExchangeSummary = () => {
       }
       // Check Service Availability & Get Zone ID
       const { data: zoneId, error: zoneError } = await withTimeout(
-        // @ts-ignore - DB types missing for this RPC
+        // @ts-expect-error - DB types missing for this RPC
         supabase.rpc('check_service_availability', {
           p_lat: Number(savedAddress?.latitude) || 0,
           p_lng: Number(savedAddress?.longitude) || 0,
@@ -308,7 +308,7 @@ const FxExchangeSummary = () => {
           savedAddress?.tag ||
           getAddressDisplay();
         const { data: earnings, error: earningsError } = await withTimeout(
-          // @ts-ignore
+          // @ts-expect-error -- third-party type mismatch
           supabase.rpc('calculate_rider_earning', {
             dist_km: parseFloat(distance.toFixed(2)),
             cash_amount: finalAmount,
@@ -386,7 +386,7 @@ const FxExchangeSummary = () => {
           },
         };
         const { data, error } = await withTimeout(
-          // @ts-ignore
+          // @ts-expect-error -- third-party type mismatch
           supabase.from('orders').insert([payload]).select().single(),
           15_000,
           'create-order'

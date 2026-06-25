@@ -22,7 +22,6 @@ export function InAppNotificationBanner() {
           current === customEvent.detail ? null : current
         );
       }, 4000);
-      if (false) clearTimeout(t);
     };
 
     window.addEventListener('notification-received', handleReceived);

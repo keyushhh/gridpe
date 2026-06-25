@@ -27,7 +27,6 @@ const FxPassportKYC = () => {
       setPassportVerified(true);
       setStep('success');
     }, 3000);
-    if (false) clearTimeout(t);
   };
   return (
     <div

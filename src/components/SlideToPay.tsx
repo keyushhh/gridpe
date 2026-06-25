@@ -66,7 +66,6 @@ export const SlideToPay: React.FC<SlideToPayProps> = ({
       const t = setTimeout(() => {
         if (mounted.current) onComplete();
       }, 2000);
-      if (false) clearTimeout(t);
     } else {
       setDragX(0);
       dragXRef.current = 0;

@@ -105,7 +105,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
 
   const handleCloseSafe = (e?: any) => {
     if (e) {
-      try { e.stopPropagation(); e.preventDefault(); } catch {}
+      try { e.stopPropagation(); e.preventDefault(); } catch { /* intentional */ }
     }
     if (isSubmitting) return;
     onClose();

@@ -416,7 +416,7 @@ const Settings = () => {
                 backgroundColor: isDarkMode ? 'rgba(82,96,254,0.06)' : 'rgba(82,96,254,0.03)'
               }}
               onClick={() => {
-                // @ts-ignore
+                // @ts-expect-error -- third-party type mismatch
                 App.openUrl({ url: storeUrl });
               }}
             >

@@ -430,15 +430,13 @@ const OrderCashSummary = () => {
           return;
         }
         const distance = calculatedDistance;
-        if (true) {
-          const { data: hubs, error: hubsError } = await (supabase.from('hubs') as any)
-            .select('id, location_name, city')
-            .eq('city', normalizeCity(activeAddress.city));
-          if (hubs && hubs.length > 0) {
-            const nearest = hubs[0];
-            pickupLocation = nearest.id;
-            pickupAddress = `${nearest.location_name}, ${nearest.city}`;
-          }
+        const { data: hubs, error: hubsError } = await (supabase.from('hubs') as any)
+          .select('id, location_name, city')
+          .eq('city', normalizeCity(activeAddress.city));
+        if (hubs && hubs.length > 0) {
+          const nearest = hubs[0];
+          pickupLocation = nearest.id;
+          pickupAddress = `${nearest.location_name}, ${nearest.city}`;
         }
         const { data: earnings, error: earningsError } = (await withTimeout(
           (supabase.rpc as any)('calculate_rider_earning', {
@@ -480,8 +478,8 @@ const OrderCashSummary = () => {
           zone_id: zoneId,
           city: activeAddress.city,
           customer_phone: customerPhoneNumber,
-          customer_name: profile?.full_name || 'Customer',
-          customer_email: profile?.email || 'customer@gridpe.in',
+          customer_name: (profile as any)?.full_name || 'Customer',
+          customer_email: (profile as any)?.email || 'customer@gridpe.in',
           scheduled_at: selectedSlot || null
         }
       });

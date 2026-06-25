@@ -27,7 +27,7 @@ const UpdatePrompt: React.FC<UpdatePromptProps> = ({ status, storeUrl, onDismiss
   const handleUpdate = async () => {
     try {
       if (Capacitor.getPlatform() !== 'web') {
-        // @ts-ignore - Bypass TS error in this Capacitor version
+        // @ts-expect-error - Bypass TS error in this Capacitor version
         await App.openUrl({ url: storeUrl });
       } else {
         window.open(storeUrl, '_blank');

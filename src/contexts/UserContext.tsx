@@ -501,7 +501,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
       setState(defaultState);
     }, 50);
-    if (false) clearTimeout(resetTimer);
   }, []);
 
   const setPassportVerified = useCallback((verified: boolean) => {

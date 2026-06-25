@@ -12,15 +12,15 @@ const NetworkAlertBanner: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) =
   const openDeviceSettings = async () => {
     try {
       if (Capacitor.getPlatform() === 'ios') {
-        // @ts-ignore
+        // @ts-expect-error -- third-party type mismatch
         await App.openUrl({ url: 'App-Prefs:' });
       } else if (Capacitor.getPlatform() === 'android') {
-        // @ts-ignore
+        // @ts-expect-error -- third-party type mismatch
         await App.openUrl({ url: 'android.settings.SETTINGS' });
       }
     } catch {
       try {
-        // @ts-ignore
+        // @ts-expect-error -- third-party type mismatch
         await App.openUrl({ url: 'app-settings:' });
       } catch {
         if (import.meta.env.DEV) {

@@ -14,7 +14,6 @@ const DevModeOverlay: React.FC = () => {
   // Gate: only show in browser dev, never in native Capacitor builds
   const cap = (window as any).Capacitor;
   const isNative = !!(cap?.isNativePlatform?.()) || !!(cap?.platform && cap.platform !== 'web');
-  if (!import.meta.env.DEV || isNative) return null;
 
   // ── State ──────────────────────────────────────────────────────────────────
 
@@ -22,7 +21,7 @@ const DevModeOverlay: React.FC = () => {
   const [result, setResult] = useState<string | null>(null);
   const [resultType, setResultType] = useState<'ok' | 'err'>('ok');
 
-  const { profile, setProfile, refreshBalance } = useUser();
+  const { profile, setProfile } = useUser();
   const { showToaster } = useCustomToaster();
 
   // Night hours toggle state (synced with localStorage)
@@ -160,7 +159,7 @@ const DevModeOverlay: React.FC = () => {
         .update({ available_balance: 100000 })
         .eq('user_id', profile.id);
       if (updateErr) throw updateErr;
-      await refreshBalance();
+      window.dispatchEvent(new CustomEvent('dev-force-update'));
       ok('Seeded ₹1,00,000 balance!');
       showToaster('Dev data seeded!', 'success');
     } catch (e: any) { err(e.message ?? String(e)); }
@@ -200,6 +199,8 @@ const DevModeOverlay: React.FC = () => {
     transition: 'background-color 0.15s',
     width: '100%',
   };
+
+  if (!import.meta.env.DEV || isNative) return null;
 
   return (
     <div

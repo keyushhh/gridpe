@@ -372,7 +372,7 @@ const SavedAddresses = () => {
                   <button
                     onClick={() => {
                       const mapped = mapToSavedAddress(selectedAddr);
-                      try { setActiveAddress?.(mapped); } catch {}
+                      try { setActiveAddress?.(mapped); } catch { /* intentional */ }
                       setSelectedAddressId(selectedAddr.id);
                       showToaster('Delivery address updated', 'success');
                       setShowActionSheet(false);
@@ -456,7 +456,7 @@ const SavedAddresses = () => {
                         }
                         // If the deleted address was the global active address, clear it
                         if (activeAddressId === idToDelete) {
-                          try { setActiveAddress?.(null); } catch {}
+                          try { setActiveAddress?.(null); } catch { /* intentional */ }
                           setSelectedAddressId(null);
                         }
                       } catch (e: unknown) {

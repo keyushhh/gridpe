@@ -388,7 +388,7 @@ const OnboardingScreen = () => {
         if (socialName && profileData.full_name !== socialName) {
           const { data: updatedProfile, error: updateError } = await supabase
             .from('profiles')
-            // @ts-ignore
+            // @ts-expect-error -- third-party type mismatch
             .update({ full_name: socialName })
             .eq('id', user.id)
             .select()
@@ -533,7 +533,7 @@ const OnboardingScreen = () => {
       const { data: updatedProfile, error } = await withTimeout(
         supabase
           .from('profiles')
-          // @ts-ignore
+          // @ts-expect-error -- third-party type mismatch
           .update({
             mpin_set: true,
             mpin_hash: hashedMpin,

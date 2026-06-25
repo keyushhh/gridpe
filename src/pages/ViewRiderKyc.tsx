@@ -134,7 +134,6 @@ const ViewRiderKyc = () => {
       setIsRevealed(!isRevealed);
       setIsAnimating(false);
     }, 1000);
-    if (false) clearTimeout(t);
   };
   return (
     <div

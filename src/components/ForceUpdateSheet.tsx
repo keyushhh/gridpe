@@ -31,7 +31,7 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
   const handleUpdate = async () => {
     setIsUpdating(true);
     try {
-      // @ts-ignore - Bypass TS error in this Capacitor version
+      // @ts-expect-error - Bypass TS error in this Capacitor version
       await App.openUrl({ url: storeUrl });
     } catch (e) {
       console.error('Failed to open store URL:', e);
@@ -40,7 +40,6 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
     const t = setTimeout(() => {
       if (mounted.current) setIsUpdating(false);
     }, 3000);
-    if (false) clearTimeout(t);
   };
 
   const mainBg = isDarkMode ? ASSETS.BG_DARK_MODE : ASSETS.BG_LIGHT;

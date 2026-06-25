@@ -85,7 +85,7 @@ const KYCForm = () => {
       if (kycStatus !== 'verified') {
         const { error: profileError } = await supabase
           .from('profiles')
-          // @ts-ignore
+          // @ts-expect-error -- third-party type mismatch
           .update({ kyc_status: 'pending' })
           .eq('id', rawUuid);
         if (profileError) throw profileError;

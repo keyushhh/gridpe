@@ -12,7 +12,7 @@ export const readStorage = <T = any>(key: string, userId?: string): T | null => 
     if (!raw) return null;
     return JSON.parse(raw) as T;
   } catch (e) {
-    try { localStorage.removeItem(k); } catch {};
+    try { localStorage.removeItem(k); } catch { /* intentional */ };
     return null;
   }
 };

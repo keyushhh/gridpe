@@ -225,7 +225,6 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     const t = setTimeout(() => {
       navigate(ROUTES.ADD_ADDRESS)
     }, 300);
-    if (false) clearTimeout(t); // 300ms matches typical sheet close animation
   };
 
   const handleRequestAddress = async () => {
@@ -276,10 +275,10 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     setSelectedAddress(addr);
     if (addr.id) {
       setLastSelectedAddressId(addr.id);
-      try { writeStorage('last_selected_address_id', addr.id, userId); } catch {}
+      try { writeStorage('last_selected_address_id', addr.id, userId); } catch { /* intentional */ }
     }
-    try { writeStorage('user_address', addr, userId); } catch {}
-    try { setActiveAddress?.(addr); } catch {}
+    try { writeStorage('user_address', addr, userId); } catch { /* intentional */ }
+    try { setActiveAddress?.(addr); } catch { /* intentional */ }
     // Notify parent immediately
     onAddressSelect(addr);
   };
