@@ -1,0 +1,4 @@
+{
+  "installCommand": "echo '//npm.pkg.github.com/:_authToken=${GRIDPE_NPM_TOKEN}' >> .npmrc && npm install --legacy-peer-deps",
+  "buildCommand": "vite build"
+}

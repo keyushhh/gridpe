@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:mobile": "vite --host 0.0.0.0 --port 8080",
-    "build": "echo '//npm.pkg.github.com/:_authToken=${GRIDPE_NPM_TOKEN}' >> .npmrc && vite build",
+    "build": "vite build",
     "build:dev": "vite build --mode development",
     "dev:ios": "npm run build && npx cap add ios && npx cap sync && npx cap open ios",
     "lint": "eslint .",
