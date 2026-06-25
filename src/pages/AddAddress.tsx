@@ -527,6 +527,7 @@ const AddAddress = () => {
           <div style={{ width: '16px' }}></div>
           {/* Navigation Button */}
           <button
+            aria-label="Use my current location"
             onClick={fetchUserLocation}
             className={`w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden ${isDarkMode ? 'shadow-lg' : ''}`}
             style={{

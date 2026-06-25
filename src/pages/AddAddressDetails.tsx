@@ -454,6 +454,7 @@ const AddAddressDetails = () => {
                       className={`h-[48px] rounded-full flex items-center relative overflow-hidden transition-colors ${isDarkMode ? 'bg-brand-card-dark border border-brand-border-mid' : 'bg-brand-bg-light border border-brand-border-light'}`}
                     >
                       <button 
+                        aria-label="Select from contacts"
                         onClick={() => showToaster('Contact selection requires native plugin installation.', 'error')}
                         className={`pl-[24px] pr-[16px] h-full flex items-center justify-center ${isDarkMode ? 'text-white/70 hover:text-white' : 'text-gray-500 hover:text-brand-bg-deep'}`}
                       >

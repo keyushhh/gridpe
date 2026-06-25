@@ -1,5 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import { crashlytics } from '@/lib/crashlytics';
+import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -385,17 +386,22 @@ const FxExchangeSummary = () => {
             client_source: 'frontend_v1',
           },
         };
-        const { data, error } = await withTimeout(
-          // @ts-expect-error -- third-party type mismatch
-          supabase.from('orders').insert([payload]).select().single(),
-          15_000,
-          'create-order'
-        ).catch((err) => {
-          if (isTimeoutError(err)) {
-            showToaster(err.message, 'error');
-          }
+        let data, error;
+        try {
+          const result = await withTimeout(
+            // @ts-expect-error -- third-party type mismatch
+            supabase.from('orders').insert([payload]).select().single(),
+            15_000,
+            'create-order'
+          );
+          data = result.data;
+          error = result.error;
+        } catch (err) {
+          await FirebaseCrashlytics.recordException({
+            message: `createOrderDirectly withTimeout failed: ${err instanceof Error ? err.message : String(err)}`,
+          });
           throw err;
-        });
+        }
         if (error) {
           crashlytics.recordError(new Error(error.message || 'FX order insert failed'), 'FxExchangeSummary: Supabase FX Insert Error');
           if (import.meta.env.DEV) console.error('Supabase FX Insert Error:', error);
