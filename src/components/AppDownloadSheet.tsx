@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import appDownloadSheetImg from '../assets/app-download-sheet.png';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 
 let hasBeenDismissedThisSession = false;
 

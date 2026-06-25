@@ -15,6 +15,7 @@ import { useLocationStore } from '@/store/useLocationStore';
 
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 import { useBackButtonHandler } from '@/hooks/useBackButtonHandler';
 import { crashlytics } from '@/lib/crashlytics';
 
@@ -62,8 +63,7 @@ const SavedAddresses = () => {
       }
       // Fallback to namespaced storage for older sessions
       try {
-        // TODO: migrate gridpe_last_selected_address_id to Preferences in future
-        const lastId = localStorage.getItem('gridpe_last_selected_address_id');
+        const { value: lastId } = await Preferences.get({ key: 'gridpe_last_selected_address_id' });
         if (lastId) {
           setSelectedAddressId(lastId);
           return;

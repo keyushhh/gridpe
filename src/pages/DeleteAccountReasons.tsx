@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
+import { GpSectionLabel } from '@gridpe-app/ui';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const DeleteAccountReasons = () => {
   const { containerOverflow } = useWebScroll();

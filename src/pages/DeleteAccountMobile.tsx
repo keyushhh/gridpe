@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
-import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
+import { GpSectionLabel } from '@gridpe-app/ui';
 import { useUser } from '@/contexts/UserContext';
 import { LocationState } from '@/types/navigation';
 const DeleteAccountMobile = () => {

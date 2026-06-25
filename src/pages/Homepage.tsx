@@ -28,7 +28,7 @@ import { cancelOrder } from '@/lib/orders';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import NotAvailable from './NotAvailable';
 import { Button } from '@/components/ui/button';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/routes';
 // Tag Icons

@@ -14,7 +14,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { Button } from '@/components/ui/button';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 
 interface MpinSheetProps {
   onClose: () => void;

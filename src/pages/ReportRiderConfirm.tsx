@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { GpStatusDot } from '@/components/ui/GpStatusDot';
+import { GpStatusDot } from '@gridpe-app/ui';
 const ReportRiderConfirm = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();

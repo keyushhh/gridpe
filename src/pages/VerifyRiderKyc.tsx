@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 const VerifyRiderKyc = () => {
   const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState<'yes' | 'no'>('yes');

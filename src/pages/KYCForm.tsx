@@ -6,7 +6,7 @@ import BackButton from '@/components/ui/BackButton';
 import { Check, X, Loader2 } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { Button } from '@/components/ui/button';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 import { supabase } from '@/lib/supabase';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';

@@ -12,7 +12,7 @@ import timeIcon from '@/assets/time.svg';
 import mapIcon from '@/assets/map.svg';
 import cashIcon from '@/assets/cash.svg';
 import { PhoneInput } from '@/components/PhoneInput';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 
 const RideAndEarn = () => {
   const navigate = useNavigate();

@@ -6,7 +6,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
+import { GpSectionLabel } from '@gridpe-app/ui';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';

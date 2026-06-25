@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
-import { OrderMessage } from '@/types/database';
+import { OrderMessage } from '@/types/chat';
 
 export function useOrderChat(orderId: string | null, isOpen: boolean = false) {
   const { profile } = useUser();

@@ -3,7 +3,7 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ASSETS } from '@/constants/assets';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 
 interface ForceUpdateSheetProps {
   storeUrl: string;

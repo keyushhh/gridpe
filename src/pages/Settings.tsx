@@ -22,7 +22,7 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useAppUpdateCheck } from '@/hooks/useAppUpdateCheck';
-import { GpSectionLabel } from '@/components/ui/GpSectionLabel';
+import { GpSectionLabel } from '@gridpe-app/ui';
 import { crashlytics } from '@/lib/crashlytics';
 
 type SecurityStatus = 'verified' | 'in_review' | 'pending' | 'incomplete';

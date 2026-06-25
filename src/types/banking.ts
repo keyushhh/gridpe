@@ -22,6 +22,6 @@ export interface BankAccount {
   backgroundIndex?: number;
 }
 
-export type Payout = Tables['payouts'] & {
+export type Payout = Tables<'payouts'> & {
   vpa?: string; // For UPI payouts
 };

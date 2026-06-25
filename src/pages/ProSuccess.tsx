@@ -4,7 +4,7 @@ import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { ASSETS } from '@/constants/assets';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 
 const ProSuccess = () => {
   const navigate = useNavigate();

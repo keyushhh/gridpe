@@ -32,7 +32,7 @@ export const registerPushNotifications = async (navigate?: (path: string) => voi
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        await (supabase as any).from('profiles').update({ push_token: token }).eq('id', user.id);
+        await supabase.from('profiles').update({ push_token: token }).eq('id', user.id);
       }
     });
 

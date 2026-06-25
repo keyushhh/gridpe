@@ -11,7 +11,7 @@ import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { crashlytics } from '@/lib/crashlytics';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { showToaster } = useCustomToaster();

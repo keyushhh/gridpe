@@ -6,7 +6,7 @@ import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 const FxKYCSuccess = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();

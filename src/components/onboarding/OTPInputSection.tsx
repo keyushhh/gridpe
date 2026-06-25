@@ -2,7 +2,7 @@ import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
-import { GpButton } from '@/components/ui/GpButton';
+import { GpButton } from '@gridpe-app/ui';
 
 interface OTPInputSectionProps {
   phoneNumber: string;

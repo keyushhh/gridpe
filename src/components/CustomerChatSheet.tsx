@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useOrderChat } from '@/hooks/useOrderChat';
-import { CUSTOMER_QUICK_REPLIES } from '@/types/database';
+import { CUSTOMER_QUICK_REPLIES } from '@/types/chat';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 
 interface CustomerChatSheetProps {
