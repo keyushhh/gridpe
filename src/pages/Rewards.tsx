@@ -32,6 +32,7 @@ import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 
 import { OrderMetadata } from '@/types';
+import { Badge, UserBadge } from '@/types/chat';
 import ButtonSpinner from '@/components/ui/ButtonSpinner';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { crashlytics } from '@/lib/crashlytics';
@@ -62,15 +63,15 @@ const Rewards = () => {
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
-  const [selectedBadge, setSelectedBadge] = useState<any>(null);
+  const [selectedBadge, setSelectedBadge] = useState<(Badge & { earned?: boolean; earned_at?: string }) | null>(null);
   const [inviteExpanded, setInviteExpanded] = useState(false);
 
   useBodyScrollLock(showHowItWorks || !!selectedBadge);
 
   const referralLink = `https://gridpe.in/refer?ref=${profile?.referral_code || ''}`;
 
-  const [userBadges, setUserBadges] = useState<any[]>([]);
-  const [allBadges, setAllBadges] = useState<any[]>([]);
+  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
+  const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   useEffect(() => {
@@ -89,8 +90,8 @@ const Rewards = () => {
           .select("id, slug, name, icon_name, tier, description, points_reward")
       ]);
 
-      if (userBadgesRes.data) setUserBadges(userBadgesRes.data);
-      if (allBadgesRes.data) setAllBadges(allBadgesRes.data);
+      if (userBadgesRes.data) setUserBadges(userBadgesRes.data as unknown as UserBadge[]);
+      if (allBadgesRes.data) setAllBadges(allBadgesRes.data as unknown as Badge[]);
 
       setBadgesLoading(false);
     };
@@ -117,7 +118,7 @@ const Rewards = () => {
         .limit(10);
       if (rewardError) throw rewardError;
       if (rewardData && rewardData.length > 0) {
-        return rewardData.map((rt: any) => ({
+        return rewardData.map((rt: Record<string, unknown>) => ({
           ...rt,
           transaction_type: (rt.type === 'spent' ? 'debit' : 'credit') as 'credit' | 'debit',
           order_details: undefined, // Removed join dependency entirely
@@ -415,7 +416,7 @@ const Rewards = () => {
               ) : (
                 <>
                   {userBadges.map((ub) => {
-                    const badge = ub.badges || {};
+                    const badge = ub.badges as Badge;
                     const IconComponent = ICON_MAP[badge.icon_name] || Star;
 
                     let bgGradient = 'from-slate-600/40 to-slate-400/20';
@@ -447,8 +448,8 @@ const Rewards = () => {
                   })}
 
                   {allBadges
-                    .filter((b: any) => !userBadges.some(ub => ub.badge_id === b.id))
-                    .map((badge: any) => {
+                    .filter((b: Badge) => !userBadges.some(ub => ub.badge_id === b.id))
+                    .map((badge: Badge) => {
                       const IconComponent = ICON_MAP[badge.icon_name] || Star;
                       return (
                         <div

@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { Session } from '@supabase/supabase-js';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { ROUTES } from '@/routes';
 import { Capacitor } from '@capacitor/core';
@@ -28,7 +29,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const checkAuth = useCallback(async () => {
     let resolvedSession = false;
     try {
-      const timeoutPromise = new Promise<{ data: { session: any } }>((resolve) =>
+      const timeoutPromise = new Promise<{ data: { session: Session | null } }>((resolve) =>
         setTimeout(() => resolve({ data: { session: null } }), 4000)
       );
       const { data: { session } } = await Promise.race([

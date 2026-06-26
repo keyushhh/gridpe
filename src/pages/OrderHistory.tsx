@@ -301,7 +301,7 @@ const OrderHistory = () => {
 
 
         if (rewardData && rewardData.length > 0) {
-          const sortedOrders = rewardData.map((rt: any) => {
+          const sortedOrders = rewardData.map((rt: Record<string, unknown>) => {
             return {
               id: rt.id,
               user_id: rt.user_id,

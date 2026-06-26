@@ -7,7 +7,7 @@ export type NotificationPayload = {
   orderId?: string
   transactionId?: string
   screen?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 // TO TEST: In Supabase dashboard → send a test push with data payload:

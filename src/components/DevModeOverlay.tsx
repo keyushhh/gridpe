@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 
 const DevModeOverlay: React.FC = () => {
   // Gate: only show in browser dev, never in native Capacitor builds
-  const cap = (window as any).Capacitor;
+    const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean; platform?: string } }).Capacitor;
   const isNative = !!(cap?.isNativePlatform?.()) || !!(cap?.platform && cap.platform !== 'web');
 
   // ── State ──────────────────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ const DevModeOverlay: React.FC = () => {
       if (e) throw e;
       ok(`Pickup simulated → ${orderId.slice(0, 8)}`);
       showToaster('Order picked up!', 'success');
-    } catch (e: any) { err(e.message ?? String(e)); }
+    } catch (e: unknown) { err(e instanceof Error ? e.message : String(e)); }
   };
 
   const handleSimulateDelivery = async () => {
@@ -121,7 +121,7 @@ const DevModeOverlay: React.FC = () => {
       window.dispatchEvent(new CustomEvent('dev-order-delivered', { detail: { orderId } }));
       ok(`Delivery simulated → ${orderId.slice(0, 8)}`);
       showToaster('Order delivered!', 'success');
-    } catch (e: any) { err(e.message ?? String(e)); }
+    } catch (e: unknown) { err(e instanceof Error ? e.message : String(e)); }
   };
 
   const handleTriggerRating = () => {
@@ -141,7 +141,7 @@ const DevModeOverlay: React.FC = () => {
       setProfile({ ...profile, terms_accepted_at: null, terms_version: null });
       ok('Terms reset in DB + context.');
       showToaster('Terms reset!', 'success');
-    } catch (e: any) { err(e.message ?? String(e)); }
+    } catch (e: unknown) { err(e instanceof Error ? e.message : String(e)); }
   };
 
   const handleForceTermsGate = () => {
@@ -162,7 +162,7 @@ const DevModeOverlay: React.FC = () => {
       window.dispatchEvent(new CustomEvent('dev-force-update'));
       ok('Seeded ₹1,00,000 balance!');
       showToaster('Dev data seeded!', 'success');
-    } catch (e: any) { err(e.message ?? String(e)); }
+    } catch (e: unknown) { err(e instanceof Error ? e.message : String(e)); }
   };
 
   // ── Menu item definitions ──────────────────────────────────────────────────

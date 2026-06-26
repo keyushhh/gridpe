@@ -54,7 +54,7 @@ const OrderDelivered = () => {
   };
   const addressDisplay = getAddressDisplay();
 
-  const customerName = addressSource?.contact_name || addressSource?.name || profile?.full_name || orderData?.user?.full_name || 'Customer';
+  const customerName = addressSource?.contact_name || addressSource?.name || (profile as Record<string, unknown>)?.full_name || (orderData?.user as Record<string, unknown>)?.full_name || 'Customer';
   const customerPhone = addressSource?.contact_phone || addressSource?.phone || profile?.phone || orderData?.user?.phone || null;
 
   useEffect(() => {
@@ -160,13 +160,13 @@ const OrderDelivered = () => {
       setTimeout(() => {
         navigate(ROUTES.HOME);
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       crashlytics.recordError(
         err instanceof Error ? err : new Error('Failed to submit rating'),
         'OrderDelivered.handleSubmitRating'
       );
       if (import.meta.env.DEV) { console.error('Error submitting rating:', err); }
-      showToaster(err.message || 'Failed to submit rating', 'error');
+      showToaster(err instanceof Error ? err.message : 'Failed to submit rating', 'error');
     } finally {
       setIsSubmitting(false);
     }

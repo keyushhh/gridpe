@@ -18,7 +18,9 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { crashlytics } from '@/lib/crashlytics';
 
-declare const Cashfree: any;
+declare const Cashfree: (config: { mode: string }) => {
+  checkout: (options: Record<string, unknown>) => Promise<Record<string, unknown>>;
+};
 let pendingCardVerificationOrderId: string | null = null;
 const AddCard = () => {
   const { containerOverflow } = useWebScroll();
@@ -220,7 +222,7 @@ const AddCard = () => {
         cashfree.checkout({
           paymentSessionId: orderData.payment_session_id,
           redirectTarget: '_modal',
-        }).then(async (result: any) => {
+        }).then(async (result: Record<string, unknown>) => {
           if (result.paymentDetails) {
             showToaster('Saving your card...', 'success');
             try {

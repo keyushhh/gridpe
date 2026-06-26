@@ -49,7 +49,12 @@ let pendingVerificationStore: {
   scheduledAt: string | null;
 } | null = null;
 
-declare const Cashfree: any;
+declare const Cashfree: (config: { mode: string }) => {
+  checkout: (options: Record<string, unknown>) => Promise<{
+    error?: unknown;
+    paymentDetails?: { paymentMessage?: string };
+  }>;
+};
 const OrderCashSummary = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -575,7 +580,7 @@ const OrderCashSummary = () => {
         };
 
         // Open Cashfree checkout modal
-        cashfree.checkout(checkoutOptions).then(async (result: any) => {
+        cashfree.checkout(checkoutOptions).then(async (result) => {
           if (result.error) {
             showToaster('Payment failed. Please try again.', 'error');
             setIsLoading(false);

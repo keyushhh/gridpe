@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { routeFromNotification } from '../utils/notificationRouter';
 
 export function InAppNotificationBanner() {
-  const [notification, setNotification] = useState<{title: string, body: string, data: any} | null>(null);
+  const [notification, setNotification] = useState<{title: string, body: string, data: Record<string, unknown>} | null>(null);
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 

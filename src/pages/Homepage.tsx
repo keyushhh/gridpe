@@ -39,7 +39,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import HomePageSkeleton from '@/components/skeletons/HomePageSkeleton';
 import { checkLocationPermission, requestLocationPermission, getCurrentPosition } from '@/utils/geolocation';
 import { reverseGeocode, getDistance } from '@/utils/geoUtils';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { 
   getAddress, 
   setAddress, 
@@ -153,7 +153,7 @@ const Homepage = () => {
         let currentLat = null;
         let currentLng = null;
         try {
-          const parsed = await getAddress<any>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
+          const parsed = await getAddress<SavedAddress>(ADDRESS_KEYS.SELECTED_ADDRESS, null);
           if (parsed) {
             currentLat = parsed.latitude;
             currentLng = parsed.longitude;
@@ -310,7 +310,7 @@ const Homepage = () => {
 
     const excludedStatuses = ['cancelled', 'failed', 'rejected'];
 
-    transactionHistory.forEach((tx: any) => {
+    transactionHistory.forEach((tx: Order) => {
       if (excludedStatuses.includes(tx.status)) return;
       
       const txDate = new Date(tx.created_at);
@@ -726,7 +726,7 @@ const Homepage = () => {
     document.addEventListener('visibilitychange', onVisibilityChange);
     
     // Native App state change (if on native device)
-    let nativeAppListener: any = null;
+    let nativeAppListener: PluginListenerHandle | null = null;
     if (Capacitor.isNativePlatform()) {
       import('@capacitor/app').then(({ App }) => {
         App.addListener('appStateChange', (state) => {

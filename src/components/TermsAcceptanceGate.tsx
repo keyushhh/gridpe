@@ -159,7 +159,7 @@ export const TermsAcceptanceGate: React.FC = () => {
 
       showToaster('Thank you. The terms have been successfully accepted.', 'success');
       setIsMandatory(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to accept terms', err);
       showToaster(err.message || 'Failed to accept terms. Please check connection.', 'error');
     } finally {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Network } from '@capacitor/network'
 import { Capacitor } from '@capacitor/core'
+import type { PluginListenerHandle } from '@capacitor/core'
 
 export function useNetworkStatus() {
   const [isConnected, setIsConnected] = useState(true)
@@ -9,7 +10,7 @@ export function useNetworkStatus() {
   const wasConnected = useRef(true)
 
   useEffect(() => {
-    let listenerHandle: any
+    let listenerHandle: PluginListenerHandle | null = null;
 
     const handleStatusChange = (connected: boolean) => {
 

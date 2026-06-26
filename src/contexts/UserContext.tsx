@@ -3,7 +3,7 @@ import { crashlytics } from '@/lib/crashlytics';
 import { identify, reset as analyticsReset } from '@/lib/analytics';
 import { identifyUser, resetPostHogUser } from '../lib/analytics/providers/posthog';
 import { supabase } from '@/lib/supabase';
-import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
+import { RealtimeChannel, PostgrestError, Session } from '@supabase/supabase-js';
 import { Profile as UserProfile, Tables } from '@/types';
 
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
@@ -205,11 +205,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       try {
         if (state.isResetting) return;
         const sessionPromise = supabase.auth.getSession();
-        let timer: any;
+        let timer: ReturnType<typeof setTimeout> | null = null;
         const timeoutPromise = new Promise((_, reject) => 
           timer = setTimeout(() => reject(new Error('Session check timeout')), 10000)
         );
-        let session: any;
+        let session: Session | null;
         try {
           const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
           clearTimeout(timer);
@@ -325,7 +325,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const INIT_TIMEOUT_MS = 12000 // 12 seconds max
 
-    let initTimer: any;
+    let initTimer: ReturnType<typeof setTimeout> | null = null;
     const initWithTimeout = Promise.race([
       fetchProfileData(), // existing init logic
       new Promise<void>((resolve) => 

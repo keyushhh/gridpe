@@ -190,7 +190,7 @@ const SecurityDashboard = () => {
         reason: 'Confirm your identity to enable biometrics',
         cancelTitle: 'Cancel',
       });
-      let timer: any;
+      let timer: ReturnType<typeof setTimeout>;
       const timeoutPromise = new Promise<never>((_, reject) =>
         timer = setTimeout(() => reject(new Error('Biometric prompt timed out. Please try again.')), 30000)
       );

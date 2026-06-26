@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { App } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
+import type { PluginListenerHandle } from '@capacitor/core'
 import { ASSETS } from '@/constants/assets'
 
 // IMPORTANT RULES:
@@ -19,7 +20,7 @@ export function PrivacyScreen() {
     // Web: JS overlay handles it (dev preview only)
     if (Capacitor.getPlatform() !== 'web') return
 
-    let listenerHandle: any
+    let listenerHandle: PluginListenerHandle | null = null;
 
     try {
       App.addListener('appStateChange', ({ isActive }) => {

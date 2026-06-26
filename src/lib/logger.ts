@@ -1,7 +1,7 @@
 export interface LogContext {
   route?: string;
   componentName?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 class LoggerService {

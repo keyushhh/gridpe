@@ -52,8 +52,8 @@ export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss
     if (Capacitor.isNativePlatform()) return;
 
     // 3. Check if it's a mobile browser
-    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+    const userAgent = navigator.userAgent || navigator.vendor || ((window as (Window & { opera?: string })).opera as string) || '';
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as (Window & { MSStream?: unknown })).MSStream;
     const isAndroid = /android/i.test(userAgent);
     const isMobile = isIOS || isAndroid;
 
@@ -86,8 +86,8 @@ export default function AppDownloadSheet({ forceOpen = false, onClose, onDismiss
   };
 
   const handleDownload = () => {
-    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+    const userAgent = navigator.userAgent || navigator.vendor || ((window as (Window & { opera?: string })).opera as string) || '';
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as (Window & { MSStream?: unknown })).MSStream;
     
     if (isIOS) {
       window.location.href = 'https://apps.apple.com/app/gridpe/[YOUR_APP_ID]';

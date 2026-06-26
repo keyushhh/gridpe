@@ -82,7 +82,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
       }
 
       try {
-        let timer: any;
+        let timer: ReturnType<typeof setTimeout> | null = null;
         const timeoutPromise = new Promise((_, reject) =>
           timer = setTimeout(() => reject(new Error('Timeout')), 5000)
         );

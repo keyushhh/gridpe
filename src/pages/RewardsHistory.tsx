@@ -46,7 +46,7 @@ const RewardsHistory = () => {
   }, [transactions]);
 
   const groupedTransactions = useMemo(() => {
-    const groups: { month: string; txs: any[] }[] = [];
+    const groups: { month: string; txs: Record<string, unknown>[] }[] = [];
     const map: Record<string, number> = {};
 
     transactions.forEach(tx => {
@@ -64,9 +64,9 @@ const RewardsHistory = () => {
     return groups;
   }, [transactions]);
 
-  const getTransactionUI = (tx: any) => {
-    const desc = tx.description || '';
-    const type = tx.type;
+  const getTransactionUI = (tx: Record<string, unknown>) => {
+    const desc = (tx.description as string) || '';
+    const type = tx.type as string;
     
     let Icon = Gift;
     let bgColor = 'bg-blue-500/20';
@@ -167,10 +167,10 @@ const RewardsHistory = () => {
                 <div className="flex flex-col space-y-[20px]">
                   {group.txs.map(tx => {
                     const ui = getTransactionUI(tx);
-                    const dateStr = new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                    const dateStr = new Date(tx.created_at as string).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
                     
                     return (
-                      <div key={tx.id} className="flex items-center justify-between">
+                      <div key={tx.id as string} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${ui.bgColor}`}>
                             <ui.Icon size={20} className={ui.iconColor} />
@@ -185,7 +185,7 @@ const RewardsHistory = () => {
                           </div>
                         </div>
                         <span className={`text-[15px] font-bold font-satoshi ${ui.amountColor}`}>
-                          {ui.amountPrefix}{tx.points_amount || 0} pts
+                          {ui.amountPrefix}{(tx.points_amount as number) || 0} pts
                         </span>
                       </div>
                     );

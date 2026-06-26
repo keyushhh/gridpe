@@ -12,7 +12,9 @@ import { Browser } from '@capacitor/browser';
 import { crashlytics } from '@/lib/crashlytics';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 
-declare const Cashfree: any;
+declare const Cashfree: (config: { mode: string }) => {
+  checkout: (options: Record<string, unknown>) => Promise<Record<string, unknown>>;
+};
 import proPageBg from '@/assets/pro-page-bg.webp';
 import gridpeProSvg from '@/assets/gridpe-pro.svg';
 
@@ -115,7 +117,7 @@ const ProUpgrade = () => {
           redirectTarget: '_modal',
         };
         
-        cashfree.checkout(checkoutOptions).then(async (result: any) => {
+        cashfree.checkout(checkoutOptions).then(async (result: Record<string, unknown>) => {
           if (result.error) {
             if (import.meta.env.DEV) { console.error('Payment failed or cancelled.'); }
             showToaster('Payment was not completed. Please try again.', 'error');
@@ -125,7 +127,7 @@ const ProUpgrade = () => {
           }
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       crashlytics.recordError(
         err instanceof Error ? err : new Error('handleUpgradeClick failed'),
         'ProUpgrade.handleUpgradeClick'

@@ -221,7 +221,7 @@ const FxExchange = () => {
     setFromCurrency(code);
   };
 
-  const computeCrossRate = (data: any, from: string, to: string): number | null => {
+  const computeCrossRate = (data: Record<string, unknown>, from: string, to: string): number | null => {
     if (from === to) return 1;
     const rates = data.rates ?? {};
     const base = (data.base as string) || 'USD';

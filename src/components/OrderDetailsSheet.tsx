@@ -103,7 +103,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
 
   useBodyScrollLock(isOpen && order !== null);
 
-  const handleCloseSafe = (e?: any) => {
+  const handleCloseSafe = (e?: React.SyntheticEvent | Event) => {
     if (e) {
       try { e.stopPropagation(); e.preventDefault(); } catch { /* intentional */ }
     }
