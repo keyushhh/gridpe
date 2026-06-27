@@ -12,7 +12,6 @@ import SaveAddressSheet from '@/components/SaveAddressSheet';
 import {
   createAddress,
   updateAddress,
-  Address,
   ensureGlobalPlusCode,
 } from '@/lib/addresses';
 import { useUser } from '@/contexts/UserContext';
@@ -63,7 +62,7 @@ const AddAddressDetails = () => {
   );
   const [area, setArea] = useState(isEditMode ? (initialState?.road || initialState?.area || '') : '');
   const [landmark, setLandmark] = useState(initialState?.landmark || '');
-  const [plusCode, setPlusCode] = useState(initialState?.plusCode || initialState?.plus_code || '');
+  const [plusCode] = useState(initialState?.plusCode || initialState?.plus_code || '');
   const [name, setName] = useState(initialState?.name || initialState?.contact_name || '');
   const [phone, setPhone] = useState(initialState?.phone || initialState?.contact_phone || '');
   
@@ -93,7 +92,7 @@ const AddAddressDetails = () => {
 
   useEffect(() => {
     if (useAccountDetails) {
-      setName(accountName || profile?.full_name || '');
+      setName(accountName || (profile as any)?.full_name || (profile as any)?.name || '');
       const rawPhone = accountPhone || profile?.phone || '';
       setPhone(rawPhone ? rawPhone.replace('+91', '').replace(/^91/, '').replace(/\D/g, '') : '');
     } else if (!useAccountDetails && !isEditMode) {
@@ -140,10 +139,7 @@ const AddAddressDetails = () => {
       setDisplayAddress(initialState.addressLine);
     }
   }, [house, area, landmark, initialState]);
-  const handleCopyPlusCode = () => {
-    navigator.clipboard.writeText(plusCode);
-    showToaster('Plus Code copied!', 'success');
-  };
+
   useEffect(() => {
     const sentinel = sentinelRef.current;
     const header = headerRef.current;
@@ -211,7 +207,7 @@ const AddAddressDetails = () => {
       const lat = Number(locState?.lat) || 0;
       const lng = Number(locState?.lng) || 0;
       // Enforce Global Plus Code
-      const finalPlusCode = ensureGlobalPlusCode(plusCode, lat, lng);
+      const _finalPlusCode = ensureGlobalPlusCode(plusCode, lat, lng);
       if (isEditMode && initialState?.id) {
         const updatePayload = {
           label: tagToSave,

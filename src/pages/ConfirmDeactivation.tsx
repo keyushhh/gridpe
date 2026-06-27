@@ -116,6 +116,7 @@ const ConfirmDeactivation = () => {
       }
     };
     verifyDeactivationMpin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mpin, profile?.mpin_hash]);
   const handleDeactivate = () => {
     if (!isValid) return;

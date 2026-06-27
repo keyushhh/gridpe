@@ -98,6 +98,7 @@ const OrderDelivered = () => {
     };
     
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderData?.id, orderData?.rider_id]);
 
   const handleTipSelect = (option: string) => {

@@ -117,7 +117,6 @@ const FxExchangeSummary = () => {
           );
         }
         // For FX, p_amount is finalAmount (receive) and p_service_amount is (markup + flatFee)
-        // @ts-expect-error - DB types missing for this RPC
         const { data, error } = await supabase.rpc('get_order_quote', {
           p_amount: finalAmount,
           p_order_type: 'fx',
@@ -125,7 +124,7 @@ const FxExchangeSummary = () => {
           p_distance_km: parseFloat(distance.toFixed(2)),
         });
         if (error) throw error;
-        setQuoteData(data);
+        setQuoteData(data as any);
       } catch (err) {
         crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'FxExchangeSummary: Failed to fetch FX order quote');
         if (import.meta.env.DEV) console.error('Failed to fetch FX order quote', err);
@@ -140,6 +139,7 @@ const FxExchangeSummary = () => {
     } else {
       setQuoteLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalAmount, serviceAmount]);
   const deliveryFee = quoteData?.delivery_fee || 0;
   const platformFee = quoteData?.platform_fee || 0;
@@ -234,7 +234,6 @@ const FxExchangeSummary = () => {
       }
       // Check Service Availability & Get Zone ID
       const { data: zoneId, error: zoneError } = await withTimeout(
-        // @ts-expect-error - DB types missing for this RPC
         supabase.rpc('check_service_availability', {
           p_lat: Number(savedAddress?.latitude) || 0,
           p_lng: Number(savedAddress?.longitude) || 0,
@@ -309,7 +308,6 @@ const FxExchangeSummary = () => {
           savedAddress?.tag ||
           getAddressDisplay();
         const { data: earnings, error: earningsError } = await withTimeout(
-          // @ts-expect-error -- third-party type mismatch
           supabase.rpc('calculate_rider_earning', {
             dist_km: parseFloat(distance.toFixed(2)),
             cash_amount: finalAmount,
@@ -318,7 +316,7 @@ const FxExchangeSummary = () => {
           'calculate-rider-earning'
         );
         if (!earningsError && earnings !== null) {
-          riderEarnings = parseFloat(earnings);
+          riderEarnings = Number(earnings);
         } else {
           crashlytics.recordError(new Error(earningsError?.message || 'Rider earnings RPC failed'), 'FxExchangeSummary: Rider earnings RPC failed');
           if (import.meta.env.DEV) console.error('Rider earnings RPC failed, using 0 fallback:', earningsError);
@@ -389,7 +387,6 @@ const FxExchangeSummary = () => {
         let data, error;
         try {
           const result = await withTimeout(
-            // @ts-expect-error -- third-party type mismatch
             supabase.from('orders').insert([payload]).select().single(),
             15_000,
             'create-order'

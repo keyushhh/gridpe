@@ -99,6 +99,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
     if (isOpen) {
       fetchCurrentLocationName();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
   // Prevent background scroll bleed
   useBodyScrollLock(isOpen);
@@ -178,6 +179,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       }
     };
     loadAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId]);
   // Search Logic
   const handleSearchInput = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -30,8 +30,50 @@ export default defineConfig(({ mode }) => ({
       output: {
         inlineDynamicImports: false,
         manualChunks(id) {
+          // Map rendering — isolated, largest chunk
           if (id.includes('maplibre-gl') || id.includes('react-map-gl')) {
             return 'map-engine';
+          }
+          // Supabase client — large, rarely changes
+          if (id.includes('@supabase/')) {
+            return 'vendor-supabase';
+          }
+          // React core + router — must load first
+          if (id.includes('react-router-dom') || id.includes('react-router/') ||
+              id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'vendor-react';
+          }
+          // Animation — framer-motion is heavy
+          if (id.includes('framer-motion')) {
+            return 'vendor-animation';
+          }
+          // Data fetching
+          if (id.includes('@tanstack/')) {
+            return 'vendor-query';
+          }
+          // Capacitor plugins — mobile runtime
+          if (id.includes('@capacitor/')) {
+            return 'vendor-capacitor';
+          }
+          // Analytics — posthog is large, load after paint
+          if (id.includes('posthog-js')) {
+            return 'vendor-analytics';
+          }
+          // Lottie animation runtime
+          if (id.includes('lottie-web') || id.includes('@lottiefiles/')) {
+            return 'vendor-lottie';
+          }
+          // OCR engine — only used on CameraPage (lazy loaded)
+          if (id.includes('tesseract')) {
+            return 'vendor-ocr';
+          }
+          // Date utilities
+          if (id.includes('date-fns')) {
+            return 'vendor-dates';
+          }
+          // Remaining node_modules — catchall vendor chunk
+          if (id.includes('node_modules')) {
+            return 'vendor-misc';
           }
         }
       },

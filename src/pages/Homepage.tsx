@@ -6,13 +6,12 @@ import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-quer
 import { useNavigate, useLocation } from 'react-router-dom';
 const Map = React.lazy(() => import('@/components/MapWrapper'));
 const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
-const Source = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Source })));
-const Layer = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Layer })));
+
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Home, MapPin /*, Eye, EyeOff */ } from 'lucide-react';
+import { MapPin /*, Eye, EyeOff */ } from 'lucide-react';
 import { olc } from '@/utils/olc';
 import { fetchRecentOrders, fetchActiveOrders } from '@/lib/orders';
-import { Order, SavedAddress, Rider } from '@/types';
+import { Order, SavedAddress } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useAsset } from '@/hooks/useAsset';
@@ -54,60 +53,22 @@ import deliveryLimitBg from '@/assets/delivery-limit.webp';
 import proBannerImg from '@/assets/pro-banner.webp';
 import proIcon from '@/assets/pro-icon.svg';
 import arrowUpIcon from '@/assets/arrow-up.svg';
-const currencySymbols: Record<string, string> = {
-  AUD: '$',
-  BRL: 'R$',
-  CAD: '$',
-  CHF: 'Fr',
-  CNY: '¥',
-  CZK: 'Kč',
-  DKK: 'kr',
-  EUR: '€',
-  GBP: '£',
-  HKD: '$',
-  HUF: 'Ft',
-  IDR: 'Rp',
-  ILS: '₪',
-  INR: '₹',
-  ISK: 'kr',
-  JPY: '¥',
-  KRW: '₩',
-  MXN: '$',
-  MYR: 'RM',
-  NOK: 'kr',
-  NZD: '$',
-  PHP: '₱',
-  PLN: 'zł',
-  RON: 'lei',
-  SEK: 'kr',
-  SGD: '$',
-  THB: '฿',
-  TRY: '₺',
-  USD: '$',
-  ZAR: 'R',
-};
+
 
 const Homepage = () => {
-  const { containerOverflow } = useWebScroll();
+  useWebScroll();
   const navigate = useNavigate();
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
 
-  const iconFxConvert = useAsset(ASSETS.FX_CONVERT, ASSETS.CURRENCY_ICON);
   const iconOrderCash = useAsset(ASSETS.ORDER_CASH, ASSETS.CASH_ORDER_ICON);
-  const iconAddMoney = useAsset(ASSETS.ADD_ICON, ASSETS.ADD_MONEY_ICON);
-  const iconGift = useAsset(ASSETS.GIFT_ICON, ASSETS.GIFT_ICON);
-  const orderCashBg = useAsset(ASSETS.ORDER_CASH_BUTTON_BG, '');
-  const circleButtonBg = useAsset(ASSETS.CIRCLE_BUTTON, '');
-  const bannerBg = useAsset(ASSETS.BANNER_BG_NEW, '');
   const isDarkMode = useIsDarkMode();
-  const [showBalance, setShowBalance] = useState(false);
+
   const [showDeliveryLimitsModal, setShowDeliveryLimitsModal] = useState(false);
   const [amount, setAmount] = useState<string>('0.00');
   const [showInlineKeypad, setShowInlineKeypad] = useState<boolean>(false);
   const {
     name,
     profile,
-    isPassportVerified,
     profileImage,
   } = useUser();
 
@@ -208,7 +169,7 @@ const Homepage = () => {
           try { setActiveAddress?.(addressToSave); } catch { /* intentional */ }
           await setAddress(ADDRESS_KEYS.SELECTED_ADDRESS, addressToSave);
         }
-      } catch (e) {
+      } catch {
         // Silent fail
       }
     };
@@ -343,7 +304,7 @@ const Homepage = () => {
         return prev;
       }
       if (prev.includes('.')) {
-        const [whole, decimal] = prev.split('.');
+        const [, decimal] = prev.split('.');
         if (decimal && decimal.length >= 2) {
           return prev;
         }
@@ -401,9 +362,9 @@ const Homepage = () => {
     (addressesCountQuery.isLoading && !addressesCountQuery.data);
   const [isRiderAssigned, setIsRiderAssigned] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedOrderForSheet, setSelectedOrderForSheet] = useState<Order | null>(null);
+  const [selectedOrderForSheet] = useState<Order | null>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [, setActiveBannerIndex] = useState(0);
   const [forceNight, setForceNight] = useState(() => localStorage.getItem('dev_force_night_hours') === 'true');
   const [isNight, setIsNight] = useState(isNightTime());
   const [completedOrder, setCompletedOrder] = useState<{
@@ -442,71 +403,15 @@ const Homepage = () => {
     return () => clearInterval(timer);
   }, [activeAddress]);
   // FX Live Data states
-  const [fxRate, setFxRate] = useState<number>(90.61);
-  const [fxHistory, setFxHistory] = useState<unknown[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<string>('16 Feb, 6:15 AM UTC');
-  const [isLoadingFx, setIsLoadingFx] = useState<boolean>(false);
+
   // Service Availability State
   const [isUnserviceable, setIsUnserviceable] = useState<boolean>(false);
   const [currentZoneId, setCurrentZoneId] = useState<string | null>(null);
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+
 
   const displayNightMode = !isUnserviceable && (forceNight || isNight);
-  // Fetch Live FX Data
-  useEffect(() => {
-    const controller = new AbortController();
-    let active = true;
 
-    const fetchFxData = async (from = 'USD', to = 'INR', date?: string) => {
-      try {
-        setIsLoadingFx(true);
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        const params = new URLSearchParams({ from, to });
-        if (date) params.set('date', date);
-        const res = await fetch(`${supabaseUrl}/functions/v1/fx-rates?${params.toString()}`, {
-          headers: {
-            apikey: supabaseAnonKey,
-          },
-          signal: controller.signal,
-        });
-        if (!active) return;
-        if (!res.ok) throw new Error(`FX fetch failed: ${res.status}`);
-        const data = await res.json();
-        if (!active) return;
-        if (data.rates && data.rates.INR) {
-          setFxRate(data.rates.INR);
-          const now = new Date();
-          const options: Intl.DateTimeFormatOptions = {
-            day: 'numeric',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-            timeZoneName: 'short',
-          };
-          setLastUpdated(now.toLocaleString('en-GB', options).replace(',', ''));
-        }
-      } catch (error) {
-        if (!active || controller.signal.aborted) return;
-        crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Homepage: FX edge function failed, using fallback rate');
-        if (import.meta.env.DEV) console.error('Failed to fetch FX data from Edge Function, using fallback:', error);
-        crashlytics.recordError(error instanceof Error ? error : new Error('Homepage failed to fetch FX data from edge function'), 'Homepage.fetchFxData');
-        // Fallback to hardcoded rate of 83.45 as requested so the UI never breaks
-        setFxRate(83.45);
-        setLastUpdated('Fallback Live Rate');
-      } finally {
-        if (active) setIsLoadingFx(false);
-      }
-    };
-    fetchFxData();
-
-    return () => {
-      active = false;
-      controller.abort();
-    };
-  }, []);
-  const [emblaRef, emblaApi] = useEmblaCarousel({
+  const [, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
     skipSnaps: false,
@@ -522,11 +427,7 @@ const Homepage = () => {
     };
   }, [emblaApi]);
   // Map State
-  const [viewState, setViewState] = useState({
-    latitude: 12.9716,
-    longitude: 77.5946,
-    zoom: 13,
-  });
+
   const [showLocationChangedBanner, setShowLocationChangedBanner] = useState(false);
 
   const handleFirstInstallLocationFlow = async () => {
@@ -822,28 +723,7 @@ const Homepage = () => {
       return () => clearTimeout(timer);
     }
   }, [activeOrder]);
-  // Update map viewState when active order address changes
-  useEffect(() => {
-    if (activeOrder?.addresses?.plus_code) {
-      try {
-        const decoded = olc.decode(activeOrder.addresses.plus_code);
-        setViewState({
-          latitude: decoded.latitudeCenter,
-          longitude: decoded.longitudeCenter,
-          zoom: 14,
-        });
-      } catch (e) {
-        crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Homepage: Failed to decode Plus Code for map');
-        if (import.meta.env.DEV) console.error('Failed to decode Plus Code', e);
-      }
-    } else if (activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude) {
-      setViewState({
-        latitude: activeOrder.addresses.latitude,
-        longitude: activeOrder.addresses.longitude,
-        zoom: 14,
-      });
-    }
-  }, [activeOrder]);
+
   // Proactive Service Availability Check
   useEffect(() => {
     const checkAvailability = async () => {
@@ -851,7 +731,7 @@ const Homepage = () => {
         setIsUnserviceable(false);
         return;
       }
-      setIsCheckingAvailability(true);
+
       try {
         const { data, error } = await (supabase as any).rpc('check_service_availability', {
           p_lat: Number(savedAddress.latitude) || 0,
@@ -872,7 +752,7 @@ const Homepage = () => {
         crashlytics.recordError(err instanceof Error ? err : new Error('Homepage failed to check service availability'), 'Homepage.serviceAvailability');
         setIsUnserviceable(false);
       } finally {
-        setIsCheckingAvailability(false);
+
       }
     };
     checkAvailability();
@@ -905,25 +785,8 @@ const Homepage = () => {
       throw e;
     }
   };
-  const getTagIcon = (tag: string) => {
-    switch (tag) {
-      case 'Home':
-        return ASSETS.HOME_TAG;
-      case 'Work':
-        return ASSETS.WORK;
-      case 'Friends & Family':
-        return ASSETS.FRIENDS_FAMILY;
-      case 'Other':
-        return ASSETS.OTHER;
-      default:
-        return ASSETS.HOME_TAG;
-    }
-  };
-  const getAddressDisplay = () => {
-    if (!savedAddress) return 'Add Address';
-    const parts = [savedAddress.house, savedAddress.area];
-    return parts.filter(Boolean).join(', ');
-  };
+
+
   const getActiveOrderAddressDisplay = () => {
     if (!activeOrder?.addresses) return 'Unknown Location';
     const parts = [activeOrder.addresses.apartment, activeOrder.addresses.area];
@@ -1006,68 +869,12 @@ const Homepage = () => {
         };
     }
   };
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'payment_captured':
-        return { text: 'Confirming', textClass: 'text-blue-500 dark:text-blue-400' };
-      case 'processing':
-      case 'out_for_delivery':
-      case 'arrived':
-        return { text: 'Ongoing', textClass: 'text-yellow-700 dark:text-yellow-600' };
-      case 'delivered':
-      case 'success':
-        return { text: 'Completed', textClass: 'text-green-700 dark:text-green-500' };
-      case 'cancelled':
-      case 'failed':
-      case 'rejected':
-        return { text: 'Rejected', textClass: 'text-red-600 dark:text-red-400' };
-      default:
-        return { text: status, textClass: 'text-yellow-700 dark:text-yellow-600' };
-    }
-  };
-  const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'payment_captured':
-      case 'processing':
-      case 'out_for_delivery':
-      case 'arrived':
-        return ASSETS.PROCESSING;
-      case 'delivered':
-      case 'success':
-        return ASSETS.SUCCESS;
-      case 'cancelled':
-      case 'failed':
-      case 'rejected':
-        return ASSETS.FAILED;
-      default:
-        return ASSETS.PROCESSING;
-    }
-  };
-  const hasValidCoords = Boolean(
-    activeOrder?.addresses?.latitude && activeOrder?.addresses?.longitude
-  );
+
+
+
   const mapCenterLat = Number(activeOrder?.addresses?.latitude || 12.9716);
   const mapCenterLng = Number(activeOrder?.addresses?.longitude || 77.5946);
-  const routeGeoJson = {
-    type: 'Feature' as const,
-    properties: {},
-    geometry: {
-      type: 'LineString' as const,
-      coordinates: [
-        [mapCenterLng, mapCenterLat],
-        [mapCenterLng + 0.002, mapCenterLat + 0.002],
-      ],
-    },
-  };
-  const routeLayer = {
-    id: 'route-line',
-    type: 'line' as const,
-    paint: {
-      'line-color': '#5260FE',
-      'line-width': 2,
-      'line-dasharray': [2, 1],
-    },
-  };
+
   if (isInitialLoading && !activeOrder && transactionHistory.length === 0) {
     return <HomePageSkeleton />;
   }

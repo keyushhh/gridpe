@@ -11,8 +11,6 @@ import { hashMpin } from '@/utils/cryptoUtils';
 import { supabase } from '@/lib/supabase';
 // Reusing InputOTP components from shadcn/ui
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { Button } from '@/components/ui/button';
-import ButtonSpinner from '@/components/ui/ButtonSpinner';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { GpButton } from '@gridpe-app/ui';
 
@@ -25,7 +23,7 @@ interface MpinSheetProps {
 const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: MpinSheetProps) => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const { profile, resetForDemo } = useUser();
+  const { profile } = useUser();
 
   useBodyScrollLock(true);
 
@@ -328,7 +326,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
   const isPredictableError = createError.includes('predictable');
   const isMismatchError = createError.includes('close');
   // Light mode slot styling
-  const getSlotBg = (status: 'idle' | 'success' | 'error' | 'verifying' | 'active') => {
+  const getSlotBg = (_status: 'idle' | 'success' | 'error' | 'verifying' | 'active') => {
     if (!isDarkMode) return '#FFFFFF';
     return 'rgba(26, 26, 46, 0.5)';
   };

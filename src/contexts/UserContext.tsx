@@ -3,15 +3,13 @@ import { crashlytics } from '@/lib/crashlytics';
 import { identify, reset as analyticsReset } from '@/lib/analytics';
 import { identifyUser, resetPostHogUser } from '../lib/analytics/providers/posthog';
 import { supabase } from '@/lib/supabase';
-import { RealtimeChannel, PostgrestError, Session } from '@supabase/supabase-js';
-import { Profile as UserProfile, Tables } from '@/types';
+import { RealtimeChannel, Session } from '@supabase/supabase-js';
+import { Profile as UserProfile } from '@/types';
 
 import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Capacitor } from '@capacitor/core';
-import { Preferences } from '@capacitor/preferences';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import { purgeOtherUsersStorage, readStorage, writeStorage, removeStorage } from '@/utils/storage';
-import { SavedAddress } from '@/types';
+import { purgeOtherUsersStorage } from '@/utils/storage';
 import { useNetworkStatus } from '@/utils/useNetworkStatus';
 
 
@@ -409,7 +407,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             table: 'profiles',
             filter: `id=eq.${currentUserId}`,
           },
-          payload => {
+          _payload => {
             fetchProfileData(currentUserId);
           }
         )
@@ -493,7 +491,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, isResetting: true }));
 
     // Small delay to allow pending requests to observe isResetting and abort
-    const resetTimer = setTimeout(() => {
+    setTimeout(() => {
       try {
         localStorage.removeItem(USER_STORAGE_KEY);
       } catch (err) {

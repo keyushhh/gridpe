@@ -74,7 +74,6 @@ const OrderCashSummary = () => {
   const userId = profile?.id;
   const currentUserId = profile?.id;
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
-  const [isPayOpen, setIsPayOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
   // Address State
@@ -87,7 +86,7 @@ const OrderCashSummary = () => {
   // Tip State
   const [isTipContainerVisible, setIsTipContainerVisible] = useState(false);
   const [isTipCollapsed, setIsTipCollapsed] = useState(false);
-  const [selectedTipOption, setSelectedTipOption] = useState<string | null>(null);
+
   const [tipAmount, setTipAmount] = useState(0);
   const [customTipValue, setCustomTipValue] = useState('');
   
@@ -117,6 +116,7 @@ const OrderCashSummary = () => {
         runVerification(pendingVerificationStore!);
       }, 500);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -155,6 +155,7 @@ const OrderCashSummary = () => {
       handleAppUrlOpen.then(l => l.remove());
       handleResume.then(l => l.remove());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const runVerification = async (dataToVerify?: NonNullable<typeof pendingVerificationStore>) => {
@@ -285,6 +286,7 @@ const OrderCashSummary = () => {
     } finally {
       setQuoteLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedAmount, calculatedDistance, userId]);
 
   React.useEffect(() => {
@@ -297,38 +299,6 @@ const OrderCashSummary = () => {
   const gst = quoteData?.gst || 0;
   const baseTotal = quoteData?.total_payable || parsedAmount + deliveryFee + platformFee + gst;
   const totalAmount = baseTotal - rewardDiscount + tipAmount;
-  const handleTipSelect = (option: string) => {
-    setSelectedTipOption(option);
-    if (option === 'other') {
-      setTipAmount(0);
-    } else {
-      setTipAmount(parseInt(option, 10));
-    }
-  };
-  const handleClearTip = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedTipOption(null);
-    setTipAmount(0);
-    setCustomTipValue('');
-  };
-  const handleCustomTipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (/^\d*$/.test(val)) {
-      setCustomTipValue(val);
-    }
-  };
-  const handleApplyCustomTip = () => {
-    const val = parseInt(customTipValue, 10);
-    if (!isNaN(val) && val > 0) {
-      setTipAmount(val);
-    }
-  };
-  const handleClearCustomTip = () => {
-    setCustomTipValue('');
-    setTipAmount(0);
-    setSelectedTipOption(null);
-    setIsTipContainerVisible(false);
-  };
   const handleCollapseTip = () => {
     if (tipAmount > 0) {
       setIsTipCollapsed(!isTipCollapsed);
@@ -435,7 +405,7 @@ const OrderCashSummary = () => {
           return;
         }
         const distance = calculatedDistance;
-        const { data: hubs, error: hubsError } = await (supabase.from('hubs') as any)
+        const { data: hubs, error: _hubsError } = await (supabase.from('hubs') as any)
           .select('id, location_name, city')
           .eq('city', normalizeCity(activeAddress.city));
         if (hubs && hubs.length > 0) {

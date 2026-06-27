@@ -19,7 +19,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import GlobalCustomToaster from './components/GlobalCustomToaster';
 import ErrorBoundary, { RouteErrorBoundary } from './components/ErrorBoundary';
 import { ROUTES } from './routes';
-import { Loader2, AlertCircle } from 'lucide-react';
+
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { handleBackButtonGesture } from '@/hooks/useBackButtonHandler';
@@ -103,7 +103,7 @@ const NotAvailable = lazy(() => import('./pages/NotAvailable'));
 const RideAndEarn = lazy(() => import('./pages/RideAndEarn'));
 const ProUpgrade = lazy(() => import('./pages/ProUpgrade'));
 const ProSuccess = lazy(() => import('./pages/ProSuccess'));
-import { Button } from '@/components/ui/button';
+
 import { useNotificationNavigation } from './hooks/useNotificationNavigation';
 import { InAppNotificationBanner } from './components/InAppNotificationBanner';
 
@@ -119,16 +119,16 @@ import DevModeOverlay from './components/DevModeOverlay';
 import AppDownloadSheet from './components/AppDownloadSheet';
 import { useNetworkStatus } from './utils/useNetworkStatus';
 import NoInternet from './pages/NoInternet';
-import NetworkAlertBanner from './components/NetworkAlertBanner';
+
 import { useAppUpdateCheck } from './hooks/useAppUpdateCheck';
 import UpdatePrompt from './components/UpdatePrompt';
 import ForceUpdateSheet from './components/ForceUpdateSheet';
 import { PrivacyScreen } from './components/PrivacyScreen';
 import { useLocationStore } from '@/store/useLocationStore';
-import ReactSplashScreen from '@/components/ReactSplashScreen';
+const ReactSplashScreen = lazy(() => import('@/components/ReactSplashScreen'));
 import { track, capturePageview } from '@/lib/analytics';
 import { crashlytics } from '@/lib/crashlytics';
-import { initPostHog } from './lib/analytics/providers/posthog';
+
 
 const DevSheetPreview = () => {
   if (!import.meta.env.DEV) {
@@ -223,18 +223,18 @@ interface AppContentProps {
 const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps) => {
   const isDarkMode = useIsDarkMode();
   const [isReloading, setIsReloading] = useState(false);
-  const isOnline = useOnlineStatus();
+  useOnlineStatus();
   
-  const { isConnected, isReconnecting } = useNetworkStatus();
+  const { isConnected } = useNetworkStatus();
   const [simulateOffline, setSimulateOffline] = useState(false);
 
   
-  const isDev = import.meta.env?.DEV;
+
   const effectivelyConnected = isConnected && !simulateOffline;
 
   const { isInitializing } = useUser();
-  const [fontsReady, setFontsReady] = useState(false);
-  const [authReady, setAuthReady] = useState(false);
+  const [, setFontsReady] = useState(false);
+  const [, setAuthReady] = useState(false);
   const hasHiddenSplash = useRef<boolean>(false);
 
   // Fonts ready signal
@@ -327,7 +327,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
           const codeMatch = url.match(/[?#&]code=([^&]+)/);
           if (codeMatch && codeMatch[1]) {
             const code = codeMatch[1];
-            const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) {
               console.error('Auth exchange error:', error);
             }
@@ -346,7 +346,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
   // Secondary Initialization (Heavy / Non-critical)
   useEffect(() => {
     crashlytics.initialize();
-    initPostHog();
+
     track('app_opened', { source: 'organic' });
     const timer = setTimeout(() => {
       if (Capacitor.isNativePlatform()) {
