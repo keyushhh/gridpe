@@ -38,30 +38,9 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@supabase/')) {
             return 'vendor-supabase';
           }
-          // React core + router — must load first
-          if (id.includes('react-router-dom') || id.includes('react-router/') ||
-              id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'vendor-react';
-          }
-          // Animation — framer-motion is heavy
-          if (id.includes('framer-motion')) {
-            return 'vendor-animation';
-          }
-          // Data fetching
-          if (id.includes('@tanstack/')) {
-            return 'vendor-query';
-          }
-          // Capacitor plugins — mobile runtime
-          if (id.includes('@capacitor/')) {
-            return 'vendor-capacitor';
-          }
-          // Analytics — posthog is large, load after paint
-          if (id.includes('posthog-js')) {
+          // Analytics
+          if (id.includes('posthog-js') || id.includes('@posthog/')) {
             return 'vendor-analytics';
-          }
-          // Lottie animation runtime
-          if (id.includes('lottie-web') || id.includes('@lottiefiles/')) {
-            return 'vendor-lottie';
           }
           // OCR engine — only used on CameraPage (lazy loaded)
           if (id.includes('tesseract')) {
@@ -71,9 +50,23 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('date-fns')) {
             return 'vendor-dates';
           }
-          // Remaining node_modules — catchall vendor chunk
+          // Animation
+          if (id.includes('framer-motion')) {
+            return 'vendor-animation';
+          }
+          // Data fetching
+          if (id.includes('@tanstack/')) {
+            return 'vendor-query';
+          }
+          // Capacitor plugins — mobile runtime
+          if (id.includes('@capacitor/') || id.includes('@capacitor-community/') ||
+              id.includes('@capacitor-firebase/') || id.includes('@aparajita/')) {
+            return 'vendor-capacitor';
+          }
+          // Everything else in node_modules including React and all 
+          // React-dependent UI packages — grouped to prevent circular deps
           if (id.includes('node_modules')) {
-            return 'vendor-misc';
+            return 'vendor-ui';
           }
         }
       },
