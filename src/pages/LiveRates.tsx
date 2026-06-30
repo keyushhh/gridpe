@@ -300,7 +300,7 @@ const LiveRates = () => {
         if (response.ok) {
           const data = await response.json();
           if (currentFrom === 'AED' || currentTo === 'AED') {
-            console.debug('LiveRates AED raw response:', { url, data });
+            if (import.meta.env.DEV) { console.debug('LiveRates AED raw response:', { url, data }); }
           }
           if (!data.rates) {
             throw new Error('Edge function response missing rates');

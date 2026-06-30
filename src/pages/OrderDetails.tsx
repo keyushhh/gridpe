@@ -16,7 +16,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import OrderDetailsSkeleton from '@/components/skeletons/OrderDetailsSkeleton';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { cn } from '@/lib/utils';
 import { crashlytics } from '@/lib/crashlytics';
 const OrderDetails = () => {
@@ -632,14 +632,13 @@ const OrderDetails = () => {
               </p>
             </div>
           ) : (
-            <Button
+            <GpButton
               onClick={() => navigate(ROUTES.HOME)}
-              variant={isDarkMode ? 'glass' : 'default'}
+              variant="primary"
               className={cn(
                 'w-full h-[48px] shadow-xl transition-all',
                 !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full'
               )}
-              style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
             >
               <span
                 className={cn(
@@ -649,7 +648,7 @@ const OrderDetails = () => {
               >
                 Go Home
               </span>
-            </Button>
+            </GpButton>
           )}
         </div>
       </div>

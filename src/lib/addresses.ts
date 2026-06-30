@@ -23,7 +23,7 @@ export const ensureGlobalPlusCode = (
       return olc.recoverNearest(plusCode, lat, lng).toUpperCase();
     }
   } catch (err) {
-    console.error('Plus Code validation/expansion failed:', err);
+    if (import.meta.env.DEV) { console.error('Plus Code validation/expansion failed:', err); }
     crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Plus Code validation/expansion failed');
   }
 
@@ -41,7 +41,7 @@ export const getAuthUserId = async (): Promise<string | null> => {
     } = await supabase.auth.getUser();
     return user?.id || null;
   } catch (err) {
-    console.error('Failed to get auth user:', err);
+    if (import.meta.env.DEV) { console.error('Failed to get auth user:', err); }
     crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Failed to get auth user');
     return null;
   }

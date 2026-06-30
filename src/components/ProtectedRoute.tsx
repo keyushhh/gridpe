@@ -39,7 +39,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       resolvedSession = !!session;
     } catch (err) {
       if (import.meta.env.DEV) {
-        console.warn('ProtectedRoute auth check error:', err);
+        if (import.meta.env.DEV) { console.warn('ProtectedRoute auth check error:', err); }
       }
     } finally {
       setIsAuthenticated(resolvedSession);

@@ -26,7 +26,6 @@ import { useUser } from '@/contexts/UserContext';
 import { cancelOrder } from '@/lib/orders';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import NotAvailable from './NotAvailable';
-import { Button } from '@/components/ui/button';
 import { GpButton } from '@gridpe-app/ui';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/routes';
@@ -1050,7 +1049,7 @@ const Homepage = () => {
                       Monthly limit exceeded. You can only order ₹{Math.max(0, monthlyLimit - monthCashSum).toLocaleString('en-IN')} more this month.
                     </p>
                   )}
-                  <Button
+                  <GpButton
                     onClick={() => {
                       if (displayNightMode) {
                         if (tierName.toLowerCase() === 'pro') {
@@ -1073,14 +1072,13 @@ const Homepage = () => {
                           : (numericAmount < 500 || isDailyLimitExceeded || isMonthlyLimitExceeded)
                       )
                     }
-                    variant={(numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) ? 'default' : (isDarkMode ? 'glass' : 'default')}
+                    variant="primary"
                     className={cn(
                       'w-full h-[44px] shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed',
                       (numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded)
                         ? 'bg-[#5260FE] hover:bg-[#5260FE]/90 active:scale-[0.98] border-none text-white rounded-full'
                         : (!isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full border border-white/20')
                     )}
-                    style={isDarkMode && !(numericAmount >= 500 && !isDailyLimitExceeded && !isMonthlyLimitExceeded) ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
                   >
                     <img loading="lazy" decoding="async" src={iconOrderCash} alt="Order Cash" className="w-6 h-6" />
                     <span
@@ -1101,7 +1099,7 @@ const Homepage = () => {
                                 ? 'Min. ₹500' 
                                 : 'Proceed to Pay')}
                     </span>
-                  </Button>
+                  </GpButton>
                 </div>
 
                 <div className="mt-[15px] flex flex-col items-center justify-center text-center">
@@ -1198,7 +1196,7 @@ const Homepage = () => {
                   {showBalance ? formatINR(liveWalletBalance) : '******'}
                 </p>
 // }
-                <Button
+                <GpButton
                   onClick={() => navigate(ROUTES.ORDER_CASH)}
                   variant={isDarkMode ? 'glass' : 'default'}
                   className={cn(
@@ -1216,7 +1214,7 @@ const Homepage = () => {
                   >
                     Order Cash
                   </span>
-                </Button>
+                </GpButton>
               </div>
 */}
               {/* Balance Alert Banner */}

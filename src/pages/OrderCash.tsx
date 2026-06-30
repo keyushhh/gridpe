@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchRecentOrders } from '@/lib/orders';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { useWebScroll } from '@/hooks/useWebScroll';
 const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
@@ -293,7 +293,7 @@ const OrderCash = () => {
                 />
               </div>
               <div className="w-full mt-[32px]">
-                <Button
+                <GpButton
                   onClick={() =>
                     navigate(ROUTES.ORDER_CASH_SUMMARY, {
                       state: {
@@ -306,7 +306,7 @@ const OrderCash = () => {
                   className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {numericAmount < 500 ? 'Min. ₹500' : isDailyLimitExceeded || isMonthlyLimitExceeded ? 'Limit Exceeded' : 'Continue to Pay'}
-                </Button>
+                </GpButton>
               </div>
             </div>
           </div>

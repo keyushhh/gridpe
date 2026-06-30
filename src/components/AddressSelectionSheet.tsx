@@ -92,7 +92,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           setCurrentLocationName('Location unavailable — enter manually');
         }
       } catch (e) {
-        console.error('Failed to fetch current location name', e);
+        if (import.meta.env.DEV) { console.error('Failed to fetch current location name', e); }
         setCurrentLocationName('Location unavailable — enter manually');
       }
     };
@@ -138,7 +138,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
           }));
           setSavedAddresses(mapped);
         } catch (e: unknown) {
-          console.error('Failed to load addresses', e);
+          if (import.meta.env.DEV) { console.error('Failed to load addresses', e); }
           showToaster('Failed to load your saved addresses.', 'error');
         }
         // Load Selected Address from namespaced storage first, then migrate legacy keys
@@ -168,7 +168,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
                 }
               } catch (e) {
                 await removeAddress(ADDRESS_KEYS.USER_ADDRESS);
-                console.warn('Corrupted local address data cleared.');
+                if (import.meta.env.DEV) { console.warn('Corrupted local address data cleared.'); }
               }
             }
           }
@@ -191,7 +191,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         const results = await forwardGeocode(query, 12.9716, 77.5946); // Default bias
         setSearchResults(results);
       } catch (e) {
-        console.error('Search failed', e);
+        if (import.meta.env.DEV) { console.error('Search failed', e); }
         showToaster('Search failed. Please try again.', 'error');
       }
     } else {
@@ -268,7 +268,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         handleOpenAddAddress({ lat: latitude, lng: longitude });
       }, 300);
     } catch (e) {
-      console.error('Location error', e);
+      if (import.meta.env.DEV) { console.error('Location error', e); }
       onClose();
       setTimeout(() => handleOpenAddAddress(), 300);
     }
@@ -324,7 +324,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
       }
       setIsSubmitting(false);
     } catch (err: unknown) {
-      console.error('Failed to delete address', err);
+      if (import.meta.env.DEV) { console.error('Failed to delete address', err); }
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete address. Please try again.';
       showToaster(errorMessage, 'error');
       setIsSubmitting(false);

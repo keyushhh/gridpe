@@ -33,7 +33,7 @@ const UpdatePrompt: React.FC<UpdatePromptProps> = ({ status, storeUrl, onDismiss
         window.open(storeUrl, '_blank');
       }
     } catch (e) {
-      console.error('Failed to open store URL', e);
+      if (import.meta.env.DEV) { console.error('Failed to open store URL', e); }
     }
   };
 

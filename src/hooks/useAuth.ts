@@ -29,7 +29,7 @@ export const useAuth = () => {
         if (savedTheme) localStorage.setItem('theme', savedTheme);
         sessionStorage.clear();
       } catch (e) {
-        console.warn('Failed to purge local storage during logout:', e);
+        if (import.meta.env.DEV) { console.warn('Failed to purge local storage during logout:', e); }
       }
 
       // 4. Purge SecureStorage keys explicitly on native
@@ -58,7 +58,7 @@ export const useAuth = () => {
       // 7. Navigate to home (avoid full clear unless necessary)
       navigate(ROUTES.HOME);
     } catch (error) {
-      console.error('Logout failed:', error);
+      if (import.meta.env.DEV) { console.error('Logout failed:', error); }
       // Fallback reload if everything fails
       navigate(ROUTES.HOME);
     }

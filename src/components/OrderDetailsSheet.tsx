@@ -179,7 +179,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
       queryClient.invalidateQueries({ queryKey: ['recent-orders'] });
       onClose();
     } catch (err: unknown) {
-      console.error('Error submitting rating:', err);
+      if (import.meta.env.DEV) { console.error('Error submitting rating:', err); }
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit rating';
       showToaster(errorMessage, 'error');
     } finally {

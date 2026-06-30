@@ -7,7 +7,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticMedium } from '@/utils/haptics';
 import BackButton from '@/components/ui/BackButton';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import SaveAddressSheet from '@/components/SaveAddressSheet';
 import {
   createAddress,
@@ -242,7 +242,7 @@ const AddAddressDetails = () => {
           writeStorage('user_address', uiAddr, userId);
         } catch (e) {
           if (import.meta.env.DEV) {
-            console.warn('[AddAddressDetails] Storage write failed:', e);
+            if (import.meta.env.DEV) { console.warn('[AddAddressDetails] Storage write failed:', e); }
           }
         }
 
@@ -611,22 +611,22 @@ const AddAddressDetails = () => {
 
             {/* Save Address CTA */}
             <div className="flex flex-col gap-3 mt-1 mb-4">
-              <Button
+              <GpButton
                 onClick={() => handleInitialSave()}
                 className="w-full rounded-full"
-                variant="gradient"
+                variant="primary"
                 disabled={!isFormValid}
               >
                 {isEditMode ? 'Save Changes' : 'Save Address'}
-              </Button>
+              </GpButton>
               {isEditMode && (
-                <Button
+                <GpButton
                   onClick={() => navigate(-1)}
                   className={`w-full rounded-full border ${isDarkMode ? 'bg-brand-card-dark hover:bg-[#252525] text-white border-white/20' : 'bg-white hover:bg-gray-50 text-brand-bg-deep border-brand-border-light'}`}
                   variant="secondary"
                 >
                   Cancel
-                </Button>
+                </GpButton>
               )}
             </div>
           </div>

@@ -17,7 +17,7 @@ import { Order } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { setBadge } from '@/utils/badge';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { cn } from '@/lib/utils';
 import type { LayerProps } from 'react-map-gl/maplibre';
 import type { 
@@ -652,14 +652,13 @@ const OrderTracking = () => {
         )}
         {/* Need Help CTA - Positioned directly below the card naturally */}
         <div className="px-[15px] mt-4 pb-4 shrink-0 relative z-0">
-          <Button
+          <GpButton
             onClick={() => navigate(ROUTES.HELP_REPORT, { state: { order } })}
-            variant={isDarkMode ? 'glass' : 'default'}
+            variant="secondary"
             className={cn(
               'w-full h-[48px] shadow-xl transition-all',
               !isDarkMode && 'bg-black hover:bg-black/90 text-white rounded-full'
             )}
-            style={isDarkMode ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
           >
             <span
               className={cn(
@@ -669,7 +668,7 @@ const OrderTracking = () => {
             >
               Need Help?
             </span>
-          </Button>
+          </GpButton>
         </div>
       </div>
       <CustomerChatSheet

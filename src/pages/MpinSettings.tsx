@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { X } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import MpinSheet from '@/components/MpinSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { useAsset } from '@/hooks/useAsset';
@@ -126,7 +126,7 @@ const MpinSettings = () => {
       </div>
       {/* Bottom CTA */}
       <div className="mt-auto px-5 safe-bottom pb-4 relative z-10">
-        <Button
+        <GpButton
           onClick={() => {
             setSheetMode('change');
             setShowMpinSheet(true);
@@ -134,7 +134,7 @@ const MpinSettings = () => {
           className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[16px] font-medium"
         >
           Change MPIN
-        </Button>
+        </GpButton>
       </div>
       {/* MPIN Sheet in 'change' mode */}
       {showMpinSheet && (

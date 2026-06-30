@@ -24,7 +24,7 @@ const NetworkAlertBanner: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) =
         await App.openUrl({ url: 'app-settings:' });
       } catch {
         if (import.meta.env.DEV) {
-          console.warn('[NetworkAlertBanner] Failed to open device settings');
+          if (import.meta.env.DEV) { console.warn('[NetworkAlertBanner] Failed to open device settings'); }
         }
       }
     }

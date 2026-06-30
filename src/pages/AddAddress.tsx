@@ -98,7 +98,7 @@ const AddAddress = () => {
         }
       } catch (err) {
         crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'AddAddress: Plus Code search error');
-        console.error('Plus Code search error:', err);
+        if (import.meta.env.DEV) { console.error('Plus Code search error:', err); }
         showToaster("Couldn't save address. Please try again.", 'error');
       }
     }
@@ -112,7 +112,7 @@ const AddAddress = () => {
       setShowDropdown(results.length > 0);
     } catch (error) {
       crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: Forward geocode search error');
-      console.error('Search error:', error);
+      if (import.meta.env.DEV) { console.error('Search error:', error); }
     }
   };
   const fetchAddress = async (
@@ -160,7 +160,7 @@ const AddAddress = () => {
       }
     } catch (error) {
       crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: Reverse geocode fetch address error');
-      console.error('Error fetching address:', error);
+      if (import.meta.env.DEV) { console.error('Error fetching address:', error); }
       setAddressTitle('Location not found');
       setAddressLine('Unable to fetch address details. Please try moving the pin.');
       setPlusCode('');
@@ -227,7 +227,7 @@ const AddAddress = () => {
       fetchAddress(latitude, longitude, { lat: latitude, lng: longitude });
     } catch (error) {
       crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: GPS location fetch error');
-      console.error('Error getting location:', error);
+      if (import.meta.env.DEV) { console.error('Error getting location:', error); }
       showToaster('Unable to retrieve your current location. Please try again or check your GPS settings.', 'error');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -248,7 +248,7 @@ const AddAddress = () => {
       fetchAddress(centerLat, centerLng);
     } catch (error) {
       crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'AddAddress: Snap to grid error');
-      console.error('Error snapping to grid:', error);
+      if (import.meta.env.DEV) { console.error('Error snapping to grid:', error); }
     }
   };
   const handleMove = (evt: ViewStateChangeEvent) => {

@@ -6,7 +6,7 @@ import { hapticMedium } from '@/utils/haptics';
 import { Eye, EyeOff } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { useSensitiveInput } from '@/hooks/useSensitiveInput';
 import { luhnCheck, validateExpiry, validateCVV } from '@/utils/validationUtils';
 import { supabase } from '@/lib/supabase';
@@ -574,13 +574,13 @@ const AddCard = () => {
         </div>
         {/* CTA Button */}
         <div className="mt-auto mt-6 safe-bottom pb-4">
-          <Button
+          <GpButton
             onClick={handleSaveCard}
             disabled={!hasInput || hasErrors || isLoading}
             className="w-full h-[48px] rounded-full text-[16px] font-medium bg-brand-primary hover:bg-brand-primary/90 text-white disabled:opacity-50"
           >
             {hasInput ? 'Save Card' : 'Proceed'}
-          </Button>
+          </GpButton>
         </div>
       </div>
     </div>

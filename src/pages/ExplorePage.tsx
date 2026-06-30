@@ -29,14 +29,6 @@ const ExplorePage = () => {
   const [fxExpanded, setFxExpanded] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
-  useEffect(() => {
-    const el = document.getElementById('explore-page-root');
-    if (!el) return;
-    const prevent = (e: TouchEvent) => e.preventDefault();
-    el.addEventListener('touchstart', prevent, { passive: false });
-    return () => el.removeEventListener('touchstart', prevent);
-  }, []);
-
   return (
     <div
       id="explore-page-root"
@@ -45,7 +37,7 @@ const ExplorePage = () => {
         backgroundImage: `url(${mainBg})`,
         overscrollBehavior: 'none',
         WebkitOverflowScrolling: 'auto',
-        touchAction: 'none',
+        touchAction: 'pan-y',
         WebkitTouchCallout: 'none',
       }}
     >

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import popupBg from '../assets/popup-bg-remove.png';
-import { Button } from './ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 interface SaveAddressSheetProps {
@@ -66,14 +66,14 @@ const SaveAddressSheet: React.FC<SaveAddressSheetProps> = ({ isOpen, onClose, on
           </div>
 
           {/* Save Button */}
-          <Button
+          <GpButton
             onClick={() => onSave(label)}
             disabled={!hasValue}
-            variant="gradient"
+            variant="primary"
             className="w-full rounded-full"
           >
             Save Address
-          </Button>
+          </GpButton>
         </div>
       </div>
     </div>

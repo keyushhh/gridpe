@@ -30,7 +30,7 @@ export function useOrderChat(orderId: string | null, isOpen: boolean = false) {
       if (!isMountedRef.current) return;
       setMessages(data?.messages ?? []);
     } catch (err) {
-      console.error('[useOrderChat] fetchMessages failed:', err);
+      if (import.meta.env.DEV) { console.error('[useOrderChat] fetchMessages failed:', err); }
     } finally {
       if (isMountedRef.current) setLoading(false);
     }
@@ -72,12 +72,12 @@ export function useOrderChat(orderId: string | null, isOpen: boolean = false) {
       });
 
       if (error) {
-        console.error('Error sending message:', error);
+        if (import.meta.env.DEV) { console.error('Error sending message:', error); }
       }
 
       await fetchMessages();
     } catch (err) {
-      console.error('Error sending message:', err);
+      if (import.meta.env.DEV) { console.error('Error sending message:', err); }
       throw err;
     } finally {
       if (isMountedRef.current) setIsSending(false);

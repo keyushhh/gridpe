@@ -1,3 +1,4 @@
+import { crashlytics } from '@/lib/crashlytics';
 export const STORAGE_PREFIX = 'gridpe';
 
 export const storageKey = (key: string, userId?: string) => {
@@ -28,7 +29,10 @@ export const writeStorage = (key: string, value: unknown, userId?: string) => {
 
 export const removeStorage = (key: string, userId?: string) => {
   const k = storageKey(key, userId);
-  try { localStorage.removeItem(k); } catch (e) { if (import.meta.env.DEV) console.warn('removeStorage failed', k, e); }
+  try { localStorage.removeItem(k); } catch (e) { 
+    if (import.meta.env.DEV) { console.warn('removeStorage failed', k, e); }
+    crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'storage.removeStorage');
+  }
 };
 
 export const purgeOtherUsersStorage = (currentUserId?: string) => {

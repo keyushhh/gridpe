@@ -221,7 +221,7 @@ export const dev_seedMockOrders = async (userId: string) => {
         .insert([mockReward]);
 
       if (rewardErr) {
-        console.error('Error seeding reward transaction:', rewardErr);
+        if (import.meta.env.DEV) { console.error('Error seeding reward transaction:', rewardErr); }
       }
     }
   }

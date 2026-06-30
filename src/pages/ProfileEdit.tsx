@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useAsset } from '@/hooks/useAsset';
-import { Button } from '@/components/ui/button';
+
 import { Input } from '@/components/ui/input';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Loader2 } from 'lucide-react';
@@ -74,7 +74,6 @@ const ProfileEdit = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        // @ts-expect-error -- third-party type mismatch
         .update({
           name,
           avatar_url: profileImage,

@@ -8,7 +8,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
+
 import { GpButton } from '@gridpe-app/ui';
 import { User } from '@supabase/supabase-js';
 import { useWebScroll } from '@/hooks/useWebScroll';

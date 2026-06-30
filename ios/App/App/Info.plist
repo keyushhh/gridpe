@@ -67,6 +67,7 @@
     </array>
     <key>NSAppTransportSecurity</key>
     <dict>
+        <!-- DEV ONLY: required for Capacitor live-reload during local development. Remove or guard before App Store submission build. -->
         <key>NSAllowsLocalNetworking</key>
         <true/>
     </dict>

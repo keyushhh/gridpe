@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { GpSectionLabel } from '@gridpe-app/ui';
 import { useUser } from '@/contexts/UserContext';
 import { LocationState } from '@/types/navigation';
@@ -146,13 +146,13 @@ const DeleteAccountMobile = () => {
       </div>
       {/* Footer Button */}
       <div className="px-5 safe-bottom pb-4 mt-auto flex flex-col gap-3 relative z-10">
-        <Button
+        <GpButton
           onClick={handleRequestOtp}
           disabled={!isValid}
           className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans bg-brand-primary hover:bg-brand-primary/90 text-white border-none disabled:opacity-50"
         >
           Request OTP
-        </Button>
+        </GpButton>
         {/* Cancel */}
         <button
           className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"

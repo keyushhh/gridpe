@@ -127,7 +127,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               setState(prev => ({ ...prev, isSecureStorageReady: true }));
             }
           } catch (e) {
-            console.error('Failed to read from SecureStorage:', e);
+            if (import.meta.env.DEV) { console.error('Failed to read from SecureStorage:', e); }
             crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'Failed to read from SecureStorage');
             setState(prev => ({ ...prev, isSecureStorageReady: true }));
           }
@@ -140,7 +140,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         // 3. Migration: If we find profile in localStorage, move it and purge
         // We do this in the background
         if (parsedLocalStorage.profile || parsedLocalStorage.email) {
-          console.warn('Security Migration: Moving PII to SecureStorage...');
+          if (import.meta.env.DEV) { console.warn('Security Migration: Moving PII to SecureStorage...'); }
           const pii = {
             profile: parsedLocalStorage.profile,
             phoneNumber: parsedLocalStorage.phoneNumber,
@@ -157,7 +157,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           setState(prev => ({ ...prev, ...pii }));
         }
       } catch (error) {
-        console.error('Failed to initialize user state:', error);
+        if (import.meta.env.DEV) { console.error('Failed to initialize user state:', error); }
         crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to initialize user state');
         setState(prev => ({ ...prev, isInitializing: false, isSecureStorageReady: true }));
       }
@@ -189,7 +189,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error('Failed to save user state:', error);
+      if (import.meta.env.DEV) { console.error('Failed to save user state:', error); }
       crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to save user state');
       showToaster("Couldn't save your settings. Please try again.", 'error');
     }
@@ -214,7 +214,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           session = data?.session;
         } catch (err) {
           if (import.meta.env.DEV) {
-            console.warn('[UserContext] Session check failed or timed out:', err);
+            if (import.meta.env.DEV) { console.warn('[UserContext] Session check failed or timed out:', err); }
           }
           session = null;
         }
@@ -243,7 +243,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
         // Defensive fallback: If database columns do not exist yet (code 42703), fallback to query without terms columns
         if (queryResult.error && (queryResult.error.code === '42703' || queryResult.error.message?.includes('terms_accepted_at'))) {
-          console.warn('UserContext: terms columns do not exist in profiles table yet, falling back to defensive schema query.');
+          if (import.meta.env.DEV) { console.warn('UserContext: terms columns do not exist in profiles table yet, falling back to defensive schema query.'); }
           queryResult = await supabase
             .from('profiles')
             .select(
@@ -304,7 +304,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             .single();
 
           if (createError) {
-            console.error('Failed to auto-create profile:', createError);
+            if (import.meta.env.DEV) { console.error('Failed to auto-create profile:', createError); }
           } else if (newProfile) {
             // Re-fetch to get joined tier data (the default tier should be there)
             return fetchProfileData();
@@ -312,7 +312,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
 
       } catch (error) {
-        console.error('Failed to fetch profile data:', error);
+        if (import.meta.env.DEV) { console.error('Failed to fetch profile data:', error); }
         crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to fetch profile data');
       }
     },
@@ -329,7 +329,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       new Promise<void>((resolve) => 
         initTimer = setTimeout(() => {
           if (import.meta.env.DEV) {
-            console.warn('[UserContext] Init timed out — forcing ready state')
+            if (import.meta.env.DEV) { console.warn('[UserContext] Init timed out — forcing ready state') }
           }
           resolve()
         }, INIT_TIMEOUT_MS)
@@ -376,7 +376,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         try {
           purgeOtherUsersStorage(session?.user?.id);
         } catch (e) {
-          console.warn('Failed to purge other user storage on sign-in:', e);
+          if (import.meta.env.DEV) { console.warn('Failed to purge other user storage on sign-in:', e); }
         }
         fetchProfileData();
       }
@@ -465,7 +465,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           await (supabase.from('profiles') as any).update({ biometric_on: enabled }).eq('id', user.id);
         }
       } catch (error) {
-        console.error('Failed to sync biometric preference:', error);
+        if (import.meta.env.DEV) { console.error('Failed to sync biometric preference:', error); }
         crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to sync biometric preference');
         showToaster("Couldn't update your biometric settings. Please try again.", 'error');
       }
@@ -516,7 +516,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           await (supabase.from('profiles') as any).update({ is_passport_verified: verified }).eq('id', user.id);
         }
       } catch (error) {
-        console.error('Failed to sync passport verified:', error);
+        if (import.meta.env.DEV) { console.error('Failed to sync passport verified:', error); }
         crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'Failed to sync passport verified');
       }
     },

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Network, ConnectionStatus } from '@capacitor/network';
 import { WifiOff, Wifi } from 'lucide-react';
+import { crashlytics } from '@/lib/crashlytics';
 
 const NetworkBanner: React.FC = () => {
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
@@ -10,7 +11,10 @@ const NetworkBanner: React.FC = () => {
     let handlerPromise: { remove: () => void } | null = null;
 
     // Initial status check
-    try { Network.getStatus().then(s => { setStatus(s); }); } catch (err) { if (import.meta.env.DEV) console.warn('[NetworkBanner] native call failed:', err); }
+    try { Network.getStatus().then(s => { setStatus(s); }); } catch (err) { 
+      if (import.meta.env.DEV) { console.warn('[NetworkBanner] native call failed:', err); }
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'NetworkBanner.getStatus');
+    }
 
     // Listen for changes
     const setupListener = async () => {

@@ -344,7 +344,10 @@ const OrderCashSummary = () => {
           addressId = newAddress.id;
           const updatedAddr = { ...activeAddress, id: addressId };
           setActiveAddress(updatedAddr);
-          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { if (import.meta.env.DEV) console.warn('Failed to persist address', e); }
+          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { 
+            if (import.meta.env.DEV) { console.warn('Failed to persist address', e); }
+            crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'OrderCashSummary.writeStorage');
+          }
         } catch (addrErr: unknown) {
           if (import.meta.env.DEV) console.error('Failed to save address before order', addrErr);
           crashlytics.recordError(addrErr instanceof Error ? addrErr : new Error(String(addrErr)), 'Failed to save address before order');

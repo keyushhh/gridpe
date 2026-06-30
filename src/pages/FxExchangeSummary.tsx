@@ -219,7 +219,10 @@ const FxExchangeSummary = () => {
           addressId = newAddress.id;
           const updatedAddr = { ...savedAddress, id: addressId };
           setSavedAddress(updatedAddr);
-          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { if (import.meta.env.DEV) console.warn('Failed to write namespaced address', e); }
+          try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { 
+            if (import.meta.env.DEV) { console.warn('Failed to write namespaced address', e); }
+            crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'FxExchangeSummary.writeStorage1');
+          }
         } catch (err) {
           crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'FxExchangeSummary: Failed to save address before order');
           if (import.meta.env.DEV) console.error('Failed to save address before order', err);
@@ -475,7 +478,10 @@ const FxExchangeSummary = () => {
             const newAddressId = newAddress.id;
             const updatedAddr = { ...savedAddress, id: newAddressId };
             setSavedAddress(updatedAddr);
-            try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { if (import.meta.env.DEV) console.warn('Failed to write namespaced address', e); }
+            try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { 
+              if (import.meta.env.DEV) { console.warn('Failed to write namespaced address', e); }
+              crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'FxExchangeSummary.writeStorage2');
+            }
             const { data: retryProfile, error: retryError } = await supabase
               .from('profiles')
               .select('phone')

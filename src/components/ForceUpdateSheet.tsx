@@ -34,7 +34,7 @@ const ForceUpdateSheet: React.FC<ForceUpdateSheetProps> = ({ storeUrl, onClose }
       // @ts-expect-error - Bypass TS error in this Capacitor version
       await App.openUrl({ url: storeUrl });
     } catch (e) {
-      console.error('Failed to open store URL:', e);
+      if (import.meta.env.DEV) { console.error('Failed to open store URL:', e); }
     }
     // Reset after 3s in case user cancels from store
     const t = setTimeout(() => {

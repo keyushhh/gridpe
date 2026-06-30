@@ -107,7 +107,7 @@ export const TermsAcceptanceGate: React.FC = () => {
           (!privacyError && privacyData && privacyData.length > 0 && privacyData[0].content) || PRIVACY_FALLBACK
         );
       } catch (err) {
-        console.warn('Failed to load legal content from database or request timed out, using fallback.', err);
+        if (import.meta.env.DEV) { console.warn('Failed to load legal content from database or request timed out, using fallback.', err); }
         setTermsContent(TERMS_FALLBACK);
         setPrivacyContent(PRIVACY_FALLBACK);
       } finally {
@@ -147,7 +147,7 @@ export const TermsAcceptanceGate: React.FC = () => {
         { onConflict: 'user_id,document_type,document_id' }
       );
       if (consentError) {
-        console.warn('Error recording detailed consent log:', consentError);
+        if (import.meta.env.DEV) { console.warn('Error recording detailed consent log:', consentError); }
       }
 
       // Update local state in UserContext
@@ -160,7 +160,7 @@ export const TermsAcceptanceGate: React.FC = () => {
       showToaster('Thank you. The terms have been successfully accepted.', 'success');
       setIsMandatory(false);
     } catch (err: unknown) {
-      console.error('Failed to accept terms', err);
+      if (import.meta.env.DEV) { console.error('Failed to accept terms', err); }
       showToaster(err.message || 'Failed to accept terms. Please check connection.', 'error');
     } finally {
       setIsSubmitting(false);

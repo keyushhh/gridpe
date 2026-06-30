@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { Button } from '@/components/ui/button';
+
 import { GpButton } from '@gridpe-app/ui';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { useAuth } from '@/hooks/useAuth';

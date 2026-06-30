@@ -51,7 +51,7 @@ export function useNetworkStatus() {
         )
       } catch (err) {
         if (import.meta.env.DEV) {
-          console.warn('[Network] Failed to initialize:', err)
+          if (import.meta.env.DEV) { console.warn('[Network] Failed to initialize:', err) }
         }
         // Fail open — assume connected if plugin fails
         setIsConnected(true)
