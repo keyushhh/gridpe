@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { LEGAL_CONFIG } from '@/constants/legal';
 import { Loader2 } from 'lucide-react';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -161,7 +161,8 @@ export const TermsAcceptanceGate: React.FC = () => {
       setIsMandatory(false);
     } catch (err: unknown) {
       if (import.meta.env.DEV) { console.error('Failed to accept terms', err); }
-      showToaster(err.message || 'Failed to accept terms. Please check connection.', 'error');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to accept terms. Please check connection.';
+      showToaster(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -268,8 +269,8 @@ export const TermsAcceptanceGate: React.FC = () => {
 
         {/* Action Button */}
         <div className="shrink-0 flex flex-col gap-2.5">
-          <Button
-            variant={isDarkMode ? 'gradient' : 'default'}
+          <GpButton
+            variant={isDarkMode ? 'gradient' : 'primary'}
             disabled={isLoading || isSubmitting}
             className={`w-full h-[52px] rounded-full text-white text-[16px] font-bold flex items-center justify-center transition-all ${
               isDarkMode 
@@ -286,7 +287,7 @@ export const TermsAcceptanceGate: React.FC = () => {
             ) : (
               'I Accept & Agree'
             )}
-          </Button>
+          </GpButton>
           <p className={`text-[11px] text-center px-4 leading-normal ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
             By clicking accept, you acknowledge and agree to both documents.
           </p>

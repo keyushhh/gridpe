@@ -1,7 +1,7 @@
 import { ASSETS } from '@/constants/assets';
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { PhoneInput } from '@/components/PhoneInput';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { LockOpen } from 'lucide-react';
@@ -385,7 +385,7 @@ const OnboardingScreen = () => {
       // Profile Exists (or just created)
       if (profileData) {
         // Optional: Update name if social login provides newer info
-        if (socialName && profileData.full_name !== socialName) {
+        if (socialName && (profileData as any).full_name !== socialName) {
           const { data: updatedProfile, error: updateError } = await supabase
             .from('profiles')
             // @ts-expect-error -- third-party type mismatch
@@ -533,7 +533,6 @@ const OnboardingScreen = () => {
       const { data: updatedProfile, error } = await withTimeout(
         supabase
           .from('profiles')
-          // @ts-expect-error -- third-party type mismatch
           .update({
             mpin_set: true,
             mpin_hash: hashedMpin,
@@ -913,7 +912,7 @@ const OnboardingScreen = () => {
               {/* Spacer */}
               <div className="flex-1" />
               {/* Unlock Button */}
-              <Button
+              <GpButton
                 variant="gradient"
                 className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
                 onClick={() => handleLoginMpinVerification()}
@@ -927,7 +926,7 @@ const OnboardingScreen = () => {
                 ) : (
                   'Unlock'
                 )}
-              </Button>
+              </GpButton>
               <div className="flex flex-col gap-2 items-center safe-bottom pb-4">
                 <button
                   onClick={() => navigate(ROUTES.FORGOT_MPIN)}
@@ -1104,7 +1103,7 @@ const OnboardingScreen = () => {
                 </p>
               )}
               {/* Setup Button */}
-              <Button
+              <GpButton
                 variant="gradient"
                 className="w-full h-[48px] text-[16px] font-medium font-sans rounded-full"
                 onClick={handleSetupMpin}
@@ -1124,7 +1123,7 @@ const OnboardingScreen = () => {
                 ) : (
                   'Setup'
                 )}
-              </Button>
+              </GpButton>
               <button
                 onClick={handleLogout}
                 className="w-full text-center text-muted-foreground text-sm hover:text-white transition-colors safe-bottom pb-4"

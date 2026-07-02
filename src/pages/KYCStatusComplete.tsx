@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useAsset } from '@/hooks/useAsset';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 const KYCStatusComplete = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
@@ -106,21 +106,22 @@ const KYCStatusComplete = () => {
       </div>
       {/* Footer / CTA */}
       <div className="px-5 safe-bottom pb-4 mt-auto">
-        <Button
+        <GpButton
+          variant="primary"
           className={`w-full h-[48px] text-white rounded-full font-semibold text-[16px] ${isDarkMode ? 'border-none' : 'bg-brand-primary hover:bg-brand-primary/90'}`}
-          style={
-            isDarkMode
+          {...({
+            style: isDarkMode
               ? {
                   backgroundImage: `url(${ASSETS.DARKBG_CTA})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                 }
               : {}
-          }
+          } as any)}
           onClick={handleGoBack}
         >
           Go Back
-        </Button>
+        </GpButton>
       </div>
     </div>
   );

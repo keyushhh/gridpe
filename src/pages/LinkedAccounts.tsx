@@ -4,7 +4,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 // Assets
 // Utils
 import { AVAILABLE_BANKS } from '@/utils/bankUtils';
@@ -156,14 +156,14 @@ const LinkedAccounts = () => {
       </div>
       {/* Footer */}
       <div className="absolute bottom-20 left-0 w-full px-5 flex justify-center z-20">
-        <Button
+        <GpButton
           variant="gradient"
           className="w-full h-[48px] rounded-full text-[18px] font-medium transition-opacity duration-200"
           disabled={selectedAccountIds.length === 0}
           onClick={handleAddAccounts}
         >
           Add Bank Account
-        </Button>
+        </GpButton>
       </div>
     </div>
   );

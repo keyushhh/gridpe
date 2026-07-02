@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { hapticMedium } from '@/utils/haptics';
 import BackButton from '@/components/ui/BackButton';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import { PhoneInput } from '@/components/PhoneInput';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Keyboard } from '@capacitor/keyboard';
@@ -577,7 +577,7 @@ const AddBank = () => {
       <div
         className={`sticky bottom-0 left-0 w-full px-5 py-4 flex justify-center z-20 ${isDarkMode ? 'bg-gradient-to-t from-brand-bg-dark via-brand-bg-dark/80 to-transparent' : 'bg-gradient-to-t from-white via-white/80 to-transparent'}`}
       >
-        <Button
+        <GpButton
           variant="gradient"
           className="w-full h-[48px] rounded-full text-[16px] font-sans font-medium transition-all duration-200"
           onClick={handleButtonClick}
@@ -591,7 +591,7 @@ const AddBank = () => {
           ) : (
             getButtonText()
           )}
-        </Button>
+        </GpButton>
       </div>
     </div>
   );

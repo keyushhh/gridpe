@@ -15,7 +15,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { olc } from '@/utils/olc';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { GpButton } from '@gridpe-app/ui';
 import {
   getDistance,
   GeocodeResult,
@@ -756,7 +756,7 @@ const AddAddress = () => {
                   visibility: isDragging || isLoading ? 'hidden' : 'visible',
                 }}
               >
-                <Button
+                <GpButton
                   variant="gradient"
                   onClick={() => {
                     const addr = currentAddressComponents || {};
@@ -789,14 +789,14 @@ const AddAddress = () => {
                     });
                   }}
                   className={`w-full rounded-full ${!isDarkMode ? 'bg-primary text-white hover:bg-primary/90' : ''}`}
-                  style={
-                    !isDarkMode
+                  {...({
+                    style: !isDarkMode
                       ? { backgroundImage: 'none', backgroundColor: 'hsl(var(--primary))' }
                       : undefined
-                  }
+                  } as any)}
                 >
                   Confirm Location
-                </Button>
+                </GpButton>
               </div>
             )}
           </div>
