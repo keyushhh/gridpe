@@ -36,6 +36,9 @@ jobs:
       - name: Clear npm cache
         run: npm cache clean --force
 
+      - name: Configure GitHub Packages auth
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GRIDPE_NPM_TOKEN }}" >> .npmrc
+
       - name: Install npm dependencies
         env:
           NODE_OPTIONS: "--no-node-snapshot"
