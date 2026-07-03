@@ -37,7 +37,12 @@ jobs:
         run: npm cache clean --force
 
       - name: Configure GitHub Packages auth
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GRIDPE_NPM_TOKEN }}" >> .npmrc
+        run: |
+          if [ -z "${{ secrets.GRIDPE_NPM_TOKEN }}" ]; then
+            echo "::error::GRIDPE_NPM_TOKEN secret is empty or not available to this workflow/job. Check Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GRIDPE_NPM_TOKEN }}" >> .npmrc
 
       - name: Install npm dependencies
         env:
