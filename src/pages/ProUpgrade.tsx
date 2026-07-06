@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Zap, BadgePercent, CalendarClock, BadgeDollarSign, Sparkles, Loader2 } from 'lucide-react';
 import { ROUTES } from '@/routes';
@@ -59,8 +59,102 @@ const ProUpgrade = () => {
   const userId = profile?.id;
   const { showToaster } = useCustomToaster();
 
+  const [activeSubscription, setActiveSubscription] = useState<{
+    billing_cycle: 'monthly' | 'annual';
+    expires_at: string;
+    started_at?: string;
+  } | null>(null);
+
+  const effectiveSubscription = activeSubscription || (profile?.plan_tier?.toLowerCase() === 'pro' ? {
+    billing_cycle: 'monthly' as const,
+    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    started_at: new Date().toISOString()
+  } : null);
+
+  const isPro = profile?.plan_tier?.toLowerCase() === 'pro';
+  const isCurrentActivePlan = isPro && billingCycle === effectiveSubscription?.billing_cycle;
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!userId || profile?.plan_tier?.toLowerCase() !== 'pro') {
+        setActiveSubscription(null);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('user_subscriptions')
+          .select('billing_cycle, expires_at, started_at')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (data) {
+          setActiveSubscription(data as any);
+          if (data.billing_cycle === 'monthly') {
+            setBillingCycle('annual');
+          } else {
+            setBillingCycle('monthly');
+          }
+        } else {
+          setBillingCycle('annual');
+        }
+      } catch (err) {
+        console.error('Error fetching user subscription:', err);
+        setBillingCycle('annual');
+      }
+    };
+    fetchSubscription();
+  }, [userId, profile?.plan_tier]);
+
+  const handleDowngrade = async () => {
+    if (!userId) return;
+    
+    const confirmCancel = window.confirm('Are you sure you want to cancel your Pro subscription and downgrade to Basic immediately?');
+    if (!confirmCancel) return;
+
+    setIsLoading(true);
+    try {
+      const { error: subError } = await supabase
+        .from('user_subscriptions')
+        .update({ 
+          status: 'cancelled',
+          updated_at: new Date().toISOString() 
+        })
+        .eq('user_id', userId)
+        .eq('status', 'active');
+
+      if (subError) throw subError;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          plan_tier: 'free' 
+        })
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      await fetchProfileData?.();
+      showToaster('Successfully downgraded to Basic plan.', 'success');
+    } catch (err: any) {
+      crashlytics.recordError(
+        err instanceof Error ? err : new Error('handleDowngrade failed'),
+        'ProUpgrade.handleDowngrade'
+      );
+      if (import.meta.env.DEV) { console.error('Downgrade error:', err); }
+      showToaster('Failed to downgrade. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleUpgradeClick = async () => {
     if (!userId) return;
+    
+    if (profile?.plan_tier?.toLowerCase() === 'pro' && billingCycle === effectiveSubscription?.billing_cycle) {
+      showToaster('To manage or cancel your subscription, please contact support at support@gridpe.in.', 'info');
+      return;
+    }
     
     setIsLoading(true);
     
@@ -187,7 +281,7 @@ const ProUpgrade = () => {
       }}
     >
       {/* Header */}
-      <div className="pt-safe-top">
+      <div className="safe-top">
         <div className="h-[72px] flex items-center px-[22px] relative mt-[8px]">
           <div className="absolute left-[22px] z-10">
             <BackButton onClick={() => navigate(-1)} />
@@ -204,8 +298,23 @@ const ProUpgrade = () => {
 
       <div className="flex flex-col items-center px-[22px] pb-[40px]">
 
+        {/* Active Subscription Info for Pro Users (Top Banner) */}
+        {profile?.plan_tier?.toLowerCase() === 'pro' && effectiveSubscription && (
+          <div className="w-full bg-[#CA8429]/[0.08] border border-[#CA8429]/20 rounded-[20px] p-[16px] mt-[16px] flex flex-col items-center animate-in slide-in-from-top-4 duration-300">
+            <p className="text-brand-pro-gold font-satoshi font-semibold text-[14px] flex items-center gap-1">
+              👑 Grid.Pe Pro Member
+            </p>
+            <p className="text-white/70 font-satoshi text-[13px] mt-[4px] text-center">
+              Active since {new Date(effectiveSubscription.started_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
+            <p className="text-white/50 font-satoshi text-[12px] mt-[2px] text-center">
+              Next billing date: {new Date(effectiveSubscription.expires_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
+          </div>
+        )}
+
         {/* Subheading */}
-        <p className="text-white font-satoshi font-normal text-[16px] mt-[40px] text-center">
+        <p className={`text-white font-satoshi font-normal text-[16px] text-center ${profile?.plan_tier?.toLowerCase() === 'pro' && effectiveSubscription ? 'mt-[24px]' : 'mt-[40px]'}`}>
           Higher limits. Faster deliveries. More flexibility.
         </p>
 
@@ -234,7 +343,7 @@ const ProUpgrade = () => {
         </div>
 
         {/* Pricing Section */}
-        <div className="w-full mt-[4px] flex gap-3">
+        <div className="w-full mt-[12px] flex gap-3">
           {/* Monthly Card */}
           <div 
             onClick={() => setBillingCycle('monthly')}
@@ -244,8 +353,15 @@ const ProUpgrade = () => {
                 : 'border-white/5 bg-brand-surface-mid'
             }`}
           >
-            <div className={`font-satoshi font-bold text-[16px] leading-none mb-[12px] ${billingCycle === 'monthly' ? 'text-white' : 'text-white/50'}`}>
-              Monthly
+            <div className="flex items-center justify-between mb-[12px]">
+              <div className={`font-satoshi font-bold text-[16px] leading-none ${billingCycle === 'monthly' ? 'text-white' : 'text-white/50'}`}>
+                Monthly
+              </div>
+              {effectiveSubscription?.billing_cycle === 'monthly' && (
+                <div className="bg-[#0D3B1D] text-[#4ADE80] font-satoshi font-bold text-[10px] px-2 py-1 rounded-full leading-none">
+                  ACTIVE
+                </div>
+              )}
             </div>
             <div className="flex items-baseline">
               <span className={`font-satoshi font-bold text-[24px] ${billingCycle === 'monthly' ? 'text-white' : 'text-white/50'}`}>₹99</span>
@@ -266,9 +382,15 @@ const ProUpgrade = () => {
               <div className={`font-satoshi font-bold text-[16px] leading-none ${billingCycle === 'annual' ? 'text-white' : 'text-white/50'}`}>
                 Annual
               </div>
-              <div className="bg-[#0D3B1D] text-[#4ADE80] font-satoshi font-bold text-[10px] px-2 py-1 rounded-full leading-none">
-                SAVE 16%
-              </div>
+              {effectiveSubscription?.billing_cycle === 'annual' ? (
+                <div className="bg-[#0D3B1D] text-[#4ADE80] font-satoshi font-bold text-[10px] px-2 py-1 rounded-full leading-none">
+                  ACTIVE
+                </div>
+              ) : (
+                <div className="bg-[#0D3B1D] text-[#4ADE80] font-satoshi font-bold text-[10px] px-2 py-1 rounded-full leading-none">
+                  SAVE 16%
+                </div>
+              )}
             </div>
             <div className="flex flex-col">
               <div className="flex items-baseline">
@@ -286,15 +408,23 @@ const ProUpgrade = () => {
         <Button
           onClick={handleUpgradeClick}
           disabled={isLoading}
-          variant="glass"
-          className="w-full h-[48px] shadow-xl transition-all mt-[18px]"
-          style={{ '--glass-specular-intensity': '0.2' } as React.CSSProperties}
+          variant={isCurrentActivePlan ? "glass" : "default"}
+          className={`w-full h-[48px] shadow-xl transition-all mt-[18px] ${
+            isCurrentActivePlan 
+              ? '' 
+              : 'bg-[#5260FE] hover:bg-[#5260FE]/90 text-white border-none'
+          }`}
+          style={isCurrentActivePlan ? ({ '--glass-specular-intensity': '0.2' } as React.CSSProperties) : {}}
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 text-white animate-spin" />
           ) : (
-            <span className="text-white font-satoshi font-semibold text-[16px]">
-              Upgrade to Grid.Pe Pro
+            <span className="text-white font-satoshi font-medium text-[16px]">
+              {profile?.plan_tier?.toLowerCase() === 'pro'
+                ? billingCycle === effectiveSubscription?.billing_cycle
+                  ? 'Manage Plan'
+                  : `Switch to ${billingCycle.charAt(0).toUpperCase() + billingCycle.slice(1)} Plan`
+                : 'Upgrade to Grid.Pe Pro'}
             </span>
           )}
         </Button>

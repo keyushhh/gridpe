@@ -123,10 +123,31 @@ Deno.serve(async (req: Request) => {
       gateway_payment_id: cashfreeData.order_id 
     };
 
-    const { error: upsertError } = await supabase
+    // Check if subscription exists for user
+    const { data: existingSub, error: selectSubError } = await supabase
       .from('user_subscriptions')
-      .update(subscriptionData)
-      .eq('user_id', user_id);
+      .select('id')
+      .eq('user_id', user_id)
+      .maybeSingle();
+
+    if (selectSubError) {
+      console.error("Database error checking existing subscription:", selectSubError);
+      throw selectSubError;
+    }
+
+    let upsertError;
+    if (existingSub) {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update(subscriptionData)
+        .eq('id', existingSub.id);
+      upsertError = error;
+    } else {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .insert({ user_id, ...subscriptionData });
+      upsertError = error;
+    }
 
     if (upsertError) {
       console.error("Database error upserting subscription:", upsertError);

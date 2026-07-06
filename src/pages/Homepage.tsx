@@ -1802,10 +1802,9 @@ const Homepage = () => {
                 </p>
               </div>
               
-              <div className="mt-[22px] flex flex-col items-center">
+              <div className="mt-[22px] w-full flex flex-col items-center">
                 <GpButton
-                  fullWidth={false}
-                  className="max-w-[328px] mb-[14px]"
+                  className="w-full max-w-[328px] mb-[14px]"
                   onClick={() => {
                     setShowDeliveryLimitsModal(false);
                     navigate(ROUTES.PRO_UPGRADE);
