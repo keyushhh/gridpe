@@ -433,7 +433,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
               transform: 'translateZ(0)',
             }}
           >
-              <div className="app-container h-full w-full flex flex-col overflow-y-auto relative scrollbar-hide">
+              <div className="app-container h-full w-full flex flex-col overflow-hidden relative scrollbar-hide">
               <GlobalCustomToaster />
               <LiquidGlassFilters />
               <TermsAcceptanceGate />

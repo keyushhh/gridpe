@@ -32,7 +32,7 @@ const ExplorePage = () => {
   return (
     <div
       id="explore-page-root"
-      className="absolute inset-0 flex flex-col overflow-hidden bg-cover bg-center"
+      className="relative h-full flex flex-col overflow-hidden bg-cover bg-center"
       style={{
         backgroundImage: `url(${mainBg})`,
         overscrollBehavior: 'none',
@@ -41,7 +41,14 @@ const ExplorePage = () => {
         WebkitTouchCallout: 'none',
       }}
     >
-      <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-32 safe-top">
+      <div
+        className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-32 safe-top"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y',
+        }}
+      >
         {/* HEADER */}
         <div className="pt-8 flex flex-col gap-[2px]">
           <h1 className="font-satoshi font-black text-[40px] leading-none text-foreground">
@@ -118,20 +125,12 @@ const ExplorePage = () => {
 
         <div className="relative mt-2">
           {/* Background Scalloped Image */}
-          <div
-            className="absolute z-0 pointer-events-none"
-            style={{
-              top: "-22px",     // NUDGE: Adjust this value to move image UP or DOWN
-              left: "-25px",   // NUDGE: Counteracts px-5 page padding to hit left screen edge
-              right: "-5px",  // NUDGE: Counteracts px-5 page padding to hit right screen edge
-              width: "calc(100% + 80px)", // Forces it to span the full viewport
-              opacity: 1        // NUDGE: Adjust transparency if needed
-            }}
-          >
-            <img loading="lazy"
+          <div className="absolute left-[-25px] right-[-25px] top-[-22px] pointer-events-none overflow-hidden">
+            <img
+              loading="lazy"
               src={scallopedImage}
               alt="Background decoration"
-              className="w-full h-auto object-cover"
+              className="w-[calc(100%+50px)] h-auto object-cover"
             />
           </div>
 
