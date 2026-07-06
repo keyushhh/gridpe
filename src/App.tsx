@@ -434,7 +434,6 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
             }}
           >
               <div className="app-container h-full w-full flex flex-col overflow-hidden relative scrollbar-hide">
-              <GlobalCustomToaster />
               <LiquidGlassFilters />
               <TermsAcceptanceGate />
               <Suspense
@@ -469,6 +468,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                 }
               >
                 <Router>
+                  <GlobalCustomToaster />
                   <NotificationSetup />
                   <InAppNotificationBanner />
                   <LocationTracker currentPathRef={currentPathRef} />

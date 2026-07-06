@@ -152,7 +152,7 @@ const ProUpgrade = () => {
     if (!userId) return;
     
     if (profile?.plan_tier?.toLowerCase() === 'pro' && billingCycle === effectiveSubscription?.billing_cycle) {
-      showToaster('To manage or cancel your subscription, please contact support at support@gridpe.in.', 'info');
+      showToaster('To manage or cancel your subscription, please contact support at support@gridpe.in.', 'success');
       return;
     }
     

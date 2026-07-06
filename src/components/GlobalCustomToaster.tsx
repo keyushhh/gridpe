@@ -5,11 +5,13 @@ import { hapticError, hapticSuccess } from '@/utils/haptics';
 import { X } from 'lucide-react';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useSafeArea } from '@/hooks/useSafeArea';
+import { useLocation } from 'react-router-dom';
 const GlobalCustomToaster: React.FC = () => {
   const { isVisible, message, type, hideToaster } = useCustomToaster();
   const isDarkMode = useIsDarkMode();
   const { bottom: bottomInset } = useSafeArea();
   const [progress, setProgress] = useState(0);
+  const location = useLocation();
   const duration = 4000; // 4 seconds to match loader animation spec
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -69,10 +71,14 @@ const GlobalCustomToaster: React.FC = () => {
     if (type === 'error' || type === 'delete') return isDarkMode ? '#EF4444' : '#A70000';
     return isDarkMode ? '#FFFFFF' : '#000000';
   };
+  const tabPaths = ['/home', '/cards', '/rewards', '/more'];
+  const hasBottomNav = tabPaths.includes(location.pathname);
+  const bottomOffset = hasBottomNav ? 100 : 24;
+
   return (
     <div
       className="fixed left-0 right-0 z-[10000] flex justify-center pointer-events-none px-5"
-      style={{ bottom: `calc(100px + ${bottomInset}px)` }}
+      style={{ bottom: `calc(${bottomOffset}px + ${bottomInset}px)` }}
     >
       <div
         className="flex items-center pointer-events-auto animate-in fade-in slide-in-from-bottom-5 duration-300 relative overflow-hidden"
