@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { hapticLight } from '@/utils/haptics';
 import { ROUTES } from '@/routes';
+import { useUser } from '@/contexts/UserContext';
 import gridpeGlyph from '../assets/gridpe-glyph.svg';
 
 interface BottomNavigationProps {
@@ -14,6 +15,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
+  const { profile, isPassportVerified } = useUser();
   if (isHidden) return null;
   return (
     <footer
@@ -118,7 +120,18 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
                 </button>
                 <button 
                   className="flex items-center gap-3 w-full"
-                  onClick={() => {}}
+                  onClick={() => {
+                    hapticLight();
+                    setIsFabMenuOpen(false);
+                    const walletTier = profile?.plan_tier || 'Starter';
+                    if (walletTier === 'Starter') {
+                      navigate(ROUTES.FX_INTRO);
+                    } else if (!isPassportVerified) {
+                      navigate(ROUTES.FX_PASSPORT_GATE);
+                    } else {
+                      navigate(ROUTES.FX_EXCHANGE);
+                    }
+                  }}
                 >
                   <img src={ASSETS.FX_CONVERT} alt="FX Convert" className="w-[22px] h-[22px] object-contain shrink-0" />
                   <span className="text-white font-['Satoshi'] font-normal text-[15px] leading-none whitespace-nowrap">FX Convert</span>

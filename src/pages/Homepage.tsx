@@ -74,6 +74,7 @@ const Homepage = () => {
   const activeAddress = useLocationStore((state) => state.activeAddress);
   const setActiveAddress = useLocationStore((state) => state.setActiveAddress);
   const userId = profile?.id;
+  const walletTier = profile?.plan_tier || 'Starter';
   const tierName = profile?.plan_tier || 'basic';
   const dailyLimit = tierName.toLowerCase() === 'pro' ? 25000 : 5000;
   const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
