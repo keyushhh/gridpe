@@ -85,6 +85,18 @@ html.font-pending body {
     scroll-behavior: smooth;
   }
 
+  img,
+  svg,
+  button {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Prevent the native iOS "tap and hold" magnifier/context menu (Save Image, Copy,
+     Open) on any icon, image, or button, while leaving normal text selection
+     (e.g. addresses, transaction IDs) unaffected. */
+
   /* Eliminate the 300ms tap delay on Android Chromium for any tappable element. */
   button,
   a,
