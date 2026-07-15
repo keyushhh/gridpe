@@ -89,6 +89,75 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // RIDER BANK ACCOUNT VERIFICATION WEBHOOK ROUTE
+    if (order_id.startsWith("gridpe_rider_verify_")) {
+      console.log(`Processing Rider Bank Verification webhook for order_id: ${order_id}`);
+
+      const { data: bankAccount, error: fetchError } = await supabase
+        .from("rider_bank_accounts")
+        .select("id, rider_id, verification_status")
+        .eq("cashfree_order_id", order_id)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Database error looking up rider bank account:", fetchError);
+        return new Response(JSON.stringify({ message: "Database lookup error" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      if (!bankAccount) {
+        console.warn(`Rider bank account not found for order_id: ${order_id}`);
+        return new Response(JSON.stringify({ message: "Rider bank account not found" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      if (bankAccount.verification_status === "verified") {
+        console.log(`Rider bank account ${bankAccount.id} already verified. Skipping.`);
+        return new Response(JSON.stringify({ message: "Already processed" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      const { error: resetError } = await supabase
+        .from("rider_bank_accounts")
+        .update({ is_primary: false })
+        .eq("rider_id", bankAccount.rider_id);
+
+      if (resetError) {
+        console.error("Database error resetting primary bank accounts:", resetError);
+        return new Response(JSON.stringify({ message: "Database reset error" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      const { error: updateError } = await supabase
+        .from("rider_bank_accounts")
+        .update({
+          verification_status: "verified",
+          is_primary: true
+        })
+        .eq("id", bankAccount.id);
+
+      if (updateError) {
+        console.error("Database error updating bank account verification status:", updateError);
+        return new Response(JSON.stringify({ message: "Database update error" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      return new Response(JSON.stringify({ message: "Rider bank verification webhook processed successfully" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
     // 5. Check if order is already captured in the main orders table
     const { data: existingOrder, error: existingError } = await supabase
       .from("orders")
