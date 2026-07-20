@@ -329,7 +329,7 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
             const code = codeMatch[1];
             const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) {
-              console.error('Auth exchange error:', error);
+              if (import.meta.env.DEV) { console.error('Auth exchange error:', error); }
             }
           }
         }

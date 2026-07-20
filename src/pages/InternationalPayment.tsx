@@ -300,7 +300,7 @@ const InternationalPayment = () => {
         throw new Error('Payment process unsuccessful');
       }
     } catch (err: any) {
-      console.error('Card payment error', err);
+      if (import.meta.env.DEV) { console.error('Card payment error', err); }
       showToaster(err.message || 'Card payment failed', 'error');
     } finally {
       setIsLoading(false);
