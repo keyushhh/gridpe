@@ -2,6 +2,9 @@
 A hybrid modern platform for on-demand cash delivery, digital wallet management, and live FX exchange.
 
 > **Vercel Demo**: To view the Vercel demo, login using phone number `8730889502`, OTP `123456`, and MPIN `8787`.
+>
+> Alternatively, if you don't want the login experience, simple use this link: https://gridpe-git-demo-keyushhhs-projects.vercel.app/#/home
+> This skips the onboarding login flow, and takes you directly to the homepage to preview the app in its demo state.
 
 ## Overview
 Grid.Pe is a pioneering fintech application designed to bridge the gap between digital finance and physical cash liquidity. Built as a comprehensive hybrid platform, it provides users with a robust digital wallet to store funds, a seamless order system to get cash delivered to their doorstep, and a unified foreign exchange interface for live currency conversion. It is specifically tailored to address the needs of underbanked regions and individuals reliant on secure, immediate, and convenient access to physical currency.
