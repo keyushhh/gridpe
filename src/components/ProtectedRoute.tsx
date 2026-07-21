@@ -53,6 +53,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // Web-only: inactivity timeout → MPIN gate or full logout
   useEffect(() => {
     if (!isWeb) return;
+    // Demo deployments skip the MPIN re-lock so a live walkthrough isn't interrupted
+    if (import.meta.env.VITE_DEMO_MODE === 'true') return;
 
     const triggerMpinGate = async () => {
       try {

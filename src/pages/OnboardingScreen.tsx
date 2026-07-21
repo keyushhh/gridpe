@@ -224,10 +224,31 @@ const OnboardingScreen = () => {
         if (session?.user) {
           // App Launch: treat as Restore (isExplicitLogin = false)
           await handleSession(session.user, false);
-        } else {
-          // If no session, we can stop checking
-          setUiState(prev => ({ ...prev, isAuthChecking: false }));
+          return;
         }
+
+        // Demo-mode auto-login — only active when VITE_DEMO_MODE is explicitly
+        // set on a dedicated demo deployment (never production). Signs into a
+        // real demo Supabase account so investors/interviewers land on the
+        // homepage without going through OTP.
+        if (import.meta.env.VITE_DEMO_MODE === 'true') {
+          const demoEmail = import.meta.env.VITE_DEMO_EMAIL;
+          const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
+          if (demoEmail && demoPassword) {
+            const { error: demoError } = await supabase.auth.signInWithPassword({
+              email: demoEmail,
+              password: demoPassword,
+            });
+            if (!demoError) {
+              // onAuthStateChange SIGNED_IN listener below will call handleSession
+              return;
+            }
+            if (import.meta.env.DEV) console.warn('[DemoMode] auto sign-in failed', demoError);
+          }
+        }
+
+        // If no session, we can stop checking
+        setUiState(prev => ({ ...prev, isAuthChecking: false }));
       } catch (e) {
         crashlytics.recordError(
           e instanceof Error ? e : new Error('Session check failed on mount'),
