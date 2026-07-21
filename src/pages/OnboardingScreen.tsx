@@ -431,6 +431,15 @@ const OnboardingScreen = () => {
         savePhoneNumber(user.phone);
       }
       // 4. Navigation Logic based on Mode & MPIN Status
+      // Demo mode: skip MPIN setup/verify entirely so every visitor to the
+      // shared demo link lands straight on the homepage. Otherwise the first
+      // visitor would create an MPIN on the shared account and lock everyone
+      // else out at the verify screen.
+      if (import.meta.env.VITE_DEMO_MODE === 'true') {
+        setUiState(prev => ({ ...prev, isAuthChecking: false }));
+        navigate(ROUTES.HOME, { replace: true });
+        return;
+      }
       const isMpinSet = currentProfile?.mpin_set || false;
       if (isExplicitLogin) {
         // Login Mode
@@ -454,7 +463,7 @@ const OnboardingScreen = () => {
         }
       }
     },
-    [setProfile, savePhoneNumber]
+    [setProfile, savePhoneNumber, navigate]
   );
   const handleVerifyOTP = useCallback(async () => {
     if (uiState.isLoading) return;
