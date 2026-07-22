@@ -10,28 +10,42 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const body = await req.json();
-    const { amount, address_id, order_type, user_id, meta_data, delivery_fee, platform_fee, gst, delivery_tip, total_amount } = body;
-
-    if (amount === undefined || !address_id) {
-      throw new Error(`Invalid request. amount (${amount}) and address_id (${address_id}) are required.`);
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    
+
     if (!supabaseUrl || !supabaseKey) {
         throw new Error("Missing environment variables in Edge Function");
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Identify the caller from their own session JWT — never trust a client-supplied user_id,
+    // and never fall back to a hardcoded account.
+    const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No authorization header provided" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const effectiveUserId = user.id;
+
+    const body = await req.json();
+    const { amount, address_id, order_type, meta_data, delivery_fee, platform_fee, gst, delivery_tip, total_amount } = body;
+
+    if (amount === undefined || !address_id) {
+      throw new Error(`Invalid request. amount (${amount}) and address_id (${address_id}) are required.`);
+    }
+
     // 1. Atomically create the Order
     const rpcName = order_type === 'FX_EXCHANGE' ? 'create_fx_order' : 'create_cash_order';
-    
-    // Use passed user_id or a strictly validated fallback if the app architecture allows it.
-    // Ideally, this should come from the Auth JWT, but using the passed UID for now as a fix.
-    const effectiveUserId = user_id || '414c977e-6f70-4f57-bfa1-af0a8a2053a4';
 
     const { data: orderResponse, error: rpcError } = await supabase.rpc(rpcName, {
       p_user_id: effectiveUserId,

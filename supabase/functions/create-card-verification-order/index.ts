@@ -14,9 +14,29 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const supabaseUrlEarly = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKeyEarly = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authClient = createClient(supabaseUrlEarly, serviceRoleKeyEarly);
+
+    // Identify the caller from their own session JWT — never trust a client-supplied user_id.
+    const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No authorization header provided" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const { data: { user }, error: authError } = await authClient.auth.getUser(authHeader);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const user_id = user.id;
+
     const body = await req.json();
     const {
-      user_id,
       customer_phone,
       customer_name,
       customer_email,
@@ -26,14 +46,6 @@ Deno.serve(async (req: Request) => {
       expiry_month,
       expiry_year
     } = body;
-
-    // Validate request
-    if (!user_id) {
-      return new Response(JSON.stringify({ error: "Invalid request data: user_id is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
 
     // Generate a unique order_id string
     const cashfreeOrderId = `gridpe_${Date.now()}_${user_id.slice(0, 8)}`;
@@ -102,11 +114,8 @@ Deno.serve(async (req: Request) => {
       throw new Error("No payment_session_id returned from Cashfree");
     }
 
-    // Initialize Supabase Service Role client
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-
     // Insert row into pending_payments table using service role client
+    const supabase = authClient;
     const pendingPaymentInsert = {
       user_id: user_id,
       gateway_order_id: cashfreeOrderId,

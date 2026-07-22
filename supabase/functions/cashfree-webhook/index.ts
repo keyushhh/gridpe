@@ -3,6 +3,7 @@ export const config = { auth: false };
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import crypto from "node:crypto";
+import { Buffer } from "node:buffer";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,7 +46,12 @@ Deno.serve(async (req: Request) => {
       .update(signedPayload)
       .digest("base64");
 
-    if (expectedSignature !== signature) {
+    const expectedSigBuf = Buffer.from(expectedSignature, "utf8");
+    const receivedSigBuf = Buffer.from(signature, "utf8");
+    const signatureValid =
+      expectedSigBuf.length === receivedSigBuf.length && crypto.timingSafeEqual(expectedSigBuf, receivedSigBuf);
+
+    if (!signatureValid) {
       console.warn("Invalid Cashfree webhook signature");
       return new Response(JSON.stringify({ message: "Invalid signature" }), {
         status: 401,

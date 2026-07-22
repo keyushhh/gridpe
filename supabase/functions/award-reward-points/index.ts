@@ -4,11 +4,28 @@ export const config = { auth: false };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// @ts-ignore
+import crypto from "node:crypto";
+// @ts-ignore
+import { Buffer } from "node:buffer";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// This function is only ever meant to be invoked server-to-server (by verify-cash-order,
+// verify-card-order, etc.) right after a payment is confirmed — there is no end-user session
+// available at this point, so instead of a user JWT we require the caller to present the
+// service role key, which only our own trusted functions know.
+function isTrustedServiceCaller(req: Request): boolean {
+  // @ts-ignore
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
+  const expected = Buffer.from(serviceRoleKey, "utf8");
+  const received = Buffer.from(authHeader, "utf8");
+  return expected.length > 0 && expected.length === received.length && crypto.timingSafeEqual(expected, received);
+}
 
 // @ts-ignore
 serve(async (req: Request) => {
@@ -17,6 +34,13 @@ serve(async (req: Request) => {
   }
 
   try {
+    if (!isTrustedServiceCaller(req)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseClient = createClient(
       // @ts-ignore
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -24,14 +48,45 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { order_id, user_id, order_amount } = await req.json();
+    const { order_id, user_id } = await req.json();
 
-    if (!order_id || !user_id || order_amount === undefined) {
+    if (!order_id || !user_id) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Look up the order ourselves rather than trusting a client-supplied amount, and use it
+    // to verify ownership + as an idempotency guard against duplicate/retried invocations.
+    const { data: order, error: orderError } = await supabaseClient
+      .from("orders")
+      .select("user_id, amount, reward_points_earned")
+      .eq("id", order_id)
+      .single();
+
+    if (orderError || !order) {
+      return new Response(JSON.stringify({ error: "Order not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (order.user_id !== user_id) {
+      return new Response(JSON.stringify({ error: "Order does not belong to user_id" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (order.reward_points_earned > 0) {
+      return new Response(JSON.stringify({ success: true, already_awarded: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const order_amount = order.amount;
 
     // 1. Fetch user profile
     const { data: profile, error: profileError } = await supabaseClient

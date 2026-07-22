@@ -14,11 +14,31 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const authUrl = Deno.env.get("SUPABASE_URL")!;
+    const authServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authClient = createClient(authUrl, authServiceRoleKey);
+
+    // Identify the caller from their own session JWT — never trust a client-supplied user_id.
+    const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, message: "No authorization header provided" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const { data: { user: authUser }, error: authError } = await authClient.auth.getUser(authHeader);
+    if (authError || !authUser) {
+      return new Response(JSON.stringify({ success: false, message: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const user_id = authUser.id;
+
     const body = await req.json();
     const {
       cashfree_order_id,
       cashfree_payment_id,
-      user_id,
       address_id,
       zone_id,
       city,
@@ -40,7 +60,7 @@ Deno.serve(async (req: Request) => {
     } = body;
 
 
-    if (!cashfree_order_id || !user_id) {
+    if (!cashfree_order_id) {
       return new Response(JSON.stringify({ success: false, message: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
@@ -87,10 +107,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Initialize Supabase Service Role client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = authClient;
 
     // 3. Check idempotency
     const { data: existingOrder, error: existingError } = await supabase

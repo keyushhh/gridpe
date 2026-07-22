@@ -1,6 +1,10 @@
 export const config = { auth: false };
 declare const Deno: any;
 import { createClient } from '@supabase/supabase-js'
+import crypto from 'node:crypto';
+import { Buffer } from 'node:buffer';
+
+const REPLAY_WINDOW_SECONDS = 300;
 
 Deno.serve(async (req: Request) => {
   const supabase = createClient(
@@ -8,9 +12,59 @@ Deno.serve(async (req: Request) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
 
+  // Verify the webhook is genuinely from Didit before trusting anything in the body.
+  // Didit signs HMAC-SHA256(rawBody) hex-encoded in X-Signature, plus X-Timestamp for replay protection.
+  const signatureHeader = req.headers.get('x-signature');
+  const timestampHeader = req.headers.get('x-timestamp');
+  const rawBody = await req.text();
+
+  if (!signatureHeader || !timestampHeader) {
+    console.warn('Missing Didit webhook signature headers');
+    return new Response(JSON.stringify({ error: 'Missing signature headers' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - parseInt(timestampHeader, 10)) > REPLAY_WINDOW_SECONDS) {
+    console.warn('Didit webhook timestamp outside replay window');
+    return new Response(JSON.stringify({ error: 'Stale timestamp' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  const diditWebhookSecret = Deno.env.get('DIDIT_WEBHOOK_SECRET_KEY');
+  if (!diditWebhookSecret) {
+    console.error('DIDIT_WEBHOOK_SECRET_KEY not set');
+    return new Response(JSON.stringify({ error: 'Internal configuration error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  const expectedSignature = crypto
+    .createHmac('sha256', diditWebhookSecret)
+    .update(rawBody, 'utf8')
+    .digest('hex');
+
+  const expectedBuf = Buffer.from(expectedSignature, 'utf8');
+  const receivedBuf = Buffer.from(signatureHeader, 'utf8');
+  const signatureValid =
+    expectedBuf.length === receivedBuf.length && crypto.timingSafeEqual(expectedBuf, receivedBuf);
+
+  if (!signatureValid) {
+    console.warn('Invalid Didit webhook signature');
+    return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
   let payload: any;
   try {
-    payload = await req.json();
+    payload = JSON.parse(rawBody);
 
     // Point 4: Log raw payload to a dedicated table for visibility even if Supabase logs fail
     try {

@@ -14,12 +14,33 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    // Identify the caller from their own session JWT — never trust a client-supplied userId.
+    const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No authorization header provided" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const userId = user.id;
+
     const body = await req.json();
-    const { userId, billingCycle } = body;
+    const { billingCycle } = body;
 
     // Validate inputs
-    if (!userId || !billingCycle || !['monthly', 'annual'].includes(billingCycle)) {
-      return new Response(JSON.stringify({ error: "Invalid request data: userId and valid billingCycle ('monthly' or 'annual') are required" }), {
+    if (!billingCycle || !['monthly', 'annual'].includes(billingCycle)) {
+      return new Response(JSON.stringify({ error: "Invalid request data: valid billingCycle ('monthly' or 'annual') is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
@@ -27,10 +48,6 @@ Deno.serve(async (req: Request) => {
 
     // Determine amount dynamically based on the cycle (processed as decimal strings)
     const amount = billingCycle === 'monthly' ? "99.00" : "990.00";
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Create Cashfree order
     const cashfreeOrderId = `PRO-${crypto.randomUUID().slice(0,8).toUpperCase()}`;

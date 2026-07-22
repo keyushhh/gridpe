@@ -14,10 +14,31 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const body = await req.json();
-    const { cashfree_order_id, user_id } = body;
+    const supabaseUrlEarly = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKeyEarly = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authClient = createClient(supabaseUrlEarly, serviceRoleKeyEarly);
 
-    if (!cashfree_order_id || !user_id) {
+    // Identify the caller from their own session JWT — never trust a client-supplied user_id.
+    const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, message: "No authorization header provided" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const { data: { user }, error: authError } = await authClient.auth.getUser(authHeader);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, message: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const user_id = user.id;
+
+    const body = await req.json();
+    const { cashfree_order_id } = body;
+
+    if (!cashfree_order_id) {
       return new Response(JSON.stringify({ success: false, message: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
@@ -64,9 +85,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = authClient;
 
     // 2. Check idempotency — card already saved for this order?
     const { data: existing } = await supabase

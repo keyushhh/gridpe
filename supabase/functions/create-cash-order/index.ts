@@ -14,9 +14,29 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    // Identify the caller from their own session JWT — never trust a client-supplied user_id.
+    const authHeader = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No authorization header provided" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const user_id = user.id;
+
     const body = await req.json();
     const {
-      user_id,
       amount,
       total_payable,
       delivery_fee,
@@ -34,16 +54,12 @@ Deno.serve(async (req: Request) => {
     } = body;
 
     // Validate request
-    if (!user_id || !total_payable || total_payable <= 0) {
-      return new Response(JSON.stringify({ error: "Invalid request data: user_id and total_payable > 0 are required" }), {
+    if (!total_payable || total_payable <= 0) {
+      return new Response(JSON.stringify({ error: "Invalid request data: total_payable > 0 is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Validate withdrawal limits
     const { data: limitData, error: limitError } = await supabase.rpc('check_withdrawal_limits', {

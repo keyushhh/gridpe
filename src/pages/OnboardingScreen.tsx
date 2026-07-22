@@ -600,19 +600,10 @@ const OnboardingScreen = () => {
       // Award referral points — fire and forget, never block signup
       const pendingReferralCode = localStorage.getItem('referralCode');
       if (pendingReferralCode && user?.id) {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        fetch(`${supabaseUrl}/functions/v1/award-referral-points`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseAnonKey}`,
-          },
-          body: JSON.stringify({
-            new_user_id: user.id,
-            referral_code: pendingReferralCode,
-          }),
-        })
+        supabase.functions
+          .invoke('award-referral-points', {
+            body: { referral_code: pendingReferralCode },
+          })
           .then(() => localStorage.removeItem('referralCode'))
           .catch(() => localStorage.removeItem('referralCode')); // always clear, even on failure
       }
