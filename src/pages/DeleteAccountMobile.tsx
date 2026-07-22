@@ -151,7 +151,7 @@ const DeleteAccountMobile = () => {
           disabled={!isValid}
           className="w-full h-[48px] rounded-full text-[16px] font-medium font-sans bg-brand-primary hover:bg-brand-primary/90 text-white border-none disabled:opacity-50"
         >
-          Request OTP
+          Continue
         </GpButton>
         {/* Cancel */}
         <button

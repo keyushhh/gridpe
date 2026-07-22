@@ -7,17 +7,20 @@ import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { GpSectionLabel } from '@gridpe-app/ui';
-import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { useUser } from '@/contexts/UserContext';
+import { supabase } from '@/lib/supabase';
+import { hashMpin } from '@/utils/cryptoUtils';
+import { crashlytics } from '@/lib/crashlytics';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
 const DeleteAccountOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isDarkMode = useIsDarkMode();
-  const { showToaster } = useCustomToaster();
-  const [otp, setOtp] = useState('');
-  const [timeLeft, setTimeLeft] = useState(20);
-  const [canResend, setCanResend] = useState(false);
+  const { profile } = useUser();
+  const [mpin, setMpin] = useState('');
+  const [isError, setIsError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dismissKeyboard = () => {
     if (Capacitor.isNativePlatform()) {
       try {
@@ -29,30 +32,36 @@ const DeleteAccountOTP = () => {
       (document.activeElement as HTMLElement)?.blur();
     }
   };
-  // Countdown timer
+  // Reset error state whenever the user edits the MPIN again
   useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [timeLeft]);
-  const handleResend = () => {
-    setOtp('');
-    setTimeLeft(20);
-    setCanResend(false);
-    showToaster('OTP sent successfully', 'success');
-  };
+    setIsError(false);
+  }, [mpin]);
   const handleCancel = () => {
     navigate((location.state as LocationState)?.originPath || ROUTES.SETTINGS);
   };
-  const handleDelete = () => {
-    if (otp.length === 6) {
+  const handleDelete = async () => {
+    if (mpin.length !== 4 || !profile?.id) return;
+    setIsSubmitting(true);
+    try {
+      const hashedInput = await hashMpin(mpin);
+      if (hashedInput !== profile.mpin_hash) {
+        setIsError(true);
+        setMpin('');
+        setIsSubmitting(false);
+        return;
+      }
+      const { error } = await (supabase.from('profiles') as any)
+        .update({ deletion_requested_at: new Date().toISOString() })
+        .eq('id', profile.id);
+      if (error) throw error;
       navigate(ROUTES.ACCOUNT_DELETED);
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[DeleteAccountOTP] Failed to submit deletion request:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('Failed to submit account deletion request'), 'DeleteAccountOTP.handleDelete');
+      setIsSubmitting(false);
     }
   };
-  const isComplete = otp.length === 6;
+  const isComplete = mpin.length === 4;
   return (
     <div
       className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-bottom pb-4 relative"
@@ -97,38 +106,40 @@ const DeleteAccountOTP = () => {
           <p
             className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-normal font-sans leading-relaxed`}
           >
-            OTP time. The last gate before your grand exit. Choose your fate.
+            The last gate before your grand exit. Enter your MPIN to confirm.
           </p>
         </div>
-        {/* OTP Input */}
+        {/* MPIN Input */}
         <div className="mb-8 w-full flex flex-col items-center">
           <div className="w-full text-left mb-[24px]">
             <GpSectionLabel>
-              CONFIRM VERIFICATION CODE
+              ENTER MPIN
             </GpSectionLabel>
             <p
               className={`${isDarkMode ? 'text-white' : 'text-black'} text-[14px] font-italic font-sans italic`}
             >
-              Enter the digits we sent. Or don't. There's still time to turn around.
+              Just to be sure it's really you. Or don't. There's still time to turn around.
             </p>
           </div>
           <InputOTP
-            maxLength={6}
-            value={otp}
+            maxLength={4}
+            value={mpin}
             onChange={val => {
-              const numericOnly = val.replace(/\D/g, '').slice(0, 6);
-              setOtp(numericOnly);
-              if (numericOnly.length === 6) {
+              const numericOnly = val.replace(/\D/g, '').slice(0, 4);
+              setMpin(numericOnly);
+              if (numericOnly.length === 4) {
                 dismissKeyboard();
               }
             }}
           >
             <InputOTPGroup className="gap-2">
-              {[0, 1, 2, 3, 4, 5].map(index => (
+              {[0, 1, 2, 3].map(index => (
                 <InputOTPSlot
                   key={index}
                   index={index}
                   className={`w-[52px] h-[68px] rounded-[7px] text-[24px] font-bold ${
+                    isError ? 'border border-brand-error ring-1 ring-brand-error' : ''
+                  } ${
                     isDarkMode
                       ? 'bg-brand-card-dark/30 border border-white/20 text-white'
                       : 'bg-brand-bg-light border border-brand-border-light text-black'
@@ -137,34 +148,21 @@ const DeleteAccountOTP = () => {
               ))}
             </InputOTPGroup>
           </InputOTP>
-          {/* Helper Links - Below Input */}
-          <div className="flex justify-between w-full max-w-[364px] mt-4 px-1">
-            <button
-              onClick={() =>
-                navigate(ROUTES.DELETE_ACCOUNT_MOBILE, { state: location.state, replace: true })
-              }
-              className="text-[14px] font-sans text-brand-primary underline opacity-80"
-            >
-              Wrong number? Fix it here.
-            </button>
-            <button
-              onClick={handleResend}
-              disabled={!canResend}
-              className={`text-[14px] font-sans ${canResend ? 'text-brand-primary' : isDarkMode ? 'text-white/40' : 'text-black/40'}`}
-            >
-              {canResend ? 'Resend OTP' : `Resend OTP in ${timeLeft}s`}
-            </button>
-          </div>
+          {isError && (
+            <p className="text-brand-error text-[12px] font-medium font-sans mt-3 w-full max-w-[364px]">
+              Incorrect MPIN. Try again.
+            </p>
+          )}
         </div>
       </div>
       {/* Footer Button */}
       <div className="px-5 safe-bottom pb-4 mt-auto flex flex-col gap-3 relative z-10">
         <button
           className={`w-full h-[48px] relative flex items-center justify-center transition-transform ${
-            !isComplete ? 'opacity-50 grayscale pointer-events-none' : 'active:scale-95'
+            !isComplete || isSubmitting ? 'opacity-50 grayscale pointer-events-none' : 'active:scale-95'
           }`}
           onClick={handleDelete}
-          disabled={!isComplete}
+          disabled={!isComplete || isSubmitting}
         >
           {isDarkMode ? (
             <img loading="lazy"

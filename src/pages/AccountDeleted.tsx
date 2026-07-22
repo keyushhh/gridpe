@@ -4,11 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { useUser } from '@/contexts/UserContext';
+import { supabase } from '@/lib/supabase';
+import { crashlytics } from '@/lib/crashlytics';
 const AccountDeleted = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
+  const { profile } = useUser();
   const [timeLeft, setTimeLeft] = useState(30);
+  const [isCancelling, setIsCancelling] = useState(false);
   useEffect(() => {
     if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -24,8 +29,20 @@ const AccountDeleted = () => {
     localStorage.removeItem('gridpe_user_mpin');
     navigate(ROUTES.HOME);
   };
-  const handleTakeMeBack = () => {
-    navigate(ROUTES.ACCOUNT_RETRIEVED);
+  const handleTakeMeBack = async () => {
+    if (!profile?.id || isCancelling) return;
+    setIsCancelling(true);
+    try {
+      const { error } = await (supabase.from('profiles') as any)
+        .update({ deletion_requested_at: null })
+        .eq('id', profile.id);
+      if (error) throw error;
+      navigate(ROUTES.ACCOUNT_RETRIEVED);
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[AccountDeleted] Failed to cancel deletion request:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('Failed to cancel account deletion request'), 'AccountDeleted.handleTakeMeBack');
+      setIsCancelling(false);
+    }
   };
   return (
     <div
@@ -118,8 +135,9 @@ const AccountDeleted = () => {
       {/* Footer / Action */}
       <div className="w-full mt-auto flex flex-col items-center relative z-10">
         <button
-          className="w-full h-[48px] relative flex items-center justify-center active:scale-95 transition-transform"
+          className={`w-full h-[48px] relative flex items-center justify-center transition-transform ${isCancelling ? 'opacity-60 pointer-events-none' : 'active:scale-95'}`}
           onClick={handleTakeMeBack}
+          disabled={isCancelling}
         >
           {isDarkMode ? (
             <img loading="lazy"
