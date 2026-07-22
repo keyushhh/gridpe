@@ -240,7 +240,7 @@ const FxSuccess = () => {
       deliveryText: 'We’re assigning a delivery\npartner soon!',
       deliverySubText: 'Assigning a delivery partner in the next 2 minutes.',
       transactionNote:
-        'No charges yet — your wallet will only be debited after you confirm the delivery.',
+        "Payment received. If your order is cancelled, it'll be refunded automatically.",
       canCancel: true,
       themeBg: isDarkMode ? 'transparent' : 'hsl(var(--muted))',
     };

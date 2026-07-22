@@ -1,6 +1,5 @@
 import { ASSETS } from '@/constants/assets';
 import { crashlytics } from '@/lib/crashlytics';
-import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -11,7 +10,6 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
 import { supabase } from '@/lib/supabase';
-import { PostgrestError } from '@supabase/supabase-js';
 import { createAddress } from '@/lib/addresses';
 import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
@@ -23,6 +21,25 @@ import { setBadge } from '@/utils/badge';
 import { useWebScroll } from '@/hooks/useWebScroll';
 import { getAddress, migrateAddressKey, ADDRESS_KEYS } from '@/utils/addressStorage';
 import { withTimeout, isTimeoutError } from '@/utils/withTimeout';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+
+// Module-level storage — survives React state resets within the session
+let isFxPaymentInProgress = false;
+let fxPendingVerificationStore: {
+  cashfree_order_id: string;
+  savedAddress: SavedAddress | null;
+  totalAmount: number;
+  receiveAmount: number;
+} | null = null;
+
+declare const Cashfree: (config: { mode: string }) => {
+  checkout: (options: Record<string, unknown>) => Promise<{
+    error?: unknown;
+    paymentDetails?: { paymentMessage?: string };
+  }>;
+};
 const FxExchangeSummary = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -49,6 +66,7 @@ const FxExchangeSummary = () => {
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
   const [isPayOpen, setIsPayOpen] = useState(true); // Default open for breakdown
   const [showDeliveryTipPopup, setShowDeliveryTipPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   // Address State
   const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(null);
   const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
@@ -61,6 +79,90 @@ const FxExchangeSummary = () => {
       }
     };
     loadAddress();
+  }, []);
+
+  const runFxVerification = async (dataToVerify?: NonNullable<typeof fxPendingVerificationStore>) => {
+    const data = dataToVerify || fxPendingVerificationStore;
+    if (!data) {
+      isFxPaymentInProgress = false;
+      return;
+    }
+    try {
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-fx-exchange-order', {
+        body: {
+          cashfree_order_id: data.cashfree_order_id,
+          cashfree_payment_id: data.cashfree_order_id,
+        }
+      });
+      if (verifyError || !verifyData?.success) {
+        fxPendingVerificationStore = null;
+        showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
+        crashlytics.recordError(new Error(verifyData?.message || 'verify-fx-exchange-order failed'), 'FxExchangeSummary.runFxVerification');
+        return;
+      }
+      fxPendingVerificationStore = null;
+      setBadge(1);
+      navigate(ROUTES.FX_SUCCESS.replace(':orderId', verifyData.order_id), {
+        state: {
+          totalAmount: data.totalAmount,
+          receiveAmount: data.receiveAmount,
+          savedAddress: data.savedAddress,
+          order: { id: verifyData.order_id, status: 'pending' },
+          isFx: true,
+        }
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('runFxVerification error:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'FxExchangeSummary.runFxVerification.catch');
+      fxPendingVerificationStore = null;
+      showToaster('Verification failed.', 'error');
+    } finally {
+      isFxPaymentInProgress = false;
+    }
+  };
+
+  useEffect(() => {
+    if (fxPendingVerificationStore) {
+      setTimeout(() => {
+        runFxVerification(fxPendingVerificationStore!);
+      }, 500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const handleAppUrlOpen = App.addListener('appUrlOpen', async (data) => {
+      const isCashfreeReturn =
+        data.url.includes('cashfree-return') ||
+        data.url.includes('gridpe://cashfree-return');
+      if (isCashfreeReturn && fxPendingVerificationStore) {
+        try {
+          await runFxVerification(fxPendingVerificationStore);
+        } catch (err) {
+          if (import.meta.env.DEV) console.error('[appUrlOpen] runFxVerification failed:', err);
+          crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[appUrlOpen] runFxVerification failed');
+          showToaster('Payment verification failed. Please check your order history.', 'error');
+        }
+      }
+    });
+    const handleResume = App.addListener('resume', async () => {
+      if (fxPendingVerificationStore) {
+        setTimeout(async () => {
+          try {
+            await runFxVerification(fxPendingVerificationStore);
+          } catch (err) {
+            if (import.meta.env.DEV) console.error('[resume] runFxVerification failed:', err);
+            crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[resume] runFxVerification failed');
+            showToaster('Payment verification failed. Please check your order history.', 'error');
+          }
+        }, 1500);
+      }
+    });
+    return () => {
+      handleAppUrlOpen.then(l => l.remove());
+      handleResume.then(l => l.remove());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const handleAddressSelect = (address: SavedAddress | null) => {
     setSavedAddress(address);
@@ -197,6 +299,11 @@ const FxExchangeSummary = () => {
     }
   };
   const handlePay = async () => {
+    if (isFxPaymentInProgress) {
+      return;
+    }
+    isFxPaymentInProgress = true;
+    setIsLoading(true);
     try {
       const userId = currentUserId;
       let addressId = savedAddress?.id;
@@ -334,204 +441,164 @@ const FxExchangeSummary = () => {
         if (import.meta.env.DEV) console.error('Failed to calculate dynamic data:', err);
         crashlytics.recordError(err instanceof Error ? err : new Error('FxExchangeSummary failed to calculate dynamic data'), 'FxExchangeSummary.calculateDynamicData');
       }
-      const createOrderDirectly = async (
-        aid: string,
-        rcvAmt: number,
-        hldAmt: number,
-        phone: string | null,
-        pAddress: string | null,
-        dAddressText: string
-      ) => {
-        const payload = {
-          user_id: userId,
-          address_id: aid,
-          zone_id: zoneId, // Tagging with the zone_id from RPC
-          amount: rcvAmt, // What user receives
-          total_amount: hldAmt, // What is deducted/held from wallet
-          payment_mode: 'CARD',
-          order_type: 'FX_EXCHANGE',
-          currency: 'INR',
-          status: 'pending',
-          type: 'fx',
-          rider_earnings: riderEarnings,
-          hub_id: pickupLocation, // Hub UUID
-          pickup_location: pAddress, // Human-readable Hub Address
-          delivery_address_text: dAddressText,
-          customer_phone_number: phone,
-          delivery_location: `POINT(${savedAddress?.longitude || 0} ${savedAddress?.latitude || 0})`,
-          otp_code: Math.floor(100000 + Math.random() * 900000).toString(),
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('id', userId)
+        .single();
+      if (profileError || !(userProfile as any)?.phone) {
+        showToaster('A valid phone number is required to place an order.', 'error');
+        return;
+      }
+      const customerPhoneNumber = (userProfile as any).phone;
+      const dAddressText =
+        savedAddress.address_line ||
+        savedAddress.full_address ||
+        savedAddress?.tag ||
+        getAddressDisplay();
+
+      // Step: Call create-fx-exchange-order edge function — this actually charges
+      // the customer via Cashfree; the order row itself is only created once
+      // verify-fx-exchange-order confirms the payment succeeded.
+      const isNative = Capacitor.isNativePlatform();
+      const { data: orderData, error: orderError } = await supabase.functions.invoke('create-fx-exchange-order', {
+        body: {
+          address_id: addressId,
+          zone_id: zoneId,
+          receive_amount: cleanedReceiveAmount,
+          total_payable: cleanedHoldAmount,
           delivery_fee: deliveryFee,
-          service_fee: platformFee, // Mapped from platformFee
+          platform_fee: platformFee,
           gst: gst,
-          delivery_tip: tipAmount,
+          tip: tipAmount,
           reward_points: rewardPointsValue,
-          meta_data: {
-            is_fx: true,
-            receive_amount: rcvAmt,
-            hold_amount: hldAmt,
-            from_currency: fromCurrency,
-            to_currency: toCurrency,
-            fx_rate: fxRate,
-            markup_amount: markupAmount,
-            flat_fee: flatFee,
-            source_amount: amount,
-            base_rate: fxRate,
-            markup: markupAmount,
-            delivery_fee: deliveryFee,
-            service_fee: platformFee,
-            gst: gst,
-            delivery_tip: tipAmount,
-            reward_points: rewardPointsValue,
-            delivery_address: dAddressText,
-            quote_id: quoteData ? 'RPC_FETCHED' : 'FALLBACK',
-            client_source: 'frontend_v1',
-          },
+          reward_discount: rewardDiscount,
+          rider_earnings: riderEarnings,
+          hub_id: pickupLocation,
+          pickup_location: pickupAddress,
+          delivery_address_text: dAddressText,
+          customer_phone: customerPhoneNumber,
+          customer_name: (profile as any)?.full_name || 'Customer',
+          customer_email: (profile as any)?.email || 'customer@gridpe.in',
+          delivery_location_lng: savedAddress?.longitude || 0,
+          delivery_location_lat: savedAddress?.latitude || 0,
+          from_currency: fromCurrency,
+          to_currency: toCurrency,
+          fx_rate: fxRate,
+          markup_amount: markupAmount,
+          flat_fee: flatFee,
+          source_amount: amount,
+          service_amount: serviceAmount,
+        }
+      });
+
+      const resolvedOrderData = orderData?.payment_session_id
+        ? orderData
+        : orderData?.data?.payment_session_id
+          ? orderData.data
+          : orderData;
+
+      if (orderError || !resolvedOrderData?.success) {
+        showToaster('Failed to initiate payment. Please try again.', 'error');
+        crashlytics.recordError(new Error(resolvedOrderData?.message || 'create-fx-exchange-order failed'), 'FxExchangeSummary.createOrder');
+        return;
+      }
+
+      const cashfreeEnv = resolvedOrderData.cashfree_env === 'sandbox' ? 'sandbox' : 'production';
+      const cashfree = Cashfree({ mode: cashfreeEnv });
+
+      if (isNative) {
+        const pObj = {
+          cashfree_order_id: resolvedOrderData.cashfree_order_id,
+          savedAddress,
+          totalAmount: amount,
+          receiveAmount,
         };
-        let data, error;
-        try {
-          const result = await withTimeout(
-            supabase.from('orders').insert([payload]).select().single(),
-            15_000,
-            'create-order'
-          );
-          data = result.data;
-          error = result.error;
-        } catch (err) {
-          await FirebaseCrashlytics.recordException({
-            message: `createOrderDirectly withTimeout failed: ${err instanceof Error ? err.message : String(err)}`,
-          });
-          throw err;
-        }
-        if (error) {
-          crashlytics.recordError(new Error(error.message || 'FX order insert failed'), 'FxExchangeSummary: Supabase FX Insert Error');
-          if (import.meta.env.DEV) console.error('Supabase FX Insert Error:', error);
-          crashlytics.recordError(error instanceof Error ? error : new Error('FxExchangeSummary Supabase FX insert error'), 'FxExchangeSummary.insertOrder');
-          throw new Error(`Database error: ${error.message || 'Failed to insert order'}`);
-        }
-        if (!data) {
-          throw new Error('FX Order creation failed: No data returned from database.');
-        }
-        return data;
-      };
-      try {
-        const { data: userProfile, error: profileError } = await supabase
-          .from('profiles')
-          .select('phone')
-          .eq('id', userId)
-          .single();
-        if (profileError || !(userProfile as any)?.phone) {
-          throw new Error('A valid phone number is required to place an order.');
-        }
-        const customerPhoneNumber = (userProfile as any).phone;
-        const dAddressText =
-          savedAddress.address_line ||
-          savedAddress.full_address ||
-          savedAddress?.tag ||
-          getAddressDisplay();
-        const orderData = await createOrderDirectly(
-          addressId,
-          cleanedReceiveAmount,
-          cleanedHoldAmount,
-          customerPhoneNumber,
-          pickupAddress,
-          dAddressText
-        );
-        const finalOrderId = (orderData as any).id;
-        // Hold transaction linking removed
-        // Update app badge
-        setBadge(1);
-        navigate(ROUTES.FX_SUCCESS.replace(':orderId', finalOrderId), {
-          state: {
-            totalAmount: amount,
-            receiveAmount: receiveAmount,
-            savedAddress: savedAddress,
-            order: orderData,
-            isFx: true,
-          },
+        fxPendingVerificationStore = pObj;
+
+        const checkoutBaseUrl = resolvedOrderData.cashfree_env === 'sandbox'
+          ? 'https://payments-test.cashfree.com/order'
+          : 'https://payments.cashfree.com/order';
+        const checkoutUrl = `${checkoutBaseUrl}/#${resolvedOrderData.payment_session_id}`;
+
+        await Browser.open({
+          url: checkoutUrl,
+          presentationStyle: 'popover',
+          toolbarColor: '#5260FE',
         });
-      } catch (orderError: unknown) {
-        crashlytics.recordError(orderError instanceof Error ? orderError : new Error(String(orderError)), 'FxExchangeSummary: First FX order attempt failed');
-        if (import.meta.env.DEV) console.error('First FX order attempt failed:', orderError);
-        crashlytics.recordError(orderError instanceof Error ? orderError : new Error('FxExchangeSummary first FX order attempt failed'), 'FxExchangeSummary.firstAttempt');
-        // Handle Stale Address ID (Foreign Key Violation)
-        const errorMessage = orderError instanceof Error ? orderError.message : '';
-        const isAddressError =
-          errorMessage.toLowerCase().includes('foreign key') ||
-          errorMessage.toLowerCase().includes('address_id') ||
-          (orderError as PostgrestError).code === '23503';
-        if (isAddressError && savedAddress) {
-          try {
-            const newAddress = await createAddress({
-              user_id: userId,
-              label: savedAddress.tag,
-              apartment: savedAddress.house,
-              area: savedAddress.area,
-              landmark: savedAddress.landmark || '',
-              city: savedAddress.city,
-              state: savedAddress.state,
-              plus_code: savedAddress.plusCode || null,
-              latitude: 0,
-              longitude: 0,
-              contact_name: savedAddress.name,
-              contact_phone: savedAddress.phone,
-            });
-            const newAddressId = newAddress.id;
-            const updatedAddr = { ...savedAddress, id: newAddressId };
-            setSavedAddress(updatedAddr);
-            try { writeStorage('user_address', updatedAddr, currentUserId); } catch (e) { 
-              if (import.meta.env.DEV) { console.warn('Failed to write namespaced address', e); }
-              crashlytics.recordError(e instanceof Error ? e : new Error(String(e)), 'FxExchangeSummary.writeStorage2');
+
+        setIsLoading(false);
+
+        const browserFinishListener = await Browser.addListener(
+          'browserFinished',
+          async () => {
+            await browserFinishListener.remove();
+            if (fxPendingVerificationStore) {
+              setTimeout(async () => {
+                try {
+                  await runFxVerification(fxPendingVerificationStore);
+                } catch (err) {
+                  if (import.meta.env.DEV) console.error('[browserFinished] runFxVerification failed:', err);
+                  crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[browserFinished] runFxVerification failed');
+                  showToaster('Payment verification failed. Please check your order history.', 'error');
+                }
+              }, 1000);
             }
-            const { data: retryProfile, error: retryError } = await supabase
-              .from('profiles')
-              .select('phone')
-              .eq('id', userId)
-              .single();
-            if (retryError || !(retryProfile as any)?.phone) {
-              throw new Error('A valid phone number is required to proceed.');
-            }
-            const retryPhone = (retryProfile as any).phone;
-            const retryDAddressText =
-              updatedAddr.address_line ||
-              updatedAddr.full_address ||
-              updatedAddr?.tag ||
-              getAddressDisplay();
-            const retryData = await createOrderDirectly(
-              newAddressId,
-              cleanedReceiveAmount,
-              cleanedHoldAmount,
-              retryPhone,
-              pickupAddress,
-              retryDAddressText
-            );
-            const finalRetryOrderId = (retryData as any).id;
-            if (finalRetryOrderId) {
+          }
+        );
+      } else {
+        const checkoutOptions = {
+          paymentSessionId: resolvedOrderData.payment_session_id,
+          redirectTarget: '_modal',
+        };
+        cashfree.checkout(checkoutOptions).then(async (result) => {
+          if (result.error) {
+            showToaster('Payment failed. Please try again.', 'error');
+            setIsLoading(false);
+            isFxPaymentInProgress = false;
+            return;
+          }
+          if (result.paymentDetails) {
+            try {
+              const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-fx-exchange-order', {
+                body: {
+                  cashfree_order_id: resolvedOrderData.cashfree_order_id,
+                  cashfree_payment_id: result.paymentDetails.paymentMessage || resolvedOrderData.cashfree_order_id,
+                }
+              });
+              if (verifyError || !verifyData?.success) {
+                showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
+                crashlytics.recordError(new Error(verifyData?.message || 'verify-fx-exchange-order failed'), 'FxExchangeSummary.verify');
+                return;
+              }
               setBadge(1);
-              navigate(ROUTES.FX_SUCCESS.replace(':orderId', finalRetryOrderId), {
+              navigate(ROUTES.FX_SUCCESS.replace(':orderId', verifyData.order_id), {
                 state: {
                   totalAmount: amount,
-                  receiveAmount: receiveAmount,
-                  savedAddress: updatedAddr,
-                  order: retryData,
+                  receiveAmount,
+                  savedAddress,
+                  order: { id: verifyData.order_id, status: 'pending' },
                   isFx: true,
                 },
               });
-              return; // Success after retry
+            } catch (err) {
+              if (import.meta.env.DEV) console.error('[verify-fx-exchange-order] invocation failed:', err);
+              crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[verify-fx-exchange-order] invocation failed');
+              showToaster('Payment verification failed. Please check your order history.', 'error');
+            } finally {
+              setIsLoading(false);
+              isFxPaymentInProgress = false;
             }
-          } catch (retryErr: unknown) {
-            crashlytics.recordError(retryErr instanceof Error ? retryErr : new Error(String(retryErr)), 'FxExchangeSummary: Retry order attempt failed');
-            if (import.meta.env.DEV) console.error('Retry failed', retryErr);
-            crashlytics.recordError(retryErr instanceof Error ? retryErr : new Error('FxExchangeSummary retry failed'), 'FxExchangeSummary.retryAttempt');
-            throw new Error(`Retry failed: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`);
           }
-        }
-        throw orderError;
+        });
       }
     } catch (error: unknown) {
       crashlytics.recordError(error instanceof Error ? error : new Error(String(error)), 'FxExchangeSummary: Final catch in handlePay');
       if (import.meta.env.DEV) console.error('Final catch in handlePay (FX):', error);
       crashlytics.recordError(error instanceof Error ? error : new Error('FxExchangeSummary handlePay final catch'), 'FxExchangeSummary.handlePay');
       showToaster(`Failed to place order: ${error instanceof Error ? error.message : 'Please try again.'}`, 'error');
+      setIsLoading(false);
+      isFxPaymentInProgress = false;
     }
   };
   const handleRewardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1202,15 +1269,17 @@ const FxExchangeSummary = () => {
         >
           {quoteLoading
             ? 'Syncing pricing...'
-            : 'You won’t be charged unless the delivery is completed.'}
+            : "You're charged now — refunded automatically if delivery isn't completed."}
         </p>
         <SlideToPay
           onComplete={handlePay}
-          disabled={!savedAddress || quoteLoading}
+          disabled={!savedAddress || quoteLoading || isLoading}
           label={
             quoteLoading
               ? 'Calculating...'
-              : 'Slide to Pay'
+              : isLoading
+                ? 'Processing...'
+                : 'Slide to Pay'
           }
         />
       </div>
