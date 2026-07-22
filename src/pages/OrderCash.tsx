@@ -235,7 +235,7 @@ const OrderCash = () => {
             <p
               className={`text-[13px] font-light font-sans leading-snug ${isDarkMode ? 'text-white' : 'text-black/60'}`}
             >
-              Funds held in escrow — released only when you verify delivery.
+              You're charged now — refunded automatically if delivery isn't completed.
             </p>
           </div>
         </div>

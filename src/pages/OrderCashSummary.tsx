@@ -1057,7 +1057,7 @@ const OrderCashSummary = () => {
             ? 'Syncing pricing...'
             : !totalAmount
               ? 'Please enter a valid amount'
-              : 'Funds held in escrow — released only when you verify delivery.'}
+              : "You're charged now — refunded automatically if delivery isn't completed."}
         </p>
         <div style={{ opacity: isVisualDisabled ? 0.5 : 1, transition: 'opacity 0.3s ease' }}>
           <SlideToPay
