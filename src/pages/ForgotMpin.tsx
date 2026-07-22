@@ -5,6 +5,8 @@ import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
+import { supabase } from '@/lib/supabase';
+import { crashlytics } from '@/lib/crashlytics';
 
 import { GpButton } from '@gridpe-app/ui';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -20,6 +22,10 @@ const ForgotMpin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [error, setError] = useState('');
+
+  // Same E.164 formatting used at login/onboarding — this reuses the app's
+  // real Supabase Auth phone-OTP mechanism rather than a fake timeout.
+  const formattedPhone = `+91${phoneNumber.replace(/\D/g, '').slice(-10)}`;
   const dismissKeyboard = () => {
     if (Capacitor.isNativePlatform()) {
       try {
@@ -56,26 +62,45 @@ const ForgotMpin = () => {
   }, [step]);
   const handleRequestOTP = async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    setStep('VERIFY');
-    setResendTimer(20);
-  };
-  const handleResend = () => {
-    if (resendTimer === 0) {
+    setError('');
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({ phone: formattedPhone });
+      if (otpError) throw otpError;
+      setStep('VERIFY');
       setResendTimer(20);
-      // Simulate resend
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[ForgotMpin] Failed to send OTP:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('ForgotMpin failed to send OTP'), 'ForgotMpin.handleRequestOTP');
+      setError('Failed to send OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleResend = async () => {
+    if (resendTimer > 0) return;
+    setResendTimer(20);
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({ phone: formattedPhone });
+      if (otpError) throw otpError;
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[ForgotMpin] Failed to resend OTP:', err);
+      crashlytics.recordError(err instanceof Error ? err : new Error('ForgotMpin failed to resend OTP'), 'ForgotMpin.handleResend');
     }
   };
   const handleSubmit = async () => {
     if (otp.length < 6) return;
     setIsLoading(true);
-    // Simulate verify
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    if (import.meta.env.DEV && otp === '123456') {
+    setError('');
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        phone: formattedPhone,
+        token: otp,
+        type: 'sms',
+      });
+      if (verifyError) throw verifyError;
       navigate(ROUTES.MPIN_SETTINGS, { state: { resetMpin: true } });
-    } else {
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[ForgotMpin] OTP verification failed:', err);
       setError('Invalid OTP');
       setIsLoading(false);
     }
