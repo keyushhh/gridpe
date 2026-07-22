@@ -313,6 +313,13 @@ const OrderCashSummary = () => {
     }
     isPaymentInProgress = true;
     setIsLoading(true);
+    // Set to true once we've handed off to an async flow (native browser checkout,
+    // or the web checkout modal) that owns resetting isPaymentInProgress itself —
+    // everything before that point must reset it on any early return/throw, or a
+    // failed order-creation call would permanently block retrying this session
+    // (this was previously always reset only when NOT native, leaving native users
+    // stuck if create-cash-order failed before checkout ever opened).
+    let handedOffToAsyncFlow = false;
     try {
       if (!userId) {
         showToaster('You must be logged in to place an order.', 'error');
@@ -451,7 +458,7 @@ const OrderCashSummary = () => {
           platform_fee: platformFee,
           gst: gst,
           tip: tipAmount,
-          reward_discount: rewardDiscount,
+          reward_points: rewardPointsValue,
           address_id: addressId,
           zone_id: zoneId,
           city: activeAddress.city,
@@ -470,9 +477,20 @@ const OrderCashSummary = () => {
           : orderData;
 
       if (orderError || !resolvedOrderData?.success) {
-        showToaster('Failed to initiate payment. Please try again.', 'error');
+        let errorCode: string | undefined;
+        try {
+          const errBody = await (orderError as any)?.context?.json?.();
+          errorCode = errBody?.error;
+        } catch {
+          // ignore — fall back to generic message below
+        }
+        if (errorCode === 'insufficient_reward_points') {
+          showToaster('Your reward point balance has changed — please re-check and try again.', 'error');
+        } else {
+          showToaster('Failed to initiate payment. Please try again.', 'error');
+        }
         setIsLoading(false);
-        crashlytics.recordError(new Error(resolvedOrderData?.message || 'create-cash-order failed'), 'OrderCashSummary.createOrder');
+        crashlytics.recordError(new Error(resolvedOrderData?.message || errorCode || 'create-cash-order failed'), 'OrderCashSummary.createOrder');
         return;
       }
 
@@ -504,6 +522,7 @@ const OrderCashSummary = () => {
         };
         pendingVerificationStore = pObj;
         setPendingVerification(pObj as any);
+        handedOffToAsyncFlow = true;
 
         const checkoutBaseUrl = resolvedOrderData.cashfree_env === 'sandbox'
           ? 'https://payments-test.cashfree.com/order'
@@ -553,10 +572,12 @@ const OrderCashSummary = () => {
         };
 
         // Open Cashfree checkout modal
+        handedOffToAsyncFlow = true;
         cashfree.checkout(checkoutOptions).then(async (result) => {
           if (result.error) {
             showToaster('Payment failed. Please try again.', 'error');
             setIsLoading(false);
+            isPaymentInProgress = false;
             return;
           }
           if (result.paymentDetails) {
@@ -590,7 +611,6 @@ const OrderCashSummary = () => {
 
               if (verifyError || !verifyData?.success) {
                 showToaster('Payment verification failed. Please contact support with your order ID.', 'error');
-                setIsLoading(false);
                 crashlytics.recordError(new Error(verifyData?.message || 'verify-cash-order failed'), 'OrderCashSummary.runVerification.second');
                 return;
               }
@@ -607,6 +627,9 @@ const OrderCashSummary = () => {
               if (import.meta.env.DEV) console.error('[verify-cash-order] invocation failed:', err);
               crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), '[verify-cash-order] invocation failed');
               showToaster('Payment verification failed. Please check your order history.', 'error');
+            } finally {
+              setIsLoading(false);
+              isPaymentInProgress = false;
             }
           }
         });
@@ -618,9 +641,12 @@ const OrderCashSummary = () => {
       showToaster('Order failed. Please try again or contact support.', 'error');
     } finally {
       setIsLoading(false);
-      // Only reset if NOT going to native browser
-      // (native flow needs the flag to stay true until verification)
-      if (!Capacitor.isNativePlatform()) {
+      // Reset unless we've handed off to an async flow that owns resetting this
+      // itself (native browser checkout, or the web checkout modal above) — any
+      // earlier failure (e.g. create-cash-order rejecting the order) must always
+      // reset this or a retry would be permanently blocked for the rest of the
+      // session, regardless of platform.
+      if (!handedOffToAsyncFlow) {
         isPaymentInProgress = false;
       }
     }

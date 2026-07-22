@@ -46,7 +46,6 @@ Deno.serve(async (req: Request) => {
       gst,
       tip,
       reward_points,
-      reward_discount,
       rider_earnings,
       hub_id,
       pickup_location,
@@ -73,6 +72,41 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // Validate + price the reward-point redemption server-side — never trust a
+    // client-supplied discount amount, and never let points be reused without
+    // actually being deducted (redemption itself happens in
+    // verify-fx-exchange-order once payment is confirmed).
+    const REWARD_POINTS_TO_RUPEE = 0.025;
+    const requestedRewardPoints = Number(reward_points) || 0;
+    let rewardDiscount = 0;
+    if (requestedRewardPoints > 0) {
+      const { data: rewardProfile, error: rewardProfileError } = await supabase
+        .from("profiles")
+        .select("reward_points")
+        .eq("id", user_id)
+        .single();
+
+      if (rewardProfileError || !rewardProfile) {
+        console.error("Failed to fetch profile for reward validation:", rewardProfileError);
+        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      if ((rewardProfile.reward_points || 0) < requestedRewardPoints) {
+        return new Response(JSON.stringify({
+          error: 'insufficient_reward_points',
+          message: 'You do not have enough reward points for this redemption'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      rewardDiscount = Math.round(requestedRewardPoints * REWARD_POINTS_TO_RUPEE * 100) / 100;
+    }
+
     // Validate server-side fees (mirrors create-cash-order's fee_mismatch guard).
     // FX conversion figures (receive_amount, fx_rate, markup, flat_fee) are trusted
     // client-side inputs — same as the "amount" a customer chooses in a cash order —
@@ -93,7 +127,11 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (Math.abs(quoteData.total_payable - total_payable) > 1) {
+    // The client's total_payable already has tip added and the reward discount
+    // subtracted — fold both into the expected total before comparing, otherwise
+    // every order with a tip or a reward redemption fails this check.
+    const expectedTotalPayable = Math.round((quoteData.total_payable + (Number(tip) || 0) - rewardDiscount) * 100) / 100;
+    if (Math.abs(expectedTotalPayable - total_payable) > 1) {
       return new Response(JSON.stringify({
         error: 'fee_mismatch',
         message: 'Fee calculation mismatch detected'
@@ -183,8 +221,8 @@ Deno.serve(async (req: Request) => {
         platform_fee,
         gst,
         tip,
-        reward_points,
-        reward_discount,
+        reward_points: requestedRewardPoints,
+        reward_discount: rewardDiscount,
         rider_earnings,
         hub_id,
         pickup_location,

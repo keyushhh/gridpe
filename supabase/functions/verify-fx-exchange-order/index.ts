@@ -208,6 +208,23 @@ Deno.serve(async (req: Request) => {
       console.error("Failed to update pending_payments status:", updateError);
     }
 
+    // Actually redeem the reward points now that payment succeeded and the
+    // order exists. Never blocks the response — the discount was already
+    // applied to what was charged; if this fails we log it rather than
+    // undo an already-completed, already-paid order.
+    const redeemedPoints = Number(meta.reward_points) || 0;
+    if (redeemedPoints > 0) {
+      const { error: redeemError } = await supabase.rpc('redeem_reward_points', {
+        p_user_id: user_id,
+        p_points_amount: redeemedPoints,
+        p_reference_id: insertedOrder.id,
+        p_description: 'Redeemed for FX Exchange discount'
+      });
+      if (redeemError) {
+        console.error("Failed to redeem reward points:", redeemError);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true, order_id: insertedOrder.id, status: 'pending' }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });

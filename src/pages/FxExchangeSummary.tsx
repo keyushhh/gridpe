@@ -304,6 +304,11 @@ const FxExchangeSummary = () => {
     }
     isFxPaymentInProgress = true;
     setIsLoading(true);
+    // Set to true once we've handed off to an async flow (native browser checkout,
+    // or the web checkout modal) that owns resetting isFxPaymentInProgress itself —
+    // everything before that point must reset it on any early return/throw, or a
+    // failed order-creation call would permanently block retrying this session.
+    let handedOffToAsyncFlow = false;
     try {
       const userId = currentUserId;
       let addressId = savedAddress?.id;
@@ -472,7 +477,6 @@ const FxExchangeSummary = () => {
           gst: gst,
           tip: tipAmount,
           reward_points: rewardPointsValue,
-          reward_discount: rewardDiscount,
           rider_earnings: riderEarnings,
           hub_id: pickupLocation,
           pickup_location: pickupAddress,
@@ -499,8 +503,19 @@ const FxExchangeSummary = () => {
           : orderData;
 
       if (orderError || !resolvedOrderData?.success) {
-        showToaster('Failed to initiate payment. Please try again.', 'error');
-        crashlytics.recordError(new Error(resolvedOrderData?.message || 'create-fx-exchange-order failed'), 'FxExchangeSummary.createOrder');
+        let errorCode: string | undefined;
+        try {
+          const errBody = await (orderError as any)?.context?.json?.();
+          errorCode = errBody?.error;
+        } catch {
+          // ignore — fall back to generic message below
+        }
+        if (errorCode === 'insufficient_reward_points') {
+          showToaster('Your reward point balance has changed — please re-check and try again.', 'error');
+        } else {
+          showToaster('Failed to initiate payment. Please try again.', 'error');
+        }
+        crashlytics.recordError(new Error(resolvedOrderData?.message || errorCode || 'create-fx-exchange-order failed'), 'FxExchangeSummary.createOrder');
         return;
       }
 
@@ -515,6 +530,7 @@ const FxExchangeSummary = () => {
           receiveAmount,
         };
         fxPendingVerificationStore = pObj;
+        handedOffToAsyncFlow = true;
 
         const checkoutBaseUrl = resolvedOrderData.cashfree_env === 'sandbox'
           ? 'https://payments-test.cashfree.com/order'
@@ -551,6 +567,7 @@ const FxExchangeSummary = () => {
           paymentSessionId: resolvedOrderData.payment_session_id,
           redirectTarget: '_modal',
         };
+        handedOffToAsyncFlow = true;
         cashfree.checkout(checkoutOptions).then(async (result) => {
           if (result.error) {
             showToaster('Payment failed. Please try again.', 'error');
@@ -597,8 +614,11 @@ const FxExchangeSummary = () => {
       if (import.meta.env.DEV) console.error('Final catch in handlePay (FX):', error);
       crashlytics.recordError(error instanceof Error ? error : new Error('FxExchangeSummary handlePay final catch'), 'FxExchangeSummary.handlePay');
       showToaster(`Failed to place order: ${error instanceof Error ? error.message : 'Please try again.'}`, 'error');
+    } finally {
       setIsLoading(false);
-      isFxPaymentInProgress = false;
+      if (!handedOffToAsyncFlow) {
+        isFxPaymentInProgress = false;
+      }
     }
   };
   const handleRewardChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -132,7 +132,7 @@ Deno.serve(async (req: Request) => {
     // 4. Validate pending_payments row
     const { data: pendingPayment, error: pendingError } = await supabase
       .from("pending_payments")
-      .select("status, user_id")
+      .select("status, user_id, amount, metadata")
       .eq("gateway_order_id", cashfree_order_id)
       .single();
 
@@ -152,14 +152,23 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 5. Insert into orders table
+    // 5. Insert into orders table.
+    // total_amount/tip/reward_points come from the CREATE-time-validated
+    // pending_payments record, not this call's body — otherwise a caller could
+    // claim a different reward-point count at verify time than what was
+    // actually priced in (and validated against their balance) at create time.
+    const meta = pendingPayment.metadata || {};
+    const validatedTip = meta.tip ?? tip;
+    const validatedRewardPoints = meta.reward_points ?? 0;
+    const validatedTotalAmount = pendingPayment.amount ?? total_amount;
+
     const orderPayload = {
       user_id,
       address_id,
       zone_id,
       city,
       amount: cash_amount,
-      total_amount,
+      total_amount: validatedTotalAmount,
       payment_mode: 'CASHFREE',
       order_type: 'CASH_ORDER',
       currency: 'INR',
@@ -175,18 +184,18 @@ Deno.serve(async (req: Request) => {
       delivery_fee,
       service_fee: platform_fee,
       gst,
-      delivery_tip: tip,
-      reward_points,
+      delivery_tip: validatedTip,
+      reward_points: validatedRewardPoints,
       scheduled_at,
       gateway_order_id: cashfree_order_id,
       gateway_payment_id: cashfree_payment_id,
       meta_data: {
         item_value: cash_amount,
         delivery_fee,
-        delivery_tip: tip,
+        delivery_tip: validatedTip,
         gst,
         service_fee: platform_fee,
-        reward_points,
+        reward_points: validatedRewardPoints,
         delivery_address: delivery_address_text,
         payment_gateway: 'cashfree',
         client_source: 'direct_checkout_v2'
@@ -221,6 +230,22 @@ Deno.serve(async (req: Request) => {
     if (updateError) {
       console.error("Failed to update pending_payments status:", updateError);
       // We don't fail the response here since the order itself was successfully created
+    }
+
+    // Actually redeem the reward points now that payment succeeded and the
+    // order exists. Never blocks the response — the discount was already
+    // applied to what was charged; if this fails we log it rather than
+    // undo an already-completed, already-paid order.
+    if (validatedRewardPoints > 0) {
+      const { error: redeemError } = await supabase.rpc('redeem_reward_points', {
+        p_user_id: user_id,
+        p_points_amount: validatedRewardPoints,
+        p_reference_id: insertedOrder.id,
+        p_description: 'Redeemed for Cash Order discount'
+      });
+      if (redeemError) {
+        console.error("Failed to redeem reward points:", redeemError);
+      }
     }
 
     // Award reward points — fire and forget, never block payment confirmation
