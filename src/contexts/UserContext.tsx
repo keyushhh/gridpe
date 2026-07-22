@@ -48,7 +48,6 @@ interface UserContextType extends UserState {
   setProfile: (profile: UserProfile | null) => void;
   submitKyc: (isPassport?: boolean) => void;
   resetForDemo: () => void;
-  setPassportVerified: (verified: boolean) => void;
   setPassportVerifiedInDb: (verified: boolean) => Promise<void>;
   fetchProfileData: (userId?: string) => Promise<void>;
   isInitializing: boolean;
@@ -501,10 +500,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }, 50);
   }, []);
 
-  const setPassportVerified = useCallback((verified: boolean) => {
-    setState(prev => ({ ...prev, isPassportVerified: verified }));
-  }, []);
-
   const setPassportVerifiedInDb = useCallback(
     async (verified: boolean) => {
       setState(prev => ({ ...prev, isPassportVerified: verified }));
@@ -538,7 +533,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setProfile,
     submitKyc,
     resetForDemo,
-    setPassportVerified,
     fetchProfileData,
     setPassportVerifiedInDb,
   };

@@ -106,8 +106,10 @@ const KYCForm = () => {
       
       const finalUrl = `${targetUrl}?vendor_data=${customerUuid}&reverify=true&webhook=true&metadata=${metadata}`;
       window.open(finalUrl, '_blank');
-      // Navigate to Success Screen in the background (active when user returns)
-      navigate(isFxFlow ? ROUTES.FX_KYC_SUCCESS : ROUTES.KYC_SUCCESS, {
+      // Navigate to Success Screen in the background (active when user returns).
+      // SuccessScreen waits for the real webhook-confirmed kyc_status before granting
+      // anything — used for both standard and FX (passport) verification.
+      navigate(ROUTES.KYC_SUCCESS, {
         state: {
           flow: isFxFlow ? 'fx' : 'standard',
           isWaitingForRealtime: true,

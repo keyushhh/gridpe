@@ -90,8 +90,6 @@ const FxExchangeSummary = lazy(() => import('./pages/FxExchangeSummary'));
 const FxSuccess = lazy(() => import('./pages/FxSuccess'));
 const FxIntro = lazy(() => import('./pages/FxIntro'));
 const FxPassportGate = lazy(() => import('./pages/FxPassportGate'));
-const FxPassportKYC = lazy(() => import('./pages/FxPassportKYC'));
-const FxKYCSuccess = lazy(() => import('./pages/FxKYCSuccess'));
 // const InternationalPayment = lazy(() => import('./pages/InternationalPayment')); // Hidden: awaiting Stripe/PayPal backend validation
 const LiveRates = lazy(() => import('@/pages/LiveRates'));
 
@@ -1010,22 +1008,6 @@ const AppContent = ({ updateStatus, storeUrl, setUpdateStatus }: AppContentProps
                       element={
                         <ProtectedRoute>
                           <FxPassportGate />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path={ROUTES.FX_PASSPORT_KYC}
-                      element={
-                        <ProtectedRoute>
-                          <FxPassportKYC />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path={ROUTES.FX_KYC_SUCCESS}
-                      element={
-                        <ProtectedRoute>
-                          <FxKYCSuccess />
                         </ProtectedRoute>
                       }
                     />

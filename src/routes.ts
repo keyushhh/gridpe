@@ -55,8 +55,6 @@ export const ROUTES = {
   FX_SUCCESS: '/fx-success/:orderId',
   FX_INTRO: '/fx-intro',
   FX_PASSPORT_GATE: '/fx-passport-gate',
-  FX_PASSPORT_KYC: '/fx-passport-kyc',
-  FX_KYC_SUCCESS: '/fx-kyc-success',
   LIVE_RATES: '/live-rates',
   DELIVERY_CAUTION: '/delivery-caution',
   NOT_AVAILABLE: '/not-available',
