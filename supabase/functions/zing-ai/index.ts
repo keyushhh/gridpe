@@ -1,7 +1,8 @@
 export const config = { auth: false };
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { SARVAM_DEFAULT_CHAT_MODEL } from "../_shared/constants.ts";
+import { createClient } from "@supabase/supabase-js";
+import { SARVAM_DEFAULT_CHAT_MODEL, SUPABASE_ANON_KEY_ENV, SUPABASE_URL_ENV } from "../_shared/constants.ts";
 import { getCustomerContext } from "../_shared/context.ts";
 import type { CustomerContext } from "../_shared/context.ts";
 import { analyzeZingIntent } from "../_shared/intent.ts";
@@ -152,6 +153,33 @@ function jsonReply(reply: string): Response {
   });
 }
 
+async function fetchPreferredLanguage(authorizationHeader?: string | null): Promise<string | undefined> {
+  if (!authorizationHeader || !authorizationHeader.toLowerCase().startsWith("bearer ")) return undefined;
+  const accessToken = authorizationHeader.substring(7).trim();
+  const supabaseUrl = Deno.env.get(SUPABASE_URL_ENV);
+  const supabaseAnonKey = Deno.env.get(SUPABASE_ANON_KEY_ENV);
+  if (!accessToken || !supabaseUrl || !supabaseAnonKey) return undefined;
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    });
+    const { data: authData, error: authError } = await supabase.auth.getUser(accessToken);
+    if (authError || !authData.user) return undefined;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", authData.user.id)
+      .maybeSingle();
+
+    return (profile as { preferred_language?: string } | null)?.preferred_language ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 import { buildAction } from "../_shared/actions/index.ts";
 
 serve(async (req: Request) => {
@@ -176,6 +204,12 @@ serve(async (req: Request) => {
       { include: intent.requiredContext },
     );
 
+    // Unconditionally resolve preferredLanguage for authenticated users regardless of intent
+    let preferredLanguage = customer.profile?.preferredLanguage;
+    if (!preferredLanguage && customer.authenticated) {
+      preferredLanguage = await fetchPreferredLanguage(req.headers.get("authorization"));
+    }
+
     // Build internal structured action (NOT exposed in API contract)
     const internalAction = buildAction(intent.intent, intent.entities, customer, message);
     // Log only action type and confidence for telemetry; NEVER log messages, prompts, or user info
@@ -188,7 +222,7 @@ serve(async (req: Request) => {
     const userQuestion = hasImage
       ? `${message || "The customer attached an image."}\n\nAn image was attached, but its contents are not available in this request. Ask what they need help with and do not claim to have reviewed it.`
       : message;
-    const langPrompt = languageInstruction.render({ preferredLanguage: customer.profile?.preferredLanguage });
+    const langPrompt = languageInstruction.render({ preferredLanguage });
     const systemPromptContent = [
       systemBehavior.render({}),
       personality.render({}),
