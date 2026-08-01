@@ -11,6 +11,8 @@ import { definePrompt } from "../_shared/prompts.ts";
 import { SarvamClient } from "../_shared/sarvam.ts";
 import type { SarvamChatMessage } from "../_shared/types.ts";
 
+import { buildKnowledgePrompt } from "../_shared/knowledge/index.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -38,18 +40,18 @@ type FaqEntry = typeof FAQ_DB[number];
 
 const systemBehavior = definePrompt({
   id: "zing-system-behavior",
-  version: 1,
+  version: 3,
   render: () => [
-    "You are Zing, the Grid.Pe customer assistant.",
-    "Answer accurately using the supplied Grid.Pe knowledge when it is relevant.",
-    "Do not invent policies, order statuses, balances, refunds, or account details.",
-    "Use customer context only when it is explicitly available and relevant to the question.",
-    "If a requested context section is unavailable or missing, say that the information is unavailable; never guess.",
-    "Do not infer a delivery ETA from order status or scheduled time.",
-    "Do not claim that KYC or onboarding caused an order failure unless supplied Grid.Pe policy explicitly establishes that rule.",
-    "Do not assign a currency to a wallet balance unless the context provides one.",
-    "For account-specific actions or unresolved issues, guide the customer to the relevant in-app flow or Grid.Pe support.",
-    "Keep answers concise and directly useful.",
+    "You are Zing, the Grid.Pe customer language engine and assistant.",
+    "Strictly follow the KNOWLEDGE PRIORITY rules:",
+    "  Priority 1: Verified Customer Context (If context conflicts with general knowledge, Customer Context wins).",
+    "  Priority 2: Official Grid.Pe Knowledge Engine (Supplied knowledge modules).",
+    "  Priority 3: General Model Knowledge (Only for natural language formatting and grammar).",
+    "CRITICAL RULES:",
+    "- Never invent product behaviour, features, or UI screens (e.g., do NOT mention 'Cash Out' or 'Withdraw page').",
+    "- Never invent customer journeys, order states, pricing, or refund rules.",
+    "- If knowledge or customer context is unavailable, explicitly state that the information is unavailable. Never guess.",
+    "- Keep answers concise, accurate, and direct.",
   ].join("\n"),
 });
 
@@ -127,6 +129,8 @@ function jsonReply(reply: string): Response {
   });
 }
 
+import { buildAction } from "../_shared/actions/index.ts";
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -148,12 +152,23 @@ serve(async (req: Request) => {
       req.headers.get("authorization"),
       { include: intent.requiredContext },
     );
+
+    // Build internal structured action (NOT exposed in API contract)
+    const internalAction = buildAction(intent.intent, intent.entities, customer, message);
+    // Log only action type and confidence for telemetry; NEVER log messages, prompts, or user info
+    console.log(JSON.stringify({
+      event: "zing_structured_action_built",
+      actionType: internalAction.type,
+      confidence: internalAction.confidence,
+    }));
+
     const userQuestion = hasImage
       ? `${message || "The customer attached an image."}\n\nAn image was attached, but its contents are not available in this request. Ask what they need help with and do not claim to have reviewed it.`
       : message;
     const systemPromptContent = [
       systemBehavior.render({}),
       personality.render({}),
+      `## OFFICIAL GRID.PE KNOWLEDGE MODULES\n${buildKnowledgePrompt(intent.intent)}`,
       faqContext.render({ entries: retrieveRelevantFaqs(message) }),
       intentContext.render({ analysis: intent }),
       customerContext.render({ context: customer }),
@@ -172,6 +187,7 @@ serve(async (req: Request) => {
       reasoningEffort: "none",
     });
     logger.success();
+    // Return strictly { reply: string } to preserve current API contract
     return jsonReply(completion.content);
   } catch (error) {
     logger.failure(error);
