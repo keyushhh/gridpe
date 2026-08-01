@@ -64,6 +64,29 @@ const personality = definePrompt({
   ].join("\n"),
 });
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  hi: "Hindi",
+  kn: "Kannada",
+  ta: "Tamil",
+  te: "Telugu",
+  mr: "Marathi",
+  gu: "Gujarati",
+  bn: "Bengali",
+  ml: "Malayalam",
+  pa: "Punjabi",
+  or: "Odia",
+};
+
+const languageInstruction = definePrompt<{ preferredLanguage?: string }>({
+  id: "zing-language-instruction",
+  version: 1,
+  render: ({ preferredLanguage }) => {
+    if (!preferredLanguage || preferredLanguage.toLowerCase() === "en") return "";
+    const langName = LANGUAGE_NAMES[preferredLanguage.toLowerCase()] ?? preferredLanguage;
+    return `CRITICAL LANGUAGE REQUIREMENT: You MUST respond in ${langName}. Write all user-facing explanations and responses directly in ${langName}.`;
+  },
+});
+
 const faqContext = definePrompt<{ entries: readonly FaqEntry[] }>({
   id: "zing-faq-context",
   version: 1,
@@ -165,9 +188,11 @@ serve(async (req: Request) => {
     const userQuestion = hasImage
       ? `${message || "The customer attached an image."}\n\nAn image was attached, but its contents are not available in this request. Ask what they need help with and do not claim to have reviewed it.`
       : message;
+    const langPrompt = languageInstruction.render({ preferredLanguage: customer.profile?.preferredLanguage });
     const systemPromptContent = [
       systemBehavior.render({}),
       personality.render({}),
+      ...(langPrompt ? [langPrompt] : []),
       `## OFFICIAL GRID.PE KNOWLEDGE MODULES\n${buildKnowledgePrompt(intent.intent)}`,
       faqContext.render({ entries: retrieveRelevantFaqs(message) }),
       intentContext.render({ analysis: intent }),
