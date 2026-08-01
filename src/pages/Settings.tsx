@@ -8,9 +8,8 @@ import BackButton from '@/components/ui/BackButton';
 import AppDownloadSheet from '@/components/AppDownloadSheet';
 import { cn } from '@/lib/utils';
 import Skeleton from 'react-loading-skeleton';
-import { ChevronRight, Pencil, Lock, Globe } from 'lucide-react';
+import { ChevronRight, Pencil, Lock } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { LanguageSelectionSheet, SUPPORTED_LANGUAGES } from '@/components/LanguageSelectionSheet';
 import { useQuery } from '@tanstack/react-query';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useAsset } from '@/hooks/useAsset';
@@ -129,11 +128,6 @@ const Settings = () => {
   const [pushNotifications, setPushNotifications] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const [showAppDownloadSheet, setShowAppDownloadSheet] = useState(false);
-  const [showLanguageSheet, setShowLanguageSheet] = useState(false);
-
-  const currentLangCode = profile?.preferred_language || 'en';
-  const currentLangLabel =
-    SUPPORTED_LANGUAGES.find((l) => l.code === currentLangCode)?.englishLabel || 'English';
 
   const mainBg = useAsset(ASSETS.BG_DARK_MODE, ASSETS.BG_LIGHT);
   const securityCompleteAsset = useAsset(ASSETS.SECURITY_COMPLETE, ASSETS.SECURITY_ACTIVE_LIGHT);
@@ -423,7 +417,7 @@ const Settings = () => {
                 backgroundColor: isDarkMode ? 'rgba(82,96,254,0.06)' : 'rgba(82,96,254,0.03)'
               }}
               onClick={() => {
-                App.openUrl({ url: storeUrl });
+                (App as any).openUrl({ url: storeUrl });
               }}
             >
               <div className="flex items-center">
@@ -580,23 +574,6 @@ const Settings = () => {
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* App Language */}
-              <div
-                className="flex justify-between items-center cursor-pointer"
-                onClick={() => setShowLanguageSheet(true)}
-              >
-                <div className="flex items-start gap-3">
-                  <Globe className="w-[18px] h-[18px] mt-[2px] text-foreground" />
-                  <div>
-                    <p className="text-foreground text-[14px]">App Language</p>
-                    <p className="text-black dark:text-muted-foreground text-[12px]">
-                      {currentLangLabel}
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
             </div>
           </div>
@@ -797,18 +774,6 @@ const Settings = () => {
         forceOpen={showAppDownloadSheet}
         onClose={() => setShowAppDownloadSheet(false)}
         description="Please download our app to enable push notifications."
-      />
-
-      <LanguageSelectionSheet
-        isOpen={showLanguageSheet}
-        onClose={() => setShowLanguageSheet(false)}
-        currentLanguage={currentLangCode}
-        userId={userId}
-        onLanguageUpdated={() => {
-          if (userId) {
-            fetchProfileData(userId);
-          }
-        }}
       />
     </div>
   );

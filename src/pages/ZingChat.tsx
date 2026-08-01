@@ -5,6 +5,8 @@ import BackButton from '@/components/ui/BackButton';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { supabase } from '@/lib/supabase';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
+import { Globe } from 'lucide-react';
+import { LanguageSelectionSheet } from '@/components/LanguageSelectionSheet';
 import { useUser } from '@/contexts/UserContext';
 import { crashlytics } from '@/lib/crashlytics';
 interface Message {
@@ -20,7 +22,11 @@ interface Message {
 const ZingChat = () => {
   const navigate = useNavigate();
   const isDarkMode = useIsDarkMode();
-  const { isSecureStorageReady } = useUser();
+  const { profile, fetchProfileData, isSecureStorageReady } = useUser();
+
+  const userId = profile?.id;
+  const [showLanguageSheet, setShowLanguageSheet] = useState(false);
+  const currentLangCode = profile?.preferred_language || 'en';
 
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -167,15 +173,26 @@ const ZingChat = () => {
       {!isDarkMode && (
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-primary rounded-full blur-[100px] opacity-30 pointer-events-none z-0" />
       )}
-      <header className="px-5 pt-4 pb-4 flex items-center relative z-20 shrink-0">
-        <div className="absolute left-5">
+      <header className="px-5 pt-4 pb-4 flex items-center justify-between relative z-20 shrink-0">
+        <div className="flex items-center">
           <BackButton onClick={() => navigate(-1)} />
         </div>
         <h1
-          className={`w-full text-center text-[18px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
+          className={`text-[18px] font-medium font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}
         >
           Chat with Zing
         </h1>
+        <button
+          onClick={() => setShowLanguageSheet(true)}
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+            isDarkMode
+              ? 'bg-white/10 hover:bg-white/15 text-white'
+              : 'bg-black/5 hover:bg-black/10 text-black'
+          }`}
+          title="Zing’s Language"
+        >
+          <Globe className="w-5 h-5" />
+        </button>
       </header>
       <main
         ref={scrollRef}
@@ -431,6 +448,18 @@ const ZingChat = () => {
           </div>
         </div>
       </div>
+
+      <LanguageSelectionSheet
+        isOpen={showLanguageSheet}
+        onClose={() => setShowLanguageSheet(false)}
+        currentLanguage={currentLangCode}
+        userId={userId}
+        onLanguageUpdated={() => {
+          if (userId) {
+            fetchProfileData(userId);
+          }
+        }}
+      />
     </div>
   );
 };

@@ -75,8 +75,8 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
 
     setUpdatingCode(code);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await (supabase
+        .from('profiles') as any)
         .update({ preferred_language: code })
         .eq('id', userId);
 
@@ -134,10 +134,10 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
         <div className="shrink-0 px-5 pt-4 pb-3 flex justify-between items-center border-b border-black/5 dark:border-white/5">
           <div>
             <h2 className={`text-[18px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
-              Select App Language
+              Zing’s Language
             </h2>
             <p className="text-[12px] text-muted-foreground font-satoshi mt-0.5">
-              Choose your preferred language for app text and support
+              Choose the language Zing uses to reply
             </p>
           </div>
           <button
