@@ -100,7 +100,7 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
       {/* Backdrop */}
       <div
         className={`fixed inset-0 z-10 ${
-          isAndroid ? 'bg-black/60 pointer-events-auto' : 'bg-black/40 backdrop-blur-[2px] pointer-events-auto'
+          isAndroid ? 'bg-black/60 pointer-events-auto' : 'bg-black/50 backdrop-blur-[4px] pointer-events-auto'
         }`}
         onClick={(e) => {
           e.stopPropagation();
@@ -117,10 +117,15 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
         onDragEnd={handleDragEnd}
         className="fixed bottom-0 left-0 right-0 max-h-[80vh] rounded-t-[36px] flex flex-col pointer-events-auto z-20 overflow-hidden"
         style={{
-          boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.5)',
+          backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.75)' : 'rgba(255, 255, 255, 0.96)',
+          borderTop: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.08)',
+          borderLeft: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.08)',
+          borderRight: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.08)',
+          backdropFilter: 'blur(30px)',
+          WebkitBackdropFilter: 'blur(30px)',
+          boxShadow: isDarkMode ? '0px -10px 40px rgba(0, 0, 0, 0.4)' : '0px -10px 40px rgba(0, 0, 0, 0.15)',
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)',
           willChange: 'transform',
-          backgroundColor: isDarkMode ? '#0a0a0a' : '#ffffff',
         }}
       >
         {/* Drag Handle */}
@@ -131,7 +136,7 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
         />
 
         {/* Header */}
-        <div className="shrink-0 px-5 pt-4 pb-3 flex justify-between items-center border-b border-black/5 dark:border-white/5">
+        <div className="shrink-0 px-6 pt-4 pb-3 flex justify-between items-center border-b border-black/5 dark:border-white/5">
           <div>
             <h2 className={`text-[18px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Zing’s Language
@@ -146,8 +151,8 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
               e.preventDefault();
               handleCloseSafe(e);
             }}
-            className={`w-8 h-8 flex items-center justify-center rounded-full ${
-              isDarkMode ? 'bg-white/10' : 'bg-black/5 hover:bg-black/10'
+            className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
+              isDarkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'
             }`}
           >
             <X className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`} />
@@ -155,7 +160,7 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
         </div>
 
         {/* Language Options List */}
-        <div className="px-5 py-4 overflow-y-auto space-y-2">
+        <div className="px-6 py-5 overflow-y-auto space-y-3">
           {SUPPORTED_LANGUAGES.map((lang) => {
             const isSelected = (currentLanguage || 'en') === lang.code;
             const isUpdating = updatingCode === lang.code;
@@ -165,32 +170,32 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
                 key={lang.code}
                 disabled={!!updatingCode}
                 onClick={() => handleSelectLanguage(lang.code)}
-                className={`w-full h-[56px] px-4 rounded-[16px] flex items-center justify-between transition-all duration-200 ${
-                  isDarkMode
-                    ? isSelected
-                      ? 'bg-brand-primary/20 border border-brand-primary/50 text-white'
-                      : 'bg-white/5 border border-white/5 text-white hover:bg-white/10 active:scale-[0.99]'
-                    : isSelected
-                      ? 'bg-brand-primary/10 border border-brand-primary/40 text-black'
-                      : 'bg-[#F2F4F7] border border-black/5 text-black hover:bg-black/5 active:scale-[0.99]'
+                className={`w-full h-[64px] px-4 rounded-[18px] flex items-center justify-between transition-all duration-200 border ${
+                  isSelected
+                    ? isDarkMode
+                      ? 'bg-brand-primary/15 border-brand-primary text-white shadow-lg'
+                      : 'bg-white border-brand-primary text-black shadow-[0px_4px_20px_rgba(82,96,254,0.18)]'
+                    : isDarkMode
+                      ? 'bg-[#0D0D0D]/60 border-white/5 text-white hover:bg-white/5 active:scale-[0.99]'
+                      : 'bg-[#F8F9FB] border-black/5 text-black hover:bg-black/5 active:scale-[0.99]'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-[13px] font-extrabold tracking-wide transition-colors ${
                       isSelected
-                        ? 'bg-brand-primary text-white'
+                        ? 'bg-brand-primary text-white shadow-md'
                         : isDarkMode
-                          ? 'bg-white/10 text-white/70'
-                          : 'bg-black/10 text-black/70'
+                          ? 'bg-white/10 text-white/80'
+                          : 'bg-black/5 text-black/70'
                     }`}
                   >
                     {lang.code.toUpperCase()}
                   </div>
                   <div className="flex flex-col items-start leading-tight">
-                    <span className="text-[15px] font-semibold font-satoshi">{lang.nativeLabel}</span>
+                    <span className="text-[16px] font-bold font-satoshi">{lang.nativeLabel}</span>
                     {lang.code !== 'en' && (
-                      <span className="text-[12px] opacity-70 font-satoshi">{lang.englishLabel}</span>
+                      <span className="text-[12px] font-medium opacity-70 font-satoshi mt-0.5">{lang.englishLabel}</span>
                     )}
                   </div>
                 </div>
@@ -198,12 +203,12 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
                 {isUpdating ? (
                   <div className="w-5 h-5 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
                 ) : isSelected ? (
-                  <div className="w-6 h-6 rounded-full bg-brand-primary flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
+                  <div className="w-7 h-7 rounded-full bg-brand-primary flex items-center justify-center shadow-sm">
+                    <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
                   </div>
                 ) : (
                   <div
-                    className={`w-5 h-5 rounded-full border ${
+                    className={`w-6 h-6 rounded-full border ${
                       isDarkMode ? 'border-white/20' : 'border-black/20'
                     }`}
                   />
