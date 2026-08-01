@@ -1,172 +1,182 @@
 export const config = { auth: false };
-// @ts-ignore
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts" 
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { SARVAM_DEFAULT_CHAT_MODEL } from "../_shared/constants.ts";
+import { getCustomerContext } from "../_shared/context.ts";
+import type { CustomerContext } from "../_shared/context.ts";
+import { analyzeZingIntent } from "../_shared/intent.ts";
+import type { ZingIntentAnalysis } from "../_shared/intent.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
+import { definePrompt } from "../_shared/prompts.ts";
+import { SarvamClient } from "../_shared/sarvam.ts";
+import type { SarvamChatMessage } from "../_shared/types.ts";
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const FALLBACK_REPLY = "I’m sorry, I can’t help with that right now. Please try again shortly or contact Grid.Pe support for assistance.";
+
+const FAQ_DB = [
+  { keywords: ["crash", "bug", "stopped", "working", "slow", "lag"], answer: "For app performance issues, check your internet connection, restart the app, and clear its cache. If the issue continues, contact support." },
+  { keywords: ["otp", "code", "sms"], answer: "If you did not receive an OTP, check your network connection and confirm that your SIM is active. You can then request a new OTP." },
+  { keywords: ["login", "sign in", "log in", "access"], answer: "Check that you are using the correct mobile number. If you changed your number or still cannot sign in, contact support for help recovering access." },
+  { keywords: ["notification", "alert", "message"], answer: "Enable Grid.Pe notifications in your device settings to receive important updates." },
+  { keywords: ["location", "gps", "map"], answer: "Enable location services for Grid.Pe in device settings so location-based features can work correctly." },
+  { keywords: ["order", "missing", "late", "food", "delivery", "item"], answer: "For a missing or delayed order, first review Order History. If you still need help, use the Need Help option on that order." },
+  { keywords: ["rider", "driver", "delivery partner"], answer: "For rider or delivery updates, check the order details and use the Need Help option if further assistance is needed." },
+  { keywords: ["refund", "money back", "return"], answer: "Refunds generally take 2–5 business days to return to the original payment method." },
+  { keywords: ["fail", "payment failed", "transaction"], answer: "If a payment failed but money was deducted, it is generally auto-refunded within 2–5 business days. Check your payment history for status." },
+  { keywords: ["limit", "kyc"], answer: "Wallet limits may apply until KYC is completed, in line with applicable RBI requirements." },
+  { keywords: ["partner", "join", "drive", "earn"], answer: "To become a delivery partner, download the Partner app, submit the required documents, and wait for approval. There is no joining fee." },
+  { keywords: ["zing", "who are you", "what are you"], answer: "Zing is Grid.Pe’s in-app assistant, here to help with common product and support questions." },
+  { keywords: ["hello", "hi", "hey", "greetings"], answer: "Zing can help with orders, payments, wallet questions, account access, and app support." },
+] as const;
+
+type FaqEntry = typeof FAQ_DB[number];
+
+const systemBehavior = definePrompt({
+  id: "zing-system-behavior",
+  version: 1,
+  render: () => [
+    "You are Zing, the Grid.Pe customer assistant.",
+    "Answer accurately using the supplied Grid.Pe knowledge when it is relevant.",
+    "Do not invent policies, order statuses, balances, refunds, or account details.",
+    "Use customer context only when it is explicitly available and relevant to the question.",
+    "If a requested context section is unavailable or missing, say that the information is unavailable; never guess.",
+    "Do not infer a delivery ETA from order status or scheduled time.",
+    "Do not claim that KYC or onboarding caused an order failure unless supplied Grid.Pe policy explicitly establishes that rule.",
+    "Do not assign a currency to a wallet balance unless the context provides one.",
+    "For account-specific actions or unresolved issues, guide the customer to the relevant in-app flow or Grid.Pe support.",
+    "Keep answers concise and directly useful.",
+  ].join("\n"),
+});
+
+const personality = definePrompt({
+  id: "zing-personality",
+  version: 1,
+  render: () => [
+    "Use a friendly, trustworthy, and professional fintech tone.",
+    "Be confident and approachable, without sarcasm, jokes at the customer’s expense, or ChatGPT-style self-reference.",
+  ].join("\n"),
+});
+
+const faqContext = definePrompt<{ entries: readonly FaqEntry[] }>({
+  id: "zing-faq-context",
+  version: 1,
+  render: ({ entries }) => entries.length === 0
+    ? "No directly relevant Grid.Pe FAQ entry was retrieved. Answer naturally without inventing product facts."
+    : `Relevant Grid.Pe FAQ guidance:\n${entries.map((entry, index) => `${index + 1}. ${entry.answer}`).join("\n")}`,
+});
+
+const customerContext = definePrompt<{ context: CustomerContext }>({
+  id: "zing-customer-context",
+  version: 1,
+  render: ({ context }) => {
+    if (!context.authenticated) return "No verified customer context is available for this request.";
+    const sections = ["Verified customer context:"];
+    if (context.profile) {
+      sections.push(`Profile: KYC status is ${context.profile.kycStatus ?? "not available"}; plan tier is ${context.profile.planTier}; preferred language is ${context.profile.preferredLanguage}; onboarding is ${context.profile.onboardingComplete ? "complete" : "incomplete or not confirmed"}.`);
+    }
+    if (context.wallet) sections.push(`Wallet: available balance is ${context.wallet.availableBalance}.`);
+    if (context.limits) sections.push(`Cash-order limits: plan tier is ${context.limits.planTier}; daily limit is ${context.limits.dailyLimit}; monthly limit is ${context.limits.monthlyLimit}.`);
+    if (context.currentOrder) {
+      sections.push(`Current order: status is ${context.currentOrder.status}; type is ${context.currentOrder.type ?? "not available"}; total is ${context.currentOrder.totalAmount ?? "not available"} ${context.currentOrder.currency}; scheduled for ${context.currentOrder.scheduledFor ?? "not scheduled"}.`);
+    }
+    for (const [resource, status] of Object.entries(context.availability ?? {})) {
+      if (status !== "available") sections.push(`${resource} information is ${status.replace("_", " ")}.`);
+    }
+    return sections.join("\n");
+  },
+});
+
+const intentContext = definePrompt<{ analysis: ZingIntentAnalysis }>({
+  id: "zing-intent-context",
+  version: 1,
+  render: ({ analysis }) => [
+    `Detected intent: ${analysis.intent}.`,
+    `Extracted entities: ${JSON.stringify(analysis.entities)}.`,
+    `Required context: ${analysis.requiredContext.join(", ") || "none"}.`,
+    "This is planning context only. Do not create an order, move money, or trigger any business action.",
+  ].join("\n"),
+});
+
+function retrieveRelevantFaqs(message: string): FaqEntry[] {
+  const normalizedMessage = message.toLowerCase();
+  return FAQ_DB
+    .map((entry, index) => ({ entry, index, score: entry.keywords.reduce(
+      (score, keyword) => score + (containsKeyword(normalizedMessage, keyword) ? 1 : 0),
+      0,
+    ) }))
+    .filter(({ score }) => score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .slice(0, 3)
+    .map(({ entry }) => entry);
 }
 
-// Sassy Templates
-const INTROS = [
-    "Oh, look who's back. ",
-    "Let me check my infinite database for that... ",
-    "Sigh. Here we go again. ",
-    "You know I'm an AI, not a miracle worker, right? ",
-    "Asking the tough questions today, are we? ",
-    "Hold on, let me put on my thinking cap. ",
-];
+function containsKeyword(message: string, keyword: string): boolean {
+  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|\\s|[.,!?])${escapedKeyword}(?=$|\\s|[.,!?])`, "i").test(message);
+}
 
-const OUTROS = [
-    " You're welcome.",
-    " Any other brain-busters?",
-    " Don't spend it all in one place.",
-    " Try not to break anything else.",
-    " Now, go conquer the world or whatever.",
-    " Happy to help (I guess).",
-];
-
-const FALLBACKS = [
-    "I have absolutely no idea what you're talking about. Is that even English? Try asking about orders, login, or refunds.",
-    "404 Error: Zing's brain not found on that topic. Try contacting support for the complex human stuff.",
-    "I'm a sassy bot, not a mind reader. Stick to the basics: wallet, orders, or why I'm so cool.",
-    "That sounds like a 'you' problem. Maybe check the Help & Support section?",
-    "I'm ignoring that request because I didn't understand it. Try asking 'Where is my order?' instead.",
-];
-
-// Knowledge Base
-const FAQ_DB = [
-    // General / App Issues
-    {
-        keywords: ["crash", "bug", "stopped", "working", "slow", "lag"],
-        answer: "If the app is acting up, try the classic 'turn it off and on again'. Clear your cache or check your internet. If it still fails, blame the developers (not me)."
-    },
-    {
-        keywords: ["otp", "code", "sms"],
-        answer: "No OTP? Check your network bars. If you're in a bunker, come out. Also, make sure your SIM is active."
-    },
-    {
-        keywords: ["login", "sign in", "log in", "access"],
-        answer: "Can't get in? Double-check those digits. If you changed your number, you'll need to contact support to get back in."
-    },
-    {
-        keywords: ["notification", "alert", "message"],
-        answer: "Enable notifications in settings if you want to hear from us. If you turned them off, don't complain about missing out!"
-    },
-    {
-        keywords: ["location", "gps", "map"],
-        answer: "I need to know where you are to help. Turn on your location services. I promise I'm not stalking you (much)."
-    },
-
-    // Orders & Riders
-    {
-        keywords: ["order", "missing", "late", "food", "delivery", "item"],
-        answer: "Missing order? Check your order history first. If it's truly lost in the void, hit the 'Need Help' button on the order page."
-    },
-    {
-        keywords: ["rider", "driver", "delivery partner"],
-        answer: "Rider went MIA? They might be stuck in traffic or fighting a dragon. Use the 'Need Help' button on your order to track them down."
-    },
-
-    // Wallet & Payments
-
-    {
-        keywords: ["refund", "money back", "return"],
-        answer: "Refunds usually take 2-5 business days. Your money is safe, it just likes to take the scenic route back to your bank."
-    },
-
-    {
-        keywords: ["fail", "payment failed", "transaction"],
-        answer: "Payment failed? Don't panic. If money was deducted, it'll be auto-refunded in 2-5 days. We aren't thieves!"
-    },
-    {
-        keywords: ["limit", "kyc"],
-        answer: "RBI rules, not mine. You have limits on your wallet unless you complete your KYC. Blame the government."
-    },
-
-    // Partner
-    {
-        keywords: ["partner", "join", "drive", "earn"],
-        answer: "Wanna join the fleet? Download the Partner app, upload your docs (ID, License), and wait 24-48 hours for approval. Zero joining fees!"
-    },
-
-    // Meta / Zing
-    {
-        keywords: ["zing", "who result", "who are you", "what are you"],
-        answer: "I am Zing, the witty, slightly superior AI mascot of Grid.Pe. I'm here to help, roast, and serve."
-    },
-    {
-        keywords: ["hello", "hi", "hey", "greetings"],
-        answer: "Hello there, human. Ready to be productive or just here to chat?"
-    }
-];
-
-const IMAGE_ANSWERS = [
-    "I've scanned that document. It looks like... well, something only a human could create. Need a refund or just trying to impress me?",
-    "Image received. I see pixels, I see shapes, I see... a potential support ticket. What's the plan?",
-    "Nice photo. If I had eyes, I'd probably be impressed. Since I'm just a superior brain, tell me what you need help with regarding this document.",
-    "Document analyzed. My circuits suggest you're looking for an update on this. Am I right, or am I right?",
-];
+function jsonReply(reply: string): Response {
+  return new Response(JSON.stringify({ reply }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}
 
 serve(async (req: Request) => {
-    // Handle CORS preflight
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders })
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  const logger = createRequestLogger("zing-ai", { model: SARVAM_DEFAULT_CHAT_MODEL });
+  try {
+    const payload = await req.json() as { message?: unknown; hasImage?: unknown };
+    const message = typeof payload.message === "string" ? payload.message.trim() : "";
+    const hasImage = payload.hasImage === true;
+
+    if (!message && !hasImage) {
+      logger.success();
+      return jsonReply("Please share your question and I’ll be happy to help.");
     }
 
-    try {
-        const { message, hasImage } = await req.json();
+    const intent = analyzeZingIntent(message);
+    const customer = await getCustomerContext(
+      req.headers.get("authorization"),
+      { include: intent.requiredContext },
+    );
+    const userQuestion = hasImage
+      ? `${message || "The customer attached an image."}\n\nAn image was attached, but its contents are not available in this request. Ask what they need help with and do not claim to have reviewed it.`
+      : message;
+    const systemPromptContent = [
+      systemBehavior.render({}),
+      personality.render({}),
+      faqContext.render({ entries: retrieveRelevantFaqs(message) }),
+      intentContext.render({ analysis: intent }),
+      customerContext.render({ context: customer }),
+    ].join("\n\n");
 
-        if (hasImage) {
-            const intro = INTROS[Math.floor(Math.random() * INTROS.length)];
-            const analysis = IMAGE_ANSWERS[Math.floor(Math.random() * IMAGE_ANSWERS.length)];
-            return new Response(
-                JSON.stringify({ reply: `${intro}${analysis}` }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-            );
-        }
+    const messages: SarvamChatMessage[] = [
+      { role: "system", content: systemPromptContent },
+      { role: "user", content: userQuestion },
+    ];
 
-        if (!message) {
-            return new Response(
-                JSON.stringify({ reply: "Cat got your tongue? You sent an empty message." }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-            );
-        }
-
-        const lowerMsg = message.toLowerCase();
-        let matchedAnswer = null;
-
-        // Simple keyword matching
-        for (const entry of FAQ_DB) {
-            if (entry.keywords.some(keyword => lowerMsg.includes(keyword))) {
-                matchedAnswer = entry.answer;
-                break; // Stop at first match
-            }
-        }
-
-        let finalReply = "";
-
-        if (matchedAnswer) {
-            const intro = INTROS[Math.floor(Math.random() * INTROS.length)];
-            const outro = OUTROS[Math.floor(Math.random() * OUTROS.length)];
-            finalReply = `${intro}${matchedAnswer}${outro}`;
-        } else {
-            finalReply = FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)];
-        }
-
-        return new Response(
-            JSON.stringify({ reply: finalReply }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-        )
-
-    } catch (err: any) {
-        console.error('Function Error:', err.message);
-        return new Response(
-            JSON.stringify({
-                reply: "Zing's brain actually short-circuited this time.",
-                error: err.message
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-        )
-    }
-})
+    const completion = await new SarvamClient().chatCompletion({
+      model: SARVAM_DEFAULT_CHAT_MODEL,
+      messages,
+      temperature: 0.2,
+      maxTokens: 1024,
+      reasoningEffort: "none",
+    });
+    logger.success();
+    return jsonReply(completion.content);
+  } catch (error) {
+    logger.failure(error);
+    // The shared client classifies upstream failures, but the client contract always
+    // receives the same safe response shape regardless of the failure source.
+    return jsonReply(FALLBACK_REPLY);
+  }
+});
