@@ -4,6 +4,7 @@ export type Profile = Tables<'profiles'> & {
   referral_code?: string;
   country?: string;
   kyc_document_type?: string;
+  preferred_language?: string;
 };
 
 export type Address = Tables<'addresses'>;

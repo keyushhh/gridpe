@@ -231,7 +231,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           .select(
             `
           id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
-          plan_tier,
+          plan_tier, preferred_language,
           payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
           terms_accepted_at, terms_version, streak_days, referred_by
         `
@@ -248,7 +248,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             .select(
               `
             id, name, avatar_url, kyc_status, email, phone, is_fx_enabled, is_passport_verified, 
-            plan_tier,
+            plan_tier, preferred_language,
             payment_status, subscription_status, reward_points, mpin_hash, biometric_on,
             streak_days, referred_by
           `
