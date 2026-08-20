@@ -4,11 +4,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { SarvamClient } from "../_shared/sarvam.ts";
 import { toSarvamLanguageCode } from "../_shared/constants.ts";
 import { analyzeZingIntent } from "../_shared/intent.ts";
+import { extractVoiceCashAmount, isValidCashAmount } from "../_shared/voiceAmountParser.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
 };
 
 serve(async (req: Request) => {
@@ -90,13 +92,24 @@ serve(async (req: Request) => {
 
     const transcript = (sttResult.transcript || "").trim();
 
-    // Analyze intent and extract entities using the shared classifier
+    // 1. Initial intent analysis via shared classifier
     const analysis = analyzeZingIntent(transcript);
+
+    // 2. Resolve amount: validate shared classifier amount (500-100k) or run voice fallback chain
+    let finalAmount: number | null = null;
+    const initialAmount = analysis.entities.amount?.value;
+    if (typeof initialAmount === "number" && isValidCashAmount(initialAmount)) {
+      finalAmount = initialAmount;
+    } else {
+      finalAmount = extractVoiceCashAmount(transcript);
+    }
+
+    const finalIntent = finalAmount !== null ? "cash_order" : analysis.intent;
 
     const responsePayload = {
       transcript,
-      intent: analysis.intent,
-      extractedAmount: analysis.entities.amount?.value ?? null,
+      intent: finalIntent,
+      extractedAmount: finalAmount,
       extractedDate: analysis.entities.date?.value ?? null,
       extractedTime: analysis.entities.time ?? null,
     };
