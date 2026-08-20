@@ -514,7 +514,6 @@ const OrderCash = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setAmount(voiceConfirmation.amount.toFixed(2));
                     setVoiceConfirmation(null);
                   }}
                   className={`w-full h-[44px] rounded-full text-[14px] font-medium font-sans flex items-center justify-center transition-colors ${
