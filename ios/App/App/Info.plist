@@ -96,5 +96,7 @@
     <string>Grid.Pe sends you alerts for transactions, payments, orders and account activity.</string>
     <key>NSCameraUsageDescription</key>
     <string>Grid.Pe needs camera access to capture documents for KYC verification.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Grid.Pe uses your microphone so you can request cash by speaking instead of typing.</string>
 </dict>
 </plist>
