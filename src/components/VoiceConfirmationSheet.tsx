@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Check, Edit3, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { X, Check, Edit3, Volume2, VolumeX, Loader2, Mic } from 'lucide-react';
 import { GpButton } from '@gridpe-app/ui';
 import { supabase } from '@/lib/supabase';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -220,6 +220,13 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
     }
   };
 
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.velocity.y > 500 || info.offset.y > 140) {
+      stopTtsAudio();
+      onClose();
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) {
       stopTtsAudio();
@@ -236,130 +243,184 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto">
-          {/* Backdrop */}
+          {/* Backdrop with frosted blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
             onClick={() => {
               stopTtsAudio();
               onClose();
             }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
           />
 
-          {/* Bottom Sheet Modal */}
+          {/* Bottom Sheet Container */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`w-full max-w-[480px] rounded-t-[32px] p-6 pb-8 relative z-10 shadow-2xl border-t ${
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.15}
+            onDragEnd={handleDragEnd}
+            initial={{ y: '100%', opacity: 0.8 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: '100%', opacity: 0 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            className={`w-full max-w-[440px] rounded-t-[32px] sm:rounded-b-[32px] sm:mb-4 px-6 pt-3 pb-8 relative z-10 overflow-hidden select-none ${
               isDarkMode
-                ? 'bg-brand-surface-dark border-white/10 text-white'
-                : 'bg-white border-black/5 text-black'
-            }`}
+                ? 'bg-[#12131A]/95 text-white border-t border-white/10 shadow-[0_-16px_48px_rgba(0,0,0,0.6)]'
+                : 'bg-white/95 text-slate-900 border-t border-slate-200/80 shadow-[0_-16px_48px_rgba(0,0,0,0.12)]'
+            } backdrop-blur-2xl`}
+            style={{
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
+            }}
           >
-            {/* Handle Bar */}
-            <div className="w-12 h-1 rounded-full bg-white/20 mx-auto mb-5" />
+            {/* Ambient Radial Glow at the top */}
+            <div
+              aria-hidden="true"
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-36 pointer-events-none rounded-full blur-3xl opacity-25"
+              style={{
+                background: 'radial-gradient(ellipse at center, #5260FE 0%, #818CF8 40%, transparent 70%)',
+              }}
+            />
 
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-[18px] font-bold font-sans">Confirm Spoken Amount</h3>
-                  <p className={`text-[12px] ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
-                    Verified via Sarvam Saaras AI
-                  </p>
-                </div>
-              </div>
+            {/* Drag Handle Bar */}
+            <div className="flex justify-center mb-4">
+              <div
+                className={`w-10 h-1.5 rounded-full transition-colors ${
+                  isDarkMode ? 'bg-white/20 hover:bg-white/30' : 'bg-black/15 hover:bg-black/25'
+                }`}
+              />
+            </div>
+
+            {/* Header: Title + Close Button */}
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <h3 className="text-[18px] font-bold font-sans tracking-tight">
+                Confirm Spoken Amount
+              </h3>
+
+              {/* Close Button */}
               <button
                 type="button"
                 onClick={() => {
                   stopTtsAudio();
                   onClose();
                 }}
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isDarkMode ? 'bg-white/10 hover:bg-white/15' : 'bg-black/5 hover:bg-black/10'
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95 ${
+                  isDarkMode
+                    ? 'bg-white/10 hover:bg-white/15 text-white/70 hover:text-white border border-white/5'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800'
                 }`}
+                aria-label="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
+            {/* Transcript Card ("What was heard") */}
             {transcript && (
               <div
-                className={`p-3 rounded-xl mb-4 text-[13px] italic ${
-                  isDarkMode ? 'bg-white/5 text-white/80' : 'bg-black/5 text-black/80'
+                className={`relative rounded-2xl p-3.5 mb-4 border transition-all ${
+                  isDarkMode
+                    ? 'bg-white/[0.04] border-white/[0.08] text-white/90 shadow-inner'
+                    : 'bg-slate-50/80 border-slate-200/70 text-slate-700 shadow-sm'
                 }`}
               >
-                &ldquo;{transcript}&rdquo;
+                <div className="flex items-center gap-1.5 mb-1 text-[11px] font-semibold uppercase tracking-wider text-brand-primary">
+                  <Mic className="w-3 h-3" />
+                  <span>Spoken Voice Input</span>
+                </div>
+                <p className="text-[13.5px] italic leading-relaxed font-sans font-normal opacity-90 pl-0.5">
+                  &ldquo;{transcript}&rdquo;
+                </p>
               </div>
             )}
 
-            <div className="text-center my-4 py-2">
-              <div className="flex items-center justify-center gap-2">
-                <p className={`text-[14px] font-medium ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
+            {/* Hero Amount Recognition Box */}
+            <div
+              className={`relative rounded-3xl p-5 my-3 text-center border overflow-hidden ${
+                isDarkMode
+                  ? 'bg-gradient-to-b from-white/[0.06] to-white/[0.02] border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
+                  : 'bg-gradient-to-b from-indigo-50/60 to-white border-indigo-100/80 shadow-sm'
+              }`}
+            >
+              {/* Top Subtext */}
+              <div className="flex items-center justify-center">
+                <span
+                  className={`text-[13px] font-medium tracking-wide ${
+                    isDarkMode ? 'text-white/60' : 'text-slate-500'
+                  }`}
+                >
                   {getConfirmationLabel(preferredLanguage)}
-                </p>
+                </span>
+              </div>
+
+              {/* Big Amount Number + Simple Speaker Icon right after */}
+              <div className="mt-1 flex items-center justify-center gap-2">
+                <span
+                  className={`text-[42px] leading-tight font-extrabold font-sans tracking-tight ${
+                    isDarkMode
+                      ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-300 drop-shadow-[0_2px_16px_rgba(82,96,254,0.3)]'
+                      : 'text-brand-primary'
+                  }`}
+                >
+                  ₹{amount.toLocaleString('en-IN')}
+                </span>
+
+                {/* Speaker icon (no circle, just icon) */}
                 <button
                   type="button"
                   onClick={handlePlayTts}
                   disabled={ttsState === 'loading'}
-                  aria-label={ttsState === 'playing' ? 'Stop audio' : 'Play spoken confirmation'}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+                  aria-label={ttsState === 'playing' ? 'Stop audio playback' : 'Play audio confirmation'}
+                  className={`p-1.5 transition-all active:scale-90 inline-flex items-center justify-center cursor-pointer ${
                     ttsState === 'playing'
-                      ? 'bg-brand-primary text-white shadow-sm animate-pulse'
-                      : ttsState === 'loading'
-                        ? 'bg-brand-primary/20 text-brand-primary cursor-wait'
-                        : isDarkMode
-                          ? 'bg-white/10 hover:bg-white/15 text-white'
-                          : 'bg-black/5 hover:bg-black/10 text-black'
+                      ? 'text-brand-primary-light animate-pulse'
+                      : isDarkMode
+                        ? 'text-white/80 hover:text-white'
+                        : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {ttsState === 'loading' ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
+                    <Loader2 className={`w-5 h-5 animate-spin ${isDarkMode ? 'text-white' : 'text-slate-700'}`} />
                   ) : ttsState === 'playing' ? (
-                    <VolumeX className="w-3.5 h-3.5" />
+                    <VolumeX className="w-5 h-5" />
                   ) : (
-                    <Volume2 className="w-3.5 h-3.5 text-brand-primary" />
+                    <Volume2 className="w-5 h-5" />
                   )}
                 </button>
               </div>
-              <p className="text-[36px] font-bold font-sans text-brand-primary mt-1">
-                ₹{amount.toLocaleString('en-IN')}?
-              </p>
             </div>
 
-            <div className="flex flex-col gap-2.5 mt-6">
+            {/* Action Buttons Stack - Perfectly matching GpButtons */}
+            <div className="flex flex-col gap-3 mt-6 relative z-10">
+              {/* Primary Action Button */}
               <GpButton
                 onClick={() => {
                   stopTtsAudio();
                   onConfirm(amount);
                 }}
-                className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[15px] font-medium font-sans"
+                size="lg"
+                variant="primary"
+                className="w-full"
               >
-                <Check className="w-4 h-4 mr-1.5" />
+                <Check className="w-4 h-4 mr-2" />
                 {getConfirmButtonText(amount, preferredLanguage)}
               </GpButton>
 
-              <button
-                type="button"
+              {/* Secondary Edit Manually Button */}
+              <GpButton
                 onClick={() => {
                   stopTtsAudio();
                   onEditManually();
                 }}
-                className={`w-full h-[44px] rounded-full text-[14px] font-medium font-sans flex items-center justify-center transition-colors ${
-                  isDarkMode
-                    ? 'bg-white/10 hover:bg-white/15 text-white'
-                    : 'bg-black/5 hover:bg-black/10 text-black'
-                }`}
+                size="lg"
+                variant="secondary"
+                className="w-full"
               >
-                <Edit3 className="w-4 h-4 mr-1.5" />
+                <Edit3 className="w-4 h-4 mr-2" />
                 Edit Manually
-              </button>
+              </GpButton>
             </div>
           </motion.div>
         </div>

@@ -1,7 +1,8 @@
 import { ASSETS } from '@/constants/assets';
 import { crashlytics } from '@/lib/crashlytics';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { MetalFx } from 'metal-fx';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 const Map = React.lazy(() => import('@/components/MapWrapper'));
@@ -65,6 +66,7 @@ const Homepage = () => {
 
   const [showDeliveryLimitsModal, setShowDeliveryLimitsModal] = useState(false);
   const [amount, setAmount] = useState<string>('0.00');
+  const amountRef = useRef<HTMLDivElement>(null);
   const [showInlineKeypad, setShowInlineKeypad] = useState<boolean>(false);
   const { showToaster } = useCustomToaster();
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -1086,55 +1088,40 @@ const Homepage = () => {
                         setShowInlineKeypad(true);
                       }}
                     >
-                      <span className="text-[32px] font-bold font-sans mr-1 text-white">₹</span>
-                      <span className={`text-[32px] font-light font-sans ${amount === '0.00' ? 'text-white/50' : 'text-white'} mr-1 mt-[-4px]`}>|</span>
-                      <span className={`text-[32px] font-bold font-sans ${amount === '0.00' ? 'text-white/50' : 'text-white'}`}>{amount}</span>
-                    </div>
+                      <div ref={amountRef} className="flex items-center">
+                        <span className="text-[32px] font-bold font-sans mr-1 text-white">₹</span>
+                        <span className={`text-[32px] font-light font-sans ${amount === '0.00' ? 'text-white/50' : 'text-white'} mr-1 mt-[-4px]`}>|</span>
+                        <span className={`text-[32px] font-bold font-sans ${amount === '0.00' ? 'text-white/50' : 'text-white'}`}>{amount}</span>
+                      </div>
 
-                    {/* Speak Amount Mic Button (Directly below amount, ABOVE quick pills) */}
-                    <div 
-                      className="my-[8px] flex items-center justify-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        type="button"
-                        onClick={handleMicClick}
-                        disabled={isTranscribing}
-                        className={`h-[36px] px-4 rounded-full flex items-center gap-2 relative overflow-hidden transition-all duration-300 active:scale-95 group ${
-                          isRecording
-                            ? 'bg-gradient-to-b from-red-500 via-rose-600 to-red-700 text-white border border-red-300/60 shadow-[0_0_16px_rgba(239,68,68,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] animate-pulse'
-                            : isTranscribing
-                              ? 'bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 text-slate-800 border border-white/60 shadow-[0_2px_8px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.6)] cursor-wait'
-                              : 'bg-gradient-to-b from-white via-slate-100 to-slate-300 hover:from-white hover:to-slate-200 text-slate-900 border border-white/80 shadow-[0_3px_12px_rgba(0,0,0,0.28),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_2px_rgba(0,0,0,0.2)]'
-                        }`}
+                      {/* Circular Mic Button Beside Amount with MetalFx */}
+                      <div 
+                        className="ml-3.5 flex items-center justify-center shrink-0"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        {/* Brushed metal reflection sheen overlay */}
-                        {!isRecording && (
-                          <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 to-transparent pointer-events-none rounded-t-full" />
-                        )}
-                        {isTranscribing ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-800 relative z-10" />
-                            <span className="text-[12px] font-medium font-sans text-slate-800 relative z-10">Processing voice...</span>
-                          </>
-                        ) : isRecording ? (
-                          <>
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                            </span>
-                            <Mic className="w-3.5 h-3.5 text-white relative z-10" />
-                            <span className="text-[12px] font-medium font-sans text-white relative z-10">Listening... Tap when done</span>
-                          </>
-                        ) : (
-                          <>
-                            <Mic className="w-3.5 h-3.5 text-slate-800 drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10" />
-                            <span className="text-[12px] font-semibold font-sans text-slate-900 tracking-tight drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10">
-                              Speak Amount
-                            </span>
-                          </>
-                        )}
-                      </button>
+                        <MetalFx preset="gold" variant="circle" strength={0.5} reflectionTargets={[amountRef]}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMicClick();
+                            }}
+                            disabled={isTranscribing}
+                            aria-label="Speak Amount"
+                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 bg-[#1D1D22] text-white cursor-pointer ${
+                              isRecording ? 'animate-pulse' : ''
+                            }`}
+                          >
+                            {isTranscribing ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            ) : isRecording ? (
+                              <Mic className="w-4 h-4 text-red-400 animate-bounce" />
+                            ) : (
+                              <Mic className="w-4 h-4 text-white" />
+                            )}
+                          </button>
+                        </MetalFx>
+                      </div>
                     </div>
 
                     <div 

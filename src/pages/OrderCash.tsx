@@ -1,6 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import { crashlytics } from '@/lib/crashlytics';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import { useUser } from '@/contexts/UserContext';
@@ -14,6 +14,7 @@ import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { supabase } from '@/lib/supabase';
 import { Mic, Loader2 } from 'lucide-react';
+import { MetalFx } from 'metal-fx';
 import { VoiceConfirmationSheet } from '@/components/VoiceConfirmationSheet';
 
 interface VoiceConfirmationState {
@@ -27,6 +28,7 @@ const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
   const location = useLocation();
+  const amountRef = useRef<HTMLDivElement>(null);
   const [amount, setAmount] = useState<string>(() => {
     const initialAmount = location.state?.amount;
     return initialAmount ? Number(initialAmount).toFixed(2) : '0.00';
@@ -258,16 +260,41 @@ const OrderCash = () => {
         <div
           className={`flex items-center justify-center transition-opacity duration-200 ${isZero ? 'opacity-50' : 'opacity-100'}`}
         >
-          <span
-            className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}
-          >
-            ₹
-          </span>
-          <span
-            className={`text-[32px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}
-          >
-            {amount}
-          </span>
+          <div ref={amountRef} className="flex items-center">
+            <span
+              className={`text-[32px] font-bold font-sans mr-1 ${isDarkMode ? 'text-white' : 'text-black'}`}
+            >
+              ₹
+            </span>
+            <span
+              className={`text-[32px] font-bold font-sans ${isDarkMode ? 'text-white' : 'text-black'}`}
+            >
+              {amount}
+            </span>
+          </div>
+
+          {/* Circular Mic Button Beside Amount with MetalFx */}
+          <div className="ml-3.5 flex items-center justify-center shrink-0">
+            <MetalFx preset="gold" variant="circle" strength={0.5} reflectionTargets={[amountRef]}>
+              <button
+                type="button"
+                onClick={handleMicClick}
+                disabled={isTranscribing}
+                aria-label="Speak Amount"
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 bg-[#1D1D22] text-white cursor-pointer ${
+                  isRecording ? 'animate-pulse' : ''
+                }`}
+              >
+                {isTranscribing ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : isRecording ? (
+                  <Mic className="w-4 h-4 text-red-400 animate-bounce" />
+                ) : (
+                  <Mic className="w-4 h-4 text-white" />
+                )}
+              </button>
+            </MetalFx>
+          </div>
         </div>
         <div
           className={`w-[238px] h-[1px] my-6 ${isDarkMode ? 'bg-brand-border-mid' : 'bg-brand-border-light'}`}
@@ -277,48 +304,6 @@ const OrderCash = () => {
             {errorMessage}
           </p>
         )}
-        {/* Voice Request Mic Button (Directly below amount, ABOVE quick pills) */}
-        <div className="mb-4 flex items-center justify-center">
-          <button
-            type="button"
-            onClick={handleMicClick}
-            disabled={isTranscribing}
-            className={`h-[38px] px-4 rounded-full flex items-center gap-2 relative overflow-hidden transition-all duration-300 active:scale-95 group ${
-              isRecording
-                ? 'bg-gradient-to-b from-red-500 via-rose-600 to-red-700 text-white border border-red-300/60 shadow-[0_0_16px_rgba(239,68,68,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] animate-pulse'
-                : isTranscribing
-                  ? 'bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 text-slate-800 border border-white/60 shadow-[0_2px_8px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.6)] cursor-wait'
-                  : 'bg-gradient-to-b from-white via-slate-100 to-slate-300 hover:from-white hover:to-slate-200 text-slate-900 border border-white/80 shadow-[0_3px_12px_rgba(0,0,0,0.28),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_2px_rgba(0,0,0,0.2)]'
-            }`}
-          >
-            {/* Brushed metal reflection sheen overlay */}
-            {!isRecording && (
-              <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 to-transparent pointer-events-none rounded-t-full" />
-            )}
-            {isTranscribing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-slate-800 relative z-10" />
-                <span className="text-[13px] font-medium font-sans text-slate-800 relative z-10">Processing voice...</span>
-              </>
-            ) : isRecording ? (
-              <>
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-                </span>
-                <Mic className="w-4 h-4 text-white relative z-10" />
-                <span className="text-[13px] font-medium font-sans text-white relative z-10">Listening... Tap when done</span>
-              </>
-            ) : (
-              <>
-                <Mic className="w-4 h-4 text-slate-800 drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10" />
-                <span className="text-[13px] font-semibold font-sans text-slate-900 tracking-tight drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10">
-                  Speak Amount
-                </span>
-              </>
-            )}
-          </button>
-        </div>
 
         <div className="flex gap-4 mb-2">
           {['500', '1000', '1500'].map(val => (
