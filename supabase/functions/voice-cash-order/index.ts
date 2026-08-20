@@ -94,13 +94,48 @@ serve(async (req: Request) => {
     const sarvamLang = toSarvamLanguageCode(preferredLanguage);
     const sarvamClient = new SarvamClient();
 
+    // Use "unknown" to allow Sarvam STT to auto-detect whichever language the user speaks
     const sttResult = await sarvamClient.speechToText({
       audio: audioData,
-      languageCode: sarvamLang,
+      languageCode: "unknown",
       mimeType,
     });
 
     const transcript = (sttResult.transcript || "").trim();
+
+    // Determine detected language: prioritize explicit non-Devanagari scripts, then Sarvam STT code, then keywords
+    let detectedLanguage = "en-IN";
+
+    if (/[\u0980-\u09FF]/.test(transcript) || /\b(taka|takar|lage|lagbe|chai|hajar|sho)\b/i.test(transcript)) {
+      detectedLanguage = "bn-IN";
+    } else if (/[\u0C80-\u0CFF]/.test(transcript) || /\b(beku|kodi|roopayi|saavira|nooru)\b/i.test(transcript)) {
+      detectedLanguage = "kn-IN";
+    } else if (/[\u0B80-\u0BFF]/.test(transcript) || /\b(venum|kudu|roobai|aayiram|nooru)\b/i.test(transcript)) {
+      detectedLanguage = "ta-IN";
+    } else if (/[\u0C00-\u0C7F]/.test(transcript) || /\b(kavali|ivvandi|roopayalu|veylu|vandhalu)\b/i.test(transcript)) {
+      detectedLanguage = "te-IN";
+    } else if (/[\u0A80-\u0AFF]/.test(transcript) || /\b(joiye|aapo|rupiya|hajar|so)\b/i.test(transcript)) {
+      detectedLanguage = "gu-IN";
+    } else if (/[\u0A00-\u0A7F]/.test(transcript) || /\b(chahida|chahidi|rupaiye|hajaar)\b/i.test(transcript)) {
+      detectedLanguage = "pa-IN";
+    } else if (/[\u0D00-\u0D7F]/.test(transcript) || /\b(venam|roopa|aayiram)\b/i.test(transcript)) {
+      detectedLanguage = "ml-IN";
+    } else if (/[\u0B00-\u0B7F]/.test(transcript) || /\b(darkar|tanka|hajara)\b/i.test(transcript)) {
+      detectedLanguage = "od-IN";
+    } else if (/[\u0900-\u097F]/.test(transcript)) {
+      // Devanagari script: check if Marathi or Hindi
+      if (/\b(पाहिजे|हजार|रुपये|मला)\b/i.test(transcript) || /\b(pahije|mala)\b/i.test(transcript)) {
+        detectedLanguage = "mr-IN";
+      } else {
+        detectedLanguage = "hi-IN";
+      }
+    } else if (sttResult.languageCode && sttResult.languageCode !== "unknown") {
+      detectedLanguage = toSarvamLanguageCode(sttResult.languageCode);
+    } else if (/\b(chahiye|rupaye|rupay|hazaar|hazar|sau|mujhe|bhejo|karo|paanch|panch)\b/i.test(transcript)) {
+      detectedLanguage = "hi-IN";
+    } else if (preferredLanguage && preferredLanguage !== "unknown") {
+      detectedLanguage = toSarvamLanguageCode(preferredLanguage);
+    }
 
     // 1. Initial intent analysis via shared classifier
     const analysis = analyzeZingIntent(transcript);
@@ -124,6 +159,7 @@ serve(async (req: Request) => {
       extractedAmount: finalAmount,
       extractedDate: analysis.entities.date?.value ?? null,
       extractedTime: analysis.entities.time ?? null,
+      detectedLanguage,
       ...(isDebug
         ? {
             __debug: {
@@ -131,6 +167,7 @@ serve(async (req: Request) => {
               mimeType,
               preferredLanguage,
               sarvamLang,
+              detectedLanguage,
               audioDataBytes: audioData?.length,
               rawSttResult: sttResult,
               transcript,
@@ -159,6 +196,7 @@ serve(async (req: Request) => {
         extractedAmount: null,
         extractedDate: null,
         extractedTime: null,
+        detectedLanguage: null,
         __debug: {
           hasApiKey: Boolean(Deno.env.get("SARVAM_API_KEY")),
           errorMessage: error instanceof Error ? error.message : String(error),

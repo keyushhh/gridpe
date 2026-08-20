@@ -17,17 +17,93 @@ export interface VoiceConfirmationSheetProps {
   onClose: () => void;
 }
 
+const getConfirmationLabel = (lang: string): string => {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi':
+      return 'क्या आपका मतलब';
+    case 'bn':
+      return 'আপনি কি বোঝাতে চেয়েছেন';
+    case 'kn':
+      return 'ನಿಮ್ಮ ಉದ್ದೇಶ';
+    case 'ta':
+      return 'நீங்கள் குறிப்பது';
+    case 'te':
+      return 'మీరు అనుకుంటున్నది';
+    case 'mr':
+      return 'तुमचा अर्थ';
+    case 'gu':
+      return 'શું તમારો મતલબ';
+    case 'pa':
+      return 'ਕੀ ਤੁਹਾਡਾ ਮਤਲਬ';
+    case 'ml':
+      return 'നിങ്ങൾ ഉദ്ദേശിച്ചത്';
+    case 'od':
+      return 'ଆପଣଙ୍କ ଅର୍ଥ';
+    case 'as':
+      return 'আপুনি বুজাইছে';
+    default:
+      return 'Did you mean';
+  }
+};
+
+const getConfirmButtonText = (amt: number, lang: string): string => {
+  const formatted = `₹${amt.toLocaleString('en-IN')}`;
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi':
+      return `हाँ, ${formatted} चुनें`;
+    case 'bn':
+      return `হ্যাঁ, ${formatted} ব্যবহার করুন`;
+    case 'kn':
+      return `ಹೌದು, ${formatted} ಬಳಸಿ`;
+    case 'ta':
+      return `ஆம், ${formatted} பயன்படுத்தவும்`;
+    case 'te':
+      return `అవును, ${formatted} ఉపయోగించండి`;
+    case 'mr':
+      return `होय, ${formatted} वापरा`;
+    case 'gu':
+      return `હા, ${formatted} વાપરો`;
+    case 'pa':
+      return `ਹਾਂ, ${formatted} ਵਰਤੋ`;
+    case 'ml':
+      return `അതെ, ${formatted} ഉപയോഗിക്കുക`;
+    case 'od':
+      return `ହଁ, ${formatted} ବ୍ୟବହାର କରନ୍ତୁ`;
+    case 'as':
+      return `হয়, ${formatted} ব্যৱহাৰ কৰক`;
+    default:
+      return `Yes, Use ${formatted}`;
+  }
+};
+
 const getConfirmationSentence = (amt: number, lang: string): string => {
   const formatted = amt.toLocaleString('en-IN');
-  switch (lang) {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
     case 'hi':
       return `क्या आपका मतलब ${formatted} रुपये है?`;
+    case 'bn':
+      return `আপনি কি ${formatted} টাকা বোঝাতে চেয়েছেন?`;
     case 'kn':
       return `ನಿಮ್ಮ ಉದ್ದೇಶ ${formatted} ರೂಪಾಯಿಗಳೇ?`;
     case 'ta':
       return `நீங்கள் ${formatted} ரூபாயைக் குறிக்கிறீர்களா?`;
     case 'te':
       return `మీరు ${formatted} రూపాయలు అని అనుకుంటున్నారా?`;
+    case 'mr':
+      return `तुमचा अर्थ ${formatted} रुपये आहे का?`;
+    case 'gu':
+      return `શું તમારો મતલબ ${formatted} રૂપિયા છે?`;
+    case 'pa':
+      return `ਕੀ ਤੁਹਾਡਾ ਮਤਲਬ ${formatted} ਰੁਪਏ ਹੈ?`;
+    case 'ml':
+      return `നിങ്ങൾ ഉദ്ദേശിച്ചത് ${formatted} രൂപയാണോ?`;
+    case 'od':
+      return `ଆପଣଙ୍କ ଅର୍ଥ ${formatted} ଟଙ୍କା କି?`;
+    case 'as':
+      return `আপুনি ${formatted} টকা বুজাইছে নেকি?`;
     default:
       return `Did you mean ${formatted} rupees?`;
   }
@@ -226,7 +302,7 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
             <div className="text-center my-4 py-2">
               <div className="flex items-center justify-center gap-2">
                 <p className={`text-[14px] font-medium ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
-                  Did you mean
+                  {getConfirmationLabel(preferredLanguage)}
                 </p>
                 <button
                   type="button"
@@ -266,7 +342,7 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
                 className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[15px] font-medium font-sans"
               >
                 <Check className="w-4 h-4 mr-1.5" />
-                Yes, Use ₹{amount.toLocaleString('en-IN')}
+                {getConfirmButtonText(amount, preferredLanguage)}
               </GpButton>
 
               <button

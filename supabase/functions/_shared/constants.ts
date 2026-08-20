@@ -27,6 +27,9 @@ export const SARVAM_LANGUAGE_MAP: Record<string, string> = {
 export function toSarvamLanguageCode(lang?: string | null): string {
   if (!lang) return "en-IN";
   const normalized = lang.toLowerCase().trim();
+  if (normalized === "unknown" || normalized === "auto") {
+    return "unknown";
+  }
   if (SARVAM_LANGUAGE_MAP[normalized]) {
     return SARVAM_LANGUAGE_MAP[normalized];
   }

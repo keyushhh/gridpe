@@ -72,6 +72,7 @@ const Homepage = () => {
     isOpen: boolean;
     amount: number;
     transcript: string;
+    detectedLanguage?: string;
   } | null>(null);
 
   const { isRecording, startRecording, stopRecording, error: recorderError } = useVoiceRecorder();
@@ -117,6 +118,7 @@ const Homepage = () => {
                 isOpen: true,
                 amount: data.extractedAmount,
                 transcript: data.transcript || '',
+                detectedLanguage: data.detectedLanguage || profile?.preferred_language || 'en',
               });
             } else if (data?.transcript) {
               showToaster(`Heard "${data.transcript}", but couldn't detect amount. Please adjust manually.`, 'error');
@@ -1574,7 +1576,7 @@ const Homepage = () => {
         isOpen={Boolean(voiceConfirmation?.isOpen)}
         amount={voiceConfirmation?.amount || 0}
         transcript={voiceConfirmation?.transcript || ''}
-        preferredLanguage={profile?.preferred_language || 'en'}
+        preferredLanguage={voiceConfirmation?.detectedLanguage || profile?.preferred_language || 'en'}
         isDarkMode={isDarkMode}
         onConfirm={(confirmedAmount) => {
           const formattedAmount = confirmedAmount.toFixed(2);
