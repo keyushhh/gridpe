@@ -13,8 +13,8 @@ import { useWebScroll } from '@/hooks/useWebScroll';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { supabase } from '@/lib/supabase';
-import { Mic, Loader2, Sparkles, X, Check, Edit3, Volume2, VolumeX } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Mic, Loader2 } from 'lucide-react';
+import { VoiceConfirmationSheet } from '@/components/VoiceConfirmationSheet';
 
 interface VoiceConfirmationState {
   isOpen: boolean;
@@ -22,21 +22,6 @@ interface VoiceConfirmationState {
   transcript: string;
 }
 
-const getConfirmationSentence = (amt: number, lang: string): string => {
-  const formatted = amt.toLocaleString('en-IN');
-  switch (lang) {
-    case 'hi':
-      return `क्या आपका मतलब ${formatted} रुपये है?`;
-    case 'kn':
-      return `ನಿಮ್ಮ ಉದ್ದೇಶ ${formatted} ರೂಪಾಯಿಗಳೇ?`;
-    case 'ta':
-      return `நீங்கள் ${formatted} ரூபாயைக் குறிக்கிறீர்களா?`;
-    case 'te':
-      return `మీరు ${formatted} రూపాయలు అని అనుకుంటున్నారా?`;
-    default:
-      return `Did you mean ${formatted} rupees?`;
-  }
-};
 const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -51,86 +36,8 @@ const OrderCash = () => {
   const { showToaster } = useCustomToaster();
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [voiceConfirmation, setVoiceConfirmation] = useState<VoiceConfirmationState | null>(null);
-  const [ttsState, setTtsState] = useState<'idle' | 'loading' | 'playing'>('idle');
-  const activeAudioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const { isRecording, startRecording, stopRecording, error: recorderError } = useVoiceRecorder();
-
-  const stopTtsAudio = () => {
-    if (activeAudioRef.current) {
-      try {
-        activeAudioRef.current.pause();
-        activeAudioRef.current.currentTime = 0;
-      } catch {
-        // ignore
-      }
-      activeAudioRef.current = null;
-    }
-    setTtsState('idle');
-  };
-
-  const handlePlayTts = async () => {
-    if (!voiceConfirmation) return;
-
-    if (ttsState === 'playing') {
-      stopTtsAudio();
-      return;
-    }
-
-    if (ttsState === 'loading') return;
-
-    setTtsState('loading');
-    try {
-      const userLang = profile?.preferred_language || 'en';
-      const promptText = getConfirmationSentence(voiceConfirmation.amount, userLang);
-
-      const { data, error } = await supabase.functions.invoke('voice-order-tts', {
-        body: {
-          text: promptText,
-          preferred_language: userLang,
-        },
-      });
-
-      if (error || !data?.audioBase64) {
-        throw error || new Error('No audio returned from TTS service');
-      }
-
-      stopTtsAudio();
-
-      const mimeType = data.mimeType || 'audio/wav';
-      const audioUrl = `data:${mimeType};base64,${data.audioBase64}`;
-      const audio = new Audio(audioUrl);
-      activeAudioRef.current = audio;
-
-      audio.onended = () => {
-        setTtsState('idle');
-        activeAudioRef.current = null;
-      };
-
-      audio.onerror = () => {
-        setTtsState('idle');
-        activeAudioRef.current = null;
-        showToaster("Couldn't play audio, please read the amount above", 'error');
-      };
-
-      audio.onpause = () => {
-        setTtsState('idle');
-      };
-
-      await audio.play();
-      setTtsState('playing');
-    } catch (err) {
-      setTtsState('idle');
-      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'OrderCash.playTts');
-      showToaster("Couldn't play audio, please read the amount above", 'error');
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      stopTtsAudio();
-    };
-  }, []);
 
   const tierName = profile?.plan_tier ?? 'free';
   const dailyLimit = tierName.toLowerCase() === 'pro' ? 10000 : 5000;
@@ -359,6 +266,49 @@ const OrderCash = () => {
             {errorMessage}
           </p>
         )}
+        {/* Voice Request Mic Button (Directly below amount, ABOVE quick pills) */}
+        <div className="mb-4 flex items-center justify-center">
+          <button
+            type="button"
+            onClick={handleMicClick}
+            disabled={isTranscribing}
+            className={`h-[38px] px-4 rounded-full flex items-center gap-2 relative overflow-hidden transition-all duration-300 active:scale-95 group ${
+              isRecording
+                ? 'bg-gradient-to-b from-red-500 via-rose-600 to-red-700 text-white border border-red-300/60 shadow-[0_0_16px_rgba(239,68,68,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] animate-pulse'
+                : isTranscribing
+                  ? 'bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 text-slate-800 border border-white/60 shadow-[0_2px_8px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.6)] cursor-wait'
+                  : 'bg-gradient-to-b from-white via-slate-100 to-slate-300 hover:from-white hover:to-slate-200 text-slate-900 border border-white/80 shadow-[0_3px_12px_rgba(0,0,0,0.28),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_2px_rgba(0,0,0,0.2)]'
+            }`}
+          >
+            {/* Brushed metal reflection sheen overlay */}
+            {!isRecording && (
+              <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 to-transparent pointer-events-none rounded-t-full" />
+            )}
+            {isTranscribing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-slate-800 relative z-10" />
+                <span className="text-[13px] font-medium font-sans text-slate-800 relative z-10">Processing voice...</span>
+              </>
+            ) : isRecording ? (
+              <>
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                </span>
+                <Mic className="w-4 h-4 text-white relative z-10" />
+                <span className="text-[13px] font-medium font-sans text-white relative z-10">Listening... Tap when done</span>
+              </>
+            ) : (
+              <>
+                <Mic className="w-4 h-4 text-slate-800 drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10" />
+                <span className="text-[13px] font-semibold font-sans text-slate-900 tracking-tight drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10">
+                  Speak Amount
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+
         <div className="flex gap-4 mb-2">
           {['500', '1000', '1500'].map(val => (
             <button
@@ -381,45 +331,6 @@ const OrderCash = () => {
               </span>
             </button>
           ))}
-        </div>
-
-        {/* Voice Request Mic Button */}
-        <div className="mt-2 flex items-center justify-center">
-          <button
-            type="button"
-            onClick={handleMicClick}
-            disabled={isTranscribing}
-            className={`h-[38px] px-4 rounded-full flex items-center gap-2 transition-all duration-200 shadow-sm active:scale-95 ${
-              isRecording
-                ? 'bg-red-500 text-white animate-pulse shadow-red-500/30'
-                : isTranscribing
-                  ? 'bg-brand-primary/20 text-brand-primary cursor-wait'
-                  : isDarkMode
-                    ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
-                    : 'bg-black/5 hover:bg-black/10 text-black border border-black/5'
-            }`}
-          >
-            {isTranscribing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-                <span className="text-[13px] font-medium font-sans">Processing voice...</span>
-              </>
-            ) : isRecording ? (
-              <>
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-                </span>
-                <Mic className="w-4 h-4" />
-                <span className="text-[13px] font-medium font-sans">Listening... Tap when done</span>
-              </>
-            ) : (
-              <>
-                <Mic className="w-4 h-4 text-brand-primary" />
-                <span className="text-[13px] font-medium font-sans">Speak Amount</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
       {/* Fixed Bottom Area for Keypad */}
@@ -524,139 +435,23 @@ const OrderCash = () => {
       </div>
 
       {/* Voice Confirmation Sheet */}
-      <AnimatePresence>
-        {voiceConfirmation?.isOpen && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                stopTtsAudio();
-                setVoiceConfirmation(null);
-              }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-
-            {/* Bottom Sheet Modal */}
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className={`w-full max-w-[480px] rounded-t-[32px] p-6 pb-8 relative z-10 shadow-2xl border-t ${
-                isDarkMode
-                  ? 'bg-brand-surface-dark border-white/10 text-white'
-                  : 'bg-white border-black/5 text-black'
-              }`}
-            >
-              {/* Handle Bar */}
-              <div className="w-12 h-1 rounded-full bg-white/20 mx-auto mb-5" />
-
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-[18px] font-bold font-sans">Confirm Spoken Amount</h3>
-                    <p className={`text-[12px] ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
-                      Verified via Sarvam Saaras AI
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    stopTtsAudio();
-                    setVoiceConfirmation(null);
-                  }}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    isDarkMode ? 'bg-white/10 hover:bg-white/15' : 'bg-black/5 hover:bg-black/10'
-                  }`}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {voiceConfirmation.transcript && (
-                <div
-                  className={`p-3 rounded-xl mb-4 text-[13px] italic ${
-                    isDarkMode ? 'bg-white/5 text-white/80' : 'bg-black/5 text-black/80'
-                  }`}
-                >
-                  &ldquo;{voiceConfirmation.transcript}&rdquo;
-                </div>
-              )}
-
-              <div className="text-center my-4 py-2">
-                <div className="flex items-center justify-center gap-2">
-                  <p className={`text-[14px] font-medium ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
-                    Did you mean
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handlePlayTts}
-                    disabled={ttsState === 'loading'}
-                    aria-label={ttsState === 'playing' ? 'Stop audio' : 'Play spoken confirmation'}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-95 ${
-                      ttsState === 'playing'
-                        ? 'bg-brand-primary text-white shadow-sm animate-pulse'
-                        : ttsState === 'loading'
-                          ? 'bg-brand-primary/20 text-brand-primary cursor-wait'
-                          : isDarkMode
-                            ? 'bg-white/10 hover:bg-white/15 text-white'
-                            : 'bg-black/5 hover:bg-black/10 text-black'
-                    }`}
-                  >
-                    {ttsState === 'loading' ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
-                    ) : ttsState === 'playing' ? (
-                      <VolumeX className="w-3.5 h-3.5" />
-                    ) : (
-                      <Volume2 className="w-3.5 h-3.5 text-brand-primary" />
-                    )}
-                  </button>
-                </div>
-                <p className="text-[36px] font-bold font-sans text-brand-primary mt-1">
-                  ₹{voiceConfirmation.amount.toLocaleString('en-IN')}?
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-2.5 mt-6">
-                <GpButton
-                  onClick={() => {
-                    stopTtsAudio();
-                    setAmount(voiceConfirmation.amount.toFixed(2));
-                    setVoiceConfirmation(null);
-                  }}
-                  className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[15px] font-medium font-sans"
-                >
-                  <Check className="w-4 h-4 mr-1.5" />
-                  Yes, Use ₹{voiceConfirmation.amount.toLocaleString('en-IN')}
-                </GpButton>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    stopTtsAudio();
-                    setVoiceConfirmation(null);
-                  }}
-                  className={`w-full h-[44px] rounded-full text-[14px] font-medium font-sans flex items-center justify-center transition-colors ${
-                    isDarkMode
-                      ? 'bg-white/10 hover:bg-white/15 text-white'
-                      : 'bg-black/5 hover:bg-black/10 text-black'
-                  }`}
-                >
-                  <Edit3 className="w-4 h-4 mr-1.5" />
-                  Edit Manually
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <VoiceConfirmationSheet
+        isOpen={Boolean(voiceConfirmation?.isOpen)}
+        amount={voiceConfirmation?.amount || 0}
+        transcript={voiceConfirmation?.transcript || ''}
+        preferredLanguage={profile?.preferred_language || 'en'}
+        isDarkMode={isDarkMode}
+        onConfirm={(confirmedAmount) => {
+          setAmount(confirmedAmount.toFixed(2));
+          setVoiceConfirmation(null);
+        }}
+        onEditManually={() => {
+          setVoiceConfirmation(null);
+        }}
+        onClose={() => {
+          setVoiceConfirmation(null);
+        }}
+      />
     </div>
   );
 };

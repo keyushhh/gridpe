@@ -8,7 +8,7 @@ const Map = React.lazy(() => import('@/components/MapWrapper'));
 const Marker = React.lazy(() => import('@/components/MapWrapper').then(m => ({ default: m.Marker })));
 
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { MapPin /*, Eye, EyeOff */ } from 'lucide-react';
+import { MapPin, Mic, Loader2 /*, Eye, EyeOff */ } from 'lucide-react';
 import { olc } from '@/utils/olc';
 import { fetchRecentOrders, fetchActiveOrders } from '@/lib/orders';
 import { Order, SavedAddress } from '@/types';
@@ -20,6 +20,9 @@ import BottomNavigation from '@/components/BottomNavigation';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
 import RatingSheet from '@/components/RatingSheet';
+import VoiceConfirmationSheet from '@/components/VoiceConfirmationSheet';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import { cancelOrder } from '@/lib/orders';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
@@ -63,6 +66,76 @@ const Homepage = () => {
   const [showDeliveryLimitsModal, setShowDeliveryLimitsModal] = useState(false);
   const [amount, setAmount] = useState<string>('0.00');
   const [showInlineKeypad, setShowInlineKeypad] = useState<boolean>(false);
+  const { showToaster } = useCustomToaster();
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [voiceConfirmation, setVoiceConfirmation] = useState<{
+    isOpen: boolean;
+    amount: number;
+    transcript: string;
+  } | null>(null);
+
+  const { isRecording, startRecording, stopRecording, error: recorderError } = useVoiceRecorder();
+
+  const handleMicClick = async () => {
+    if (isTranscribing) return;
+
+    if (isRecording) {
+      setIsTranscribing(true);
+      try {
+        const blob = await stopRecording();
+        if (!blob) {
+          setIsTranscribing(false);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            const base64Audio = reader.result as string;
+            const { data, error } = await supabase.functions.invoke('voice-cash-order', {
+              body: {
+                audio: base64Audio,
+                preferred_language: profile?.preferred_language || 'en',
+                mime_type: blob.type || 'audio/webm',
+              },
+            });
+
+            if (error) {
+              throw error;
+            }
+
+            if (data?.extractedAmount && typeof data.extractedAmount === 'number') {
+              setVoiceConfirmation({
+                isOpen: true,
+                amount: data.extractedAmount,
+                transcript: data.transcript || '',
+              });
+            } else if (data?.transcript) {
+              showToaster(`Heard "${data.transcript}", but couldn't detect amount. Please adjust manually.`, 'error');
+            } else {
+              showToaster('Could not detect amount from voice. Please try again.', 'error');
+            }
+          } catch (err) {
+            crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Homepage.voiceOrder');
+            showToaster('Voice recognition failed. Please try again.', 'error');
+          } finally {
+            setIsTranscribing(false);
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        setIsTranscribing(false);
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Homepage.stopRecording');
+        showToaster('Recording stopped unexpectedly.', 'error');
+      }
+    } else {
+      const started = await startRecording();
+      if (!started) {
+        showToaster(recorderError || 'Microphone access denied or unavailable.', 'error');
+      }
+    }
+  };
+
   const {
     name,
     profile,
@@ -1007,8 +1080,54 @@ const Homepage = () => {
                       <span className={`text-[32px] font-bold font-sans ${amount === '0.00' ? 'text-white/50' : 'text-white'}`}>{amount}</span>
                     </div>
 
+                    {/* Speak Amount Mic Button (Directly below amount, ABOVE quick pills) */}
                     <div 
-                      className="flex gap-4 mt-auto mb-[16px]"
+                      className="my-[8px] flex items-center justify-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleMicClick}
+                        disabled={isTranscribing}
+                        className={`h-[36px] px-4 rounded-full flex items-center gap-2 relative overflow-hidden transition-all duration-300 active:scale-95 group ${
+                          isRecording
+                            ? 'bg-gradient-to-b from-red-500 via-rose-600 to-red-700 text-white border border-red-300/60 shadow-[0_0_16px_rgba(239,68,68,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] animate-pulse'
+                            : isTranscribing
+                              ? 'bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 text-slate-800 border border-white/60 shadow-[0_2px_8px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.6)] cursor-wait'
+                              : 'bg-gradient-to-b from-white via-slate-100 to-slate-300 hover:from-white hover:to-slate-200 text-slate-900 border border-white/80 shadow-[0_3px_12px_rgba(0,0,0,0.28),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_2px_rgba(0,0,0,0.2)]'
+                        }`}
+                      >
+                        {/* Brushed metal reflection sheen overlay */}
+                        {!isRecording && (
+                          <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 to-transparent pointer-events-none rounded-t-full" />
+                        )}
+                        {isTranscribing ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-800 relative z-10" />
+                            <span className="text-[12px] font-medium font-sans text-slate-800 relative z-10">Processing voice...</span>
+                          </>
+                        ) : isRecording ? (
+                          <>
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            <Mic className="w-3.5 h-3.5 text-white relative z-10" />
+                            <span className="text-[12px] font-medium font-sans text-white relative z-10">Listening... Tap when done</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="w-3.5 h-3.5 text-slate-800 drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10" />
+                            <span className="text-[12px] font-semibold font-sans text-slate-900 tracking-tight drop-shadow-[0_1px_0_rgba(255,255,255,0.8)] relative z-10">
+                              Speak Amount
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div 
+                      className="flex gap-4 mt-auto mb-[14px]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {['500', '1000', '1500'].map(val => (
@@ -1440,6 +1559,26 @@ const Homepage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Voice Confirmation Sheet */}
+      <VoiceConfirmationSheet
+        isOpen={Boolean(voiceConfirmation?.isOpen)}
+        amount={voiceConfirmation?.amount || 0}
+        transcript={voiceConfirmation?.transcript || ''}
+        preferredLanguage={profile?.preferred_language || 'en'}
+        isDarkMode={isDarkMode}
+        onConfirm={(confirmedAmount) => {
+          setAmount(confirmedAmount.toFixed(2));
+          setVoiceConfirmation(null);
+        }}
+        onEditManually={() => {
+          setVoiceConfirmation(null);
+          setShowInlineKeypad(true);
+        }}
+        onClose={() => {
+          setVoiceConfirmation(null);
+        }}
+      />
     </div>
   );
 };
