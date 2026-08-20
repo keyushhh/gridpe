@@ -136,7 +136,14 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
         />
 
         {/* Header */}
-        <div className="shrink-0 px-6 pt-4 pb-3 flex justify-between items-center border-b border-black/5 dark:border-white/5">
+        <div
+          className="shrink-0 px-6 pt-4 pb-3 flex justify-between items-center"
+          style={{
+            boxShadow: isDarkMode
+              ? 'inset 0 -1px 0 rgba(255,255,255,0.06)'
+              : 'inset 0 -1px 0 rgba(0,0,0,0.06)',
+          }}
+        >
           <div>
             <h2 className={`text-[18px] font-bold font-satoshi ${isDarkMode ? 'text-white' : 'text-black'}`}>
               Zing’s Language
@@ -161,7 +168,7 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
 
         {/* Language Options List */}
         <div className="px-6 py-5 overflow-y-auto space-y-3">
-          {SUPPORTED_LANGUAGES.map((lang) => {
+          {SUPPORTED_LANGUAGES.map((lang, index) => {
             const isSelected = (currentLanguage || 'en') === lang.code;
             const isUpdating = updatingCode === lang.code;
 
@@ -170,7 +177,8 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
                 key={lang.code}
                 disabled={!!updatingCode}
                 onClick={() => handleSelectLanguage(lang.code)}
-                className={`w-full h-[64px] px-4 rounded-[18px] flex items-center justify-between transition-all duration-200 border ${
+                style={{ animationDelay: `${index * 40}ms` }}
+                className={`w-full h-[64px] px-4 rounded-[18px] flex items-center justify-between transition-all duration-200 border animate-in fade-in slide-in-from-bottom-2 ${
                   isSelected
                     ? isDarkMode
                       ? 'bg-brand-primary/15 border-brand-primary text-white shadow-lg'
@@ -193,9 +201,9 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
                     {lang.code.toUpperCase()}
                   </div>
                   <div className="flex flex-col items-start leading-tight">
-                    <span className="text-[16px] font-bold font-satoshi">{lang.nativeLabel}</span>
+                    <span className="text-[17px] font-bold font-satoshi">{lang.nativeLabel}</span>
                     {lang.code !== 'en' && (
-                      <span className="text-[12px] font-medium opacity-70 font-satoshi mt-0.5">{lang.englishLabel}</span>
+                      <span className="text-[12px] font-medium opacity-70 font-satoshi mt-1">{lang.englishLabel}</span>
                     )}
                   </div>
                 </div>
