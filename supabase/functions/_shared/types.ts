@@ -31,6 +31,23 @@ export interface SarvamChatCompletion {
   requestId: string | null;
 }
 
+export interface SarvamSpeechToTextRequest {
+  audio: Blob | ArrayBuffer | Uint8Array;
+  fileName?: string;
+  mimeType?: string;
+  languageCode?: string;
+  model?: string;
+  prompt?: string;
+  timeoutMs?: number;
+  maxRetries?: number;
+}
+
+export interface SarvamSpeechToTextResponse {
+  transcript: string;
+  languageCode?: string;
+  requestId: string | null;
+}
+
 export interface RequestLogContext {
   requestId: string;
   operation: string;

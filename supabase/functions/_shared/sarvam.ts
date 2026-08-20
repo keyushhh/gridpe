@@ -4,9 +4,15 @@ import {
   SARVAM_DEFAULT_MAX_RETRIES,
   SARVAM_DEFAULT_TIMEOUT_MS,
   SARVAM_RETRY_BASE_DELAY_MS,
+  toSarvamLanguageCode,
 } from "./constants.ts";
 import { AiError } from "./errors.ts";
-import type { SarvamChatCompletion, SarvamChatCompletionRequest } from "./types.ts";
+import type {
+  SarvamChatCompletion,
+  SarvamChatCompletionRequest,
+  SarvamSpeechToTextRequest,
+  SarvamSpeechToTextResponse,
+} from "./types.ts";
 
 const isRetryableStatus = (status: number) => status === 408 || status === 429 || status >= 500;
 const delay = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -115,6 +121,57 @@ export class SarvamClient {
     };
   }
 
+  async speechToText(
+    audioOrRequest: Blob | ArrayBuffer | Uint8Array | SarvamSpeechToTextRequest,
+    languageCode?: string,
+  ): Promise<SarvamSpeechToTextResponse> {
+    const isRequestObj = audioOrRequest && typeof audioOrRequest === "object" && "audio" in audioOrRequest;
+    const req: SarvamSpeechToTextRequest = isRequestObj
+      ? (audioOrRequest as SarvamSpeechToTextRequest)
+      : {
+          audio: audioOrRequest as (Blob | ArrayBuffer | Uint8Array),
+          languageCode,
+        };
+
+    const targetLang = toSarvamLanguageCode(req.languageCode);
+    const formData = new FormData();
+
+    let fileBlob: Blob;
+    if (req.audio instanceof Blob) {
+      fileBlob = req.audio;
+    } else {
+      fileBlob = new Blob([req.audio as any], { type: req.mimeType || "audio/webm" });
+    }
+
+    const fileName = req.fileName || (fileBlob.type.includes("wav") ? "audio.wav" : fileBlob.type.includes("mp4") ? "audio.mp4" : "audio.webm");
+    formData.append("file", fileBlob, fileName);
+
+    if (targetLang) {
+      formData.append("language_code", targetLang);
+    }
+    if (req.model) {
+      formData.append("model", req.model);
+    }
+    if (req.prompt) {
+      formData.append("prompt", req.prompt);
+    }
+
+    const response = await this.requestFormData<Record<string, any>>("/speech-to-text", formData, {
+      timeoutMs: req.timeoutMs,
+      maxRetries: req.maxRetries,
+      validate: isSpeechToTextResponse,
+    });
+
+    const data = response.data;
+    const transcript = typeof data.transcript === "string" ? data.transcript : "";
+
+    return {
+      transcript,
+      languageCode: typeof data.language_code === "string" ? data.language_code : targetLang,
+      requestId: response.requestId,
+    };
+  }
+
   private async request<T>(path: string, options: JsonRequestOptions): Promise<JsonResponse<T>> {
     const maxRetries = options.maxRetries ?? SARVAM_DEFAULT_MAX_RETRIES;
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
@@ -152,6 +209,47 @@ export class SarvamClient {
     throw new AiError("Sarvam request retries exhausted.", "UPSTREAM_ERROR");
   }
 
+  private async requestFormData<T>(
+    path: string,
+    formData: FormData,
+    options: { timeoutMs?: number; maxRetries?: number; validate: (payload: unknown) => boolean },
+  ): Promise<JsonResponse<T>> {
+    const maxRetries = options.maxRetries ?? SARVAM_DEFAULT_MAX_RETRIES;
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      try {
+        const response = await this.fetchFormDataWithTimeout(path, formData, options.timeoutMs);
+        if (!response.ok) {
+          const errText = await response.text().catch(() => "");
+          console.error(`[Sarvam STT Upstream Error ${response.status}]:`, errText);
+          const error = new AiError(
+            `Sarvam STT request failed with status ${response.status}`,
+            "UPSTREAM_ERROR",
+            { status: response.status, retryable: isRetryableStatus(response.status) },
+          );
+          if (error.retryable && attempt < maxRetries) {
+            await delay(SARVAM_RETRY_BASE_DELAY_MS * 2 ** attempt);
+            continue;
+          }
+          throw error;
+        }
+
+        const data = await parseJson(response);
+        if (!options.validate(data)) {
+          throw new AiError("Sarvam STT response did not match the expected schema.", "INVALID_RESPONSE");
+        }
+        return { data: data as T, status: response.status, requestId: response.headers.get("x-request-id") };
+      } catch (error) {
+        const aiError = toAiError(error);
+        if (aiError.retryable && attempt < maxRetries) {
+          await delay(SARVAM_RETRY_BASE_DELAY_MS * 2 ** attempt);
+          continue;
+        }
+        throw aiError;
+      }
+    }
+    throw new AiError("Sarvam STT request retries exhausted.", "UPSTREAM_ERROR");
+  }
+
   private async fetchWithTimeout(path: string, options: JsonRequestOptions): Promise<Response> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? SARVAM_DEFAULT_TIMEOUT_MS);
@@ -171,6 +269,29 @@ export class SarvamClient {
       clearTimeout(timeout);
     }
   }
+
+  private async fetchFormDataWithTimeout(path: string, formData: FormData, timeoutMs?: number): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs ?? SARVAM_DEFAULT_TIMEOUT_MS);
+    try {
+      const headers = new Headers();
+      headers.set("api-subscription-key", this.apiKey);
+      return await this.fetcher(`${this.baseUrl}${path}`, {
+        method: "POST",
+        headers,
+        body: formData,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+function isSpeechToTextResponse(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") return false;
+  const res = payload as Record<string, unknown>;
+  return typeof res.transcript === "string";
 }
 
 function isChatCompletionResponse(payload: unknown): boolean {

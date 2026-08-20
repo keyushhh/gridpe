@@ -9,3 +9,23 @@ export const SARVAM_DEFAULT_CHAT_MODEL = "sarvam-105b";
 
 export const SUPABASE_URL_ENV = "SUPABASE_URL";
 export const SUPABASE_ANON_KEY_ENV = "SUPABASE_ANON_KEY";
+
+export const SARVAM_LANGUAGE_MAP: Record<string, string> = {
+  en: "en-IN",
+  hi: "hi-IN",
+  kn: "kn-IN",
+  ta: "ta-IN",
+  te: "te-IN",
+  mr: "mr-IN",
+  gu: "gu-IN",
+  bn: "bn-IN",
+  ml: "ml-IN",
+  pa: "pa-IN",
+  or: "od-IN",
+};
+
+export function toSarvamLanguageCode(lang?: string | null): string {
+  if (!lang) return "en-IN";
+  const normalized = lang.toLowerCase().trim();
+  return SARVAM_LANGUAGE_MAP[normalized] ?? (normalized.includes("-") ? normalized : `${normalized}-IN`);
+}

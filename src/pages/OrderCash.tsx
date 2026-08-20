@@ -10,6 +10,17 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import BackButton from '@/components/ui/BackButton';
 import { GpButton } from '@gridpe-app/ui';
 import { useWebScroll } from '@/hooks/useWebScroll';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useCustomToaster } from '@/contexts/CustomToasterContext';
+import { supabase } from '@/lib/supabase';
+import { Mic, Loader2, Sparkles, X, Check, Edit3 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface VoiceConfirmationState {
+  isOpen: boolean;
+  amount: number;
+  transcript: string;
+}
 const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -21,10 +32,76 @@ const OrderCash = () => {
   const isDarkMode = useIsDarkMode();
 
   const { profile } = useUser();
+  const { showToaster } = useCustomToaster();
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [voiceConfirmation, setVoiceConfirmation] = useState<VoiceConfirmationState | null>(null);
+
+  const { isRecording, startRecording, stopRecording, error: recorderError } = useVoiceRecorder();
+
   const tierName = profile?.plan_tier ?? 'free';
   const dailyLimit = tierName.toLowerCase() === 'pro' ? 10000 : 5000;
   const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
   const userId = profile?.id;
+
+  const handleMicClick = async () => {
+    if (isTranscribing) return;
+
+    if (isRecording) {
+      setIsTranscribing(true);
+      try {
+        const blob = await stopRecording();
+        if (!blob) {
+          setIsTranscribing(false);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            const base64Audio = reader.result as string;
+            const { data, error } = await supabase.functions.invoke('voice-cash-order', {
+              body: {
+                audio: base64Audio,
+                preferred_language: profile?.preferred_language || 'en',
+                mime_type: blob.type || 'audio/webm',
+              },
+            });
+
+            if (error) {
+              throw error;
+            }
+
+            if (data?.extractedAmount && typeof data.extractedAmount === 'number') {
+              setVoiceConfirmation({
+                isOpen: true,
+                amount: data.extractedAmount,
+                transcript: data.transcript || '',
+              });
+            } else if (data?.transcript) {
+              showToaster(`Heard "${data.transcript}", but couldn't detect amount. Please adjust manually.`, 'error');
+            } else {
+              showToaster('Could not detect amount from voice. Please try again.', 'error');
+            }
+          } catch (err) {
+            crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'OrderCash.voiceOrder');
+            showToaster('Voice recognition failed. Please try again.', 'error');
+          } finally {
+            setIsTranscribing(false);
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        setIsTranscribing(false);
+        crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'OrderCash.stopRecording');
+        showToaster('Recording stopped unexpectedly.', 'error');
+      }
+    } else {
+      const started = await startRecording();
+      if (!started) {
+        showToaster(recorderError || 'Microphone access denied or unavailable.', 'error');
+      }
+    }
+  };
 
   const recentOrdersQuery = useQuery({
     queryKey: ['recent-orders', userId],
@@ -211,6 +288,45 @@ const OrderCash = () => {
             </button>
           ))}
         </div>
+
+        {/* Voice Request Mic Button */}
+        <div className="mt-2 flex items-center justify-center">
+          <button
+            type="button"
+            onClick={handleMicClick}
+            disabled={isTranscribing}
+            className={`h-[38px] px-4 rounded-full flex items-center gap-2 transition-all duration-200 shadow-sm active:scale-95 ${
+              isRecording
+                ? 'bg-red-500 text-white animate-pulse shadow-red-500/30'
+                : isTranscribing
+                  ? 'bg-brand-primary/20 text-brand-primary cursor-wait'
+                  : isDarkMode
+                    ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
+                    : 'bg-black/5 hover:bg-black/10 text-black border border-black/5'
+            }`}
+          >
+            {isTranscribing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+                <span className="text-[13px] font-medium font-sans">Processing voice...</span>
+              </>
+            ) : isRecording ? (
+              <>
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                </span>
+                <Mic className="w-4 h-4" />
+                <span className="text-[13px] font-medium font-sans">Listening... Tap when done</span>
+              </>
+            ) : (
+              <>
+                <Mic className="w-4 h-4 text-brand-primary" />
+                <span className="text-[13px] font-medium font-sans">Speak Amount</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
       {/* Fixed Bottom Area for Keypad */}
       <div className="shrink-0 w-full flex flex-col justify-end mt-auto z-10">
@@ -312,6 +428,109 @@ const OrderCash = () => {
           </div>
         </div>
       </div>
+
+      {/* Voice Confirmation Sheet */}
+      <AnimatePresence>
+        {voiceConfirmation?.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setVoiceConfirmation(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Bottom Sheet Modal */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className={`w-full max-w-[480px] rounded-t-[32px] p-6 pb-8 relative z-10 shadow-2xl border-t ${
+                isDarkMode
+                  ? 'bg-brand-surface-dark border-white/10 text-white'
+                  : 'bg-white border-black/5 text-black'
+              }`}
+            >
+              {/* Handle Bar */}
+              <div className="w-12 h-1 rounded-full bg-white/20 mx-auto mb-5" />
+
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-[18px] font-bold font-sans">Confirm Spoken Amount</h3>
+                    <p className={`text-[12px] ${isDarkMode ? 'text-white/60' : 'text-black/60'}`}>
+                      Verified via Sarvam Saaras AI
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setVoiceConfirmation(null)}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    isDarkMode ? 'bg-white/10 hover:bg-white/15' : 'bg-black/5 hover:bg-black/10'
+                  }`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {voiceConfirmation.transcript && (
+                <div
+                  className={`p-3 rounded-xl mb-4 text-[13px] italic ${
+                    isDarkMode ? 'bg-white/5 text-white/80' : 'bg-black/5 text-black/80'
+                  }`}
+                >
+                  &ldquo;{voiceConfirmation.transcript}&rdquo;
+                </div>
+              )}
+
+              <div className="text-center my-4 py-2">
+                <p className={`text-[14px] font-medium ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
+                  Did you mean
+                </p>
+                <p className="text-[36px] font-bold font-sans text-brand-primary mt-1">
+                  ₹{voiceConfirmation.amount.toLocaleString('en-IN')}?
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2.5 mt-6">
+                <GpButton
+                  onClick={() => {
+                    setAmount(voiceConfirmation.amount.toFixed(2));
+                    setVoiceConfirmation(null);
+                  }}
+                  className="w-full h-[48px] bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full text-[15px] font-medium font-sans"
+                >
+                  <Check className="w-4 h-4 mr-1.5" />
+                  Yes, Use ₹{voiceConfirmation.amount.toLocaleString('en-IN')}
+                </GpButton>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAmount(voiceConfirmation.amount.toFixed(2));
+                    setVoiceConfirmation(null);
+                  }}
+                  className={`w-full h-[44px] rounded-full text-[14px] font-medium font-sans flex items-center justify-center transition-colors ${
+                    isDarkMode
+                      ? 'bg-white/10 hover:bg-white/15 text-white'
+                      : 'bg-black/5 hover:bg-black/10 text-black'
+                  }`}
+                >
+                  <Edit3 className="w-4 h-4 mr-1.5" />
+                  Edit Manually
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
