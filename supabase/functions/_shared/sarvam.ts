@@ -12,6 +12,8 @@ import type {
   SarvamChatCompletionRequest,
   SarvamSpeechToTextRequest,
   SarvamSpeechToTextResponse,
+  SarvamTextToSpeechRequest,
+  SarvamTextToSpeechResponse,
 } from "./types.ts";
 
 const isRetryableStatus = (status: number) => status === 408 || status === 429 || status >= 500;
@@ -172,6 +174,59 @@ export class SarvamClient {
     };
   }
 
+  async textToSpeech(
+    textOrRequest: string | SarvamTextToSpeechRequest,
+    languageCode?: string,
+  ): Promise<SarvamTextToSpeechResponse> {
+    const isRequestObj = textOrRequest && typeof textOrRequest === "object" && "text" in textOrRequest;
+    const req: SarvamTextToSpeechRequest = isRequestObj
+      ? (textOrRequest as SarvamTextToSpeechRequest)
+      : {
+          text: textOrRequest as string,
+          languageCode,
+        };
+
+    const targetLang = toSarvamLanguageCode(req.languageCode);
+    const body: Record<string, unknown> = {
+      inputs: [req.text],
+      target_language_code: targetLang,
+      speaker: req.speaker || "meera",
+      enable_preprocessing: req.enablePreprocessing ?? true,
+    };
+
+    if (req.model) body.model = req.model;
+    if (typeof req.pitch === "number") body.pitch = req.pitch;
+    if (typeof req.pace === "number") body.pace = req.pace;
+    if (typeof req.loudness === "number") body.loudness = req.loudness;
+    if (typeof req.speechSampleRate === "number") body.speech_sample_rate = req.speechSampleRate;
+
+    const response = await this.request<Record<string, any>>("/text-to-speech", {
+      body,
+      timeoutMs: req.timeoutMs,
+      maxRetries: req.maxRetries,
+      validate: isTextToSpeechResponse,
+    });
+
+    const data = response.data;
+    const audioBase64 = Array.isArray(data.audios) && typeof data.audios[0] === "string"
+      ? data.audios[0]
+      : typeof data.audio === "string"
+        ? data.audio
+        : "";
+
+    if (!audioBase64) {
+      throw new AiError("Sarvam text-to-speech returned empty audio output.", "INVALID_RESPONSE", {
+        status: response.status,
+      });
+    }
+
+    return {
+      audioBase64,
+      mimeType: "audio/wav",
+      requestId: response.requestId,
+    };
+  }
+
   private async request<T>(path: string, options: JsonRequestOptions): Promise<JsonResponse<T>> {
     const maxRetries = options.maxRetries ?? SARVAM_DEFAULT_MAX_RETRIES;
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
@@ -292,6 +347,12 @@ function isSpeechToTextResponse(payload: unknown): boolean {
   if (!payload || typeof payload !== "object") return false;
   const res = payload as Record<string, unknown>;
   return typeof res.transcript === "string";
+}
+
+function isTextToSpeechResponse(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") return false;
+  const res = payload as Record<string, unknown>;
+  return (Array.isArray(res.audios) && res.audios.length > 0 && typeof res.audios[0] === "string") || typeof res.audio === "string";
 }
 
 function isChatCompletionResponse(payload: unknown): boolean {

@@ -13,7 +13,7 @@ import { useWebScroll } from '@/hooks/useWebScroll';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { supabase } from '@/lib/supabase';
-import { Mic, Loader2, Sparkles, X, Check, Edit3 } from 'lucide-react';
+import { Mic, Loader2, Sparkles, X, Check, Edit3, Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoiceConfirmationState {
@@ -21,6 +21,22 @@ interface VoiceConfirmationState {
   amount: number;
   transcript: string;
 }
+
+const getConfirmationSentence = (amt: number, lang: string): string => {
+  const formatted = amt.toLocaleString('en-IN');
+  switch (lang) {
+    case 'hi':
+      return `क्या आपका मतलब ${formatted} रुपये है?`;
+    case 'kn':
+      return `ನಿಮ್ಮ ಉದ್ದೇಶ ${formatted} ರೂಪಾಯಿಗಳೇ?`;
+    case 'ta':
+      return `நீங்கள் ${formatted} ரூபாயைக் குறிக்கிறீர்களா?`;
+    case 'te':
+      return `మీరు ${formatted} రూపాయలు అని అనుకుంటున్నారా?`;
+    default:
+      return `Did you mean ${formatted} rupees?`;
+  }
+};
 const OrderCash = () => {
   const { containerOverflow } = useWebScroll();
   const navigate = useNavigate();
@@ -35,8 +51,86 @@ const OrderCash = () => {
   const { showToaster } = useCustomToaster();
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [voiceConfirmation, setVoiceConfirmation] = useState<VoiceConfirmationState | null>(null);
+  const [ttsState, setTtsState] = useState<'idle' | 'loading' | 'playing'>('idle');
+  const activeAudioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const { isRecording, startRecording, stopRecording, error: recorderError } = useVoiceRecorder();
+
+  const stopTtsAudio = () => {
+    if (activeAudioRef.current) {
+      try {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+      } catch {
+        // ignore
+      }
+      activeAudioRef.current = null;
+    }
+    setTtsState('idle');
+  };
+
+  const handlePlayTts = async () => {
+    if (!voiceConfirmation) return;
+
+    if (ttsState === 'playing') {
+      stopTtsAudio();
+      return;
+    }
+
+    if (ttsState === 'loading') return;
+
+    setTtsState('loading');
+    try {
+      const userLang = profile?.preferred_language || 'en';
+      const promptText = getConfirmationSentence(voiceConfirmation.amount, userLang);
+
+      const { data, error } = await supabase.functions.invoke('voice-order-tts', {
+        body: {
+          text: promptText,
+          preferred_language: userLang,
+        },
+      });
+
+      if (error || !data?.audioBase64) {
+        throw error || new Error('No audio returned from TTS service');
+      }
+
+      stopTtsAudio();
+
+      const mimeType = data.mimeType || 'audio/wav';
+      const audioUrl = `data:${mimeType};base64,${data.audioBase64}`;
+      const audio = new Audio(audioUrl);
+      activeAudioRef.current = audio;
+
+      audio.onended = () => {
+        setTtsState('idle');
+        activeAudioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        setTtsState('idle');
+        activeAudioRef.current = null;
+        showToaster("Couldn't play audio, please read the amount above", 'error');
+      };
+
+      audio.onpause = () => {
+        setTtsState('idle');
+      };
+
+      await audio.play();
+      setTtsState('playing');
+    } catch (err) {
+      setTtsState('idle');
+      crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'OrderCash.playTts');
+      showToaster("Couldn't play audio, please read the amount above", 'error');
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopTtsAudio();
+    };
+  }, []);
 
   const tierName = profile?.plan_tier ?? 'free';
   const dailyLimit = tierName.toLowerCase() === 'pro' ? 10000 : 5000;
@@ -438,7 +532,10 @@ const OrderCash = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setVoiceConfirmation(null)}
+              onClick={() => {
+                stopTtsAudio();
+                setVoiceConfirmation(null);
+              }}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
 
@@ -471,7 +568,10 @@ const OrderCash = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setVoiceConfirmation(null)}
+                  onClick={() => {
+                    stopTtsAudio();
+                    setVoiceConfirmation(null);
+                  }}
                   className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     isDarkMode ? 'bg-white/10 hover:bg-white/15' : 'bg-black/5 hover:bg-black/10'
                   }`}
@@ -491,9 +591,34 @@ const OrderCash = () => {
               )}
 
               <div className="text-center my-4 py-2">
-                <p className={`text-[14px] font-medium ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
-                  Did you mean
-                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <p className={`text-[14px] font-medium ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
+                    Did you mean
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handlePlayTts}
+                    disabled={ttsState === 'loading'}
+                    aria-label={ttsState === 'playing' ? 'Stop audio' : 'Play spoken confirmation'}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+                      ttsState === 'playing'
+                        ? 'bg-brand-primary text-white shadow-sm animate-pulse'
+                        : ttsState === 'loading'
+                          ? 'bg-brand-primary/20 text-brand-primary cursor-wait'
+                          : isDarkMode
+                            ? 'bg-white/10 hover:bg-white/15 text-white'
+                            : 'bg-black/5 hover:bg-black/10 text-black'
+                    }`}
+                  >
+                    {ttsState === 'loading' ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
+                    ) : ttsState === 'playing' ? (
+                      <VolumeX className="w-3.5 h-3.5" />
+                    ) : (
+                      <Volume2 className="w-3.5 h-3.5 text-brand-primary" />
+                    )}
+                  </button>
+                </div>
                 <p className="text-[36px] font-bold font-sans text-brand-primary mt-1">
                   ₹{voiceConfirmation.amount.toLocaleString('en-IN')}?
                 </p>
@@ -502,6 +627,7 @@ const OrderCash = () => {
               <div className="flex flex-col gap-2.5 mt-6">
                 <GpButton
                   onClick={() => {
+                    stopTtsAudio();
                     setAmount(voiceConfirmation.amount.toFixed(2));
                     setVoiceConfirmation(null);
                   }}
@@ -514,6 +640,7 @@ const OrderCash = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    stopTtsAudio();
                     setVoiceConfirmation(null);
                   }}
                   className={`w-full h-[44px] rounded-full text-[14px] font-medium font-sans flex items-center justify-center transition-colors ${

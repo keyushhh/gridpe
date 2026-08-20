@@ -48,6 +48,26 @@ export interface SarvamSpeechToTextResponse {
   requestId: string | null;
 }
 
+export interface SarvamTextToSpeechRequest {
+  text: string;
+  languageCode?: string;
+  speaker?: string;
+  model?: string;
+  pitch?: number;
+  pace?: number;
+  loudness?: number;
+  speechSampleRate?: number;
+  enablePreprocessing?: boolean;
+  timeoutMs?: number;
+  maxRetries?: number;
+}
+
+export interface SarvamTextToSpeechResponse {
+  audioBase64: string;
+  mimeType: string;
+  requestId: string | null;
+}
+
 export interface RequestLogContext {
   requestId: string;
   operation: string;

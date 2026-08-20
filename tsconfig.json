@@ -13,5 +13,5 @@
     "noUnusedLocals": false,
     "strictNullChecks": false
   },
-  "exclude": ["supabase", "supabase/functions"]
+  "exclude": ["node_modules", "dist", "supabase", "supabase/**/*", "supabase/functions/**/*"]
 }
