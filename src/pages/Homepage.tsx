@@ -88,6 +88,11 @@ const Homepage = () => {
           return;
         }
 
+        console.log('[VoiceRecorder DEBUG - Homepage] Recorded blob:', {
+          sizeBytes: blob.size,
+          type: blob.type,
+        });
+
         const reader = new FileReader();
         reader.onloadend = async () => {
           try {
@@ -97,8 +102,11 @@ const Homepage = () => {
                 audio: base64Audio,
                 preferred_language: profile?.preferred_language || 'en',
                 mime_type: blob.type || 'audio/webm',
+                __debugEcho: true,
               },
             });
+
+            console.log('[VoiceRecorder DEBUG - Homepage] voice-cash-order response:', { data, error });
 
             if (error) {
               throw error;
@@ -116,6 +124,7 @@ const Homepage = () => {
               showToaster('Could not detect amount from voice. Please try again.', 'error');
             }
           } catch (err) {
+            console.error('[VoiceRecorder DEBUG - Homepage] voiceOrder error:', err);
             crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'Homepage.voiceOrder');
             showToaster('Voice recognition failed. Please try again.', 'error');
           } finally {
@@ -1568,8 +1577,15 @@ const Homepage = () => {
         preferredLanguage={profile?.preferred_language || 'en'}
         isDarkMode={isDarkMode}
         onConfirm={(confirmedAmount) => {
-          setAmount(confirmedAmount.toFixed(2));
+          const formattedAmount = confirmedAmount.toFixed(2);
+          setAmount(formattedAmount);
           setVoiceConfirmation(null);
+          navigate(ROUTES.ORDER_CASH_SUMMARY, {
+            state: {
+              amount: formattedAmount,
+              isScheduledFlow: false,
+            },
+          });
         }}
         onEditManually={() => {
           setVoiceConfirmation(null);

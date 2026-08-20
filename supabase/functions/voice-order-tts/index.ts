@@ -40,7 +40,7 @@ serve(async (req: Request) => {
     const ttsResult = await sarvamClient.textToSpeech({
       text,
       languageCode: sarvamLang,
-      speaker: payload.speaker || "meera",
+      speaker: payload.speaker || "shubh",
     });
 
     logger.success();
@@ -55,8 +55,12 @@ serve(async (req: Request) => {
     logger.failure(error);
     const message = error instanceof Error ? error.message : "Failed to synthesize speech";
     return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: message,
+        hasApiKey: Boolean(Deno.env.get("SARVAM_API_KEY")),
+        audioBase64: null,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

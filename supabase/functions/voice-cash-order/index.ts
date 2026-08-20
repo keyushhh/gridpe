@@ -25,6 +25,7 @@ serve(async (req: Request) => {
     let audioData: Uint8Array;
     let preferredLanguage = "en";
     let mimeType = "audio/webm";
+    let isDebug = false;
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
@@ -42,12 +43,21 @@ serve(async (req: Request) => {
       if (typeof langParam === "string" && langParam.trim()) {
         preferredLanguage = langParam.trim();
       }
+      const debugParam = formData.get("__debugEcho");
+      if (debugParam === "true" || debugParam === "1") {
+        isDebug = true;
+      }
     } else {
       const payload = (await req.json()) as {
         audio?: string;
         preferred_language?: string;
         mime_type?: string;
+        __debugEcho?: boolean;
       };
+
+      if (payload.__debugEcho === true) {
+        isDebug = true;
+      }
 
       if (!payload.audio || typeof payload.audio !== "string") {
         return new Response(
@@ -98,10 +108,12 @@ serve(async (req: Request) => {
     // 2. Resolve amount: validate shared classifier amount (500-100k) or run voice fallback chain
     let finalAmount: number | null = null;
     const initialAmount = analysis.entities.amount?.value;
+    const voiceFallbackAmount = extractVoiceCashAmount(transcript);
+
     if (typeof initialAmount === "number" && isValidCashAmount(initialAmount)) {
       finalAmount = initialAmount;
     } else {
-      finalAmount = extractVoiceCashAmount(transcript);
+      finalAmount = voiceFallbackAmount;
     }
 
     const finalIntent = finalAmount !== null ? "cash_order" : analysis.intent;
@@ -112,6 +124,23 @@ serve(async (req: Request) => {
       extractedAmount: finalAmount,
       extractedDate: analysis.entities.date?.value ?? null,
       extractedTime: analysis.entities.time ?? null,
+      ...(isDebug
+        ? {
+            __debug: {
+              hasApiKey: Boolean(Deno.env.get("SARVAM_API_KEY")),
+              mimeType,
+              preferredLanguage,
+              sarvamLang,
+              audioDataBytes: audioData?.length,
+              rawSttResult: sttResult,
+              transcript,
+              analysis,
+              voiceFallbackAmount,
+              finalAmount,
+              finalIntent,
+            },
+          }
+        : {}),
     };
 
     logger.success();
@@ -130,6 +159,11 @@ serve(async (req: Request) => {
         extractedAmount: null,
         extractedDate: null,
         extractedTime: null,
+        __debug: {
+          hasApiKey: Boolean(Deno.env.get("SARVAM_API_KEY")),
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorStack: error instanceof Error ? error.stack : undefined,
+        },
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

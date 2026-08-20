@@ -56,6 +56,11 @@ const OrderCash = () => {
           return;
         }
 
+        console.log('[VoiceRecorder DEBUG] Recorded blob:', {
+          sizeBytes: blob.size,
+          type: blob.type,
+        });
+
         const reader = new FileReader();
         reader.onloadend = async () => {
           try {
@@ -65,8 +70,11 @@ const OrderCash = () => {
                 audio: base64Audio,
                 preferred_language: profile?.preferred_language || 'en',
                 mime_type: blob.type || 'audio/webm',
+                __debugEcho: true,
               },
             });
+
+            console.log('[VoiceRecorder DEBUG] voice-cash-order response:', { data, error });
 
             if (error) {
               throw error;
@@ -84,6 +92,7 @@ const OrderCash = () => {
               showToaster('Could not detect amount from voice. Please try again.', 'error');
             }
           } catch (err) {
+            console.error('[VoiceRecorder DEBUG] voiceOrder error:', err);
             crashlytics.recordError(err instanceof Error ? err : new Error(String(err)), 'OrderCash.voiceOrder');
             showToaster('Voice recognition failed. Please try again.', 'error');
           } finally {

@@ -71,6 +71,7 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
     setTtsState('loading');
     try {
       const promptText = getConfirmationSentence(amount, preferredLanguage);
+      console.log('[TTS DEBUG] Invoking voice-order-tts with:', { promptText, preferredLanguage });
 
       const { data, error } = await supabase.functions.invoke('voice-order-tts', {
         body: {
@@ -79,8 +80,16 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
         },
       });
 
-      if (error || !data?.audioBase64) {
-        throw error || new Error('No audio returned from TTS service');
+      console.log('[TTS DEBUG] voice-order-tts response:', {
+        hasData: !!data,
+        audioBase64Length: data?.audioBase64 ? data.audioBase64.length : 0,
+        mimeType: data?.mimeType,
+        error: data?.error || error,
+        rawPayload: data,
+      });
+
+      if (error || data?.error || !data?.audioBase64) {
+        throw error || new Error(data?.error || 'No audio returned from TTS service');
       }
 
       stopTtsAudio();
@@ -91,11 +100,17 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
       activeAudioRef.current = audio;
 
       audio.onended = () => {
+        console.log('[TTS DEBUG] Audio playback completed normally');
         setTtsState('idle');
         activeAudioRef.current = null;
       };
 
-      audio.onerror = () => {
+      audio.onerror = (e) => {
+        console.error('[TTS DEBUG] audio.onerror fired:', {
+          event: e,
+          errorCode: audio.error?.code,
+          errorMessage: audio.error?.message,
+        });
         setTtsState('idle');
         activeAudioRef.current = null;
         showToaster("Couldn't play audio, please read the amount above", 'error');
@@ -105,9 +120,21 @@ export const VoiceConfirmationSheet: React.FC<VoiceConfirmationSheetProps> = ({
         setTtsState('idle');
       };
 
-      await audio.play();
-      setTtsState('playing');
+      try {
+        console.log('[TTS DEBUG] Calling audio.play()...');
+        await audio.play();
+        console.log('[TTS DEBUG] audio.play() promise resolved successfully');
+        setTtsState('playing');
+      } catch (playErr: any) {
+        console.error('[TTS DEBUG] audio.play() threw error:', {
+          name: playErr?.name,
+          message: playErr?.message,
+          playErr,
+        });
+        throw playErr;
+      }
     } catch (err) {
+      console.error('[TTS DEBUG] handlePlayTts top-level catch:', err);
       setTtsState('idle');
       crashlytics.recordError(
         err instanceof Error ? err : new Error(String(err)),

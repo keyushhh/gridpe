@@ -138,14 +138,33 @@ export class SarvamClient {
     const targetLang = toSarvamLanguageCode(req.languageCode);
     const formData = new FormData();
 
+    const rawType = (req.audio instanceof Blob ? req.audio.type : req.mimeType) || "audio/webm";
+    // Strip parameters (e.g. "audio/webm;codecs=opus" -> "audio/webm", "audio/mp4;codecs=mp4a.40.2" -> "audio/mp4")
+    const cleanMimeType = rawType.split(";")[0].trim().toLowerCase() || "audio/webm";
+
     let fileBlob: Blob;
     if (req.audio instanceof Blob) {
-      fileBlob = req.audio;
+      fileBlob = req.audio.type === cleanMimeType ? req.audio : new Blob([req.audio], { type: cleanMimeType });
     } else {
-      fileBlob = new Blob([req.audio as any], { type: req.mimeType || "audio/webm" });
+      fileBlob = new Blob([req.audio as any], { type: cleanMimeType });
     }
 
-    const fileName = req.fileName || (fileBlob.type.includes("wav") ? "audio.wav" : fileBlob.type.includes("mp4") ? "audio.mp4" : "audio.webm");
+    const extensionMap: Record<string, string> = {
+      "audio/wav": "audio.wav",
+      "audio/x-wav": "audio.wav",
+      "audio/wave": "audio.wav",
+      "audio/webm": "audio.webm",
+      "video/webm": "audio.webm",
+      "audio/mp4": "audio.mp4",
+      "video/mp4": "audio.mp4",
+      "audio/aac": "audio.aac",
+      "audio/mpeg": "audio.mp3",
+      "audio/mp3": "audio.mp3",
+      "audio/ogg": "audio.ogg",
+      "audio/flac": "audio.flac",
+    };
+
+    const fileName = req.fileName || extensionMap[cleanMimeType] || (cleanMimeType.includes("wav") ? "audio.wav" : cleanMimeType.includes("mp4") ? "audio.mp4" : "audio.webm");
     formData.append("file", fileBlob, fileName);
 
     if (targetLang) {
@@ -188,9 +207,10 @@ export class SarvamClient {
 
     const targetLang = toSarvamLanguageCode(req.languageCode);
     const body: Record<string, unknown> = {
-      inputs: [req.text],
+      text: req.text,
       target_language_code: targetLang,
-      speaker: req.speaker || "meera",
+      model: req.model || "bulbul:v3",
+      speaker: req.speaker || "shubh",
       enable_preprocessing: req.enablePreprocessing ?? true,
     };
 
@@ -236,7 +256,7 @@ export class SarvamClient {
           const errText = await response.text().catch(() => "");
           console.error(`[Sarvam Upstream Error ${response.status}]:`, errText);
           const error = new AiError(
-            `Sarvam request failed with status ${response.status}`,
+            `Sarvam request failed with status ${response.status}: ${errText}`,
             "UPSTREAM_ERROR",
             { status: response.status, retryable: isRetryableStatus(response.status) },
           );
@@ -277,7 +297,7 @@ export class SarvamClient {
           const errText = await response.text().catch(() => "");
           console.error(`[Sarvam STT Upstream Error ${response.status}]:`, errText);
           const error = new AiError(
-            `Sarvam STT request failed with status ${response.status}`,
+            `Sarvam STT request failed with status ${response.status}: ${errText}`,
             "UPSTREAM_ERROR",
             { status: response.status, retryable: isRetryableStatus(response.status) },
           );
