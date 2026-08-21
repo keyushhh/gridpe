@@ -779,6 +779,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
         body: {
           text: cleanTtsText,
           preferred_language: preferredLanguageRef.current,
+          speaker: 'ritu',
         },
       });
 

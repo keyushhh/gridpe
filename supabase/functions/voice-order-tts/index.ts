@@ -41,7 +41,7 @@ serve(async (req: Request) => {
     const ttsResult = await sarvamClient.textToSpeech({
       text,
       languageCode: sarvamLang,
-      speaker: payload.speaker || "shubh",
+      speaker: payload.speaker || "ritu",
     });
 
     logger.success();

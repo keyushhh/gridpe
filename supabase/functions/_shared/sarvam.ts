@@ -210,7 +210,7 @@ export class SarvamClient {
       text: req.text,
       target_language_code: targetLang,
       model: req.model || "bulbul:v3",
-      speaker: req.speaker || "shubh",
+      speaker: req.speaker || "ritu",
       enable_preprocessing: req.enablePreprocessing ?? true,
     };
 
