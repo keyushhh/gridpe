@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Mic,
-  Pause,
-  Play,
-  RotateCcw,
-  CheckCircle2,
-  MapPin,
-  Sparkles,
+import { 
+  Mic, 
+  Pause, 
+  Play, 
+  RotateCcw, 
+  Sparkles, 
   Sliders,
   PhoneOff,
   ArrowRight,
@@ -22,6 +20,7 @@ export interface SlotState {
   addressLabel: string | null;
   confirmed: boolean;
 }
+
 
 export interface VoiceConversationOverlayProps {
   isOpen: boolean;
@@ -67,6 +66,7 @@ const CONVERSATION_SCRIPT: ScriptStep[] = [
 
 /**
  * Animated Aurora Purple Flow Canvas
+ * Softened, single-hue #5260FE aurora plumes fading naturally into deep pitch black (#000000).
  */
 const AuroraPurpleBackground: React.FC<{ conversationState: VoiceConversationState; isHold: boolean }> = ({
   conversationState,
@@ -85,15 +85,15 @@ const AuroraPurpleBackground: React.FC<{ conversationState: VoiceConversationSta
     let w = (canvas.width = window.innerWidth * dpr);
     let h = (canvas.height = window.innerHeight * dpr);
 
-    // Drifting particle motes (floating organically across upper & middle canvas)
-    const PARTICLE_COUNT = 50;
+    // Drifting particle motes
+    const PARTICLE_COUNT = 45;
     const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
       x: Math.random() * w,
-      y: Math.random() * (h * 0.85),
-      r: (0.4 + Math.random() * 1.5) * dpr,
-      o: 0.15 + Math.random() * 0.65,
-      vx: (Math.random() - 0.5) * 0.35 * dpr,
-      vy: (0.12 + Math.random() * 0.45) * dpr,
+      y: Math.random() * (h * 0.75),
+      r: (0.4 + Math.random() * 1.4) * dpr,
+      o: 0.12 + Math.random() * 0.55,
+      vx: (Math.random() - 0.5) * 0.3 * dpr,
+      vy: (0.1 + Math.random() * 0.4) * dpr,
     }));
 
     let time = 0;
@@ -108,47 +108,47 @@ const AuroraPurpleBackground: React.FC<{ conversationState: VoiceConversationSta
     window.addEventListener('resize', handleResize);
 
     const render = () => {
-      time += 0.009;
+      time += 0.008;
       ctx.clearRect(0, 0, w, h);
 
-      // 1. Base deep midnight black fill
-      ctx.fillStyle = '#02040A';
+      // 1. Base deep pitch black fill
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, w, h);
 
-      // 2. Multi-Node Organic Asymmetrical Plumes — Strictly using #5260FE (rgb: 82, 96, 254)
-      // Plume 1: Main Center-Left Plume (Dipping down to ~0.72h)
+      // 2. Softened Multi-Node Organic Asymmetrical Plumes (#5260FE: rgb 82, 96, 254)
+      // Plume 1: Main Center-Left Plume
       const p1x = w * (0.38 + Math.sin(time * 0.7) * 0.12);
-      const p1y = h * (0.35 + Math.cos(time * 0.5) * 0.08);
-      const p1r = Math.max(w, h) * (0.55 + Math.sin(time * 0.6) * 0.05);
+      const p1y = h * (0.32 + Math.cos(time * 0.5) * 0.08);
+      const p1r = Math.max(w, h) * (0.58 + Math.sin(time * 0.6) * 0.05);
       const g1 = ctx.createRadialGradient(p1x, p1y, 0, p1x, p1y, p1r);
-      g1.addColorStop(0, 'rgba(82, 96, 254, 0.55)');   // Pure #5260FE core
-      g1.addColorStop(0.35, 'rgba(82, 96, 254, 0.28)');
-      g1.addColorStop(0.7, 'rgba(82, 96, 254, 0.08)');
+      g1.addColorStop(0, 'rgba(82, 96, 254, 0.40)');
+      g1.addColorStop(0.38, 'rgba(82, 96, 254, 0.20)');
+      g1.addColorStop(0.72, 'rgba(82, 96, 254, 0.04)');
       g1.addColorStop(1, 'rgba(82, 96, 254, 0)');
       ctx.fillStyle = g1;
       ctx.fillRect(0, 0, w, h);
 
-      // Plume 2: Deep Right-Side Flow (Dips deeper down to ~0.82h)
+      // Plume 2: Deep Right-Side Flow
       const p2x = w * (0.72 + Math.cos(time * 0.6) * 0.14);
-      const p2y = h * (0.45 + Math.sin(time * 0.8) * 0.1);
-      const p2r = Math.max(w, h) * (0.6 + Math.cos(time * 0.5) * 0.06);
+      const p2y = h * (0.42 + Math.sin(time * 0.8) * 0.1);
+      const p2r = Math.max(w, h) * (0.62 + Math.cos(time * 0.5) * 0.06);
       const g2 = ctx.createRadialGradient(p2x, p2y, 0, p2x, p2y, p2r);
-      g2.addColorStop(0, 'rgba(82, 96, 254, 0.48)');  // Pure #5260FE
-      g2.addColorStop(0.4, 'rgba(82, 96, 254, 0.24)');
-      g2.addColorStop(0.75, 'rgba(82, 96, 254, 0.06)');
+      g2.addColorStop(0, 'rgba(82, 96, 254, 0.35)');
+      g2.addColorStop(0.42, 'rgba(82, 96, 254, 0.16)');
+      g2.addColorStop(0.78, 'rgba(82, 96, 254, 0.03)');
       g2.addColorStop(1, 'rgba(82, 96, 254, 0)');
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, w, h);
 
-      // Plume 3: Center Ambient Tongue (Hanging below the prompt text & orb area)
-      const stateBoost = isHold ? 0.2 : conversationState === 'speaking' ? 0.45 : conversationState === 'listening' ? 0.48 : conversationState === 'thinking' ? 0.52 : 0.35;
+      // Plume 3: Center Ambient Tongue
+      const stateBoost = isHold ? 0.15 : conversationState === 'speaking' ? 0.32 : conversationState === 'listening' ? 0.36 : conversationState === 'thinking' ? 0.40 : 0.25;
       const p3x = w * (0.5 + Math.sin(time * 0.9) * 0.08);
-      const p3y = h * (0.55 + Math.cos(time * 0.7) * 0.07);
-      const p3r = Math.max(w, h) * 0.48;
+      const p3y = h * (0.50 + Math.cos(time * 0.7) * 0.07);
+      const p3r = Math.max(w, h) * 0.46;
       const g3 = ctx.createRadialGradient(p3x, p3y, 0, p3x, p3y, p3r);
       g3.addColorStop(0, `rgba(82, 96, 254, ${stateBoost})`);
-      g3.addColorStop(0.45, `rgba(82, 96, 254, ${stateBoost * 0.45})`);
-      g3.addColorStop(0.8, 'rgba(82, 96, 254, 0)');
+      g3.addColorStop(0.5, `rgba(82, 96, 254, ${stateBoost * 0.35})`);
+      g3.addColorStop(0.85, 'rgba(82, 96, 254, 0)');
       ctx.fillStyle = g3;
       ctx.fillRect(0, 0, w, h);
 
@@ -157,37 +157,21 @@ const AuroraPurpleBackground: React.FC<{ conversationState: VoiceConversationSta
       const p4y = h * (0.12 + Math.sin(time * 0.6) * 0.06);
       const p4r = Math.max(w, h) * 0.45;
       const g4 = ctx.createRadialGradient(p4x, p4y, 0, p4x, p4y, p4r);
-      g4.addColorStop(0, 'rgba(82, 96, 254, 0.42)');
-      g4.addColorStop(0.5, 'rgba(82, 96, 254, 0.16)');
+      g4.addColorStop(0, 'rgba(82, 96, 254, 0.30)');
+      g4.addColorStop(0.55, 'rgba(82, 96, 254, 0.10)');
       g4.addColorStop(1, 'rgba(82, 96, 254, 0)');
       ctx.fillStyle = g4;
       ctx.fillRect(0, 0, w, h);
 
-      // 3. Animated Organic Undulating Wave Contour — Using #5260FE
+      // 3. Softened Animated Organic Undulating Wave Contour (Full Screen Fill)
       ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, h * (0.58 + Math.sin(time * 0.6) * 0.07));
-      ctx.bezierCurveTo(
-        w * 0.28, h * (0.76 + Math.sin(time * 0.8 + 1) * 0.08),
-        w * 0.58, h * (0.64 + Math.cos(time * 0.7 + 2) * 0.09),
-        w * 0.82, h * (0.84 + Math.sin(time * 0.5 + 3) * 0.07)
-      );
-      ctx.bezierCurveTo(
-        w * 0.94, h * (0.78 + Math.cos(time * 0.6) * 0.06),
-        w, h * (0.68 + Math.sin(time * 0.7) * 0.06),
-        w, 0
-      );
-      ctx.closePath();
-
-      // Curved cloud fill with pure #5260FE fade
-      const waveGrad = ctx.createLinearGradient(0, 0, 0, h * 0.85);
-      waveGrad.addColorStop(0, 'rgba(82, 96, 254, 0.45)');
-      waveGrad.addColorStop(0.4, 'rgba(82, 96, 254, 0.22)');
-      waveGrad.addColorStop(0.75, 'rgba(82, 96, 254, 0.06)');
+      const waveGrad = ctx.createRadialGradient(w * 0.5 + Math.sin(time * 0.5) * (w * 0.2), 0, 0, w * 0.5 + Math.sin(time * 0.5) * (w * 0.2), 0, h * 0.85);
+      waveGrad.addColorStop(0, 'rgba(82, 96, 254, 0.32)');
+      waveGrad.addColorStop(0.45, 'rgba(82, 96, 254, 0.14)');
+      waveGrad.addColorStop(0.8, 'rgba(82, 96, 254, 0.02)');
       waveGrad.addColorStop(1, 'rgba(82, 96, 254, 0)');
       ctx.fillStyle = waveGrad;
-      ctx.fill();
+      ctx.fillRect(0, 0, w, h);
       ctx.restore();
 
       // 4. Drifting Particle Motes
@@ -196,29 +180,28 @@ const AuroraPurpleBackground: React.FC<{ conversationState: VoiceConversationSta
         p.x += p.vx;
         p.y += p.vy;
 
-        // Wrap around smoothly
         if (p.x < 0) p.x = w;
         if (p.x > w) p.x = 0;
         if (p.y < 0) p.y = h;
         if (p.y > h) p.y = 0;
 
-        // Natural opacity falloff as particles drift into the deeper black area
-        const verticalFade = Math.max(0, Math.min(1, 1 - (p.y / (h * 0.82))));
+        const verticalFade = Math.max(0, Math.min(1, 1 - (p.y / (h * 0.75))));
         if (verticalFade > 0.04) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${p.o * verticalFade * 0.85})`;
+          ctx.fillStyle = `rgba(255, 255, 255, ${p.o * verticalFade * 0.75})`;
           ctx.fill();
         }
       }
 
-      // 5. Asymmetrical Soft Radial Dissolve at the Bottom (Organic Vignette into #02040A)
-      const darkFade = ctx.createRadialGradient(w * 0.5, h * 1.1, h * 0.2, w * 0.5, h * 1.1, h * 0.8);
-      darkFade.addColorStop(0, '#02040A');
-      darkFade.addColorStop(0.55, 'rgba(2, 4, 10, 0.7)');
-      darkFade.addColorStop(0.85, 'rgba(2, 4, 10, 0.15)');
-      darkFade.addColorStop(1, 'rgba(2, 4, 10, 0)');
-      ctx.fillStyle = darkFade;
+      // 5. Seamless Full-Screen Bottom Darkness Dissolve (0 to h, completely eliminating any seams)
+      const bottomDarkness = ctx.createLinearGradient(0, 0, 0, h);
+      bottomDarkness.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      bottomDarkness.addColorStop(0.38, 'rgba(0, 0, 0, 0)');
+      bottomDarkness.addColorStop(0.58, 'rgba(0, 0, 0, 0.45)');
+      bottomDarkness.addColorStop(0.82, 'rgba(0, 0, 0, 0.92)');
+      bottomDarkness.addColorStop(1, '#000000');
+      ctx.fillStyle = bottomDarkness;
       ctx.fillRect(0, 0, w, h);
 
       animId = requestAnimationFrame(render);
@@ -254,11 +237,11 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
     addressLabel: null,
     confirmed: false,
   });
-  const [currentTranscript, setCurrentTranscript] = useState<string>('');
   const [isHold, setIsHold] = useState<boolean>(false);
   const [showDevControls, setShowDevControls] = useState<boolean>(false);
+  const [currentTranscript, setCurrentTranscript] = useState<string>('');
 
-  // Full reset: Resets step index, slots, transcript, hold state, and conversation state
+  // Full reset
   const handleReset = useCallback(() => {
     setCurrentStepIndex(0);
     setConversationState('speaking');
@@ -282,7 +265,6 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
     const step = CONVERSATION_SCRIPT[clampedIndex];
     setCurrentStepIndex(clampedIndex);
 
-    // Compute cumulative slots up to this step
     const cumulativeSlots: SlotState = {
       amount: null,
       addressLabel: null,
@@ -307,7 +289,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
       return;
     }
 
-    // 1. Show user reply transcript and set state to 'thinking' (Working orb)
+    // 1. Show user reply transcript and set state to 'thinking'
     setCurrentTranscript(step.userReply);
     setConversationState('thinking');
 
@@ -315,7 +297,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
     const updated = { ...slots, ...step.updatedSlots };
     setSlots(updated);
 
-    // 3. Advance to next step (Composing orb)
+    // 3. Advance to next step
     if (currentStepIndex < CONVERSATION_SCRIPT.length - 1) {
       const nextIdx = currentStepIndex + 1;
       setCurrentStepIndex(nextIdx);
@@ -340,7 +322,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
       setConversationState('speaking');
     } else {
       setIsHold(true);
-      setConversationState('idle'); // Breathing orb when on hold
+      setConversationState('idle');
     }
   };
 
@@ -348,11 +330,6 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
 
   const currentStep = CONVERSATION_SCRIPT[Math.min(currentStepIndex, CONVERSATION_SCRIPT.length - 1)];
 
-  // Map conversation states strictly to the requested 4 ThinkingOrb states:
-  // 1. 'breathing'  -> Default idle / resting / on hold
-  // 2. 'listening'  -> When the mic is active and user is speaking
-  // 3. 'composing'  -> When the assistant is formulating its response / speaking
-  // 4. 'working'    -> When processing speech / extracting parameters / placing the order
   const getOrbState = (): 'working' | 'listening' | 'composing' | 'breathing' => {
     switch (conversationState) {
       case 'listening':
@@ -369,8 +346,8 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
 
   return (
     <AnimatePresence>
-      <div
-        className="fixed inset-0 z-[100] flex flex-col justify-between overflow-hidden select-none bg-[#02040A] font-satoshi"
+      <div 
+        className="fixed inset-0 z-[100] flex flex-col justify-between overflow-hidden select-none bg-[#000000] font-satoshi"
         style={{
           backdropFilter: 'blur(32px)',
           WebkitBackdropFilter: 'blur(32px)',
@@ -379,66 +356,74 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
         {/* ================= HORIZONTAL TOP-TO-BOTTOM ANIMATED PURPLE AURORA CANOPY (#5260FE) ================= */}
         <AuroraPurpleBackground conversationState={conversationState} isHold={isHold} />
 
+        {/* ================= SUBTLE CINEMATIC FILM GRAIN TEXTURE ================= */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-[0.04] mix-blend-overlay z-[2]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'repeat',
+          }}
+          aria-hidden="true"
+        />
+
         {/* ================= TOP HEADER BAR (Minimal: Dev Settings Only) ================= */}
-        <div className="relative z-10 flex items-center justify-end px-6 pt-12 pb-3 safe-top">
-          {/* Settings Icon to Toggle Dev Controls */}
+        <div className="relative z-10 flex items-center justify-end px-6 pt-12 pb-2 safe-top">
           <button
             type="button"
             onClick={() => setShowDevControls((prev) => !prev)}
             aria-label="Toggle Dev Controls"
             title="Toggle Dev Scaffolding Panel"
-            className={`p-2 rounded-full transition-all duration-200 active:scale-90 cursor-pointer ${showDevControls
+            className={`p-2 rounded-full transition-all duration-200 active:scale-90 cursor-pointer ${
+              showDevControls
                 ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.35)]'
                 : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/70 hover:text-white border border-white/10'
-              }`}
+            }`}
           >
             <Settings className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Live Slot State Chips */}
-        <div className="relative z-10 px-6 flex flex-wrap items-center gap-2 justify-center min-h-[32px]">
-          {slots.amount && (
+        {/* ================= CENTER SECTION (ThinkingOrb + Single Prompt) ================= */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 max-w-sm mx-auto w-full text-center -translate-y-6 sm:-translate-y-8">
+
+          {/* ThinkingOrb with luminous ambient glow behind it (scaled to 100px) */}
+          <div className="relative mb-7 flex items-center justify-center w-[100px] h-[100px]">
+            
+            {/* Tier 1: Wide Outer Radiant Halo (220px) */}
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5260FE]/20 border border-[#5260FE]/35 text-[#C4C9FE] text-[11.5px] font-medium tracking-wide shadow-sm backdrop-blur-md"
-            >
-              <span>Amount:</span>
-              <span className="font-bold font-satoshi">₹{slots.amount.toLocaleString('en-IN')}</span>
-            </motion.div>
-          )}
+              animate={{
+                scale: conversationState === 'speaking' ? [1, 1.25, 1] : conversationState === 'listening' ? [1, 1.35, 1] : conversationState === 'thinking' ? [1.1, 1.45, 1.1] : [0.95, 1.15, 0.95],
+                opacity: isHold ? 0.35 : conversationState === 'thinking' ? [0.8, 1, 0.8] : conversationState === 'listening' ? [0.75, 0.95, 0.75] : [0.6, 0.85, 0.6],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -inset-14 rounded-full pointer-events-none blur-2xl"
+              style={{
+                background: 'radial-gradient(circle, rgba(82, 96, 254, 0.75) 0%, rgba(82, 96, 254, 0.35) 45%, transparent 72%)',
+              }}
+            />
 
-          {slots.addressLabel && (
+            {/* Tier 2: Focused Mid-Core Glow (140px) */}
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5260FE]/15 border border-[#5260FE]/30 text-[#C4C9FE] text-[11.5px] font-medium tracking-wide shadow-sm backdrop-blur-md"
+              animate={{
+                scale: conversationState === 'speaking' ? [1, 1.18, 1] : [1, 1.1, 1],
+                opacity: isHold ? 0.4 : [0.7, 0.95, 0.7],
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -inset-5 rounded-full pointer-events-none blur-lg"
+              style={{
+                background: 'radial-gradient(circle, rgba(82, 96, 254, 0.9) 0%, rgba(82, 96, 254, 0.5) 55%, transparent 75%)',
+              }}
+            />
+
+            {/* ThinkingOrb from 'thinking-orbs' scaled to 100px with photon drop-shadow */}
+            <div 
+              className="relative z-10"
+              style={{ 
+                transform: 'scale(1.5625)', 
+                transformOrigin: 'center',
+                filter: 'drop-shadow(0 0 16px rgba(82, 96, 254, 0.75)) drop-shadow(0 0 32px rgba(82, 96, 254, 0.45))',
+              }}
             >
-              <MapPin className="w-3 h-3 text-[#8E97FD]" />
-              <span>Address:</span>
-              <span className="font-bold font-satoshi">{slots.addressLabel}</span>
-            </motion.div>
-          )}
-
-          {slots.confirmed && (
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-[11.5px] font-medium tracking-wide shadow-sm backdrop-blur-md"
-            >
-              <CheckCircle2 className="w-3 h-3 text-emerald-300" />
-              <span className="font-satoshi">Order Confirmed</span>
-            </motion.div>
-          )}
-        </div>
-
-        {/* ================= CENTER SECTION (ThinkingOrb, Question & Transcript) ================= */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 max-w-sm mx-auto w-full text-center my-auto">
-
-          {/* ThinkingOrb from 'thinking-orbs' scaled to 74px (+10px) */}
-          <div className="mb-6 flex items-center justify-center w-[74px] h-[74px]">
-            <div style={{ transform: 'scale(1.15625)', transformOrigin: 'center' }}>
               <ThinkingOrb
                 state={getOrbState()}
                 size={64}
@@ -448,7 +433,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
             </div>
           </div>
 
-          {/* Main Question / Prompt Text (font-satoshi) */}
+          {/* Single Assistant Prompt Text */}
           <motion.div
             key={currentStep?.assistantPrompt}
             initial={{ opacity: 0, y: 8 }}
@@ -461,7 +446,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
             </h1>
           </motion.div>
 
-          {/* User Spoken Transcript Card */}
+          {/* User Spoken Transcript */}
           <div className="min-h-[48px] flex items-center justify-center w-full">
             <AnimatePresence mode="wait">
               {currentTranscript ? (
@@ -502,7 +487,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
 
         {/* ================= BOTTOM CONTROLS (Clean Circular Buttons) ================= */}
         <div className="relative z-10 px-6 pb-12 safe-bottom flex flex-col items-center gap-3.5">
-
+          
           {/* Circular Action Icons: Hold & End */}
           <div className="flex items-center justify-center gap-6">
             {/* Hold Button (Clean Frosted Circle, No Glow) */}
@@ -511,10 +496,11 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
               onClick={toggleHold}
               aria-label={isHold ? 'Resume conversation' : 'Hold conversation'}
               title={isHold ? 'Resume' : 'Hold'}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 border backdrop-blur-2xl cursor-pointer ${isHold
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 border backdrop-blur-2xl cursor-pointer ${
+                isHold
                   ? 'bg-amber-500/20 text-amber-300 border-amber-400/40'
                   : 'bg-white/[0.08] hover:bg-white/[0.14] text-white/80 hover:text-white border-white/[0.12]'
-                }`}
+              }`}
             >
               {isHold ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
             </button>
@@ -577,10 +563,11 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
                         key={idx}
                         type="button"
                         onClick={() => goToStep(idx)}
-                        className={`px-2 py-1 rounded-lg text-[10.5px] font-medium border transition-all cursor-pointer font-satoshi ${currentStepIndex === idx
+                        className={`px-2 py-1 rounded-lg text-[10.5px] font-medium border transition-all cursor-pointer font-satoshi ${
+                          currentStepIndex === idx
                             ? 'bg-[#5260FE]/30 text-[#C4C9FE] border-[#5260FE]/60 font-bold'
                             : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10'
-                          }`}
+                        }`}
                       >
                         Step {idx + 1}
                       </button>
@@ -604,10 +591,11 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
                         key={label}
                         type="button"
                         onClick={() => setConversationState(state)}
-                        className={`px-2 py-1 rounded-lg text-[10.5px] font-medium capitalize border transition-all cursor-pointer font-satoshi ${conversationState === state
+                        className={`px-2 py-1 rounded-lg text-[10.5px] font-medium capitalize border transition-all cursor-pointer font-satoshi ${
+                          conversationState === state
                             ? 'bg-amber-500/25 text-amber-200 border-amber-500/50 font-bold'
                             : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10'
-                          }`}
+                        }`}
                       >
                         {label}
                       </button>
