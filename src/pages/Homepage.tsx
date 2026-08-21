@@ -1625,9 +1625,17 @@ const Homepage = () => {
         isOpen={isVoiceOverlayOpen}
         onClose={() => setIsVoiceOverlayOpen(false)}
         onComplete={(slots) => {
+          setIsVoiceOverlayOpen(false);
           if (slots.amount) {
             const formattedAmount = slots.amount.toFixed(2);
             setAmount(formattedAmount);
+            navigate(ROUTES.ORDER_CASH_SUMMARY, {
+              state: {
+                amount: formattedAmount,
+                isScheduledFlow: false,
+                addressId: slots.addressId || null,
+              },
+            });
           }
         }}
       />

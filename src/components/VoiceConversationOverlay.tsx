@@ -9,18 +9,30 @@ import {
   Sliders,
   PhoneOff,
   ArrowRight,
-  Settings
+  Settings,
+  Square,
+  Check,
+  MapPin,
+  Plus
 } from 'lucide-react';
 import { ThinkingOrb } from 'thinking-orbs';
+import { supabase } from '@/lib/supabase';
+import { useUser } from '@/contexts/UserContext';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { fetchAddresses } from '@/lib/addresses';
+import { useLocationStore } from '@/store/useLocationStore';
+import { Address } from '@/types';
 
 export type VoiceConversationState = 'listening' | 'thinking' | 'speaking' | 'idle';
 
 export interface SlotState {
   amount: number | null;
   addressLabel: string | null;
+  addressId?: string | null;
+  selectedAddress?: Address | null;
   confirmed: boolean;
+  orderId?: string | null;
 }
-
 
 export interface VoiceConversationOverlayProps {
   isOpen: boolean;
@@ -30,10 +42,136 @@ export interface VoiceConversationOverlayProps {
 
 interface ScriptStep {
   stepIndex: number;
-  assistantPrompt: string;
+  assistantPrompt: string | ((slots: SlotState) => string);
   userReply: string;
-  updatedSlots: Partial<SlotState>;
+  updatedSlots: Partial<SlotState> | ((slots: SlotState) => Partial<SlotState>);
   isFinal?: boolean;
+}
+
+/**
+ * Normalizes an address object or raw label to a user-friendly conversational name.
+ * - If address.label is "Current Location" (or null/empty), falls back to address.area (e.g. "HRBR Layout").
+ * - If area is also empty/null, falls back to "your saved address" (never hardcodes "Home").
+ * - Otherwise returns the custom address label (e.g. "Home", "Work", "Office").
+ */
+export function getNormalizedAddressLabel(address?: Partial<Address> | null, rawLabel?: string | null): string {
+  const label = (rawLabel ?? address?.label ?? '').trim();
+  const isCurrentLocationOrEmpty = !label || label.toLowerCase() === 'current location';
+
+  if (!isCurrentLocationOrEmpty) {
+    return label;
+  }
+
+  const area = (address?.area || '').trim();
+  if (area && area.toLowerCase() !== 'current location') {
+    return area;
+  }
+
+  return 'your saved address';
+}
+
+/**
+ * Multilingual Conversational Voice Prompt Generators
+ */
+export function getAmountPrompt(lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi': return 'आपको कितने रुपये चाहिए?';
+    case 'kn': return 'ನಿಮಗೆ ಎಷ್ಟು ನಗದು ಬೇಕು?';
+    case 'ta': return 'உங்களுக்கு எவ்வளவு பணம் தேவை?';
+    case 'te': return 'మీకు ఎంత నగదు కావాలి?';
+    case 'bn': return 'আপনার কত টাকা লাগবে?';
+    case 'mr': return 'तुम्हाला किती रोख रक्कम हवी आहे?';
+    case 'gu': return 'તમારે કેટલા રોકડા જોઈએ છે?';
+    case 'pa': return 'ਤੁਹਾਨੂੰ ਕਿੰਨੀ ਨਕਦੀ ਚਾਹੀਦੀ ਹੈ?';
+    case 'ml': return 'നിങ്ങൾക്ക് എത്ര പണം വേണം?';
+    case 'od': return 'ଆପଣଙ୍କୁ କେତେ ଟଙ୍କା ଦରକାର?';
+    default: return 'How much cash do you need?';
+  }
+}
+
+export function getAmountMinHintPrompt(lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi': return 'कम से कम 500 रुपये का ऑर्डर होता है। आपको कितने रुपये चाहिए?';
+    case 'kn': return 'ಕನಿಷ್ಠ ಮೊತ್ತ ₹500. ನಿಮಗೆ ಎಷ್ಟು ನಗದು ಬೇಕು?';
+    case 'ta': return 'குறைந்தபட்ச தொகை ₹500. உங்களுக்கு எவ்வளவு பணம் தேவை?';
+    case 'te': return 'కనీస మొత్తం ₹500. మీకు ఎంత నగదు కావాలి?';
+    case 'bn': return 'ন্যূনতম পরিমাণ ₹500। আপনার কত টাকা লাগবে?';
+    case 'mr': return 'किमान ₹500 ची ऑर्डर आहे. तुम्हाला किती रोख रक्कम हवी आहे?';
+    case 'gu': return 'ઓછામાં ઓછું ₹500 નું ઓર્ડર છે. તમારે કેટલા રોકડા જોઈએ છે?';
+    case 'pa': return 'ਘੱਟੋ-ਘੱਟ ਆਰਡਰ ₹500 ਹੈ। ਤੁਹਾਨੂੰ ਕਿੰਨੀ ਨਕਦੀ ਚਾਹੀਦੀ ਹੈ?';
+    case 'ml': return 'കുറഞ്ഞത് ₹500 ഓർഡർ ചെയ്യാം. നിങ്ങൾക്ക് എത്ര പണം വേണം?';
+    case 'od': return 'ସର୍ବନିମ୍ନ ଅର୍ଡର ₹500। ଆପଣଙ୍କୁ କେତେ ଟଙ୍କା ଦରକାର?';
+    default: return 'GridPe cash delivery starts from ₹500. How much cash do you need?';
+  }
+}
+
+export function getAmountReaskPrompt(lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi': return 'माफ़ कीजिए, समझ नहीं आया। आपको कितने रुपये चाहिए?';
+    case 'kn': return 'ಕ್ಷಮಿಸಿ, ಅರ್ಥವಾಗಲಿಲ್ಲ. ನಿಮಗೆ ಎಷ್ಟು ನಗದು ಬೇಕು?';
+    case 'ta': return 'மன்னிக்கவும், புரியவில்லை. உங்களுக்கு எவ்வளவு பணம் தேவை?';
+    case 'te': return 'క్షమించండి, అర్థం కాలేదు. మీకు ఎంత నగదు కావాలి?';
+    default: return "Sorry, I didn't catch that. How much cash do you need?";
+  }
+}
+
+export function getAddressPrompt(amount: number, label: string, isMultiple: boolean, lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi':
+      return isMultiple
+        ? `${label} पर ₹${amount} डिलीवर करें, सही है या कोई और पता?`
+        : `${label} पर ₹${amount} डिलीवर करें, सही है?`;
+    case 'kn':
+      return isMultiple
+        ? `₹${amount} ಅನ್ನು ${label} ಗೆ ತಲುಪಿಸಬೇಕೇ, ಅಥವಾ ಬೇರೆ ವಿಳಾಸವೇ?`
+        : `₹${amount} ಅನ್ನು ${label} ಗೆ ತಲುಪಿಸಬೇಕೇ?`;
+    case 'ta':
+      return isMultiple
+        ? `₹${amount} ஐ ${label} க்கு டெலிவரி செய்யலாமா, அல்லது வேறு முகவரியா?`
+        : `₹${amount} ஐ ${label} க்கு டெலிவரி செய்யலாமா?`;
+    case 'te':
+      return isMultiple
+        ? `₹${amount} ను ${label} కి డెలివరీ చేయాలా, లేదా వేరే చిరునామానా?`
+        : `₹${amount} ను ${label} కి డెలివరీ చేయాలా?`;
+    default:
+      return isMultiple
+        ? `Delivering ₹${amount} to ${label}, is that right, or a different address?`
+        : `Delivering ₹${amount} to ${label}, is that right?`;
+  }
+}
+
+export function getConfirmationPrompt(amount: number, label: string, lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi': return `${label} पर ₹${amount} का ऑर्डर कन्फर्म करें?`;
+    case 'kn': return `${label} ಗೆ ₹${amount} ಆರ್ಡರ್ ದೃಢೀಕರಿಸಬೇಕೇ?`;
+    case 'ta': return `${label} க்கு ₹${amount} ஆர்டரை உறுதிப்படுத்தவா?`;
+    case 'te': return `${label} కి ₹${amount} ఆర్డర్‌ను ఖరారు చేయాలా?`;
+    default: return `Confirm ₹${amount} to ${label}?`;
+  }
+}
+
+export function getNegativePrompt(lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi': return 'कोई बात नहीं। क्या आप राशि या पता बदलना चाहते हैं, या रद्द करना चाहते हैं?';
+    default: return 'No problem. Would you like to change the amount, change the address, or cancel?';
+  }
+}
+
+export function getDonePrompt(amount: number, lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi': return 'बढ़िया! कृपया ऑर्डर पूरा करने के लिए पेमेंट करें।';
+    case 'kn': return 'ಉತ್ತಮ! ದಯವಿಟ್ಟು ಆರ್ಡರ್ ಪೂರ್ಣಗೊಳಿಸಲು ಪಾವತಿ ಮಾಡಿ.';
+    case 'ta': return 'அருமை! ஆர்டரை முடிக்க கட்டணத்தைச் செலுத்துங்கள்.';
+    case 'te': return 'బాగుంది! దయచేసి ఆర్డర్ పూర్తి చేయడానికి చెల్లింపు చేయండి.';
+    default: return 'Done! Please complete the payment to place your order.';
+  }
 }
 
 const CONVERSATION_SCRIPT: ScriptStep[] = [
@@ -45,24 +183,169 @@ const CONVERSATION_SCRIPT: ScriptStep[] = [
   },
   {
     stepIndex: 1,
-    assistantPrompt: 'Delivering ₹2000 to your default address, Home — is that right?',
+    assistantPrompt: (slots) => `Delivering ₹${slots.amount || 2000} to ${getNormalizedAddressLabel(null, slots.addressLabel)}, is that right?`,
     userReply: 'yes',
-    updatedSlots: { addressLabel: 'Home' },
+    updatedSlots: (slots) => ({ addressLabel: getNormalizedAddressLabel(null, slots.addressLabel) }),
   },
   {
     stepIndex: 2,
-    assistantPrompt: 'Confirm ₹2000 to Home?',
+    assistantPrompt: (slots) => `Confirm ₹${slots.amount || 2000} to ${getNormalizedAddressLabel(null, slots.addressLabel)}?`,
     userReply: 'yes',
     updatedSlots: { confirmed: true },
   },
   {
     stepIndex: 3,
-    assistantPrompt: 'Done! Your ₹2000 is on the way.',
+    assistantPrompt: (slots) => `Done! Please complete the payment to place your order.`,
     userReply: '',
     updatedSlots: {},
     isFinal: true,
   },
 ];
+
+/**
+ * Address Turn Spoken Intent Matching Helper (Step 1)
+ */
+export interface AddressMatchResult {
+  type: 'affirmative' | 'alternative_address' | 'negative_unmatched' | 'unclear';
+  matchedLabel?: string;
+  matchedAddress?: Address;
+}
+
+export function matchAddressTurnResponse(
+  transcript: string,
+  savedAddresses: Address[],
+  currentLabel: string | null
+): AddressMatchResult {
+  const cleaned = (transcript || '').toLowerCase().trim();
+  if (!cleaned) {
+    return { type: 'unclear' };
+  }
+
+  // 1. Check if user named an alternative saved address
+  for (const addr of savedAddresses) {
+    const normalized = getNormalizedAddressLabel(addr);
+    const rawLabel = (addr.label || '').trim();
+    const area = (addr.area || '').trim();
+
+    const candidates = [rawLabel, normalized, area].filter(
+      (c) => c && c.toLowerCase() !== 'current location' && c !== 'your saved address'
+    );
+
+    for (const cand of candidates) {
+      const candLower = cand.toLowerCase();
+      const labelRegex = new RegExp(`(?:^|[\\s,.!?])${candLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$|[\\s,.!?])`, 'i');
+      if (labelRegex.test(cleaned)) {
+        return { type: 'alternative_address', matchedLabel: normalized, matchedAddress: addr };
+      }
+    }
+  }
+
+  // 2. Check for negative tokens
+  const negativeRegex = /\b(no|nah|not|change|different|nahi|na|mat)\b/i;
+  const isNegative = negativeRegex.test(cleaned);
+
+  // 3. Check for affirmative tokens
+  const affirmativeRegex = /\b(yes|yeah|yep|yup|haan|ha|sahi|correct|right|confirm|okay|ok|sure|proceed|deliver|theek|thik|kar do|kar do ji|chale|chalega|bhejo|bhej do)\b/i;
+  const isAffirmative = affirmativeRegex.test(cleaned);
+
+  if (isAffirmative && !isNegative) {
+    return { type: 'affirmative', matchedLabel: getNormalizedAddressLabel(null, currentLabel) };
+  }
+
+  if (isNegative) {
+    return { type: 'negative_unmatched' };
+  }
+
+  return { type: 'unclear' };
+}
+
+/**
+ * Step 2: Safety-Critical Confirmation Turn Intent Matching
+ */
+export type ConfirmationMatchResult = {
+  type: 'affirmative' | 'negative' | 'ambiguous';
+  matchedToken?: string;
+};
+
+// Global exact-token matching helper for whole words/phrases with boundary isolation
+function tokenMatches(text: string, token: string): boolean {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`(?:^|[\\s,.!?])${escaped}(?:$|[\\s,.!?])`, 'i');
+  return pattern.test(text);
+}
+
+const GLOBAL_NEGATIVE_TOKENS = [
+  'no', 'nah', 'cancel', 'stop', 'wait', "don't", 'dont', 'change', 'modify',
+  'nahi', 'nahin', 'na', 'mat karo', 'ruko', 'beda', 'vendaam', 'vaddu', 'nako', 'naa'
+];
+
+const AFFIRMATIVE_WHITELIST_BY_LANG: Record<string, string[]> = {
+  'en-IN': ['yes', 'yeah', 'yep', 'yup', 'confirm', 'proceed', 'place order', 'place the order', 'go ahead', 'sure', 'okay', 'ok', 'do it', 'correct'],
+  'hi-IN': ['हाँ', 'हा', 'हाँजी', 'हाजी', 'कर दो', 'कर दो जी', 'भेज दो', 'भेजो', 'ऑर्डर कर दो', 'पक्का', 'सही है', 'ठीक है', 'haan', 'ha', 'haanji', 'haji', 'kar do', 'kar do ji', 'bhej do', 'bhejo', 'order kar do', 'pakka', 'sahi hai', 'theek hai', 'thik hai'],
+  'bn-IN': ['হ্যাঁ', 'হ্যাঁ করুন', 'পাঠিয়ে দিন', 'অর্ডার করুন', 'ঠিক আছে', 'haan', 'hye', 'pathiye din', 'thik ache', 'order koro', 'order korun'],
+  'kn-IN': ['ಹೌದು', 'ಮಾಡಿ', 'ಕಳುಹಿಸಿ', 'ಸರಿ', 'ಖಚಿತಪಡಿಸಿ', 'haudu', 'madi', 'kaluhisi', 'sari', 'khachitapadisi', 'aithu'],
+  'ta-IN': ['ஆம்', 'ஆமாம்', 'சரி', 'அனுப்புங்க', 'பண்ணுங்க', 'உறுதி செய்', 'aam', 'aamam', 'sari', 'anuppunga', 'pannunga', 'confirm'],
+  'te-IN': ['అవును', 'సరే', 'పంపండి', 'చేయండి', 'ఖరారు చేయండి', 'avunu', 'sare', 'pampandi', 'cheyandi'],
+  'gu-IN': ['હા', 'હાજી', 'મોકલો', 'કરી દો', 'બરાબર', 'haa', 'haji', 'moklo', 'kari do', 'barabar'],
+  'pa-IN': ['ਹਾਂ', 'ਹਾਂਜੀ', 'ਭੇਜ ਦਿਓ', 'ਕਰ ਦਿਓ', 'ਠੀਕ ਹੈ', 'haan', 'haanji', 'bhej deo', 'kar dio', 'theek hai'],
+  'ml-IN': ['അതെ', 'ശരി', 'അയക്കൂ', 'ചെയ്യുക', 'athe', 'shari', 'ayakkoo', 'cheyyuka'],
+  'od-IN': ['ହଁ', 'ହଁ ଆଜ୍ଞା', 'ପଠାନ୍ତୁ', 'କରନ୍ତୁ', 'ଠିକ ଅଛି', 'haan', 'hye', 'pathantu', 'karantu', 'thik achi'],
+  'mr-IN': ['होय', 'हो', 'पाठवा', 'करा', 'नक्की', 'बरोबर', 'hoy', 'ho', 'pathva', 'kara', 'nakki', 'barobar'],
+};
+
+const GLOBAL_AFFIRMATIVE_TOKENS = ['yes', 'yeah', 'yep', 'yup', 'confirm', 'proceed', 'place order', 'okay', 'ok', 'sure', 'haan', 'ha', 'correct'];
+
+export function matchConfirmationTurnResponse(
+  transcript: string,
+  detectedLanguage?: string | null
+): ConfirmationMatchResult {
+  const cleaned = (transcript || '').trim();
+  if (!cleaned) {
+    return { type: 'ambiguous' };
+  }
+
+  // 1. Check Negative Whitelist FIRST (Highest Precedence)
+  for (const negToken of GLOBAL_NEGATIVE_TOKENS) {
+    if (tokenMatches(cleaned, negToken)) {
+      console.log('[Confirmation Match DEBUG]', {
+        transcript: cleaned,
+        detectedLanguage: detectedLanguage || 'en-IN',
+        matchedToken: negToken,
+        classification: 'negative'
+      });
+      return { type: 'negative', matchedToken: negToken };
+    }
+  }
+
+  // 2. Check Language-Specific Affirmative Whitelist (Zero Negative Matches)
+  const langKey = detectedLanguage && AFFIRMATIVE_WHITELIST_BY_LANG[detectedLanguage] ? detectedLanguage : 'en-IN';
+  const candidateAffirmatives = Array.from(new Set([
+    ...(AFFIRMATIVE_WHITELIST_BY_LANG[langKey] || []),
+    ...GLOBAL_AFFIRMATIVE_TOKENS
+  ]));
+
+  for (const affToken of candidateAffirmatives) {
+    if (tokenMatches(cleaned, affToken)) {
+      console.log('[Confirmation Match DEBUG]', {
+        transcript: cleaned,
+        detectedLanguage: langKey,
+        matchedToken: affToken,
+        classification: 'affirmative'
+      });
+      return { type: 'affirmative', matchedToken: affToken };
+    }
+  }
+
+  // 3. Ambiguous / Non-Match
+  console.log('[Confirmation Match DEBUG]', {
+    transcript: cleaned,
+    detectedLanguage: langKey,
+    matchedToken: null,
+    classification: 'ambiguous'
+  });
+  return { type: 'ambiguous' };
+}
+
 
 /**
  * Animated Aurora Purple Flow Canvas
@@ -229,62 +512,739 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
   onClose,
   onComplete,
 }) => {
+  const { profile } = useUser();
+  const preferredLanguage = profile?.preferred_language || 'en';
+
   // Client-side state machine
   const [conversationState, setConversationState] = useState<VoiceConversationState>('speaking');
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [slots, setSlots] = useState<SlotState>({
     amount: null,
     addressLabel: null,
+    addressId: null,
+    selectedAddress: null,
     confirmed: false,
+    orderId: null,
   });
   const [isHold, setIsHold] = useState<boolean>(false);
   const [showDevControls, setShowDevControls] = useState<boolean>(false);
   const [currentTranscript, setCurrentTranscript] = useState<string>('');
+  const [detectedLanguage, setDetectedLanguage] = useState<string>('en-IN');
+
+  // Step 0 Real TTS & Voice Recording State
+  const [activePromptText, setActivePromptText] = useState<string>('How much cash do you need?');
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const [showManualFallback, setShowManualFallback] = useState<boolean>(false);
+  const [manualAmountInput, setManualAmountInput] = useState<string>('');
+  const [isProcessingVoice, setIsProcessingVoice] = useState<boolean>(false);
+
+  // Step 1 Real Address Turn State
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [addressRetryCount, setAddressRetryCount] = useState<number>(0);
+  const [showManualAddressFallback, setShowManualAddressFallback] = useState<boolean>(false);
+
+  // Step 2 Real Confirmation Turn State
+  const [confirmationRetryCount, setConfirmationRetryCount] = useState<number>(0);
+  const [showManualConfirmFallback, setShowManualConfirmFallback] = useState<boolean>(false);
+  const [showNegativeFallback, setShowNegativeFallback] = useState<boolean>(false);
+  const [orderErrorMessage, setOrderErrorMessage] = useState<string | null>(null);
+
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const isComponentMountedRef = useRef<boolean>(true);
+  const prevIsOpenRef = useRef<boolean>(false);
+
+  // Synchronize state-tracking refs to prevent stale closures in async callbacks
+  const slotsRef = useRef<SlotState>(slots);
+  slotsRef.current = slots;
+  const currentStepIndexRef = useRef<number>(currentStepIndex);
+  currentStepIndexRef.current = currentStepIndex;
+  const retryCountRef = useRef<number>(retryCount);
+  retryCountRef.current = retryCount;
+  const addressRetryCountRef = useRef<number>(addressRetryCount);
+  addressRetryCountRef.current = addressRetryCount;
+  const confirmationRetryCountRef = useRef<number>(confirmationRetryCount);
+  confirmationRetryCountRef.current = confirmationRetryCount;
+  const preferredLanguageRef = useRef<string>(preferredLanguage);
+  preferredLanguageRef.current = preferredLanguage;
+  const detectedLanguageRef = useRef<string>(detectedLanguage);
+  detectedLanguageRef.current = detectedLanguage;
+  const isProcessingVoiceRef = useRef<boolean>(isProcessingVoice);
+  isProcessingVoiceRef.current = isProcessingVoice;
+  const savedAddressesRef = useRef<Address[]>(savedAddresses);
+  savedAddressesRef.current = savedAddresses;
+
+  // useVoiceRecorder hook captured via ref to decouple action functions from render churn
+  const recorder = useVoiceRecorder({ maxDurationMs: 30000 });
+  const recorderRef = useRef(recorder);
+  recorderRef.current = recorder;
+
+  useEffect(() => {
+    isComponentMountedRef.current = true;
+    return () => {
+      isComponentMountedRef.current = false;
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.src = '';
+        activeAudioRef.current = null;
+      }
+      recorderRef.current.cancelRecording();
+    };
+  }, []);
+
+  const stopActiveAudio = useCallback(() => {
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.src = '';
+      activeAudioRef.current = null;
+    }
+  }, []);
+
+  // Real voice listening initiation
+  const startListeningTurn = useCallback(async () => {
+    if (!isComponentMountedRef.current) return;
+    setConversationState('listening');
+    await recorderRef.current.startRecording();
+  }, []);
+
+  // Real TTS synthesizer & player
+  const speakPrompt = useCallback(async (text: string, onAudioEndCallback?: () => void) => {
+    if (!isComponentMountedRef.current) return;
+    stopActiveAudio();
+    setConversationState('speaking');
+    setActivePromptText(text);
+
+    // Sanitize punctuation for TTS: replace em-dashes and double hyphens with clean commas so TTS sounds natural
+    const cleanTtsText = text
+      .replace(/[—–]/g, ', ')
+      .replace(/--+/g, ', ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    try {
+      const { data, error } = await supabase.functions.invoke('voice-order-tts', {
+        body: {
+          text: cleanTtsText,
+          preferred_language: preferredLanguageRef.current,
+        },
+      });
+
+      if (error || !data?.audioBase64) {
+        if (onAudioEndCallback) {
+          onAudioEndCallback();
+        } else {
+          startListeningTurn();
+        }
+        return;
+      }
+
+      const mimeType = data.mimeType || 'audio/wav';
+      const audioUrl = `data:${mimeType};base64,${data.audioBase64}`;
+      const audio = new Audio(audioUrl);
+      activeAudioRef.current = audio;
+
+      audio.onended = () => {
+        activeAudioRef.current = null;
+        if (onAudioEndCallback) {
+          onAudioEndCallback();
+        } else {
+          startListeningTurn();
+        }
+      };
+
+      audio.onerror = () => {
+        activeAudioRef.current = null;
+        if (onAudioEndCallback) {
+          onAudioEndCallback();
+        } else {
+          startListeningTurn();
+        }
+      };
+
+      await audio.play();
+    } catch {
+      if (onAudioEndCallback) {
+        onAudioEndCallback();
+      } else {
+        startListeningTurn();
+      }
+    }
+  }, [stopActiveAudio, startListeningTurn]);
+
+  // Ambiguous/failed speech handler for Step 0 (Amount)
+  const handleAmountFailure = useCallback((customMsg?: string) => {
+    setIsProcessingVoice(false);
+    const currentRetry = retryCountRef.current;
+    const lang = detectedLanguageRef.current;
+    if (currentRetry < 2) {
+      setRetryCount(currentRetry + 1);
+      const reaskSentence = customMsg || getAmountReaskPrompt(lang);
+      speakPrompt(reaskSentence);
+    } else {
+      setShowManualFallback(true);
+      setConversationState('idle');
+      setActivePromptText('Please enter the cash amount below:');
+    }
+  }, [speakPrompt]);
+
+  // Transition into Step 2 (Confirmation Turn)
+  const enterConfirmationStep = useCallback((amount: number, addressLabel: string) => {
+    stopActiveAudio();
+    recorderRef.current.cancelRecording();
+    setCurrentStepIndex(2);
+    setConfirmationRetryCount(0);
+    confirmationRetryCountRef.current = 0;
+    setShowManualConfirmFallback(false);
+    setShowNegativeFallback(false);
+    setOrderErrorMessage(null);
+    setCurrentTranscript('');
+    const promptText = getConfirmationPrompt(amount, getNormalizedAddressLabel(null, addressLabel), detectedLanguageRef.current);
+    speakPrompt(promptText);
+  }, [stopActiveAudio, speakPrompt]);
+
+  // Transition into Step 1 (Address Turn) with saved address lookup
+  const enterAddressStep = useCallback(async (amount: number) => {
+    stopActiveAudio();
+    recorderRef.current.cancelRecording();
+    setCurrentStepIndex(1);
+    setShowManualAddressFallback(false);
+    setShowManualConfirmFallback(false);
+    setShowNegativeFallback(false);
+    setOrderErrorMessage(null);
+    setAddressRetryCount(0);
+    setCurrentTranscript('');
+
+    const userId = profile?.id;
+    let addresses: Address[] = [];
+
+    if (userId) {
+      try {
+        const fetched = await fetchAddresses(userId);
+        if (Array.isArray(fetched)) {
+          addresses = fetched;
+        }
+      } catch (err) {
+        addresses = [];
+      }
+    }
+
+    setSavedAddresses(addresses);
+    savedAddressesRef.current = addresses;
+
+    // Branch a: 0 saved addresses -> speak and exit overlay cleanly
+    if (addresses.length === 0) {
+      const prompt0 = "You don't have a saved address yet — let's add one first.";
+      speakPrompt(prompt0, () => {
+        onClose();
+      });
+      return;
+    }
+
+    // Branch b: 1 saved address -> auto-fill and confirm
+    if (addresses.length === 1) {
+      const singleLabel = getNormalizedAddressLabel(addresses[0]);
+      setSlots((prev) => ({
+        ...prev,
+        addressLabel: singleLabel,
+        addressId: addresses[0].id,
+        selectedAddress: addresses[0],
+      }));
+      const prompt1 = getAddressPrompt(amount, singleLabel, false, detectedLanguageRef.current);
+      speakPrompt(prompt1);
+      return;
+    }
+
+    // Branch c: 2+ saved addresses -> resolve default address
+    const activeGlobal = useLocationStore.getState().activeAddress;
+    let defaultAddr: Partial<Address> = addresses[0];
+
+    if (activeGlobal && addresses.some((a) => a.id === activeGlobal.id || (a.label && a.label === activeGlobal.label))) {
+      const found = addresses.find((a) => a.id === activeGlobal.id || (a.label && a.label === activeGlobal.label));
+      if (found) defaultAddr = found;
+    } else {
+      const homeAddr = addresses.find((a) => (a.label || '').toLowerCase() === 'home');
+      if (homeAddr) {
+        defaultAddr = homeAddr;
+      }
+    }
+
+    const defaultLabel = getNormalizedAddressLabel(defaultAddr);
+    setSlots((prev) => ({
+      ...prev,
+      addressLabel: defaultLabel,
+      addressId: defaultAddr.id || addresses[0]?.id,
+      selectedAddress: defaultAddr as Address,
+    }));
+    const promptMultiple = getAddressPrompt(amount, defaultLabel, true, detectedLanguageRef.current);
+    speakPrompt(promptMultiple);
+  }, [profile?.id, stopActiveAudio, speakPrompt, onClose]);
+
+  // Ambiguous/failed speech handler for Step 1 (Address)
+  const handleAddressFailure = useCallback((customReask?: string) => {
+    setIsProcessingVoice(false);
+    const currentRetry = addressRetryCountRef.current;
+    const currentAmount = slotsRef.current.amount || 2000;
+    const currentLabel = getNormalizedAddressLabel(null, slotsRef.current.addressLabel);
+    const addressList = savedAddressesRef.current;
+
+    if (currentRetry < 2) {
+      setAddressRetryCount(currentRetry + 1);
+      const reaskText = customReask || (addressList.length > 1
+        ? getAddressPrompt(currentAmount, currentLabel, true, detectedLanguageRef.current)
+        : getAddressPrompt(currentAmount, currentLabel, false, detectedLanguageRef.current));
+      speakPrompt(reaskText);
+    } else {
+      // Retry cap reached -> Fall back to manual tap-to-select saved addresses UI
+      setShowManualAddressFallback(true);
+      setConversationState('idle');
+      setActivePromptText('Please choose a delivery address:');
+    }
+  }, [speakPrompt]);
+
+  // Real Order Creation (Called strictly on explicit confirmed affirmative in Step 2)
+  const handleCreateRealCashOrder = useCallback(async () => {
+    stopActiveAudio();
+    recorderRef.current.cancelRecording();
+    setIsProcessingVoice(true);
+    setConversationState('thinking');
+    setOrderErrorMessage(null);
+
+    try {
+      const user = profile;
+      const userId = user?.id;
+      const currentAmount = slotsRef.current.amount || 2000;
+
+      if (!userId) {
+        throw new Error('You must be logged in to place a cash order.');
+      }
+
+      // 1. Resolve address ID and address object
+      const addressList = savedAddressesRef.current;
+      let selectedAddr = slotsRef.current.selectedAddress 
+        || addressList.find((a) => a.id === slotsRef.current.addressId) 
+        || addressList[0];
+      const addressId = selectedAddr?.id || slotsRef.current.addressId || '';
+
+      // Resolve zone_id via check_service_availability RPC using address or location coordinates
+      let zoneId: string | null = null;
+      const targetLat = selectedAddr?.latitude || useLocationStore.getState().lat;
+      const targetLng = selectedAddr?.longitude || useLocationStore.getState().lng;
+
+      if (targetLat && targetLng) {
+        const { data: resolvedZoneId } = await (supabase.rpc as any)('check_service_availability', {
+          p_lat: Number(targetLat),
+          p_lng: Number(targetLng),
+        });
+        if (resolvedZoneId) {
+          zoneId = resolvedZoneId;
+        }
+      }
+
+      // 2. Fetch server quote to prevent fee_mismatch error
+      const { data: quoteData, error: quoteError } = await (supabase.rpc as any)('get_order_quote', {
+        p_amount: Number(currentAmount),
+        p_order_type: 'cash',
+        p_distance_km: 0,
+        p_service_amount: 0,
+        p_user_id: userId,
+      });
+
+      if (quoteError || !quoteData) {
+        console.error('[VoiceConfirmation DEBUG] get_order_quote failed:', quoteError);
+        throw new Error(quoteError?.message || 'Failed to calculate order quote');
+      }
+
+      const deliveryFee = quoteData.delivery_fee || 0;
+      const platformFee = quoteData.platform_fee || 0;
+      const gst = quoteData.gst || 0;
+      const totalPayable = quoteData.total_payable || (currentAmount + deliveryFee + platformFee + gst);
+
+      // 3. Call create-cash-order edge function
+      const { data: orderData, error: orderError } = await supabase.functions.invoke('create-cash-order', {
+        body: {
+          user_id: userId,
+          amount: Number(currentAmount),
+          total_payable: Number(totalPayable),
+          delivery_fee: Number(deliveryFee),
+          platform_fee: Number(platformFee),
+          gst: Number(gst),
+          tip: 0,
+          reward_points: 0,
+          address_id: addressId,
+          zone_id: zoneId,
+          city: selectedAddr?.city || 'Bengaluru',
+          customer_phone: user?.phone || selectedAddr?.contact_phone || '',
+          customer_name: user?.name || selectedAddr?.contact_name || 'Customer',
+          customer_email: user?.email || 'customer@gridpe.in',
+          scheduled_at: null,
+        },
+      });
+
+      const resolvedOrderData = orderData?.payment_session_id 
+        ? orderData 
+        : orderData?.data?.payment_session_id 
+          ? orderData.data 
+          : orderData;
+
+      if (orderError || !resolvedOrderData?.success) {
+        let errorMsg = 'Failed to initiate cash order. Please try again.';
+        try {
+          const errBody = await (orderError as any)?.context?.json?.();
+          if (errBody?.message) errorMsg = errBody.message;
+          else if (errBody?.error) errorMsg = `Error: ${errBody.error}`;
+        } catch {
+          if (resolvedOrderData?.message) errorMsg = resolvedOrderData.message;
+          else if (resolvedOrderData?.error) errorMsg = `Error: ${resolvedOrderData.error}`;
+        }
+        throw new Error(errorMsg);
+      }
+
+      // 4. Order created successfully! Advance to Step 3 (Done)
+      const updatedSlots: SlotState = {
+        ...slotsRef.current,
+        confirmed: true,
+        orderId: resolvedOrderData.cashfree_order_id,
+      };
+      setSlots(updatedSlots);
+      slotsRef.current = updatedSlots;
+      setCurrentStepIndex(3);
+      setConversationState('speaking');
+      const donePrompt = getDonePrompt(currentAmount, detectedLanguageRef.current);
+      
+      speakPrompt(donePrompt, () => {
+        // Auto-navigate to payment summary upon speech completion
+        setTimeout(() => {
+          if (onComplete) {
+            onComplete(updatedSlots);
+          }
+        }, 500);
+      });
+    } catch (err: any) {
+      console.error('[VoiceConfirmation DEBUG] Order placement failed:', err);
+      const errorText = err?.message || 'Failed to place cash order';
+      setOrderErrorMessage(errorText);
+      setConversationState('idle');
+      setActivePromptText(`Order failed: ${errorText}`);
+      speakPrompt(`Order failed: ${errorText}`);
+    } finally {
+      setIsProcessingVoice(false);
+    }
+  }, [profile, speakPrompt, onComplete, stopActiveAudio]);
+
+  // Real voice processing: stop recording, convert to base64, call voice-cash-order
+  const handleStopAndProcess = useCallback(async () => {
+    if (isProcessingVoiceRef.current) return;
+    setIsProcessingVoice(true);
+    setConversationState('thinking');
+
+    try {
+      const blob = await recorderRef.current.stopRecording();
+      if (!blob || blob.size === 0) {
+        if (currentStepIndexRef.current === 0) {
+          handleAmountFailure();
+        } else if (currentStepIndexRef.current === 1) {
+          handleAddressFailure();
+        } else {
+          // Step 2 ambiguous
+          const currentRetry = confirmationRetryCountRef.current;
+          const currentAmount = slotsRef.current.amount || 2000;
+          const currentLabel = getNormalizedAddressLabel(null, slotsRef.current.addressLabel);
+          if (currentRetry < 2) {
+            setConfirmationRetryCount(currentRetry + 1);
+            confirmationRetryCountRef.current = currentRetry + 1;
+            speakPrompt(getConfirmationPrompt(currentAmount, currentLabel, detectedLanguageRef.current));
+          } else {
+            setShowManualConfirmFallback(true);
+            setConversationState('idle');
+            setActivePromptText(`Please tap below to confirm your order:`);
+          }
+        }
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64Audio = reader.result as string;
+          const { data, error } = await supabase.functions.invoke('voice-cash-order', {
+            body: {
+              audio: base64Audio,
+              preferred_language: preferredLanguageRef.current,
+              mime_type: blob.type || 'audio/webm',
+            },
+          });
+
+          if (error || !data) {
+            if (currentStepIndexRef.current === 0) {
+              handleAmountFailure();
+            } else if (currentStepIndexRef.current === 1) {
+              handleAddressFailure();
+            } else {
+              const currentRetry = confirmationRetryCountRef.current;
+              const currentAmount = slotsRef.current.amount || 2000;
+              const currentLabel = getNormalizedAddressLabel(null, slotsRef.current.addressLabel);
+              if (currentRetry < 2) {
+                setConfirmationRetryCount(currentRetry + 1);
+                confirmationRetryCountRef.current = currentRetry + 1;
+                speakPrompt(getConfirmationPrompt(currentAmount, currentLabel, detectedLanguageRef.current));
+              } else {
+                setShowManualConfirmFallback(true);
+                setConversationState('idle');
+                setActivePromptText(`Please tap below to confirm your order:`);
+              }
+            }
+            return;
+          }
+
+          const transcript = (data.transcript || '').trim();
+          if (transcript) {
+            setCurrentTranscript(transcript);
+          }
+          if (data.detectedLanguage) {
+            setDetectedLanguage(data.detectedLanguage);
+            detectedLanguageRef.current = data.detectedLanguage;
+            preferredLanguageRef.current = data.detectedLanguage;
+          }
+
+          // ================= STEP 0: AMOUNT TURN =================
+          if (currentStepIndexRef.current === 0) {
+            const extractedAmount = data.extractedAmount;
+            if (typeof extractedAmount === 'number' && extractedAmount >= 500 && extractedAmount <= 100000) {
+              setSlots((prev) => ({ ...prev, amount: extractedAmount }));
+              setRetryCount(0);
+              setShowManualFallback(false);
+              // Advance to live Step 1 Address Turn
+              enterAddressStep(extractedAmount);
+            } else {
+              const lang = data.detectedLanguage || detectedLanguageRef.current;
+              const minHint = getAmountMinHintPrompt(lang);
+              handleAmountFailure(minHint);
+            }
+          }
+          // ================= STEP 1: ADDRESS TURN =================
+          else if (currentStepIndexRef.current === 1) {
+            const currentLabel = slotsRef.current.addressLabel;
+            const addressList = savedAddressesRef.current;
+            const match = matchAddressTurnResponse(transcript, addressList, currentLabel);
+
+            if (match.type === 'affirmative') {
+              // User confirmed the proposed address -> enter Step 2
+              const chosenLabel = match.matchedLabel || currentLabel || 'Home';
+              setSlots((prev) => ({ ...prev, addressLabel: chosenLabel }));
+              setAddressRetryCount(0);
+              setShowManualAddressFallback(false);
+              enterConfirmationStep(slotsRef.current.amount || 2000, chosenLabel);
+            } else if (match.type === 'alternative_address' && match.matchedLabel) {
+              // User named a different saved address
+              const matchedAddr = match.matchedAddress || addressList.find((a) => getNormalizedAddressLabel(a) === match.matchedLabel);
+              setSlots((prev) => ({
+                ...prev,
+                addressLabel: match.matchedLabel!,
+                addressId: matchedAddr?.id || prev.addressId,
+                selectedAddress: matchedAddr || prev.selectedAddress,
+              }));
+              setAddressRetryCount(0);
+              setShowManualAddressFallback(false);
+              enterConfirmationStep(slotsRef.current.amount || 2000, match.matchedLabel!);
+            } else if (match.type === 'negative_unmatched') {
+              // User said "no"
+              if (addressList.length <= 1) {
+                // 1-address case: go straight to manual fallback rather than re-asking
+                setShowManualAddressFallback(true);
+                setConversationState('idle');
+                setActivePromptText('Please select or add a delivery address:');
+              } else {
+                // 2+ address case: list saved address labels
+                const labelNames = addressList.map((a) => getNormalizedAddressLabel(a)).filter(Boolean).join(', ');
+                const reaskMsg = labelNames
+                  ? `I don't have that saved — did you mean ${labelNames}?`
+                  : "Sorry, I couldn't match that address. Please choose from your saved addresses.";
+                handleAddressFailure(reaskMsg);
+              }
+            } else {
+              // Unclear utterance
+              handleAddressFailure();
+            }
+          }
+          // ================= STEP 2: CONFIRMATION TURN (SAFETY CRITICAL) =================
+          else if (currentStepIndexRef.current === 2) {
+            const match = matchConfirmationTurnResponse(transcript, detectedLanguageRef.current);
+
+            if (match.type === 'affirmative') {
+              setConfirmationRetryCount(0);
+              setShowManualConfirmFallback(false);
+              setShowNegativeFallback(false);
+              await handleCreateRealCashOrder();
+            } else if (match.type === 'negative') {
+              setShowNegativeFallback(true);
+              setConversationState('idle');
+              const negPrompt = getNegativePrompt(detectedLanguageRef.current);
+              setActivePromptText(negPrompt);
+              speakPrompt(negPrompt);
+            } else {
+              // Ambiguous utterance
+              const currentRetry = confirmationRetryCountRef.current;
+              const currentAmount = slotsRef.current.amount || 2000;
+              const currentLabel = getNormalizedAddressLabel(null, slotsRef.current.addressLabel);
+              if (currentRetry < 2) {
+                setConfirmationRetryCount(currentRetry + 1);
+                confirmationRetryCountRef.current = currentRetry + 1;
+                speakPrompt(getConfirmationPrompt(currentAmount, currentLabel, detectedLanguageRef.current));
+              } else {
+                setShowManualConfirmFallback(true);
+                setConversationState('idle');
+                setActivePromptText(`Please tap below to confirm your order of ₹${currentAmount}:`);
+              }
+            }
+          }
+        } catch {
+          if (currentStepIndexRef.current === 0) {
+            handleAmountFailure();
+          } else if (currentStepIndexRef.current === 1) {
+            handleAddressFailure();
+          } else {
+            const currentRetry = confirmationRetryCountRef.current;
+            const currentAmount = slotsRef.current.amount || 2000;
+            const currentLabel = getNormalizedAddressLabel(null, slotsRef.current.addressLabel);
+            if (currentRetry < 2) {
+              setConfirmationRetryCount(currentRetry + 1);
+              confirmationRetryCountRef.current = currentRetry + 1;
+              speakPrompt(getConfirmationPrompt(currentAmount, currentLabel, detectedLanguageRef.current));
+            } else {
+              setShowManualConfirmFallback(true);
+              setConversationState('idle');
+              setActivePromptText(`Please tap below to confirm your order of ₹${currentAmount}:`);
+            }
+          }
+        } finally {
+          setIsProcessingVoice(false);
+        }
+      };
+      reader.readAsDataURL(blob);
+    } catch {
+      setIsProcessingVoice(false);
+      if (currentStepIndexRef.current === 0) {
+        handleAmountFailure();
+      } else if (currentStepIndexRef.current === 1) {
+        handleAddressFailure();
+      }
+    }
+  }, [handleAmountFailure, enterAddressStep, handleAddressFailure, enterConfirmationStep, handleCreateRealCashOrder, speakPrompt]);
+
+  // Manual fallback amount submission (after 2 failed voice re-asks)
+  const handleManualAmountSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const val = parseInt(manualAmountInput.replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(val) && val >= 500 && val <= 100000) {
+      setSlots((prev) => ({ ...prev, amount: val }));
+      setShowManualFallback(false);
+      setManualAmountInput('');
+      setCurrentTranscript(`₹${val}`);
+      enterAddressStep(val);
+    }
+  };
+
+  // Manual address selection handler from fallback chip list
+  const handleManualAddressSelect = (label: string) => {
+    const normalized = getNormalizedAddressLabel(null, label);
+    const matchedAddr = savedAddressesRef.current.find((a) => getNormalizedAddressLabel(a) === normalized);
+    setSlots((prev) => ({
+      ...prev,
+      addressLabel: normalized,
+      addressId: matchedAddr?.id || prev.addressId,
+      selectedAddress: matchedAddr || prev.selectedAddress,
+    }));
+    setShowManualAddressFallback(false);
+    setCurrentTranscript(normalized);
+    enterConfirmationStep(slotsRef.current.amount || 2000, normalized);
+  };
 
   // Full reset
   const handleReset = useCallback(() => {
+    stopActiveAudio();
+    recorderRef.current.cancelRecording();
+    recorderRef.current.reset();
     setCurrentStepIndex(0);
     setConversationState('speaking');
     setSlots({
       amount: null,
       addressLabel: null,
+      addressId: null,
+      selectedAddress: null,
       confirmed: false,
+      orderId: null,
     });
     setCurrentTranscript('');
     setIsHold(false);
-  }, []);
+    setRetryCount(0);
+    setAddressRetryCount(0);
+    setConfirmationRetryCount(0);
+    setShowManualFallback(false);
+    setShowManualAddressFallback(false);
+    setShowManualConfirmFallback(false);
+    setShowNegativeFallback(false);
+    setOrderErrorMessage(null);
+    setManualAmountInput('');
+    setIsProcessingVoice(false);
+    speakPrompt('How much cash do you need?');
+  }, [stopActiveAudio, speakPrompt]);
 
   const handleEnd = useCallback(() => {
-    handleReset();
+    stopActiveAudio();
+    recorderRef.current.cancelRecording();
+    recorderRef.current.reset();
     onClose();
-  }, [handleReset, onClose]);
+  }, [stopActiveAudio, onClose]);
 
   // Jump directly to a step index in the script
   const goToStep = useCallback((stepIdx: number) => {
+    stopActiveAudio();
+    recorderRef.current.cancelRecording();
     const clampedIndex = Math.max(0, Math.min(stepIdx, CONVERSATION_SCRIPT.length - 1));
-    const step = CONVERSATION_SCRIPT[clampedIndex];
     setCurrentStepIndex(clampedIndex);
 
     const cumulativeSlots: SlotState = {
-      amount: null,
-      addressLabel: null,
+      amount: 2000,
+      addressLabel: 'your saved address',
+      addressId: null,
+      selectedAddress: null,
       confirmed: false,
+      orderId: null,
     };
     for (let i = 0; i < clampedIndex; i++) {
-      Object.assign(cumulativeSlots, CONVERSATION_SCRIPT[i].updatedSlots);
+      const stepUpdates = typeof CONVERSATION_SCRIPT[i].updatedSlots === 'function'
+        ? (CONVERSATION_SCRIPT[i].updatedSlots as (s: SlotState) => Partial<SlotState>)(cumulativeSlots)
+        : CONVERSATION_SCRIPT[i].updatedSlots;
+      Object.assign(cumulativeSlots, stepUpdates);
     }
     setSlots(cumulativeSlots);
     setCurrentTranscript('');
     setConversationState('speaking');
     setIsHold(false);
-  }, []);
+    setShowManualFallback(false);
+    setShowManualAddressFallback(false);
+    setShowManualConfirmFallback(false);
+    setShowNegativeFallback(false);
+    setOrderErrorMessage(null);
 
-  // Simulate user answering the current prompt
+    if (clampedIndex === 0) {
+      setRetryCount(0);
+      speakPrompt('How much cash do you need?');
+    } else if (clampedIndex === 1) {
+      enterAddressStep(cumulativeSlots.amount || 2000);
+    } else if (clampedIndex === 2) {
+      enterConfirmationStep(cumulativeSlots.amount || 2000, cumulativeSlots.addressLabel || 'your saved address');
+    }
+  }, [stopActiveAudio, speakPrompt, enterAddressStep, enterConfirmationStep]);
+
+  // Mock reply advance for Steps 2-3 (and dev simulation for Steps 0-1)
   const handleSimulateUserReply = useCallback(() => {
-    const step = CONVERSATION_SCRIPT[currentStepIndex];
+    stopActiveAudio();
+    recorderRef.current.cancelRecording();
+    const currentIdx = currentStepIndexRef.current;
+    const step = CONVERSATION_SCRIPT[currentIdx];
     if (step.isFinal) {
       if (onComplete) {
-        onComplete(slots);
+        onComplete(slotsRef.current);
       }
       return;
     }
@@ -294,34 +1254,48 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
     setConversationState('thinking');
 
     // 2. Fill slot
-    const updated = { ...slots, ...step.updatedSlots };
+    const currentSlots = slotsRef.current;
+    const stepUpdates = typeof step.updatedSlots === 'function'
+      ? step.updatedSlots(currentSlots)
+      : step.updatedSlots;
+    const updated = { ...currentSlots, ...stepUpdates };
     setSlots(updated);
 
     // 3. Advance to next step
-    if (currentStepIndex < CONVERSATION_SCRIPT.length - 1) {
-      const nextIdx = currentStepIndex + 1;
+    if (currentIdx < CONVERSATION_SCRIPT.length - 1) {
+      const nextIdx = currentIdx + 1;
       setCurrentStepIndex(nextIdx);
       setConversationState('speaking');
       if (CONVERSATION_SCRIPT[nextIdx].isFinal && onComplete) {
         onComplete(updated);
       }
     }
-  }, [currentStepIndex, slots, onComplete]);
+  }, [onComplete, stopActiveAudio]);
 
-  // Reset to Step 1 whenever overlay opens
+  // Reset and speak prompt strictly on false -> true open transitions
   useEffect(() => {
-    if (isOpen) {
+    if (!prevIsOpenRef.current && isOpen) {
       handleReset();
+    } else if (prevIsOpenRef.current && !isOpen) {
+      stopActiveAudio();
+      recorderRef.current.cancelRecording();
     }
-  }, [isOpen, handleReset]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, handleReset, stopActiveAudio]);
 
   // Handle Hold toggle
   const toggleHold = () => {
     if (isHold) {
       setIsHold(false);
-      setConversationState('speaking');
+      if ((currentStepIndex === 0 || currentStepIndex === 1) && !showManualFallback && !showManualAddressFallback) {
+        startListeningTurn();
+      } else {
+        setConversationState('speaking');
+      }
     } else {
       setIsHold(true);
+      stopActiveAudio();
+      recorderRef.current.cancelRecording();
       setConversationState('idle');
     }
   };
@@ -329,6 +1303,17 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
   if (!isOpen) return null;
 
   const currentStep = CONVERSATION_SCRIPT[Math.min(currentStepIndex, CONVERSATION_SCRIPT.length - 1)];
+  const resolvedPrompt = currentStepIndex === 0
+    ? activePromptText
+    : currentStepIndex === 1 && (activePromptText.includes('₹') || activePromptText.startsWith('Please ') || activePromptText.startsWith("I don't") || activePromptText.startsWith("You don't"))
+      ? activePromptText
+      : currentStepIndex === 2 && (activePromptText.includes('₹') || activePromptText.startsWith('No problem') || activePromptText.startsWith('कोई बात') || activePromptText.startsWith('Order failed:') || activePromptText.startsWith('Please tap'))
+        ? activePromptText
+        : currentStepIndex === 3
+          ? getDonePrompt(slots.amount || 2000, detectedLanguage)
+          : typeof currentStep.assistantPrompt === 'function'
+            ? currentStep.assistantPrompt(slots)
+            : currentStep.assistantPrompt;
 
   const getOrbState = (): 'working' | 'listening' | 'composing' | 'breathing' => {
     switch (conversationState) {
@@ -383,12 +1368,20 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
           </button>
         </div>
 
-        {/* ================= CENTER SECTION (ThinkingOrb + Single Prompt) ================= */}
+        {/* ================= CENTER SECTION (ThinkingOrb + Prompt + Dynamic Interactions) ================= */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 max-w-sm mx-auto w-full text-center -translate-y-6 sm:-translate-y-8">
 
           {/* ThinkingOrb with luminous ambient glow behind it (scaled to 100px) */}
-          <div className="relative mb-7 flex items-center justify-center w-[100px] h-[100px]">
-            
+          <div 
+            onClick={() => {
+              if ((currentStepIndex === 0 || currentStepIndex === 1 || currentStepIndex === 2) && conversationState === 'listening' && recorder.isRecording) {
+                handleStopAndProcess();
+              }
+            }}
+            className={`relative mb-7 flex items-center justify-center w-[100px] h-[100px] ${
+              (currentStepIndex === 0 || currentStepIndex === 1 || currentStepIndex === 2) && conversationState === 'listening' ? 'cursor-pointer' : ''
+            }`}
+          >
             {/* Tier 1: Wide Outer Radiant Halo (220px) */}
             <motion.div
               animate={{
@@ -435,55 +1428,245 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
 
           {/* Single Assistant Prompt Text */}
           <motion.div
-            key={currentStep?.assistantPrompt}
+            key={resolvedPrompt}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
             className="mb-5"
           >
             <h1 className="text-[20px] sm:text-[22px] font-medium font-satoshi text-white/95 tracking-normal leading-[1.35] text-center drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]">
-              {currentStep?.assistantPrompt || 'Listening...'}
+              {resolvedPrompt}
             </h1>
           </motion.div>
 
-          {/* User Spoken Transcript */}
-          <div className="min-h-[48px] flex items-center justify-center w-full">
-            <AnimatePresence mode="wait">
-              {currentTranscript ? (
-                <motion.div
-                  key={currentTranscript}
-                  initial={{ opacity: 0, scale: 0.95, y: 6 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -6 }}
-                  className="px-4 py-2 rounded-2xl bg-white/[0.08] border border-white/[0.12] backdrop-blur-xl shadow-lg inline-flex items-center gap-2"
+          {/* Step 0: Manual Input Fallback UI (amount input) */}
+          {showManualFallback && currentStepIndex === 0 && (
+            <motion.form
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onSubmit={handleManualAmountSubmit}
+              className="w-full max-w-xs flex flex-col items-center gap-3"
+            >
+              <div className="relative w-full">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 font-medium text-[16px]">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="e.g. 2000"
+                  min="500"
+                  max="100000"
+                  value={manualAmountInput}
+                  onChange={(e) => setManualAmountInput(e.target.value)}
+                  autoFocus
+                  className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-white/[0.08] border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#5260FE] text-[15px] font-satoshi text-center"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!manualAmountInput || parseInt(manualAmountInput, 10) < 500}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#5260FE] hover:bg-[#5260FE]/90 disabled:opacity-40 text-white font-medium text-[14px] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#5260FE]/25 font-satoshi"
+              >
+                <Check className="w-4 h-4" />
+                <span>Confirm Amount</span>
+              </button>
+            </motion.form>
+          )}
+
+          {/* Step 1: Manual Address Fallback UI (tap-to-select saved address chips) */}
+          {showManualAddressFallback && currentStepIndex === 1 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-xs flex flex-col items-center gap-2.5"
+            >
+              {savedAddresses.length > 0 ? (
+                savedAddresses.map((addr) => {
+                  const tag = getNormalizedAddressLabel(addr);
+                  const summary = `${addr.apartment ? addr.apartment + ', ' : ''}${addr.area || addr.city || ''}`;
+                  return (
+                    <button
+                      key={addr.id}
+                      type="button"
+                      onClick={() => handleManualAddressSelect(tag)}
+                      className="w-full p-3 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/15 text-left flex items-start gap-2.5 transition-all cursor-pointer active:scale-[0.98]"
+                    >
+                      <MapPin className="w-4 h-4 text-[#8E97FD] shrink-0 mt-0.5" />
+                      <div className="flex-1 overflow-hidden">
+                        <div className="text-[13px] font-semibold text-white truncate">{tag}</div>
+                        {summary && <div className="text-[11px] text-white/60 truncate">{summary}</div>}
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onClose()}
+                  className="w-full p-3 rounded-xl bg-[#5260FE] text-white font-medium text-[13px] flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Mic className="w-3.5 h-3.5 text-[#8E97FD] animate-pulse shrink-0" />
-                  <span className="text-[14px] text-white/95 font-normal italic font-satoshi">
-                    &ldquo;{currentTranscript}&rdquo;
-                  </span>
-                </motion.div>
-              ) : conversationState === 'listening' ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="inline-flex items-center gap-2 text-white/60 text-[13px] font-normal font-satoshi"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#5260FE] animate-ping" />
-                  <span>Speak your answer now...</span>
-                </motion.div>
-              ) : conversationState === 'thinking' ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="inline-flex items-center gap-2 text-[#8E97FD] text-[13px] font-medium font-satoshi"
-                >
-                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                  <span>Placing order & processing...</span>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Address in App</span>
+                </button>
+              )}
+            </motion.div>
+          )}
+
+          {/* Step 2: Manual Confirm Fallback Button */}
+          {showManualConfirmFallback && currentStepIndex === 2 && !orderErrorMessage && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-xs flex flex-col items-center gap-3"
+            >
+              <button
+                type="button"
+                onClick={() => handleCreateRealCashOrder()}
+                className="w-full py-3 px-4 rounded-xl bg-[#5260FE] hover:bg-[#5260FE]/90 text-white font-semibold text-[14px] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#5260FE]/25 font-satoshi active:scale-95"
+              >
+                <Check className="w-4 h-4" />
+                <span>Confirm & Place Order (₹{slots.amount || 2000})</span>
+              </button>
+            </motion.div>
+          )}
+
+          {/* Step 2: Negative Fallback Options (Change Amount / Change Address / Cancel) */}
+          {showNegativeFallback && currentStepIndex === 2 && !orderErrorMessage && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-xs flex flex-col items-center gap-2.5"
+            >
+              <button
+                type="button"
+                onClick={() => goToStep(0)}
+                className="w-full py-2.5 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/15 text-white font-medium text-[13px] flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Change Amount</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => enterAddressStep(slots.amount || 2000)}
+                className="w-full py-2.5 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/15 text-white font-medium text-[13px] flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Change Address</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onClose()}
+                className="w-full py-2.5 px-4 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-300 font-medium text-[13px] flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Cancel & Exit</span>
+              </button>
+            </motion.div>
+          )}
+
+          {/* Step 2: Order Creation Error Display */}
+          {orderErrorMessage && currentStepIndex === 2 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-xs flex flex-col items-center gap-2.5"
+            >
+              <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-[12px] text-center w-full">
+                {orderErrorMessage}
+              </div>
+              <button
+                type="button"
+                onClick={() => handleCreateRealCashOrder()}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#5260FE] hover:bg-[#5260FE]/90 text-white font-medium text-[13px] flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Retry Order</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onClose()}
+                className="w-full py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 text-[12px] transition-all cursor-pointer"
+              >
+                <span>Exit</span>
+              </button>
+            </motion.div>
+          )}
+
+          {/* Step 3: Done / Proceed to Payment Button */}
+          {currentStepIndex === 3 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="w-full max-w-xs flex flex-col items-center gap-3 mt-2"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (onComplete) {
+                    onComplete(slotsRef.current);
+                  }
+                  onClose();
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-[#5260FE] hover:bg-[#5260FE]/90 text-white font-semibold text-[14px] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#5260FE]/25 font-satoshi active:scale-95"
+              >
+                <span>Proceed to Payment</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </motion.div>
+          )}
+
+          {/* User Spoken Transcript / Status Pill */}
+          {!showManualFallback && !showManualAddressFallback && !showManualConfirmFallback && !showNegativeFallback && !orderErrorMessage && currentStepIndex !== 3 && (
+            <div className="min-h-[48px] flex flex-col items-center justify-center w-full gap-2">
+              <AnimatePresence mode="wait">
+                {currentTranscript ? (
+                  <motion.div
+                    key={currentTranscript}
+                    initial={{ opacity: 0, scale: 0.95, y: 6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                    className="px-4 py-2 rounded-2xl bg-white/[0.08] border border-white/[0.12] backdrop-blur-xl shadow-lg inline-flex items-center gap-2"
+                  >
+                    <Mic className="w-3.5 h-3.5 text-[#8E97FD] animate-pulse shrink-0" />
+                    <span className="text-[14px] text-white/95 font-normal italic font-satoshi">
+                      &ldquo;{currentTranscript}&rdquo;
+                    </span>
+                  </motion.div>
+                ) : conversationState === 'listening' ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center gap-2.5"
+                  >
+                    <div className="inline-flex items-center gap-2 text-white/60 text-[13px] font-normal font-satoshi">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#5260FE] animate-ping" />
+                      <span>Speak your answer now...</span>
+                    </div>
+
+                    {(currentStepIndex === 0 || currentStepIndex === 1 || currentStepIndex === 2) && recorder.isRecording && (
+                      <button
+                        type="button"
+                        onClick={handleStopAndProcess}
+                        className="px-3.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/15 text-white/90 hover:text-white text-[12px] font-medium inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm font-satoshi"
+                      >
+                        <Square className="w-3 h-3 fill-white/80 text-white/80" />
+                        <span>Tap when done speaking</span>
+                      </button>
+                    )}
+                  </motion.div>
+                ) : conversationState === 'thinking' ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="inline-flex items-center gap-2 text-[#8E97FD] text-[13px] font-medium font-satoshi"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span>Processing response...</span>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
+
 
         {/* ================= BOTTOM CONTROLS (Clean Circular Buttons) ================= */}
         <div className="relative z-10 px-6 pb-12 safe-bottom flex flex-col items-center gap-3.5">
