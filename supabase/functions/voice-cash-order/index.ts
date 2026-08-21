@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const config = { auth: false };
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -106,34 +107,34 @@ serve(async (req: Request) => {
     // Determine detected language: prioritize explicit non-Devanagari scripts, then Sarvam STT code, then keywords
     let detectedLanguage = "en-IN";
 
-    if (/[\u0980-\u09FF]/.test(transcript) || /\b(taka|takar|lage|lagbe|chai|hajar|sho)\b/i.test(transcript)) {
+    if (/[\u0980-\u09FF]/.test(transcript) || /\b(taka|taaka|takar|taakar|takaa|takay|poisa|poisha|lagbe|laagbe|lage|laage|chai|chayi|chaye|hajar|hazaarr|hajaar|sho|shoh|panchsho|paanchsho|pachsho|pachso|pancho|eksho|duso|tinsho|charsho|choyso|shatsho|aatsho|noyso|amar|aamar|amake|aamake|amader|dorkar|dorkaar|pathan|pathao|pathiye|deben|din|koto|korun|koro|thik|ache|acche)\b/i.test(transcript)) {
       detectedLanguage = "bn-IN";
-    } else if (/[\u0C80-\u0CFF]/.test(transcript) || /\b(beku|kodi|roopayi|saavira|nooru)\b/i.test(transcript)) {
+    } else if (/[\u0C80-\u0CFF]/.test(transcript) || /\b(beku|kodi|roopayi|saavira|nooru|ainuru|kalsi|badi|kodu)\b/i.test(transcript)) {
       detectedLanguage = "kn-IN";
-    } else if (/[\u0B80-\u0BFF]/.test(transcript) || /\b(venum|kudu|roobai|aayiram|nooru)\b/i.test(transcript)) {
+    } else if (/[\u0B80-\u0BFF]/.test(transcript) || /\b(venum|kudu|roobai|aayiram|nooru|anuppu|anuppunga|pannunga)\b/i.test(transcript)) {
       detectedLanguage = "ta-IN";
-    } else if (/[\u0C00-\u0C7F]/.test(transcript) || /\b(kavali|ivvandi|roopayalu|veylu|vandhalu)\b/i.test(transcript)) {
+    } else if (/[\u0C00-\u0C7F]/.test(transcript) || /\b(kavali|ivvandi|roopayalu|veylu|vandhalu|pampandi|cheyandi)\b/i.test(transcript)) {
       detectedLanguage = "te-IN";
-    } else if (/[\u0A80-\u0AFF]/.test(transcript) || /\b(joiye|aapo|rupiya|hajar|so)\b/i.test(transcript)) {
+    } else if (/[\u0A80-\u0AFF]/.test(transcript) || /\b(joiye|aapo|rupiya|hajar|so|moklo|kari do)\b/i.test(transcript)) {
       detectedLanguage = "gu-IN";
-    } else if (/[\u0A00-\u0A7F]/.test(transcript) || /\b(chahida|chahidi|rupaiye|hajaar)\b/i.test(transcript)) {
+    } else if (/[\u0A00-\u0A7F]/.test(transcript) || /\b(chahida|chahidi|rupaiye|hajaar|bhej deo|kar dio)\b/i.test(transcript)) {
       detectedLanguage = "pa-IN";
-    } else if (/[\u0D00-\u0D7F]/.test(transcript) || /\b(venam|roopa|aayiram)\b/i.test(transcript)) {
+    } else if (/[\u0D00-\u0D7F]/.test(transcript) || /\b(venam|roopa|aayiram|ayakkoo|cheyyuka)\b/i.test(transcript)) {
       detectedLanguage = "ml-IN";
-    } else if (/[\u0B00-\u0B7F]/.test(transcript) || /\b(darkar|tanka|hajara)\b/i.test(transcript)) {
+    } else if (/[\u0B00-\u0B7F]/.test(transcript) || /\b(darkar|tanka|hajara|pathantu|karantu)\b/i.test(transcript)) {
       detectedLanguage = "od-IN";
     } else if (/[\u0900-\u097F]/.test(transcript)) {
       // Devanagari script: check if Marathi or Hindi
-      if (/\b(पाहिजे|हजार|रुपये|मला)\b/i.test(transcript) || /\b(pahije|mala)\b/i.test(transcript)) {
+      if (/\b(पाहिजे|हजार|रुपये|मला|पाठवा|करा)\b/i.test(transcript) || /\b(pahije|mala|pathva)\b/i.test(transcript)) {
         detectedLanguage = "mr-IN";
       } else {
         detectedLanguage = "hi-IN";
       }
-    } else if (sttResult.languageCode && sttResult.languageCode !== "unknown") {
+    } else if (sttResult.languageCode && sttResult.languageCode !== "unknown" && sttResult.languageCode !== "auto") {
       detectedLanguage = toSarvamLanguageCode(sttResult.languageCode);
-    } else if (/\b(chahiye|rupaye|rupay|hazaar|hazar|sau|mujhe|bhejo|karo|paanch|panch)\b/i.test(transcript)) {
+    } else if (/\b(chahiye|rupaye|rupay|hazaar|hazar|sau|mujhe|bhejo|karo|paanch|panch|bhej do|kar do)\b/i.test(transcript)) {
       detectedLanguage = "hi-IN";
-    } else if (preferredLanguage && preferredLanguage !== "unknown") {
+    } else if (preferredLanguage && preferredLanguage !== "unknown" && preferredLanguage !== "auto") {
       detectedLanguage = toSarvamLanguageCode(preferredLanguage);
     }
 

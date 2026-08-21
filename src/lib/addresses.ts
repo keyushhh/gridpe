@@ -47,6 +47,31 @@ export const getAuthUserId = async (): Promise<string | null> => {
   }
 };
 
+/**
+ * Validates whether an address has complete delivery details (door/house/apartment number).
+ * Vague addresses or raw "Current Location" without a flat/house number are rejected.
+ */
+export const isAddressComplete = (address?: Partial<Address | any> | null): boolean => {
+  if (!address) return false;
+  const label = (address.label || address.tag || '').trim().toLowerCase();
+  const house = (address.apartment || address.house || '').trim();
+  const area = (address.area || address.displayAddress || '').trim();
+
+  // If label is explicitly 'Current Location' and lacks house/flat/door number, it is incomplete
+  if (label === 'current location' && !house) {
+    return false;
+  }
+  // Must have a door/flat/apartment/house number
+  if (!house) {
+    return false;
+  }
+  // Must have area or city
+  if (!area && !address.city) {
+    return false;
+  }
+  return true;
+};
+
 export const fetchAddresses = async (userId: string) => {
   const { data, error } = await supabase
     .from('addresses')
@@ -91,8 +116,52 @@ export const updateAddress = async (id: string, updates: Partial<Address>) => {
   return data as Address;
 };
 
-export const deleteAddress = async (id: string, userId: string) => {
-  const { error } = await (supabase.from('addresses') as any).delete().eq('id', id).eq('user_id', userId);
+export const deleteAddress = async (id: string, userId?: string) => {
+  const authUserId = userId || (await getAuthUserId());
+  if (!authUserId) throw new Error('User not authenticated');
+
+  // 1. Try atomic security-definer RPC if available
+  try {
+    const { error: rpcError } = await (supabase.rpc as any)('delete_user_address', {
+      p_address_id: id,
+      p_user_id: authUserId,
+    });
+    if (!rpcError) {
+      return;
+    }
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn('[addresses] delete_user_address RPC fallback:', err);
+    }
+  }
+
+  // 2. Direct client unlinking fallback across orders, cash_orders, fx_orders
+  try {
+    await (supabase.from('orders') as any)
+      .update({ address_id: null })
+      .eq('address_id', id)
+      .eq('user_id', authUserId);
+  } catch { /* intentional */ }
+
+  try {
+    await (supabase.from('cash_orders') as any)
+      .update({ address_id: null })
+      .eq('address_id', id)
+      .eq('user_id', authUserId);
+  } catch { /* intentional */ }
+
+  try {
+    await (supabase.from('fx_orders') as any)
+      .update({ address_id: null })
+      .eq('address_id', id)
+      .eq('user_id', authUserId);
+  } catch { /* intentional */ }
+
+  // 3. Delete from addresses table
+  const { error } = await (supabase.from('addresses') as any)
+    .delete()
+    .eq('id', id)
+    .eq('user_id', authUserId);
 
   if (error) throw error;
 };

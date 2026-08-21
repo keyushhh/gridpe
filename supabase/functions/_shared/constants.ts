@@ -12,16 +12,30 @@ export const SUPABASE_ANON_KEY_ENV = "SUPABASE_ANON_KEY";
 
 export const SARVAM_LANGUAGE_MAP: Record<string, string> = {
   en: "en-IN",
+  english: "en-IN",
   hi: "hi-IN",
+  hindi: "hi-IN",
   kn: "kn-IN",
+  kannada: "kn-IN",
   ta: "ta-IN",
+  tamil: "ta-IN",
   te: "te-IN",
+  telugu: "te-IN",
   mr: "mr-IN",
+  marathi: "mr-IN",
   gu: "gu-IN",
+  gujarati: "gu-IN",
   bn: "bn-IN",
+  bengali: "bn-IN",
+  bangla: "bn-IN",
   ml: "ml-IN",
+  malayalam: "ml-IN",
   pa: "pa-IN",
+  punjabi: "pa-IN",
   or: "od-IN",
+  od: "od-IN",
+  odia: "od-IN",
+  oriya: "od-IN",
 };
 
 export function toSarvamLanguageCode(lang?: string | null): string {

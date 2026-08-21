@@ -8,7 +8,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import { supabase } from '@/lib/supabase';
-import { createAddress } from '@/lib/addresses';
+import { createAddress, isAddressComplete } from '@/lib/addresses';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
@@ -325,8 +325,9 @@ const OrderCashSummary = () => {
         showToaster('You must be logged in to place an order.', 'error');
         return;
       }
-      if (!activeAddress) {
-        showToaster('Please select a valid address.', 'error');
+      if (!activeAddress || !isAddressComplete(activeAddress)) {
+        showToaster('Please add your complete delivery address (house/flat/door number).', 'error');
+        setIsAddressSheetOpen(true);
         return;
       }
 
@@ -685,6 +686,7 @@ const OrderCashSummary = () => {
   };
   const isConfirmDisabled =
     !activeAddress ||
+    !isAddressComplete(activeAddress) ||
     quoteLoading ||
     quoteError ||
     isLoading ||

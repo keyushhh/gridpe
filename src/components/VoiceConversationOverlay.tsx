@@ -16,10 +16,12 @@ import {
   Plus
 } from 'lucide-react';
 import { ThinkingOrb } from 'thinking-orbs';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/routes';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
-import { fetchAddresses } from '@/lib/addresses';
+import { fetchAddresses, isAddressComplete } from '@/lib/addresses';
 import { useLocationStore } from '@/store/useLocationStore';
 import { Address } from '@/types';
 
@@ -77,10 +79,10 @@ export function getAmountPrompt(lang?: string | null): string {
   const code = (lang || 'en').split('-')[0].toLowerCase();
   switch (code) {
     case 'hi': return 'आपको कितने रुपये चाहिए?';
+    case 'bn': return 'আপনার কত টাকা লাগবে?';
     case 'kn': return 'ನಿಮಗೆ ಎಷ್ಟು ನಗದು ಬೇಕು?';
     case 'ta': return 'உங்களுக்கு எவ்வளவு பணம் தேவை?';
     case 'te': return 'మీకు ఎంత నగదు కావాలి?';
-    case 'bn': return 'আপনার কত টাকা লাগবে?';
     case 'mr': return 'तुम्हाला किती रोख रक्कम हवी आहे?';
     case 'gu': return 'તમારે કેટલા રોકડા જોઈએ છે?';
     case 'pa': return 'ਤੁਹਾਨੂੰ ਕਿੰਨੀ ਨਕਦੀ ਚਾਹੀਦੀ ਹੈ?';
@@ -94,16 +96,16 @@ export function getAmountMinHintPrompt(lang?: string | null): string {
   const code = (lang || 'en').split('-')[0].toLowerCase();
   switch (code) {
     case 'hi': return 'कम से कम 500 रुपये का ऑर्डर होता है। आपको कितने रुपये चाहिए?';
+    case 'bn': return 'কমপক্ষে ৫০০ টাকার অর্ডার করতে হবে। আপনার কত টাকা লাগবে?';
     case 'kn': return 'ಕನಿಷ್ಠ ಮೊತ್ತ ₹500. ನಿಮಗೆ ಎಷ್ಟು ನಗದು ಬೇಕು?';
     case 'ta': return 'குறைந்தபட்ச தொகை ₹500. உங்களுக்கு எவ்வளவு பணம் தேவை?';
     case 'te': return 'కనీస మొత్తం ₹500. మీకు ఎంత నగదు కావాలి?';
-    case 'bn': return 'ন্যূনতম পরিমাণ ₹500। আপনার কত টাকা লাগবে?';
-    case 'mr': return 'किमान ₹500 ची ऑर्डर आहे. तुम्हाला किती रोख रक्कम हवी आहे?';
-    case 'gu': return 'ઓછામાં ઓછું ₹500 નું ઓર્ડર છે. તમારે કેટલા રોકડા જોઈએ છે?';
-    case 'pa': return 'ਘੱਟੋ-ਘੱਟ ਆਰਡਰ ₹500 ਹੈ। ਤੁਹਾਨੂੰ ਕਿੰਨੀ ਨਕਦੀ ਚਾਹੀਦੀ ਹੈ?';
-    case 'ml': return 'കുറഞ്ഞത് ₹500 ഓർഡർ ചെയ്യാം. നിങ്ങൾക്ക് എത്ര പണം വേണം?';
-    case 'od': return 'ସର୍ବନିମ୍ନ ଅର୍ଡର ₹500। ଆପଣଙ୍କୁ କେତେ ଟଙ୍କା ଦରକାର?';
-    default: return 'GridPe cash delivery starts from ₹500. How much cash do you need?';
+    case 'mr': return 'किमान रक्कम ₹500 आहे. तुम्हाला किती रोख रक्कम हवी आहे?';
+    case 'gu': return 'ઓછામાં ઓછી રકમ ₹500 છે. તમારે કેટલા રોકડા જોઈએ છે?';
+    case 'pa': return 'ਘੱਟੋ-ਘੱਟ ਰਕਮ ₹500 ਹੈ। ਤੁਹਾਨੂੰ ਕਿੰਨੀ ਨਕਦੀ ਚਾਹੀਦੀ ਹੈ?';
+    case 'ml': return 'കുറഞ്ഞ തുക ₹500 ആണ്. നിങ്ങൾക്ക് എത്ര പണം വേണം?';
+    case 'od': return 'ସର୍ବନିମ୍ନ ରାଶି ₹୫୦୦। ଆପଣଙ୍କୁ କେତେ ଟଙ୍କା ଦରକାର?';
+    default: return 'Minimum order is ₹500. How much cash do you need?';
   }
 }
 
@@ -111,9 +113,15 @@ export function getAmountReaskPrompt(lang?: string | null): string {
   const code = (lang || 'en').split('-')[0].toLowerCase();
   switch (code) {
     case 'hi': return 'माफ़ कीजिए, समझ नहीं आया। आपको कितने रुपये चाहिए?';
+    case 'bn': return 'দুঃখিত, বুঝতে পারিনি। আপনার কত টাকা লাগবে?';
     case 'kn': return 'ಕ್ಷಮಿಸಿ, ಅರ್ಥವಾಗಲಿಲ್ಲ. ನಿಮಗೆ ಎಷ್ಟು ನಗದು ಬೇಕು?';
     case 'ta': return 'மன்னிக்கவும், புரியவில்லை. உங்களுக்கு எவ்வளவு பணம் தேவை?';
     case 'te': return 'క్షమించండి, అర్థం కాలేదు. మీకు ఎంత నగదు కావాలి?';
+    case 'mr': return 'क्षमस्व, समजले नाही. तुम्हाला किती रोख रक्कम हवी आहे?';
+    case 'gu': return 'માફ કરશો, સમજાયું નહીં. તમારે કેટલા રોકડા જોઈએ છે?';
+    case 'pa': return 'ਮਾਫ਼ ਕਰਨਾ, ਸਮਝ ਨਹੀਂ ਆਇਆ। ਤੁਹਾਨੂੰ ਕਿੰਨੀ ਨਕਦੀ ਚਾਹੀਦੀ ਹੈ?';
+    case 'ml': return 'ക്ഷമിക്കണം, മനസ്സിലായില്ല. നിങ്ങൾക്ക് എത്ര പണം വേണം?';
+    case 'od': return 'କ୍ଷମା କରିବେ, ବୁଝିପାରିଲି ନାହିଁ। ଆପଣଙ୍କୁ କେତେ ଟଙ୍କା ଦରକାର?';
     default: return "Sorry, I didn't catch that. How much cash do you need?";
   }
 }
@@ -125,6 +133,10 @@ export function getAddressPrompt(amount: number, label: string, isMultiple: bool
       return isMultiple
         ? `${label} पर ₹${amount} डिलीवर करें, सही है या कोई और पता?`
         : `${label} पर ₹${amount} डिलीवर करें, सही है?`;
+    case 'bn':
+      return isMultiple
+        ? `${label}-এ ₹${amount} ডেলিভারি করব, ঠিক আছে নাকি অন্য কোনো ঠিকানা?`
+        : `${label}-এ ₹${amount} ডেলিভারি করব, ঠিক আছে?`;
     case 'kn':
       return isMultiple
         ? `₹${amount} ಅನ್ನು ${label} ಗೆ ತಲುಪಿಸಬೇಕೇ, ಅಥವಾ ಬೇರೆ ವಿಳಾಸವೇ?`
@@ -137,6 +149,26 @@ export function getAddressPrompt(amount: number, label: string, isMultiple: bool
       return isMultiple
         ? `₹${amount} ను ${label} కి డెలివరీ చేయాలా, లేదా వేరే చిరునామానా?`
         : `₹${amount} ను ${label} కి డెలివరీ చేయాలా?`;
+    case 'mr':
+      return isMultiple
+        ? `${label} वर ₹${amount} डिलिव्हर करायचे का, की दुसरा पत्ता?`
+        : `${label} वर ₹${amount} डिलिव्हर करायचे का?`;
+    case 'gu':
+      return isMultiple
+        ? `${label} પર ₹${amount} પહોંચાડવું છે, બરાબર છે કે બીજું કોઈ સરનામું?`
+        : `${label} પર ₹${amount} પહોંચાડવું છે, બરાબર છે?`;
+    case 'pa':
+      return isMultiple
+        ? `${label} 'ਤੇ ₹${amount} ਡਿਲੀਵਰ ਕਰਨਾ ਹੈ, ਠੀਕ ਹੈ ਜਾਂ ਕੋਈ ਹੋਰ ਪਤਾ?`
+        : `${label} 'ਤੇ ₹${amount} ਡਿਲੀਵਰ ਕਰਨਾ ਹੈ, ਠੀਕ ਹੈ?`;
+    case 'ml':
+      return isMultiple
+        ? `₹${amount} ${label}-ലേക്ക് എത്തിക്കണോ, അതോ മറ്റൊരു വിലാസത്തിലേക്കോ?`
+        : `₹${amount} ${label}-ലേക്ക് എത്തിക്കണോ?`;
+    case 'od':
+      return isMultiple
+        ? `${label} ରେ ₹${amount} ଡେଲିଭର କରିବା, ଠିକ ଅଛି କି ଅନ୍ୟ କୌଣସି ଠିକଣା?`
+        : `${label} ରେ ₹${amount} ଡେଲିଭର କରିବା, ଠିକ ଅଛି?`;
     default:
       return isMultiple
         ? `Delivering ₹${amount} to ${label}, is that right, or a different address?`
@@ -148,9 +180,15 @@ export function getConfirmationPrompt(amount: number, label: string, lang?: stri
   const code = (lang || 'en').split('-')[0].toLowerCase();
   switch (code) {
     case 'hi': return `${label} पर ₹${amount} का ऑर्डर कन्फर्म करें?`;
+    case 'bn': return `${label}-এ ₹${amount}-এর অর্ডার কনফার্ম করবেন?`;
     case 'kn': return `${label} ಗೆ ₹${amount} ಆರ್ಡರ್ ದೃಢೀಕರಿಸಬೇಕೇ?`;
     case 'ta': return `${label} க்கு ₹${amount} ஆர்டரை உறுதிப்படுத்தவா?`;
     case 'te': return `${label} కి ₹${amount} ఆర్డర్‌ను ఖరారు చేయాలా?`;
+    case 'mr': return `${label} वर ₹${amount} ची ऑर्डर कन्फर्म करायची का?`;
+    case 'gu': return `શું ${label} પર ₹${amount} નો ઓર્ડર કન્ફર્મ કરવો છે?`;
+    case 'pa': return `ਕੀ ${label} 'ਤੇ ₹${amount} ਦਾ ਆਰਡਰ ਕਨਫਰਮ ਕਰਨਾ ਹੈ?`;
+    case 'ml': return `${label}-ലേക്ക് ₹${amount} ഓർഡർ സ്ഥിരീകരിക്കണോ?`;
+    case 'od': return `${label} ରେ ₹${amount} ର ଅର୍ଡର ନିଶ୍ଚିତ କରିବେ କି?`;
     default: return `Confirm ₹${amount} to ${label}?`;
   }
 }
@@ -159,6 +197,15 @@ export function getNegativePrompt(lang?: string | null): string {
   const code = (lang || 'en').split('-')[0].toLowerCase();
   switch (code) {
     case 'hi': return 'कोई बात नहीं। क्या आप राशि या पता बदलना चाहते हैं, या रद्द करना चाहते हैं?';
+    case 'bn': return 'কোনো সমস্যা নেই। আপনি কি পরিমাণ বা ঠিকানা পরিবর্তন করতে চান, নাকি বাতিল করবেন?';
+    case 'kn': return 'ಯಾವುದೇ ತೊಂದರೆಯಿಲ್ಲ. ನೀವು ಮೊತ್ತ ಅಥವಾ ವಿಳಾಸವನ್ನು ಬದಲಾಯಿಸಲು ಬಯಸುವಿರಾ, ಅಥವಾ ರದ್ದುಗೊಳಿಸಲು ಬಯಸುವಿರಾ?';
+    case 'ta': return 'பரவாயில்லை. தொகையையோ முகவரியையோ மாற்ற விரும்புகிறீர்களா, அல்லது ரத்து செய்யவா?';
+    case 'te': return 'పర్వాలేదు. మీరు మొత్తం లేదా చిరునామా మార్చాలనుకుంటున్నారా, లేదా రద్దు చేయాలా?';
+    case 'mr': return 'काही हरकत नाही. तुम्हाला रक्कम किंवा पत्ता बदलायचा आहे की रद्द करायचा आहे?';
+    case 'gu': return 'કોઈ વાંધો નહીં. શું તમે રકમ અથવા સરનામું બદલવા માંગો છો, કે રદ કરવા માંગો છો?';
+    case 'pa': return 'ਕੋਈ ਗੱਲ ਨਹੀਂ। ਕੀ ਤੁਸੀਂ ਰਕਮ ਜਾਂ ਪਤਾ ਬਦਲਣਾ ਚਾਹੁੰਦੇ ਹੋ, ਜਾਂ ਰੱਦ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?';
+    case 'ml': return 'കുഴപ്പമില്ല. തുകയോ വിലാസമോ മാറ്റണോ, അതോ റദ്ദാക്കണോ?';
+    case 'od': return 'କୌଣସି ଅସୁବିଧା ନାହିଁ। ଆପଣ ରାଶି ବା ଠିକଣା ବଦଳାଇବାକୁ ଚାହାଁନ୍ତି କି ବାତିଲ କରିବେ?';
     default: return 'No problem. Would you like to change the amount, change the address, or cancel?';
   }
 }
@@ -167,11 +214,117 @@ export function getDonePrompt(amount: number, lang?: string | null): string {
   const code = (lang || 'en').split('-')[0].toLowerCase();
   switch (code) {
     case 'hi': return 'बढ़िया! कृपया ऑर्डर पूरा करने के लिए पेमेंट करें।';
+    case 'bn': return 'চমৎকার! অর্ডার সম্পন্ন করতে অনুগ্রহ করে পেমেন্ট করুন।';
     case 'kn': return 'ಉತ್ತಮ! ದಯವಿಟ್ಟು ಆರ್ಡರ್ ಪೂರ್ಣಗೊಳಿಸಲು ಪಾವತಿ ಮಾಡಿ.';
     case 'ta': return 'அருமை! ஆர்டரை முடிக்க கட்டணத்தைச் செலுத்துங்கள்.';
-    case 'te': return 'బాగుంది! దయచేసి ఆర్డర్ పూర్తి చేయడానికి చెల్లింపు చేయండి.';
+    case 'te': return 'బాగుంది! దయచేసి ఆర్ಡర్ పూర్తి చేయడానికి చెల్లింపు చేయండి.';
+    case 'mr': return 'उत्तम! ऑर्डर पूर्ण करण्यासाठी कृपया पेमेंट करा.';
+    case 'gu': return 'સરસ! ઓર્ડર પૂર્ણ કરવા માટે કૃપા કરીને પેમેન્ટ કરો.';
+    case 'pa': return 'ਬਹੁਤ ਵਧੀਆ! ਆਰਡਰ ਪੂਰਾ ਕਰਨ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਭੁਗਤਾਨ ਕਰੋ।';
+    case 'ml': return 'നന്നായി! ഓർഡർ പൂർത്തിയാക്കാൻ ദയവായി പേയ്‌മെന്റ് ചെയ്യുക.';
+    case 'od': return 'ବଢ଼ିଆ! ଅର୍ଡର ସମ୍ପୂର୍ଣ୍ଣ କରିବା ପାଇଁ ଦୟାକରି ପେମେଣ୍ଟ କରନ୍ତୁ।';
     default: return 'Done! Please complete the payment to place your order.';
   }
+}
+
+export function getIncompleteAddressPrompt(lang?: string | null): string {
+  const code = (lang || 'en').split('-')[0].toLowerCase();
+  switch (code) {
+    case 'hi': return 'ऑर्डर के लिए कृपया अपना पूरा पता (मकान या फ्लैट नंबर) जोड़ें।';
+    case 'bn': return 'ডেলিভারির জন্য অনুগ্রহ করে আপনার সম্পূর্ণ ঠিকানা (বাড়ি বা ফ্ল্যাট নম্বর) যোগ করুন।';
+    case 'kn': return 'ಡೆಲಿವರಿಗೆ ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪೂರ್ಣ ವಿಳಾಸವನ್ನು (ಮನೆ ಅಥವಾ ಫ್ಲಾಟ್ ಸಂಖ್ಯೆ) ಸೇರಿಸಿ.';
+    case 'ta': return 'டெலிவரிக்கு உங்கள் முழு முகவரியை (வீடு அல்லது பிளாட் எண்) சேர்க்கவும்.';
+    case 'te': return 'డెలివరీ కోసం దయచేసి మీ పూర్తి చిరునామాను (ఇంటి లేదా ఫ్లాట్ నంబర్) జోడించండి.';
+    case 'mr': return 'डिलिव्हरीसाठी कृपया तुमचा पूर्ण पत्ता (घर किंवा फ्लॅट नंबर) जोडा.';
+    case 'gu': return 'ડિલિવરી માટે કૃપા કરીને તમારું પૂરું સરનામું (ઘર અથવા ફ્લેટ નંબર) ઉમેરો.';
+    case 'pa': return 'ਡਿਲੀਵਰੀ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਪੂਰਾ ਪਤਾ (ਘਰ ਜਾਂ ਫਲੈਟ ਨੰਬਰ) ਸ਼ਾਮਲ ਕਰੋ।';
+    case 'ml': return 'ഡെലിവറിക്കായി ദയവായി നിങ്ങളുടെ പൂർണ്ണ വിലാസം (വീട് അല്ലെങ്കിൽ ഫ്ലാറ്റ് നമ്പർ) ചേർക്കുക.';
+    case 'od': return 'ଡେଲିଭରି ପାଇଁ ଦୟାକରି ଆପଣଙ୍କ ସମ୍ପୂର୍ଣ୍ଣ ଠିକଣା (ଘର ବା ଫ୍ଲାଟ୍ ନମ୍ବର) ଯୋଡ଼ନ୍ତୁ।';
+    default: return 'Please add your full address (house or flat number) for delivery.';
+  }
+}
+
+export function detectLanguageFromTranscript(transcript: string, currentFallback: string = 'en-IN'): string {
+  if (!transcript) return currentFallback;
+  const t = transcript.toLowerCase().trim();
+
+  // 1. Bengali (Script + Phonetics / Romanized)
+  if (
+    /[ঀ-৿]/.test(t) ||
+    /(taka|taaka|takar|taakar|takaa|takay|poisa|poisha|lagbe|laagbe|lage|laage|chai|chayi|chaye|hajar|hazaarr|hajaar|sho|shoh|panchsho|paanchsho|pachsho|pachso|pancho|eksho|duso|tinsho|charsho|choyso|shatsho|aatsho|noyso|amar|aamar|amake|aamake|amader|dorkar|dorkaar|pathan|pathao|pathiye|deben|din|koto|korun|koro|thik|ache|acche)/i.test(t)
+  ) {
+    return 'bn-IN';
+  }
+
+  // 2. Kannada
+  if (
+    /[ಀ-೿]/.test(t) ||
+    /(beku|kodi|roopayi|saavira|nooru|ainuru|kalsi|badi|kodu|nanage|nange|namage|aithu)/i.test(t)
+  ) {
+    return 'kn-IN';
+  }
+
+  // 3. Tamil
+  if (
+    /[஀-௿]/.test(t) ||
+    /(venum|kudu|roobai|aayiram|nooru|anuppu|anuppunga|pannunga|enakku|thanga)/i.test(t)
+  ) {
+    return 'ta-IN';
+  }
+
+  // 4. Telugu
+  if (
+    /[ఀ-౿]/.test(t) ||
+    /(kavali|ivvandi|roopayalu|veylu|vandhalu|pampandi|cheyandi|naaku)/i.test(t)
+  ) {
+    return 'te-IN';
+  }
+
+  // 5. Gujarati
+  if (
+    /[઀-૿]/.test(t) ||
+    /(joiye|aapo|rupiya|hajar|so|moklo|kari do|mane|tame)/i.test(t)
+  ) {
+    return 'gu-IN';
+  }
+
+  // 6. Punjabi
+  if (
+    /[਀-੿]/.test(t) ||
+    /(chahida|chahidi|rupaiye|hajaar|bhej deo|kar dio|mainu|saanu)/i.test(t)
+  ) {
+    return 'pa-IN';
+  }
+
+  // 7. Malayalam
+  if (
+    /[ഀ-ൿ]/.test(t) ||
+    /(venam|roopa|aayiram|ayakkoo|cheyyuka|enikku|tharan)/i.test(t)
+  ) {
+    return 'ml-IN';
+  }
+
+  // 8. Odia
+  if (
+    /[଀-୿]/.test(t) ||
+    /(darkar|tanka|hajara|pathantu|karantu|mote)/i.test(t)
+  ) {
+    return 'od-IN';
+  }
+
+  // 9. Marathi vs Hindi (Devanagari / Romanized)
+  if (/(पाहिजे|हजार|रुपये|मला|पाठवा|करा|नको|द्या)/i.test(t) || /(pahije|mala|pathva|dya)/i.test(t)) {
+    return 'mr-IN';
+  }
+
+  if (
+    /[ऀ-ॿ]/.test(t) ||
+    /(chahiye|rupaye|rupay|hazaar|hazar|sau|mujhe|bhejo|karo|paanch|panch|bhej do|kar do|mera|meri|kripya)/i.test(t)
+  ) {
+    return 'hi-IN';
+  }
+
+  return currentFallback;
 }
 
 const CONVERSATION_SCRIPT: ScriptStep[] = [
@@ -241,11 +394,11 @@ export function matchAddressTurnResponse(
   }
 
   // 2. Check for negative tokens
-  const negativeRegex = /\b(no|nah|not|change|different|nahi|na|mat)\b/i;
+  const negativeRegex = /\b(no|nah|not|change|different|nahi|na|mat|lagbe na|dorkar nei|onno|অন্য|না|বদল|পরিবর্তন|beda|vendaam|vaddu|nako)\b/i;
   const isNegative = negativeRegex.test(cleaned);
 
   // 3. Check for affirmative tokens
-  const affirmativeRegex = /\b(yes|yeah|yep|yup|haan|ha|sahi|correct|right|confirm|okay|ok|sure|proceed|deliver|theek|thik|kar do|kar do ji|chale|chalega|bhejo|bhej do)\b/i;
+  const affirmativeRegex = /\b(yes|yeah|yep|yup|haan|ha|sahi|correct|right|confirm|okay|ok|sure|proceed|deliver|theek|thik|kar do|kar do ji|chale|chalega|bhejo|bhej do|thik ache|hye|pathan|pathiye din|korun|din|হ্যাঁ|হাঁ|ঠিক|ঠিক আছে|পাঠিয়ে দিন|পাঠান|করুন|haudu|madi|sari|aam|aamam|avunu|sare|pampandi|hoy|ho)\b/i;
   const isAffirmative = affirmativeRegex.test(cleaned);
 
   if (isAffirmative && !isNegative) {
@@ -281,16 +434,16 @@ const GLOBAL_NEGATIVE_TOKENS = [
 
 const AFFIRMATIVE_WHITELIST_BY_LANG: Record<string, string[]> = {
   'en-IN': ['yes', 'yeah', 'yep', 'yup', 'confirm', 'proceed', 'place order', 'place the order', 'go ahead', 'sure', 'okay', 'ok', 'do it', 'correct'],
-  'hi-IN': ['हाँ', 'हा', 'हाँजी', 'हाजी', 'कर दो', 'कर दो जी', 'भेज दो', 'भेजो', 'ऑर्डर कर दो', 'पक्का', 'सही है', 'ठीक है', 'haan', 'ha', 'haanji', 'haji', 'kar do', 'kar do ji', 'bhej do', 'bhejo', 'order kar do', 'pakka', 'sahi hai', 'theek hai', 'thik hai'],
-  'bn-IN': ['হ্যাঁ', 'হ্যাঁ করুন', 'পাঠিয়ে দিন', 'অর্ডার করুন', 'ঠিক আছে', 'haan', 'hye', 'pathiye din', 'thik ache', 'order koro', 'order korun'],
-  'kn-IN': ['ಹೌದು', 'ಮಾಡಿ', 'ಕಳುಹಿಸಿ', 'ಸರಿ', 'ಖಚಿತಪಡಿಸಿ', 'haudu', 'madi', 'kaluhisi', 'sari', 'khachitapadisi', 'aithu'],
-  'ta-IN': ['ஆம்', 'ஆமாம்', 'சரி', 'அனுப்புங்க', 'பண்ணுங்க', 'உறுதி செய்', 'aam', 'aamam', 'sari', 'anuppunga', 'pannunga', 'confirm'],
-  'te-IN': ['అవును', 'సరే', 'పంపండి', 'చేయండి', 'ఖరారు చేయండి', 'avunu', 'sare', 'pampandi', 'cheyandi'],
-  'gu-IN': ['હા', 'હાજી', 'મોકલો', 'કરી દો', 'બરાબર', 'haa', 'haji', 'moklo', 'kari do', 'barabar'],
-  'pa-IN': ['ਹਾਂ', 'ਹਾਂਜੀ', 'ਭੇਜ ਦਿਓ', 'ਕਰ ਦਿਓ', 'ਠੀਕ ਹੈ', 'haan', 'haanji', 'bhej deo', 'kar dio', 'theek hai'],
-  'ml-IN': ['അതെ', 'ശരി', 'അയക്കൂ', 'ചെയ്യുക', 'athe', 'shari', 'ayakkoo', 'cheyyuka'],
-  'od-IN': ['ହଁ', 'ହଁ ଆଜ୍ଞା', 'ପଠାନ୍ତୁ', 'କରନ୍ତୁ', 'ଠିକ ଅଛି', 'haan', 'hye', 'pathantu', 'karantu', 'thik achi'],
-  'mr-IN': ['होय', 'हो', 'पाठवा', 'करा', 'नक्की', 'बरोबर', 'hoy', 'ho', 'pathva', 'kara', 'nakki', 'barobar'],
+  'hi-IN': ['à¤¹à¤¾à¤�', 'à¤¹à¤¾', 'à¤¹à¤¾à¤�à¤œà¥€', 'à¤¹à¤¾à¤œà¥€', 'à¤•à¤° à¤¦à¥‹', 'à¤•à¤° à¤¦à¥‹ à¤œà¥€', 'à¤­à¥‡à¤œ à¤¦à¥‹', 'à¤­à¥‡à¤œà¥‹', 'à¤‘à¤°à¥�à¤¡à¤° à¤•à¤° à¤¦à¥‹', 'à¤ªà¤•à¥�à¤•à¤¾', 'à¤¸à¤¹à¥€ à¤¹à¥ˆ', 'à¤ à¥€à¤• à¤¹à¥ˆ', 'haan', 'ha', 'haanji', 'haji', 'kar do', 'kar do ji', 'bhej do', 'bhejo', 'order kar do', 'pakka', 'sahi hai', 'theek hai', 'thik hai'],
+  'bn-IN': ['à¦¹à§�à¦¯à¦¾à¦�', 'à¦¹à§�à¦¯à¦¾à¦� à¦•à¦°à§�à¦¨', 'à¦ªà¦¾à¦ à¦¿à§Ÿà§‡ à¦¦à¦¿à¦¨', 'à¦…à¦°à§�à¦¡à¦¾à¦° à¦•à¦°à§�à¦¨', 'à¦ à¦¿à¦• à¦†à¦›à§‡', 'haan', 'hye', 'pathiye din', 'thik ache', 'order koro', 'order korun'],
+  'kn-IN': ['à²¹à³Œà²¦à³�', 'à²®à²¾à²¡à²¿', 'à²•à²³à³�à²¹à²¿à²¸à²¿', 'à²¸à²°à²¿', 'à²–à²šà²¿à²¤à²ªà²¡à²¿à²¸à²¿', 'haudu', 'madi', 'kaluhisi', 'sari', 'khachitapadisi', 'aithu'],
+  'ta-IN': ['à®†à®®à¯�', 'à®†à®®à®¾à®®à¯�', 'à®šà®°à®¿', 'à®…à®©à¯�à®ªà¯�à®ªà¯�à®™à¯�à®•', 'à®ªà®£à¯�à®£à¯�à®™à¯�à®•', 'à®‰à®±à¯�à®¤à®¿ à®šà¯†à®¯à¯�', 'aam', 'aamam', 'sari', 'anuppunga', 'pannunga', 'confirm'],
+  'te-IN': ['à°…à°µà±�à°¨à±�', 'à°¸à°°à±‡', 'à°ªà°‚à°ªà°‚à°¡à°¿', 'à°šà±‡à°¯à°‚à°¡à°¿', 'à°–à°°à°¾à°°à±� à°šà±‡à°¯à°‚à°¡à°¿', 'avunu', 'sare', 'pampandi', 'cheyandi'],
+  'gu-IN': ['àª¹àª¾', 'àª¹àª¾àªœà«€', 'àª®à«‹àª•àª²à«‹', 'àª•àª°à«€ àª¦à«‹', 'àª¬àª°àª¾àª¬àª°', 'haa', 'haji', 'moklo', 'kari do', 'barabar'],
+  'pa-IN': ['à¨¹à¨¾à¨‚', 'à¨¹à¨¾à¨‚à¨œà©€', 'à¨­à©‡à¨œ à¨¦à¨¿à¨“', 'à¨•à¨° à¨¦à¨¿à¨“', 'à¨ à©€à¨• à¨¹à©ˆ', 'haan', 'haanji', 'bhej deo', 'kar dio', 'theek hai'],
+  'ml-IN': ['à´…à´¤àµ†', 'à´¶à´°à´¿', 'à´…à´¯à´•àµ�à´•àµ‚', 'à´šàµ†à´¯àµ�à´¯àµ�à´•', 'athe', 'shari', 'ayakkoo', 'cheyyuka'],
+  'od-IN': ['à¬¹à¬�', 'à¬¹à¬� à¬†à¬œà­�à¬žà¬¾', 'à¬ªà¬ à¬¾à¬¨à­�à¬¤à­�', 'à¬•à¬°à¬¨à­�à¬¤à­�', 'à¬ à¬¿à¬• à¬…à¬›à¬¿', 'haan', 'hye', 'pathantu', 'karantu', 'thik achi'],
+  'mr-IN': ['à¤¹à¥‹à¤¯', 'à¤¹à¥‹', 'à¤ªà¤¾à¤ à¤µà¤¾', 'à¤•à¤°à¤¾', 'à¤¨à¤•à¥�à¤•à¥€', 'à¤¬à¤°à¥‹à¤¬à¤°', 'hoy', 'ho', 'pathva', 'kara', 'nakki', 'barobar'],
 };
 
 const GLOBAL_AFFIRMATIVE_TOKENS = ['yes', 'yeah', 'yep', 'yup', 'confirm', 'proceed', 'place order', 'okay', 'ok', 'sure', 'haan', 'ha', 'correct'];
@@ -512,6 +665,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
   onClose,
   onComplete,
 }) => {
+  const navigate = useNavigate();
   const { profile } = useUser();
   const preferredLanguage = profile?.preferred_language || 'en';
 
@@ -687,7 +841,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
   }, [speakPrompt]);
 
   // Transition into Step 2 (Confirmation Turn)
-  const enterConfirmationStep = useCallback((amount: number, addressLabel: string) => {
+  const enterConfirmationStep = useCallback((amount: number, addressLabel: string, activeLanguage?: string) => {
     stopActiveAudio();
     recorderRef.current.cancelRecording();
     setCurrentStepIndex(2);
@@ -697,12 +851,13 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
     setShowNegativeFallback(false);
     setOrderErrorMessage(null);
     setCurrentTranscript('');
-    const promptText = getConfirmationPrompt(amount, getNormalizedAddressLabel(null, addressLabel), detectedLanguageRef.current);
+    const lang = activeLanguage || detectedLanguageRef.current;
+    const promptText = getConfirmationPrompt(amount, getNormalizedAddressLabel(null, addressLabel), lang);
     speakPrompt(promptText);
   }, [stopActiveAudio, speakPrompt]);
 
   // Transition into Step 1 (Address Turn) with saved address lookup
-  const enterAddressStep = useCallback(async (amount: number) => {
+  const enterAddressStep = useCallback(async (amount: number, activeLanguage?: string) => {
     stopActiveAudio();
     recorderRef.current.cancelRecording();
     setCurrentStepIndex(1);
@@ -713,6 +868,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
     setAddressRetryCount(0);
     setCurrentTranscript('');
 
+    const lang = activeLanguage || detectedLanguageRef.current;
     const userId = profile?.id;
     let addresses: Address[] = [];
 
@@ -720,7 +876,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
       try {
         const fetched = await fetchAddresses(userId);
         if (Array.isArray(fetched)) {
-          addresses = fetched;
+          addresses = fetched.filter(isAddressComplete);
         }
       } catch (err) {
         addresses = [];
@@ -730,11 +886,12 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
     setSavedAddresses(addresses);
     savedAddressesRef.current = addresses;
 
-    // Branch a: 0 saved addresses -> speak and exit overlay cleanly
+    // Branch a: 0 complete saved addresses -> prompt user and route to add address
     if (addresses.length === 0) {
-      const prompt0 = "You don't have a saved address yet — let's add one first.";
+      const prompt0 = getIncompleteAddressPrompt(lang);
       speakPrompt(prompt0, () => {
         onClose();
+        navigate(ROUTES.ADD_ADDRESS);
       });
       return;
     }
@@ -748,7 +905,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
         addressId: addresses[0].id,
         selectedAddress: addresses[0],
       }));
-      const prompt1 = getAddressPrompt(amount, singleLabel, false, detectedLanguageRef.current);
+      const prompt1 = getAddressPrompt(amount, singleLabel, false, lang);
       speakPrompt(prompt1);
       return;
     }
@@ -774,7 +931,7 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
       addressId: defaultAddr.id || addresses[0]?.id,
       selectedAddress: defaultAddr as Address,
     }));
-    const promptMultiple = getAddressPrompt(amount, defaultLabel, true, detectedLanguageRef.current);
+    const promptMultiple = getAddressPrompt(amount, defaultLabel, true, lang);
     speakPrompt(promptMultiple);
   }, [profile?.id, stopActiveAudio, speakPrompt, onClose]);
 
@@ -999,11 +1156,16 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
           if (transcript) {
             setCurrentTranscript(transcript);
           }
-          if (data.detectedLanguage) {
-            setDetectedLanguage(data.detectedLanguage);
-            detectedLanguageRef.current = data.detectedLanguage;
-            preferredLanguageRef.current = data.detectedLanguage;
-          }
+
+          // Robust hybrid language detection
+          const resolvedLanguage = detectLanguageFromTranscript(
+            transcript,
+            data.detectedLanguage || detectedLanguageRef.current || 'en-IN'
+          );
+
+          setDetectedLanguage(resolvedLanguage);
+          detectedLanguageRef.current = resolvedLanguage;
+          preferredLanguageRef.current = resolvedLanguage;
 
           // ================= STEP 0: AMOUNT TURN =================
           if (currentStepIndexRef.current === 0) {
@@ -1013,7 +1175,8 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
               setRetryCount(0);
               setShowManualFallback(false);
               // Advance to live Step 1 Address Turn
-              enterAddressStep(extractedAmount);
+              const lang = data.detectedLanguage || detectedLanguageRef.current;
+              enterAddressStep(extractedAmount, lang);
             } else {
               const lang = data.detectedLanguage || detectedLanguageRef.current;
               const minHint = getAmountMinHintPrompt(lang);
@@ -1032,7 +1195,8 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
               setSlots((prev) => ({ ...prev, addressLabel: chosenLabel }));
               setAddressRetryCount(0);
               setShowManualAddressFallback(false);
-              enterConfirmationStep(slotsRef.current.amount || 2000, chosenLabel);
+              const lang = data.detectedLanguage || detectedLanguageRef.current;
+              enterConfirmationStep(slotsRef.current.amount || 2000, chosenLabel, lang);
             } else if (match.type === 'alternative_address' && match.matchedLabel) {
               // User named a different saved address
               const matchedAddr = match.matchedAddress || addressList.find((a) => getNormalizedAddressLabel(a) === match.matchedLabel);
@@ -1044,7 +1208,8 @@ export const VoiceConversationOverlay: React.FC<VoiceConversationOverlayProps> =
               }));
               setAddressRetryCount(0);
               setShowManualAddressFallback(false);
-              enterConfirmationStep(slotsRef.current.amount || 2000, match.matchedLabel!);
+              const lang = data.detectedLanguage || detectedLanguageRef.current;
+              enterConfirmationStep(slotsRef.current.amount || 2000, match.matchedLabel!, lang);
             } else if (match.type === 'negative_unmatched') {
               // User said "no"
               if (addressList.length <= 1) {

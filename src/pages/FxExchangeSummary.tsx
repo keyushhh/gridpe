@@ -10,7 +10,7 @@ import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { writeStorage } from '@/utils/storage';
 import { supabase } from '@/lib/supabase';
-import { createAddress } from '@/lib/addresses';
+import { createAddress, isAddressComplete } from '@/lib/addresses';
 import { SlideToPay } from '@/components/SlideToPay';
 import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import { SavedAddress } from '@/types';
@@ -311,6 +311,11 @@ const FxExchangeSummary = () => {
     let handedOffToAsyncFlow = false;
     try {
       const userId = currentUserId;
+      if (!savedAddress || !isAddressComplete(savedAddress)) {
+        showToaster('Please add your complete delivery address (house/flat/door number).', 'error');
+        setIsAddressSheetOpen(true);
+        return;
+      }
       let addressId = savedAddress?.id;
       if (!addressId && savedAddress) {
         try {

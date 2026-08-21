@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/routes';
 import BackButton from '@/components/ui/BackButton';
 import { Search } from 'lucide-react';
-import { fetchAddresses, deleteAddress, Address } from '@/lib/addresses';
+import { fetchAddresses, deleteAddress, getAuthUserId, Address } from '@/lib/addresses';
 import { useIsDarkMode } from '@/hooks/useIsDarkMode';
 import { useUser } from '@/contexts/UserContext';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
@@ -123,10 +123,19 @@ const SavedAddresses = () => {
     }
   };
   const filteredAddresses = addresses.filter(
-    addr =>
-      (addr.label || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (addr.apartment || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (addr.area || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (addr, idx, arr) => {
+      // Deduplicate redundant 'Current Location' or empty label addresses
+      const isCurrentLoc = (addr.label || '').toLowerCase() === 'current location' || !addr.label;
+      if (isCurrentLoc) {
+        const firstCurrentIdx = arr.findIndex(a => (a.label || '').toLowerCase() === 'current location' || !a.label);
+        if (idx !== firstCurrentIdx) return false;
+      }
+      return (
+        (addr.label || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (addr.apartment || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (addr.area || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
   );
   const getTagIcon = (tag: string | null) => {
     switch (tag) {
@@ -446,14 +455,17 @@ const SavedAddresses = () => {
                   <button
                     onClick={async () => {
                       const idToDelete = selectedAddr.id;
-                      const nameToDelete = selectedAddr.contact_name || 'Address';
+                      const nameToDelete = selectedAddr.label || selectedAddr.contact_name || 'Address';
                       showToaster('Processing deletion...', 'success');
                       try {
-                        if (userId) {
-                          await deleteAddress(idToDelete, userId);
-                          showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
-                          setAddresses(prev => prev.filter(a => a.id !== idToDelete));
+                        const currentUserId = userId || (await getAuthUserId());
+                        if (!currentUserId) {
+                          showToaster('Unable to verify user session. Please sign in.', 'error');
+                          return;
                         }
+                        await deleteAddress(idToDelete, currentUserId);
+                        showToaster(`${nameToDelete} has been successfully deleted.`, 'delete');
+                        setAddresses(prev => prev.filter(a => a.id !== idToDelete));
                         // If the deleted address was the global active address, clear it
                         if (activeAddressId === idToDelete) {
                           try { setActiveAddress?.(null); } catch { /* intentional */ }
@@ -465,7 +477,8 @@ const SavedAddresses = () => {
                           'SavedAddresses.deleteAddress'
                         );
                         if (import.meta.env.DEV) { console.error('Failed to delete address', e); }
-                        showToaster('Failed to delete address. Please try again.', 'error');
+                        const errMsg = e instanceof Error ? e.message : 'Failed to delete address. Please try again.';
+                        showToaster(errMsg, 'error');
                       } finally {
                         setShowActionSheet(false);
                       }
