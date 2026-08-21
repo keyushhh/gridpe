@@ -22,6 +22,7 @@ import AddressSelectionSheet from '@/components/AddressSelectionSheet';
 import OrderDetailsSheet from '@/components/OrderDetailsSheet';
 import RatingSheet from '@/components/RatingSheet';
 import VoiceConfirmationSheet from '@/components/VoiceConfirmationSheet';
+import VoiceConversationOverlay from '@/components/VoiceConversationOverlay';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useCustomToaster } from '@/contexts/CustomToasterContext';
 import { useUser } from '@/contexts/UserContext';
@@ -77,7 +78,39 @@ const Homepage = () => {
     detectedLanguage?: string;
   } | null>(null);
 
+  const [isVoiceOverlayOpen, setIsVoiceOverlayOpen] = useState(false);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPressActiveRef = useRef<boolean>(false);
+
   const { isRecording, startRecording, stopRecording, error: recorderError } = useVoiceRecorder();
+
+  const handleMicPointerDown = () => {
+    if (isTranscribing) return;
+    isLongPressActiveRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      isLongPressActiveRef.current = true;
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(40);
+      }
+      setIsVoiceOverlayOpen(true);
+    }, 500);
+  };
+
+  const handleMicPointerUpOrLeave = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleMicButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLongPressActiveRef.current) {
+      isLongPressActiveRef.current = false;
+      return;
+    }
+    handleMicClick();
+  };
 
   const handleMicClick = async () => {
     if (isTranscribing) return;
@@ -1102,12 +1135,14 @@ const Homepage = () => {
                         <MetalFx preset="gold" variant="circle" strength={0.5} reflectionTargets={[amountRef]}>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMicClick();
-                            }}
+                            onPointerDown={handleMicPointerDown}
+                            onPointerUp={handleMicPointerUpOrLeave}
+                            onPointerLeave={handleMicPointerUpOrLeave}
+                            onPointerCancel={handleMicPointerUpOrLeave}
+                            onClick={handleMicButtonClick}
                             disabled={isTranscribing}
-                            aria-label="Speak Amount"
+                            aria-label="Speak Amount (Hold for Live Mode)"
+                            title="Tap for quick voice order, hold for Gemini Live full-screen mode"
                             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 bg-[#1D1D22] text-white cursor-pointer ${
                               isRecording ? 'animate-pulse' : ''
                             }`}
@@ -1582,6 +1617,18 @@ const Homepage = () => {
         }}
         onClose={() => {
           setVoiceConfirmation(null);
+        }}
+      />
+
+      {/* Full-Screen Conversational Voice Ordering Overlay (Gemini Live Style) */}
+      <VoiceConversationOverlay
+        isOpen={isVoiceOverlayOpen}
+        onClose={() => setIsVoiceOverlayOpen(false)}
+        onComplete={(slots) => {
+          if (slots.amount) {
+            const formattedAmount = slots.amount.toFixed(2);
+            setAmount(formattedAmount);
+          }
         }}
       />
     </div>
