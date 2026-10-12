@@ -200,8 +200,13 @@ const FxExchange = () => {
   const [fromCurrency, setFromCurrency] = useState(initialFromCurrency);
   const [toCurrency, setToCurrency] = useState('INR');
   const [currencies, setCurCurrencies] = useState<Record<string, string>>({});
-  const [fxRate, setFxRate] = useState<number>(87.36);
+  // 0 until a real rate arrives - never seed a plausible-looking rate
+  const [fxRate, setFxRate] = useState<number>(0);
   const [ratesLoading, setRatesLoading] = useState(true);
+  // No trusted rate means no quote. We never fall back to a stale constant:
+  // the server reprices every order and would reject a fabricated rate anyway,
+  // so showing one would only promise the customer a price we cannot honour.
+  const [rateError, setRateError] = useState(false);
   // NOTE: No isSwapped flag — swap button directly swaps fromCurrency/toCurrency
   // which triggers the rate-fetch effect automatically.
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(true);
@@ -289,6 +294,7 @@ const FxExchange = () => {
   useEffect(() => {
     const init = async () => {
       setRatesLoading(true);
+      setRateError(false);
       try {
         // Fetch Currencies - Use static list as requested to avoid Frankfurter CORS
         setCurCurrencies(CURRENCY_NAMES);
@@ -331,20 +337,8 @@ const FxExchange = () => {
       } catch (error) {
         crashlytics.recordError(error instanceof Error ? error : new Error('Failed to fetch FX rates'), 'FxExchange');
         if (import.meta.env.DEV) { console.error('Failed to fetch FX data:', error); }
-        showToaster('Failed to fetch live exchange rates. Using fallback rates.', 'error');
-        if (isSameCurrency) {
-          setFxRate(1);
-        } else if (fromCurrency === 'USD' && toCurrency === 'INR') {
-          setFxRate(83.45);
-        } else if (fromCurrency === 'INR' && toCurrency === 'USD') {
-          setFxRate(1 / 83.45);
-        } else if (toCurrency === 'INR') {
-          setFxRate(83.45);
-        } else if (fromCurrency === 'INR') {
-          setFxRate(1 / 83.45);
-        } else {
-          setFxRate(1.0);
-        }
+        showToaster('Rates temporarily unavailable. Please try again.', 'error');
+        setRateError(true);
       } finally {
         setRatesLoading(false);
       }
@@ -388,7 +382,7 @@ const FxExchange = () => {
 
   const rawFinalAmount = convertedAmount - markupAmount - flatFeeInToCurrency;
   // Guard: never show a negative final amount
-  const isBelowMinimum = rawFinalAmount <= 0;
+  const isBelowMinimum = !ratesLoading && !rateError && rawFinalAmount <= 0;
   const finalAmount = isBelowMinimum ? 0 : rawFinalAmount;
   return (
     <div
@@ -603,6 +597,8 @@ const FxExchange = () => {
                 <span className={`${isDarkMode ? 'text-white' : 'text-black'}`}>Base Rate</span>
                 {ratesLoading ? (
                   <div className="h-4 w-28 rounded-full bg-white/10 animate-pulse" />
+                ) : rateError ? (
+                  <span className="font-bold text-destructive">Unavailable</span>
                 ) : (
                   <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>
                     1 {currentFrom} = {CURRENCY_MAP[currentTo]?.symbol || currencySymbols[currentTo] || ''}
@@ -679,7 +675,14 @@ const FxExchange = () => {
       {/* Footer / CTA */}
       <div className="px-5 safe-bottom pb-4 mt-auto flex flex-col items-center gap-[18px]">
         <p className={`text-[12px] ${isDarkMode ? 'text-white/60' : 'text-black'}`}>
-          (Rate locked for <span className="text-primary font-bold">{formatTime(timer)}</span>)
+          {/* Not a guarantee: there is no server-side rate lock. The server
+              reprices the order from its own rate at checkout and refuses the
+              order if the quote has moved, so promising a held rate here would
+              be a promise we cannot keep.
+              TODO: issue a signed server-side quote (id, pair, amount, rate,
+              markup, fee, payable, expiry) and have create-fx-exchange-order
+              accept the quote id instead of revalidating loose figures. */}
+          (Rate updates in <span className="text-primary font-bold">{formatTime(timer)}</span>)
         </p>
         {isSameCurrency && (
           <p className={`text-[14px] text-center ${isDarkMode ? 'text-white/70' : 'text-black/70'}`}>
@@ -688,7 +691,7 @@ const FxExchange = () => {
         )}
         <button
           className={`w-full h-[48px] bg-primary rounded-full text-[16px] font-medium active:scale-95 transition-transform shadow-xl ${isDarkMode ? 'shadow-primary/20 text-white' : 'shadow-primary/30 text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
-          disabled={isBelowMinimum || isSameCurrency || ratesLoading}
+          disabled={isBelowMinimum || isSameCurrency || ratesLoading || rateError}
           onClick={() => {
             navigate(ROUTES.FX_EXCHANGE_SUMMARY, {
               state: {
@@ -706,7 +709,7 @@ const FxExchange = () => {
             });
           }}
         >
-          {ratesLoading ? 'Fetching rates...' : 'Proceed to Order'}
+          {ratesLoading ? 'Fetching rates...' : rateError ? 'Rates unavailable' : 'Proceed to Order'}
         </button>
       </div>
       {/* Modals */}

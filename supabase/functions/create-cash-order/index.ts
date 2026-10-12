@@ -2,6 +2,7 @@
 export const config = { auth: false };
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { clampTip } from "../_shared/fx-pricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -141,7 +142,8 @@ Deno.serve(async (req: Request) => {
     // The client's total_payable already has tip added and the reward discount
     // subtracted — fold both into the expected total before comparing, otherwise
     // every order with a tip or a reward redemption fails this check.
-    const expectedTotalPayable = Math.round((quoteData.total_payable + (Number(tip) || 0) - rewardDiscount) * 100) / 100;
+    const tipAmount = clampTip(tip);
+    const expectedTotalPayable = Math.round((quoteData.total_payable + tipAmount - rewardDiscount) * 100) / 100;
     if (Math.abs(expectedTotalPayable - total_payable) > 1) {
       return new Response(JSON.stringify({
         error: 'fee_mismatch',
@@ -230,7 +232,7 @@ Deno.serve(async (req: Request) => {
         delivery_fee: delivery_fee,
         platform_fee: platform_fee,
         gst: gst,
-        tip: tip,
+        tip: tipAmount,
         reward_points: requestedRewardPoints,
         reward_discount: rewardDiscount,
         address_id: address_id,

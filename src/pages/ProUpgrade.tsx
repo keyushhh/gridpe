@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Zap, BadgePercent, CalendarClock, BadgeDollarSign, Sparkles, Loader2 } from 'lucide-react';
 import { ROUTES } from '@/routes';
+import { formatTierLimits } from '@/lib/limits';
 import BackButton from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
@@ -22,7 +23,7 @@ const benefits = [
   {
     icon: TrendingUp,
     title: 'Higher Cash Limits',
-    description: '₹25,000/day • ₹1,00,000/month'
+    description: formatTierLimits('pro')
   },
   {
     icon: Zap,

@@ -2,6 +2,13 @@
 export const config = { auth: false };
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import {
+  computeFxQuote,
+  fetchFxRate,
+  isSupportedCurrency,
+  validateClientFxQuote,
+  clampTip,
+} from "../_shared/fx-pricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -107,12 +114,73 @@ Deno.serve(async (req: Request) => {
       rewardDiscount = Math.round(requestedRewardPoints * REWARD_POINTS_TO_RUPEE * 100) / 100;
     }
 
+    // ---- FX conversion, priced server-side -------------------------------
+    // The only client-chosen input here is source_amount (what the customer
+    // is exchanging). Everything derived from it — rate, markup, flat fee and
+    // receive_amount — is computed from a rate this function fetches itself.
+    // The client's copies are compared for agreement and then discarded, so a
+    // forged rate cannot move the quote that get_order_quote is built on.
+    if (!isSupportedCurrency(from_currency) || !isSupportedCurrency(to_currency)) {
+      return new Response(JSON.stringify({
+        error: 'unsupported_currency',
+        message: 'That currency pair is not supported'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const sourceAmount = Number(source_amount);
+    if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) {
+      return new Response(JSON.stringify({
+        error: 'invalid_source_amount',
+        message: 'Enter an amount to exchange'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    // Fail closed: with no trusted rate there is nothing to validate against,
+    // and the client's rate is exactly what we are refusing to rely on.
+    let serverRate: number;
+    try {
+      serverRate = await fetchFxRate(from_currency, to_currency);
+    } catch (rateError) {
+      console.error("FX rate lookup failed:", rateError);
+      return new Response(JSON.stringify({
+        error: 'fx_rate_unavailable',
+        message: 'Live exchange rates are unavailable right now. Please try again shortly.'
+      }), {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const fxQuote = computeFxQuote(sourceAmount, from_currency, to_currency, serverRate);
+
+    if (fxQuote.receiveAmount <= 0) {
+      return new Response(JSON.stringify({
+        error: 'amount_below_minimum',
+        message: 'That amount is too small to cover the exchange fees'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const fxMismatch = validateClientFxQuote(fxQuote, { fx_rate, receive_amount });
+    if (fxMismatch) {
+      return new Response(JSON.stringify(fxMismatch), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
     // Validate server-side fees (mirrors create-cash-order's fee_mismatch guard).
-    // FX conversion figures (receive_amount, fx_rate, markup, flat_fee) are trusted
-    // client-side inputs — same as the "amount" a customer chooses in a cash order —
-    // only the delivery/platform/gst fee structure is independently recomputed here.
+    // Note this is now priced off the SERVER's receive_amount, not the client's.
     const { data: quoteData, error: quoteError } = await supabase.rpc('get_order_quote', {
-      p_amount: receive_amount,
+      p_amount: fxQuote.receiveAmount,
       p_order_type: 'fx',
       p_distance_km: 0,
       p_service_amount: service_amount || 0,
@@ -130,7 +198,8 @@ Deno.serve(async (req: Request) => {
     // The client's total_payable already has tip added and the reward discount
     // subtracted — fold both into the expected total before comparing, otherwise
     // every order with a tip or a reward redemption fails this check.
-    const expectedTotalPayable = Math.round((quoteData.total_payable + (Number(tip) || 0) - rewardDiscount) * 100) / 100;
+    const tipAmount = clampTip(tip);
+    const expectedTotalPayable = Math.round((quoteData.total_payable + tipAmount - rewardDiscount) * 100) / 100;
     if (Math.abs(expectedTotalPayable - total_payable) > 1) {
       return new Response(JSON.stringify({
         error: 'fee_mismatch',
@@ -140,6 +209,11 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
+
+    // From here on the client's numbers are not used. The guard above only
+    // proves the customer was shown the same price we are about to charge;
+    // the charge itself, and the order it becomes, use the server's figures.
+    const chargeAmount = expectedTotalPayable;
 
     // Generate a unique order_id string
     const cashfreeOrderId = `gridpe_fx_${Date.now()}_${user_id.slice(0, 8)}`;
@@ -162,7 +236,7 @@ Deno.serve(async (req: Request) => {
 
     const cashfreePayload = {
       order_id: cashfreeOrderId,
-      order_amount: total_payable,
+      order_amount: chargeAmount,
       order_currency: "INR",
       customer_details: {
         customer_id: user_id,
@@ -209,18 +283,18 @@ Deno.serve(async (req: Request) => {
     const pendingPaymentInsert = {
       user_id: user_id,
       gateway_order_id: cashfreeOrderId,
-      amount: total_payable,
+      amount: chargeAmount,
       status: "pending",
       payment_type: "FX_EXCHANGE",
       metadata: {
         address_id,
         zone_id,
-        receive_amount,
-        total_payable,
-        delivery_fee,
-        platform_fee,
-        gst,
-        tip,
+        receive_amount: fxQuote.receiveAmount,
+        total_payable: chargeAmount,
+        delivery_fee: quoteData.delivery_fee,
+        platform_fee: quoteData.platform_fee,
+        gst: quoteData.gst,
+        tip: tipAmount,
         reward_points: requestedRewardPoints,
         reward_discount: rewardDiscount,
         rider_earnings,
@@ -232,10 +306,10 @@ Deno.serve(async (req: Request) => {
         delivery_location_lat,
         from_currency,
         to_currency,
-        fx_rate,
-        markup_amount,
-        flat_fee,
-        source_amount,
+        fx_rate: fxQuote.rate,
+        markup_amount: fxQuote.markupAmount,
+        flat_fee: fxQuote.flatFee,
+        source_amount: sourceAmount,
         gateway: "cashfree"
       }
     };
@@ -253,7 +327,7 @@ Deno.serve(async (req: Request) => {
       success: true,
       cashfree_order_id: cashfreeOrderId,
       payment_session_id: paymentSessionId,
-      order_amount: total_payable,
+      order_amount: chargeAmount,
       currency: "INR",
       cashfree_env: cashfreeEnv
     };

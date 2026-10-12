@@ -1,5 +1,6 @@
 import { ASSETS } from '@/constants/assets';
 import { crashlytics } from '@/lib/crashlytics';
+import { limitsForTier } from '@/lib/limits';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/routes';
@@ -43,8 +44,7 @@ const OrderCash = () => {
   const { isRecording, startRecording, stopRecording, error: recorderError } = useVoiceRecorder();
 
   const tierName = profile?.plan_tier ?? 'free';
-  const dailyLimit = tierName.toLowerCase() === 'pro' ? 10000 : 5000;
-  const monthlyLimit = tierName.toLowerCase() === 'pro' ? 100000 : 25000;
+  const { daily: dailyLimit, monthly: monthlyLimit } = limitsForTier(tierName);
   const userId = profile?.id;
 
   const handleMicClick = async () => {
