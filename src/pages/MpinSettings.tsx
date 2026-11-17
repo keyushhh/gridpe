@@ -29,7 +29,7 @@ const MpinSettings = () => {
   }, [location.state]);
   return (
     <div
-      className="gp-column min-h-screen flex flex-col pt-4 safe-top font-sans relative"
+      className="gp-pad min-h-screen flex flex-col pt-4 safe-top font-sans relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

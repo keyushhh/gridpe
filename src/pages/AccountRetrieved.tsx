@@ -13,7 +13,7 @@ const AccountRetrieved = () => {
   };
   return (
     <div
-      className={`gp-column h-full w-full ${containerOverflow} flex flex-col items-center pt-4 safe-bottom pb-4 px-5 safe-top relative`}
+      className={`gp-pad h-full w-full ${containerOverflow} flex flex-col items-center pt-4 safe-bottom pb-4 px-5 safe-top relative`}
       style={
         isDarkMode
           ? {

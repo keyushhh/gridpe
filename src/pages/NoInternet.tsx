@@ -11,7 +11,7 @@ const NoInternet: React.FC = () => {
   return (
     <div className="desktop-backdrop fixed inset-0 w-full h-full" style={{ backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF' }}>
       <main 
-        className="mobile-frame h-full w-full flex flex-col mx-auto relative sm:max-w-[430px] sm:shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/10"
+        className="mobile-frame h-full w-full flex flex-col mx-auto relative"
         style={{
           backgroundColor: isDarkMode ? '#0A0A12' : '#FFFFFF',
           transform: 'translateZ(0)',

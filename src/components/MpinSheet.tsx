@@ -338,7 +338,7 @@ const MpinSheet = ({ onClose, mode = 'verify', onSuccess, hideClose = false }: M
                 slide-in stays on the GPU on Android WebView. */}
       {/* Animation Wrapper */}
       <div
-        className="fixed bottom-0 z-20 w-full h-[92%] animate-in slide-in-from-bottom duration-300 pointer-events-auto"
+        className="gp-sheet fixed bottom-0 left-0 right-0 z-20 w-full h-[92%] animate-in slide-in-from-bottom duration-300 pointer-events-auto"
         style={{ willChange: 'transform', transform: 'translateZ(0)' }}
       >
         {/* Underlying Sheet (The Stacked Effect) */}

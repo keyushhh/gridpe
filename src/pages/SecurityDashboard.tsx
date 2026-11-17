@@ -350,7 +350,7 @@ const SecurityDashboard = () => {
   };
   return (
     <div
-      className="gp-column h-full w-full min-h-screen flex flex-col relative"
+      className="gp-pad h-full w-full min-h-screen flex flex-col relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',

@@ -130,7 +130,7 @@ const ConfirmDeactivation = () => {
   };
   return (
     <div
-      className={`h-full w-full flex flex-col safe-bottom pb-4 relative`}
+      className={`gp-pad h-full w-full flex flex-col safe-bottom pb-4 relative`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

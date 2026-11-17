@@ -14,7 +14,7 @@ const FxIntro = () => {
 
   return (
     <div
-      className="gp-column min-h-screen w-full flex flex-col relative animate-in fade-in duration-500"
+      className="gp-pad min-h-screen w-full flex flex-col relative animate-in fade-in duration-500"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',

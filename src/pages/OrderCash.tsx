@@ -234,7 +234,7 @@ const OrderCash = () => {
 
   return (
     <div
-      className={`gp-column min-h-[100dvh] max-h-[100dvh] w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
+      className={`gp-pad min-h-[100dvh] max-h-[100dvh] w-full ${containerOverflow} flex flex-col safe-top safe-bottom relative`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

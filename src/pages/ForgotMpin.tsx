@@ -108,7 +108,7 @@ const ForgotMpin = () => {
   const isDisabled = step === 'REQUEST';
   return (
     <div
-      className="gp-column h-screen w-full overflow-hidden flex flex-col pt-4 safe-top relative"
+      className="gp-pad h-screen w-full overflow-hidden flex flex-col pt-4 safe-top relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

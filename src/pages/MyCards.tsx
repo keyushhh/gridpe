@@ -180,7 +180,7 @@ const MyCards = () => {
   const contentBlurClass = showSuccessModal || tutorialStep > 0 ? 'blur-sm brightness-50' : '';
   return (
     <div
-      className="gp-column min-h-full w-full flex flex-col justify-start safe-top relative"
+      className="gp-pad min-h-full w-full flex flex-col justify-start safe-top relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

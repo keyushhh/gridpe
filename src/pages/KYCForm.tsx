@@ -125,7 +125,7 @@ const KYCForm = () => {
   };
   return (
     <div
-      className="gp-column h-[100dvh] w-full overflow-hidden flex flex-col relative"
+      className="gp-pad h-[100dvh] w-full overflow-hidden flex flex-col relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

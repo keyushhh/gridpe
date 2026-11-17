@@ -112,7 +112,7 @@ const RatingSheet: React.FC<RatingSheetProps> = ({ isOpen, onClose, order }) => 
       {/* Sheet */}
       <div
         className={cn(
-          "gp-sheet fixed bottom-0 z-20 w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-[transform,opacity] duration-300 shadow-2xl pointer-events-auto",
+          "gp-sheet fixed bottom-0 left-0 right-0 z-20 w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden transition-[transform,opacity] duration-300 shadow-2xl pointer-events-auto",
           !isDarkMode && "bg-white"
         )}
         style={{

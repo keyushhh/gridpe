@@ -183,7 +183,7 @@ export const TermsAcceptanceGate: React.FC = () => {
       )}
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col px-6 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(20px+env(safe-area-inset-bottom))] h-full relative z-10">
+      <div className="gp-pad flex-1 flex flex-col px-6 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(20px+env(safe-area-inset-bottom))] h-full relative z-10">
         
         {/* Header Title */}
         <div className="text-center mt-4 mb-4 shrink-0">

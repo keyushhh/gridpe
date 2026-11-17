@@ -448,7 +448,7 @@ const OrderHistory = () => {
   );
   return (
     <div
-      className="gp-column h-full w-full overflow-y-auto flex flex-col relative safe-top"
+      className="gp-pad h-full w-full overflow-y-auto flex flex-col relative safe-top"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

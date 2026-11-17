@@ -300,7 +300,7 @@ const OrderDetailsSheet: React.FC<OrderDetailsSheetProps> = ({
                 sheet content loaded, which forces layout reflow each frame.
                 Restrict to compositor-only properties. */}
       <div
-        className={`gp-sheet fixed bottom-0 z-20 w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden shadow-2xl ${isDarkMode ? '' : 'bg-white'} pointer-events-auto`}
+        className={`gp-sheet fixed bottom-0 left-0 right-0 z-20 w-full h-auto min-h-[50vh] max-h-[90vh] rounded-t-[32px] overflow-hidden shadow-2xl ${isDarkMode ? '' : 'bg-white'} pointer-events-auto`}
         style={{
           background: isDarkMode
             ? 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)) padding-box, linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) border-box'
