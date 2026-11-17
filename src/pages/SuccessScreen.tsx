@@ -61,7 +61,7 @@ const SuccessScreen = () => {
   };
   return (
     <div
-      className="h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-top"
+      className="gp-column h-[100dvh] w-full flex flex-col items-center relative overflow-hidden safe-top"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.SUCCESS_BG})` : 'none',

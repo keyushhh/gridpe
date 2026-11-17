@@ -95,7 +95,7 @@ const RideAndEarn = () => {
 
   return (
     <div
-      className={`min-h-[100dvh] flex flex-col pb-12 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad min-h-[100dvh] flex flex-col pb-12 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

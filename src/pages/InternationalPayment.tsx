@@ -322,7 +322,7 @@ const InternationalPayment = () => {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top safe-bottom pb-8"
+      className="gp-column h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top safe-bottom pb-8"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

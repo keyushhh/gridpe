@@ -325,7 +325,7 @@ const AddCard = () => {
 
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col safe-top relative`}
+      className={`gp-column h-full w-full ${containerOverflow} flex flex-col safe-top relative`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

@@ -153,7 +153,7 @@ const SavedAddresses = () => {
   };
   return (
     <div
-      className={`fixed inset-0 flex flex-col ${isDarkMode ? 'bg-brand-bg-dark text-white' : 'bg-white text-black'} font-satoshi overflow-hidden safe-bottom`}
+      className={`gp-pad fixed inset-0 flex flex-col ${isDarkMode ? 'bg-brand-bg-dark text-white' : 'bg-white text-black'} font-satoshi overflow-hidden safe-bottom`}
     >
       {/* Background */}
       <div

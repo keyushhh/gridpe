@@ -1013,7 +1013,7 @@ const Homepage = () => {
           transform: 'translateZ(0)',
         }}
       >
-        <div className="flex flex-col min-h-full">
+        <div className="gp-column gp-column-wide w-full flex flex-col min-h-full">
           <AnimatePresence mode="popLayout">
             {displayNightMode ? (
               <motion.div
@@ -1262,7 +1262,7 @@ const Homepage = () => {
                   </span>
                 </div>
 
-                <div className="mt-[33px] w-full px-[14px]">
+                <div className="mt-[33px] w-full px-[14px] gp-limits">
                   {/* Delivery Limit Section */}
                   <div className="flex flex-col mb-[13px]">
                     <div className="flex justify-between items-center mb-[8px]">

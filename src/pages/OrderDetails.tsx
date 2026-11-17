@@ -359,7 +359,7 @@ const OrderDetails = () => {
   const statusConfig = getStatusConfig(order);
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col safe-top animate-in fade-in duration-500 relative bg-background`}
+      className={`gp-pad h-full w-full ${containerOverflow} flex flex-col safe-top animate-in fade-in duration-500 relative bg-background`}
       style={{
         backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : 'none',
         backgroundSize: 'cover',

@@ -258,7 +258,7 @@ const Settings = () => {
 
   return (
     <div
-      className={`min-h-[100dvh] w-full ${containerOverflow} overflow-y-auto flex flex-col relative`}
+      className={`gp-column min-h-[100dvh] w-full ${containerOverflow} overflow-y-auto flex flex-col relative`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         // Only show mainBg image in Dark Mode as requested (User wanted White in Light Mode)

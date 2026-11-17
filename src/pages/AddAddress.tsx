@@ -326,7 +326,7 @@ const AddAddress = () => {
 
   return (
     <div
-      className={`h-full w-full relative bg-background ${isDarkMode ? 'text-white' : 'text-black'} ${containerOverflow}`}
+      className={`gp-pad h-full w-full relative bg-background ${isDarkMode ? 'text-white' : 'text-black'} ${containerOverflow}`}
     >
       {/* Map */}
       <React.Suspense fallback={<div className="w-full h-full bg-brand-bg-dark" />}>

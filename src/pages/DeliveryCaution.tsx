@@ -90,7 +90,7 @@ const DeliveryCaution = () => {
   };
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col items-center safe-top overflow-y-auto bg-background ${isDarkMode ? 'text-white' : 'text-black'}`}
+      className={`gp-pad fixed inset-0 w-full flex flex-col items-center safe-top overflow-y-auto bg-background ${isDarkMode ? 'text-white' : 'text-black'}`}
       style={{
         backgroundImage: isDarkMode
           ? `url(${step === 'identify' ? ASSETS.BG_DARK_MODE : ASSETS.WARNING_BACKGROUND})`

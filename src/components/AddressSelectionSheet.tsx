@@ -377,7 +377,7 @@ const AddressSelectionSheet: React.FC<AddressSelectionSheetProps> = ({
         dragConstraints={{ top: 0, bottom: 0 }}
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
-        className={`fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col pointer-events-auto z-20`}
+        className={`gp-sheet fixed bottom-0 left-0 right-0 h-[90vh] rounded-t-[36px] flex flex-col pointer-events-auto z-20`}
         style={{
           boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.5)',
           paddingBottom: 'env(safe-area-inset-bottom)',

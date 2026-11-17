@@ -825,7 +825,7 @@ const OnboardingScreen = () => {
         {uiState.step !== 'mpin-setup' && uiState.step !== 'mpin-login' && <LogoSection />}
         {/* Form Section */}
         <div
-          className={`px-6 safe-bottom pb-4 space-y-6 ${uiState.step === 'mpin-setup' || uiState.step === 'mpin-login' ? 'pt-4' : ''}`}
+          className={`gp-column w-full px-6 safe-bottom pb-4 space-y-6 ${uiState.step === 'mpin-setup' || uiState.step === 'mpin-login' ? 'pt-4' : ''}`}
         >
           {/* Phone & OTP Input Screens with Transition */}
           <AnimatePresence mode="wait">

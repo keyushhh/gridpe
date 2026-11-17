@@ -39,7 +39,7 @@ const BottomNavigation = ({ activeTab, isHidden }: BottomNavigationProps) => {
           style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(180,180,200,0.35) 30%, rgba(220,220,240,0.55) 50%, rgba(180,180,200,0.35) 70%, transparent 100%)' }} 
         />
       )}
-      <div className="h-[92px] flex items-center justify-between px-6 pt-2">
+      <div className="gp-nav-row h-[92px] flex items-center justify-between px-6 pt-2">
         {/* Home */}
         <button
           onClick={() => {

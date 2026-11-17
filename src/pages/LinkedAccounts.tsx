@@ -42,7 +42,7 @@ const LinkedAccounts = () => {
     selectedAccountIds.length === AVAILABLE_BANKS.length && AVAILABLE_BANKS.length > 0;
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom overflow-hidden`}
+      className={`gp-column h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom overflow-hidden`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

@@ -28,7 +28,7 @@ const AccountDeactivated = () => {
   };
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col items-center safe-top safe-bottom pb-4 relative`}
+      className={`gp-column h-full w-full ${containerOverflow} flex flex-col items-center safe-top safe-bottom pb-4 relative`}
       style={
         isDarkMode
           ? {

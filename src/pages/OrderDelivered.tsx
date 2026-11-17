@@ -175,7 +175,7 @@ const OrderDelivered = () => {
 
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col items-center overflow-y-auto no-scrollbar pb-10 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad fixed inset-0 w-full h-full flex flex-col items-center overflow-y-auto no-scrollbar pb-10 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.SUCCESS_BG})` : 'none',
         backgroundSize: 'cover',

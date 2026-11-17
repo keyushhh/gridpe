@@ -28,7 +28,7 @@ const ReportRiderKyc = () => {
   };
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col safe-top overflow-y-auto ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad fixed inset-0 w-full h-full flex flex-col safe-top overflow-y-auto ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

@@ -27,7 +27,7 @@ const CardRemoveSuccess = () => {
   }, [navigate]);
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col items-center relative safe-top px-6 pt-4 safe-bottom pb-4`}
+      className={`gp-column h-full w-full ${containerOverflow} flex flex-col items-center relative safe-top px-6 pt-4 safe-bottom pb-4`}
       style={
         isDarkMode
           ? {

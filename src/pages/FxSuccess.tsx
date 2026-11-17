@@ -290,7 +290,7 @@ const FxSuccess = () => {
   const statusConfig = getStatusConfig(order);
   return (
     <div
-      className={`min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-bottom animate-in fade-in duration-500 relative bg-background ${isDarkMode ? 'text-white' : 'text-black'}`}
+      className={`gp-pad min-h-screen w-full overflow-y-auto no-scrollbar scroll-smooth safe-bottom animate-in fade-in duration-500 relative bg-background ${isDarkMode ? 'text-white' : 'text-black'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${statusConfig.bgImage})` : `none`,
         backgroundSize: 'cover',

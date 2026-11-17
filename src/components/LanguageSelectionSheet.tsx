@@ -115,7 +115,7 @@ export const LanguageSelectionSheet: React.FC<LanguageSelectionSheetProps> = ({
         dragConstraints={{ top: 0, bottom: 0 }}
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
-        className="fixed bottom-0 left-0 right-0 max-h-[80vh] rounded-t-[36px] flex flex-col pointer-events-auto z-20 overflow-hidden"
+        className="gp-sheet fixed bottom-0 left-0 right-0 max-h-[80vh] rounded-t-[36px] flex flex-col pointer-events-auto z-20 overflow-hidden"
         style={{
           backgroundColor: isDarkMode ? 'rgba(25, 25, 25, 0.75)' : 'rgba(255, 255, 255, 0.96)',
           borderTop: isDarkMode ? '0.63px solid rgba(255, 255, 255, 0.12)' : '0.63px solid rgba(0, 0, 0, 0.08)',

@@ -197,7 +197,7 @@ const Rewards = () => {
 
   return (
     <div
-      className={`absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} scrollbar-hide`}
+      className={`gp-pad absolute inset-0 flex flex-col overflow-y-auto overscroll-y-contain ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} scrollbar-hide`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : `url(${ASSETS.BG_LIGHT})`,
         backgroundSize: 'cover',

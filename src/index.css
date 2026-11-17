@@ -468,3 +468,56 @@ body,
 .keyboard-open .animate-caret-blink {
   animation: none !important;
 }
+
+/* ── Wide canvases (unfolded iPhone Duo, tablets, resized windows) ──
+   Backgrounds, the bottom nav and sheets stay full-bleed; only the content
+   column is capped so controls don't stretch across the whole screen.
+   Both axes are checked so a landscape phone (wide but short) is untouched. */
+@media (min-width: 640px) and (min-height: 600px) {
+  .gp-column {
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  /* Nav items sit closer together than body content, or they drift apart. */
+  .gp-nav-row {
+    max-width: 430px;
+    margin-inline: auto;
+  }
+}
+
+/* Unfolded landscape (iPhone Duo ~951pt, tablets): the column earns more width
+   and the two limit meters sit side by side instead of stacked. */
+@media (min-width: 900px) and (min-height: 600px) {
+  /* Only the screens that reflow into two columns earn the extra width. */
+  .gp-column-wide {
+    max-width: 720px;
+  }
+
+  .gp-limits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 28px;
+  }
+
+  .gp-limits > * {
+    margin-bottom: 0;
+  }
+}
+
+/* Roots that paint their own background can't be capped — that leaves bars.
+   Pad them instead: the background still fills the screen, the content centres. */
+@media (min-width: 640px) and (min-height: 600px) {
+  .gp-pad {
+    padding-inline: calc((100% - 560px) / 2);
+  }
+}
+
+/* Bottom sheets: centre them on a wide canvas rather than letting a 950pt-wide
+   panel slide up with its content stranded on the left. */
+@media (min-width: 640px) and (min-height: 600px) {
+  .gp-sheet {
+    max-width: 560px;
+    margin-inline: auto;
+  }
+}

@@ -85,7 +85,7 @@ const SelectPaymentMethod = () => {
   ];
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col safe-top ${isDarkMode ? '' : 'bg-white'}`}
+      className={`gp-pad h-full w-full ${containerOverflow} flex flex-col safe-top ${isDarkMode ? '' : 'bg-white'}`}
       style={
         isDarkMode
           ? {

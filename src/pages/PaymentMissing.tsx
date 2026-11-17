@@ -14,7 +14,7 @@ const PaymentMissing = () => {
   const { amount } = location.state || {};
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom ${isDarkMode ? '' : 'bg-white'}`}
+      className={`gp-pad h-full w-full ${containerOverflow} flex flex-col relative safe-top safe-bottom ${isDarkMode ? '' : 'bg-white'}`}
       style={
         isDarkMode
           ? {

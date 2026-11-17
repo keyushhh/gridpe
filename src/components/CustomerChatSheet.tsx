@@ -41,7 +41,7 @@ export default function CustomerChatSheet({
       
       {/* Sheet card */}
       <div 
-        className={`fixed bottom-0 left-0 right-0 z-[151] flex flex-col rounded-t-[32px] overflow-hidden h-[70vh] ${isDarkMode ? 'bg-[#0A0A0A]' : 'bg-white'}`}
+        className={`gp-sheet fixed bottom-0 left-0 right-0 z-[151] flex flex-col rounded-t-[32px] overflow-hidden h-[70vh] ${isDarkMode ? 'bg-[#0A0A0A]' : 'bg-white'}`}
       >
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">

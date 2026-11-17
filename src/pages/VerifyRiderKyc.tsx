@@ -16,7 +16,7 @@ const VerifyRiderKyc = () => {
   };
   return (
     <div
-      className="fixed inset-0 w-full h-full flex flex-col bg-brand-bg-dark safe-top safe-bottom overflow-hidden"
+      className="gp-pad fixed inset-0 w-full h-full flex flex-col bg-brand-bg-dark safe-top safe-bottom overflow-hidden"
       style={{
         backgroundColor: '#0a0a12',
         backgroundImage: `url(${ASSETS.WARNING_BACKGROUND})`,

@@ -95,7 +95,7 @@ const NeedHelp = () => {
     .padStart(2, '0');
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad fixed inset-0 w-full flex flex-col ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
         backgroundSize: 'cover',

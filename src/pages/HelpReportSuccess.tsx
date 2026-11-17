@@ -24,7 +24,7 @@ const HelpReportSuccess = () => {
   }, [navigate]);
   return (
     <div
-      className={`fixed inset-0 w-full flex flex-col safe-top overflow-hidden ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad fixed inset-0 w-full flex flex-col safe-top overflow-hidden ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.SUCCESS_BG})` : 'none',
         backgroundSize: 'cover',

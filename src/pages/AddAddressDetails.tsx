@@ -382,7 +382,7 @@ const AddAddressDetails = () => {
   };
   return (
     <div
-      className={`h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} text-brand-bg-deep`}
+      className={`gp-pad h-full w-full overflow-y-auto overscroll-y-none flex flex-col safe-top relative ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'} text-brand-bg-deep`}
     >
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-scroll safe-bottom relative z-10 font-sans">

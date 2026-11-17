@@ -272,7 +272,7 @@ const ProUpgrade = () => {
 
   return (
     <div 
-      className="min-h-screen w-full relative overflow-y-auto"
+      className="gp-column min-h-screen w-full relative overflow-y-auto"
       style={{
         backgroundImage: `url(${proPageBg})`,
         backgroundSize: 'cover',

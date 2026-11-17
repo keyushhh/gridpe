@@ -45,7 +45,7 @@ const HelpSupport = () => {
   }, []);
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad h-full w-full ${containerOverflow} flex flex-col font-satoshi ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',
         backgroundSize: 'cover',

@@ -56,7 +56,7 @@ const FxPassportGate = () => {
   }
   return (
     <div
-      className={`min-h-screen w-full overflow-y-auto no-scrollbar flex flex-col items-center relative animate-in fade-in duration-500 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad min-h-screen w-full overflow-y-auto no-scrollbar flex flex-col items-center relative animate-in fade-in duration-500 ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: `url(${mainBg})`,
         backgroundSize: 'cover',

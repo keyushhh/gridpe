@@ -25,7 +25,7 @@ const OrderCancelled = () => {
   }, [navigate]);
   return (
     <div
-      className={`fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
+      className={`gp-pad fixed inset-0 w-full h-full flex flex-col safe-top safe-bottom overflow-hidden ${isDarkMode ? 'bg-brand-bg-dark' : 'bg-white'}`}
       style={{
         backgroundImage: isDarkMode ? `url(${ASSETS.ERROR_BG})` : 'none',
         backgroundSize: 'cover',

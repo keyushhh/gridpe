@@ -25,7 +25,7 @@ const HelpCategoryPage = () => {
   };
   return (
     <div
-      className="fixed inset-0 w-full flex flex-col bg-white dark:bg-brand-bg-dark"
+      className="gp-pad fixed inset-0 w-full flex flex-col bg-white dark:bg-brand-bg-dark"
     >
       {/* Background Image */}
       {isDarkMode && (

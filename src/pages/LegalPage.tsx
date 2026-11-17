@@ -213,7 +213,7 @@ const LegalPage = ({ type }: { type: 'privacy' | 'terms' }) => {
     : 'rgba(255, 255, 255, 0.03)';
   return (
     <div
-      className={`h-full w-full ${containerOverflow} flex flex-col font-satoshi relative`}
+      className={`gp-column h-full w-full ${containerOverflow} flex flex-col font-satoshi relative`}
       style={{
         backgroundColor: isDarkMode ? '#05050B' : '#F8FAFC',
         backgroundImage: isDarkMode ? `url(${ASSETS.BG_DARK_MODE})` : 'none',

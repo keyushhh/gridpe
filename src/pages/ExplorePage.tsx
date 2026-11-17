@@ -32,7 +32,7 @@ const ExplorePage = () => {
   return (
     <div
       id="explore-page-root"
-      className="relative h-full flex flex-col overflow-hidden bg-cover bg-center"
+      className="gp-pad relative h-full flex flex-col overflow-hidden bg-cover bg-center"
       style={{
         backgroundImage: `url(${mainBg})`,
         overscrollBehavior: 'none',

@@ -15,7 +15,7 @@ const KYCStatusComplete = () => {
   };
   return (
     <div
-      className="h-[100dvh] w-full overflow-hidden flex flex-col safe-top relative"
+      className="gp-column h-[100dvh] w-full overflow-hidden flex flex-col safe-top relative"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${ASSETS.SUCCESS_BG})` : 'none',

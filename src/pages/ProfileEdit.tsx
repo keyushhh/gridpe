@@ -114,7 +114,7 @@ const ProfileEdit = () => {
   };
   return (
     <div
-      className="h-full w-full overflow-y-auto overscroll-y-none flex flex-col"
+      className="gp-column h-full w-full overflow-y-auto overscroll-y-none flex flex-col"
       style={{
         backgroundColor: isDarkMode ? '#0a0a12' : '#FFFFFF',
         backgroundImage: isDarkMode ? `url(${mainBg})` : 'none',

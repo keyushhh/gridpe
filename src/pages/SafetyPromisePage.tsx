@@ -15,7 +15,7 @@ const SafetyPromisePage = () => {
 
   return (
     <div
-      className="absolute inset-0 flex flex-col overflow-hidden bg-cover bg-center"
+      className="gp-pad absolute inset-0 flex flex-col overflow-hidden bg-cover bg-center"
       style={{ backgroundImage: `url(${mainBg})` }}
     >
       <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-8 safe-top pt-8">
